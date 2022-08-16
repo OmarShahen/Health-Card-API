@@ -3,7 +3,7 @@ const validator = require('../utils/utils')
 
 const memberData = (memberData) => {
 
-    const { clubId, name, email, phone, phoneCountryCode } = memberData
+    const { clubId, name, email, phone, countryCode } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
 
@@ -21,9 +21,9 @@ const memberData = (memberData) => {
 
     if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'phone formate is invalid', field: 'phone' }
 
-    if(!phoneCountryCode) return { isAccepted: false, message: 'phone country code is required', field: 'phoneCountryCode' }
+    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
-    if(!validator.isPhoneCountryCodeValid(phoneCountryCode)) return { isAccepted: false, message: 'invalid phoneCountryCode', field: 'phoneCountryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
 
 
     return { isAccepted: true, message: 'data is valid', data: memberData }

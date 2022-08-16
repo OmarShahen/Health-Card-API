@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const CountrySchema = new mongoose.Schema({
 
     name: { type: String, required: true, unique: true },
+    code: { type: String, required: true, unique: true },
     cities: []
 
 }, { timestamps: true })

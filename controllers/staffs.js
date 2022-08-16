@@ -17,7 +17,7 @@ const addClubOwner = async (request, response) => {
             })
         }
 
-        const { clubId, name, email, phone, phoneCountryCode, password } = request.body
+        const { clubId, name, email, phone, countryCode, password } = request.body
 
         const club = await ClubModel.findById(clubId)
 
@@ -37,7 +37,7 @@ const addClubOwner = async (request, response) => {
             })
         }
 
-        const phoneList = await StaffModel.find({ clubId, phone, phoneCountryCode })
+        const phoneList = await StaffModel.find({ clubId, phone, countryCode })
 
         if(phoneList.length != 0) {
             return response.status(400).json({
@@ -51,7 +51,7 @@ const addClubOwner = async (request, response) => {
             name,
             email,
             phone,
-            phoneCountryCode,
+            countryCode,
             password: bcrypt.hashSync(password, config.SALT_ROUNDS),
             role: 'OWNER'
         }       
@@ -87,7 +87,7 @@ const addStaff = async (request, response) => {
             })
         }
 
-        const { clubId, name, email, phone, phoneCountryCode, password } = request.body
+        const { clubId, name, email, phone, countryCode, password } = request.body
 
         const club = await ClubModel.findById(clubId)
 
@@ -110,7 +110,7 @@ const addStaff = async (request, response) => {
             }
         }
 
-        const phoneList = await StaffModel.find({ clubId, phone, phoneCountryCode })
+        const phoneList = await StaffModel.find({ clubId, phone, countryCode })
 
         if(phoneList.length != 0) {
             return response.status(400).json({
@@ -124,7 +124,7 @@ const addStaff = async (request, response) => {
             name,
             email,
             phone,
-            phoneCountryCode,
+            countryCode,
             password: bcrypt.hashSync(password, config.SALT_ROUNDS),
             role: 'STAFF'
         }       

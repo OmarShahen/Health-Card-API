@@ -5,7 +5,7 @@ const ClubSchema = new mongoose.Schema({
     name: { type: String, required: true },
     imageURL: { type: String },
     phone: { type: String, required: true },
-    phoneCountryCode: { type: String, required: true },
+    countryCode: { type: String, required: true },
     location:{
         address: { type: String, required: true },
         city: { type: String, required: true },

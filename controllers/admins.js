@@ -17,7 +17,7 @@ const addAdmin = async (request, response) => {
             })
         }
 
-        const { name, email, password, phone, phoneCountryCode, role } = request.body
+        const { name, email, password, phone, countryCode, role } = request.body
 
         const emailList = await AdminModel.find({ email })
 
@@ -42,7 +42,7 @@ const addAdmin = async (request, response) => {
             name,
             email,
             phone,
-            phoneCountryCode,
+            countryCode,
             password: bcrypt.hashSync(password, config.SALT_ROUNDS),
             role
         }

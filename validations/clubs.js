@@ -3,11 +3,7 @@ const validator = require('../utils/utils')
 
 const clubData = (clubData) => {
 
-    const { clubId, name, phone, phoneCountryCode, location } = clubData
-
-    if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
-
-    if(!validator.isObjectId(clubId)) return { isAccepted: false, message: 'invalid club Id formate', field: 'clubId' }
+    const { name, phone, countryCode, location } = clubData
 
     if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
 
@@ -15,9 +11,9 @@ const clubData = (clubData) => {
 
     if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'phone formate is invalid', field: 'phone' }
 
-    if(!phoneCountryCode) return { isAccepted: false, message: 'phone country code is required', field: 'phoneCountryCode' }
+    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
-    if(!validator.isPhoneCountryCodeValid(phoneCountryCode)) return { isAccepted: false, message: 'invalid phoneCountryCode', field: 'phoneCountryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
 
     if(!location) return { isAccepted: false, message: 'location is required', field: 'location' }
 

@@ -17,7 +17,7 @@ const addMember = async (request, response) => {
             })
         }
 
-        const { clubId, name, email, phone, phoneCountryCode } = request.body
+        const { clubId, name, email, phone, countryCode } = request.body
 
         const club = await ClubModel.findById(clubId)
 
@@ -42,7 +42,7 @@ const addMember = async (request, response) => {
         }
 
         const phoneList = await MemberModel
-        .find({ clubId, phone, phoneCountryCode })
+        .find({ clubId, phone, countryCode })
 
         if(phoneList.length != 0) {
             return response.status(400).json({
@@ -52,7 +52,7 @@ const addMember = async (request, response) => {
         }
 
 
-        const memberData = { clubId, name, email, phone, phoneCountryCode }
+        const memberData = { clubId, name, email, phone, countryCode }
 
         const memberObj = new MemberModel(memberData)
         const newMember = await memberObj.save()
@@ -77,16 +77,14 @@ const searchMembersByPhone = async (request, response) => {
     try {
 
         const { clubId } = request.params
-        const { phoneCountryCode, phone } = request.query
+        const { countryCode, phone } = request.query
 
         let members
 
-        if(phoneCountryCode && phone) {
-
-            const validPhoneCounterCode = '+' + phoneCountryCode
+        if(countryCode && phone) {
 
             members = await MemberModel
-            .find({ clubId, phoneCountryCode: validPhoneCounterCode, phone })
+            .find({ clubId, countryCode, phone })
             .sort({ createdAt: -1 })
 
         } else {
@@ -96,7 +94,6 @@ const searchMembersByPhone = async (request, response) => {
             .sort({ createdAt: -1 })
 
         }
-
         
         return response.status(200).json({
             members: members

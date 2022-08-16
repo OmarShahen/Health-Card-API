@@ -1,8 +1,8 @@
 const config = require('../config/config')
 
-const isPhoneCountryCodeValid = (code) => {
+const isCountryCodeValid = (code) => {
 
-    const codes = config.PHONE_COUNTRY_CODES
+    const codes = config.COUNTRY_CODES
 
     for(let i=0;i<codes.length;i++) {
 
@@ -14,4 +14,4 @@ const isPhoneCountryCodeValid = (code) => {
     return false
 }
 
-module.exports = { isPhoneCountryCodeValid }
+module.exports = { isCountryCodeValid }

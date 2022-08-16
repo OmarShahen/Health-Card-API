@@ -17,15 +17,15 @@ const adminLogin = (adminData) => {
 
 const staffLogin = (staffData) => {
 
-    const { phone, phoneCountryCode, password } = staffData
+    const { phone, countryCode, password } = staffData
 
     if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
 
     if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'invalid phone formate', field: 'phone' }
     
-    if(!phoneCountryCode) return { isAccepted: false, message: 'phone country code is required', field: 'phoneCountryCode' }
+    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
-    if(!validator.isPhoneCountryCodeValid(phoneCountryCode)) return { isAccepted: false, message: 'invalid phone country code', field: 'phoneCountryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country code', field: 'countryCode' }
     
     if(!password) return { isAccepted: false, message: 'password is required', field: 'password' }
 

@@ -1,14 +1,13 @@
 const validator = require('../utils/utils')
 
 
-const adminSignUp = (bidderData) => {
+const adminSignUp = (adminData) => {
 
-    const { name, email, password, phone, phoneCountryCode, role } = bidderData
+    const { name, email, password, phone, countryCode, role } = adminData
 
     if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
 
     if(!validator.isNameValid(name)) return { isAccepted: false, message: 'name entered has invalid characters', field: 'name'  }
-
 
     if(!email) return { isAccepted: false, message: 'email is required', field: 'email'  }
 
@@ -20,15 +19,15 @@ const adminSignUp = (bidderData) => {
 
     if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'invalid phone formate', field: 'phone' }
 
-    if(!phoneCountryCode) return { isAccepted: false, message: 'phone country code is required', field: 'phoneCountryCode' }
+    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
-    if(!validator.isPhoneCountryCodeValid(phoneCountryCode)) return { isAccepted: false, message: 'invalid phone country code', field: 'phoneCountryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country code', field: 'countryCode' }
 
     if(!role) return { isAccepted: false, message: 'role is required', field: 'role' }
 
     if(!validator.isAdminRole(role)) return { isAccepted: false, message: 'invalid admin role', field: 'role' }
 
-    return { isAccepted: true, message: 'data is valid', data: bidderData } 
+    return { isAccepted: true, message: 'data is valid', data: adminData } 
 
 }
 

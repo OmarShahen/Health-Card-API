@@ -4,7 +4,7 @@ const addCountry = async (request, response) => {
 
     try {
 
-        let { name } = request.body
+        let { name, code } = request.body
 
         if(!name) {
             return response.status(400).json({
@@ -20,6 +20,20 @@ const addCountry = async (request, response) => {
             })
         }
 
+        if(!code) {
+            return response.status(400).json({
+                message: 'country code is required',
+                field: 'code'
+            })
+        }
+
+        if(!Number.isInteger(code)) {
+            return response.status(400).json({
+                message: 'country code must be a number',
+                field: 'code'
+            })
+        }
+
         name = name.toUpperCase()
 
         const countriesList = await CountryModel.find({ name })
@@ -31,11 +45,20 @@ const addCountry = async (request, response) => {
             })
         }
 
-        const countryObj = new CountryModel({ name })
+        const codesList = await CountryModel.find({ code })
+
+        if(codesList.length != 0) {
+            return response.status(400).json({
+                message: 'country code is already registered',
+                field: 'code'
+            })
+        }
+
+        const countryObj = new CountryModel({ name, code })
         const newCountry = await countryObj.save() 
 
         return response.status(200).json({
-            message: `${name} is added successfully`,
+            message: `${name} +${code} is added successfully`,
             country: newCountry
         })
 

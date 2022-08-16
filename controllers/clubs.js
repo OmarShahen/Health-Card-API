@@ -16,9 +16,9 @@ const addClub = async (request, response) => {
             })
         }
 
-        const { phone, phoneCountryCode } = request.body
+        const { phone, countryCode } = request.body
 
-        const phoneList = await ClubModel.find({ phone, phoneCountryCode })
+        const phoneList = await ClubModel.find({ phone, countryCode })
 
         if(phoneList.length != 0) {
             return response.status(400).json({

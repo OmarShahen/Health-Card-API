@@ -2,6 +2,7 @@ const config = require('../config/config')
 const authValidation = require('../validations/auth')
 const AdminModel = require('../models/AdminModel')
 const ClubModel = require('../models/ClubModel')
+const StaffModel = require('../models/StaffModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 
@@ -43,7 +44,7 @@ const adminLogin = async (request, response) => {
             _id: adminsMailList[0]._id,
             email: adminsMailList[0].email,
             phone: adminsMailList[0].phone,
-            phoneCountryCode: adminsMailList[0].phoneCountryCode,
+            countryCode: adminsMailList[0].countryCode,
             role: adminsMailList[0].role,
             createdAt: adminsMailList[0].createdAt
         }
@@ -79,11 +80,10 @@ const staffLogin = async (request, response) => {
             })
         }
 
-        const { phone, phoneCountryCode, password } = request.body
+        const { phone, countryCode, password } = request.body
 
-        const staffList = await ClubModel
-        .find({ 'staff.phone': phone, 'staff.phoneCountryCode': phoneCountryCode })
-        .select({ staff: 1 })
+        const staffList = await StaffModel
+        .find({ phone, countryCode })
 
         if(staffList.length == 0) {
             return response.status(400).json({
@@ -92,9 +92,7 @@ const staffLogin = async (request, response) => {
             })
         }
 
-        const staffMemberList = staffList[0].staff.filter(staff => staff.phone == phone )
-
-        if(!bcrypt.compareSync(password, staffMemberList[0].password)) {
+        if(!bcrypt.compareSync(password, staffList[0].password)) {
             return response.status(400).json({
                 message: 'wrong password',
                 field: 'password'
@@ -102,12 +100,11 @@ const staffLogin = async (request, response) => {
         }
 
 
-        staffMemberList[0].password = null
-        const token = jwt.sign(staffMemberList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const token = jwt.sign(staffList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
 
         return response.status(200).json({
             token: token,
-            staffMember: staffMemberList[0]
+            staff: staffList[0]
         })
 
     } catch(error) {
