@@ -13,6 +13,8 @@ const staffData = (staffData) => {
 
     if(!validator.isNameValid(name)) return { isAccepted: false, message: 'invalid name formate', field: 'name' }
 
+    if(name.split(' ').length != 2) return { isAccepted: false, message: 'name must be 2 words', field: 'name' }
+
     if(email) {
         if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'email formate is invalid', field: 'email' }
     }
