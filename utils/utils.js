@@ -8,6 +8,7 @@ const { isCountryCodeValid } = require('./validateCountryCodes')
 const { isExpirationPeriodValid } = require('./validateExpiresIn')
 const { calculateExpirationDate } = require('./calculateExpirationDate')
 const { joinRegistrationPackages } = require('./joinRegistrationPackages')
+const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
 
 module.exports = {
     isNameValid,
@@ -19,5 +20,6 @@ module.exports = {
     isCountryCodeValid,
     isExpirationPeriodValid,
     calculateExpirationDate,
-    joinRegistrationPackages
+    joinRegistrationPackages,
+    isWhatsappLanguageValid
 }

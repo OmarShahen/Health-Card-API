@@ -6,6 +6,7 @@ const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
 const PackageModel = require('../models/PackageModel')
+const utils = require('../utils/utils')
 
 
 const addCancelRegistration = async (request, response) => {
@@ -130,4 +131,34 @@ const addCancelRegistration = async (request, response) => {
     }
 }
 
-module.exports = { addCancelRegistration }
+const getCancelledRegistrations = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        if(!utils.isObjectId(clubId)) {
+            return response.status(400).json({
+                message: 'invalid club Id formate',
+                field: 'clubId'
+            })
+        }
+
+        const cancelledRegistrations = await CancelledRegistrationModel
+        .find({ clubId })
+        .sort({ createdAt: -1 })
+
+        return response.status(200).json({
+            cancelledRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { addCancelRegistration, getCancelledRegistrations }

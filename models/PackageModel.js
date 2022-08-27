@@ -5,7 +5,8 @@ const PackageSchmea = new mongoose.Schema({
     title: { type: String, required: true },
     attendance: { type: Number, required: true },
     expiresIn: { type: String, required: true },
-    price: { type: Number, required: true }
+    price: { type: Number, required: true },
+    isOpen: { type: Boolean, default: true }
 
 }, { timestamps: true })
 

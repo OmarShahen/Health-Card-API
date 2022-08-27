@@ -1,10 +1,13 @@
 const config = require('../config/config')
 const authValidation = require('../validations/auth')
+const utils = require('../utils/utils')
 const AdminModel = require('../models/AdminModel')
 const ClubModel = require('../models/ClubModel')
+const MemberModel = require('../models/MemberModel')
 const StaffModel = require('../models/StaffModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
+const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 
 const adminLogin = async (request, response) => {
 
@@ -83,7 +86,7 @@ const staffLogin = async (request, response) => {
         const { phone, countryCode, password } = request.body
 
         const staffList = await StaffModel
-        .find({ phone, countryCode })
+        .find({ phone, countryCode, isAccountActive: true })
 
         if(staffList.length == 0) {
             return response.status(400).json({
@@ -116,7 +119,109 @@ const staffLogin = async (request, response) => {
     }
 }
 
+const sendForgetPasswordMail = async (request, response) => {
+
+    try {
+
+        const { email } = request.body
+
+        const emailList = await StaffModel.find({ email })
+
+        if(emailList.length == 0) {
+            return response.status(404).json({
+                message: 'email does not exist',
+                field: 'email'
+            })
+        }
+
+        console.log(emailList)
+
+        return response.status(200).json({
+            message: 'done'
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const sendMemberQRCodeWhatsapp = async (request, response) => {
+
+    try {
+
+        const { memberId, languageCode } = request.params
+
+        if(!utils.isObjectId(memberId)) {
+            return response.status(406).json({
+                message: 'invalid member Id formate',
+                field: 'memberId'
+            })
+        }
+
+        if(!utils.isWhatsappLanguageValid(languageCode)) {
+            return response.status(400).json({
+                message: 'invalid language code',
+                field: 'languageCode'
+            })
+        }
+
+        const member = await MemberModel.findById(memberId)
+
+        if(!member) {
+            return response.status(404).json({
+                message: 'member account does not exist',
+                field: 'memberId'
+            })
+        }
+
+        if(!member.canAuthenticate) {
+            return response.status(400).json({
+                message: 'authentication is closed for this member',
+                field: 'memberId'
+            })
+        }
+
+        const memberClub = await ClubModel.findById(member.clubId)
+
+        const QR_CODE_URL = member.QRCodeURL
+        const memberPhone = member.countryCode + member.phone
+        const clubData = {
+            name: memberClub.name,
+            phone: memberClub.countryCode + memberClub.phone,
+            address: `${memberClub.location.address} ${memberClub.location.city} ${memberClub.location.country}`
+        }
+
+       const messageResponse = await whatsappRequest.sendQRCode(memberPhone, languageCode, QR_CODE_URL, clubData)
+
+        if(messageResponse.isSent == false) {
+            return response.status(400).json({
+                message: 'could not send member message',
+                field: 'memberId'
+            })
+        }
+
+
+        return response.status(200).json({
+            message: 'verification message is sent successfully',
+            member,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = {
     adminLogin,
-    staffLogin
+    staffLogin,
+    sendForgetPasswordMail,
+    sendMemberQRCodeWhatsapp
 }

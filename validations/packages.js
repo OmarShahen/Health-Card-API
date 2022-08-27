@@ -19,6 +19,8 @@ const packageData = (packageData) => {
         return { isAccepted: false, message: `maximum number of attendance is ${config.MAX_ATTENDANCE}`, field: 'attendance' }
     }
 
+    if(attendance <= 0) return { isAccepted: false, message: 'minimum number of attendance is 1', field: 'attendance' } 
+
     if(!expiresIn) return { isAccepted: false, message: 'expiration period is required', field: 'expiresIn' }
 
     const validateExpirationPeriod = validator.isExpirationPeriodValid(expiresIn)
@@ -30,9 +32,43 @@ const packageData = (packageData) => {
 
     if(!Number.isInteger(price)) return { isAccepted: false, message: 'price must be a number', field: 'price' }
 
+    if(price < 0) return { isAccepted: false, message: 'price must be at least 0', field: 'price' }
 
     return { isAccepted: true, message: 'data is valid', data: packageData }
 
 }
 
-module.exports = { packageData } 
+const updatePackageData = (packageData) => {
+
+    const { title, attendance, expiresIn, price } = packageData
+
+    if(!title) return { isAccepted: false, message: 'title is required', field: 'title' }
+
+    if(!attendance) return { isAccepted: false, message: 'attendance is required', field: 'attendance' }
+
+    if(!Number.isInteger(attendance)) return { isAccepted: false, message: 'attendance must be a number', field: 'attendance' }
+
+    if(attendance > config.MAX_ATTENDANCE) {
+        return { isAccepted: false, message: `maximum number of attendance is ${config.MAX_ATTENDANCE}`, field: 'attendance' }
+    }
+
+    if(attendance <= 0) return { isAccepted: false, message: 'minimum number of attendance is 1', field: 'attendance' } 
+
+    if(!expiresIn) return { isAccepted: false, message: 'expiration period is required', field: 'expiresIn' }
+
+    const validateExpirationPeriod = validator.isExpirationPeriodValid(expiresIn)
+    if(!validateExpirationPeriod.isAccepted) {
+        return validateExpirationPeriod
+    }
+
+    if(!price) return { isAccepted: false, message: 'price is required', field: 'price' }
+
+    if(!Number.isInteger(price)) return { isAccepted: false, message: 'price must be a number', field: 'price' }
+
+    if(price < 0) return { isAccepted: false, message: 'price must be at least 0', field: 'price' }
+
+    return { isAccepted: true, message: 'data is valid', data: packageData }
+
+}
+
+module.exports = { packageData, updatePackageData } 

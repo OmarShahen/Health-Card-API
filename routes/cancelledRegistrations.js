@@ -5,5 +5,6 @@ const tokenMiddleware = require('../middlewares/verify-permission')
 
 router.post('/cancelled-registrations', (request, response) => cancelledRegistrationsController.addCancelRegistration(request, response))
 
+router.get('/cancelled-registrations/clubs/:clubId', (request, response) => cancelledRegistrationsController.getCancelledRegistrations(request, response))
 
 module.exports = router

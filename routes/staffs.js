@@ -6,4 +6,14 @@ router.post('/staffs/owners', (request, response) => staffsController.addClubOwn
 
 router.post('/staffs/staffs', (request, response) => staffsController.addStaff(request, response))
 
+router.get('/staffs/clubs/:clubId', (request, response) => staffsController.getStaffs(request, response))
+
+router.put('/staffs/:staffId', verifyIds.verifyStaffId, (request, response) => staffsController.updateStaff(request, response))
+
+router.delete('/staffs/:staffId', verifyIds.verifyStaffId, (request, response) => staffsController.deleteStaff(request, response))
+
+router.patch('/staffs/:staffId', verifyIds.verifyStaffId, (request, response) => staffsController.updateStaffStatus(request, response))
+
+router.delete('/staffs/:staffId/wild', verifyIds.verifyStaffId, (request, response) => staffsController.deleteStaffAndRelated(request, response))
+
 module.exports = router

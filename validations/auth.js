@@ -33,4 +33,5 @@ const staffLogin = (staffData) => {
 
 }
 
+
 module.exports = { adminLogin, staffLogin } 

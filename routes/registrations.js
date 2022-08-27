@@ -6,6 +6,11 @@ router.post('/registrations', (request, response) => registrationsController.add
 
 router.get('/registrations/clubs/:clubId/members/:memberId', verifyIds.verifyClubId, (request, response) => registrationsController.getMemberRegistrations(request, response))
 
-router.patch('/registrations/:registrationId', verifyIds.verifyRegistrationId, (request, response) => registrationsController.updateMemberAttendance(request, response))
+router.patch('/registrations/:registrationId/staffs/:staffId',
+ verifyIds.verifyRegistrationId,
+ verifyIds.verifyStaffId,
+  (request, response) => registrationsController.updateMemberAttendance(request, response))
+
+router.get('/registrations/clubs/:clubId', (request, response) => registrationsController.getRegistrations(request, response))
 
 module.exports = router

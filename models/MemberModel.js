@@ -5,7 +5,10 @@ const MemberSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String },
     phone: { type: String, required: true, },
-    countryCode: { type: String, required: true }
+    countryCode: { type: String, required: true },
+    canAuthenticate: { type: Boolean, required: true },
+    QRCodeURL: { type: String },
+    isBlocked: { type: Boolean, default: false }
 
 }, { timestamps: true })
 

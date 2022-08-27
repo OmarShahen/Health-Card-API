@@ -27,7 +27,7 @@ const addRegistration = async (request, response) => {
             ClubModel.find({ _id: clubId }),
             MemberModel.find({ _id: memberId, clubId }),
             StaffModel.find({ _id: staffId, clubId }),
-            PackageModel.find({ _id: packageId, clubId })
+            PackageModel.find({ _id: packageId, clubId, isOpen: true })
         ])
 
         if(clubsList.length == 0) {
@@ -40,6 +40,13 @@ const addRegistration = async (request, response) => {
         if(membersList.length == 0) {
             return response.status(400).json({
                 message: 'member Id does not exist',
+                field: 'memberId'
+            })
+        }
+
+        if(membersList[0].isBlocked == true) {
+            return response.status(400).json({
+                message: 'member is blocked',
                 field: 'memberId'
             })
         }
@@ -86,6 +93,9 @@ const addRegistration = async (request, response) => {
             expiresAt,
             paid,
             attended: 1,
+            attendances: [
+                { staffId, attendanceDate: new Date() }
+            ],
             isActive
         }
 
@@ -99,6 +109,55 @@ const addRegistration = async (request, response) => {
 
     } catch(error) {
         console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getRegistrations = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { status } = request.query
+
+        if(!utils.isObjectId(clubId)) {
+            return response.status(400).json({
+                message: 'invalid club Id formate',
+                field: 'clubId'
+            })
+        }
+
+        let registrations
+
+        if(status == 'active') {
+
+            registrations = await RegistrationModel
+            .find({ clubId, isActive: true })
+            .sort({ createdAt: -1 })
+
+        } else if(status == 'expired') {
+
+            registrations = await RegistrationModel
+            .find({ clubId, isActive: false })
+            .sort({ createdAt: -1 })
+
+        } else {
+
+            registrations = await RegistrationModel
+            .find({ clubId })
+            .sort({ createdAt: -1 })
+
+        }
+
+        return response.status(200).json({
+            registrations
+        })
+
+    } catch(error) {
+        console.log(error)
         return response.status(500).json({
             message: 'internal server error',
             error: error.message
@@ -183,18 +242,20 @@ const updateMemberAttendance = async (request, response) => {
 
     try {
 
-        const { registrationId } = request.params
+        const { registrationId, staffId } = request.params
 
         const registrationList = await RegistrationModel.find({ _id: registrationId })
 
-        if(registrationList.length == 0) {
-            return response.status(404).json({
-                message: 'registration Id does not exist',
-                field: 'registrationId'
+        const registration = registrationList[0]
+
+        const member = await MemberModel.findById(registration.memberId)
+
+        if(member.isBlocked) {
+            return response.status(400).json({
+                message: 'member is blocked',
+                field: 'memberId'
             })
         }
-
-        const registration = registrationList[0]
 
         if(!registration.isActive) {
             return response.status(400).json({
@@ -208,7 +269,7 @@ const updateMemberAttendance = async (request, response) => {
         if(registration.expiresAt < currentDate) {
             
             const updatedRegistration = await RegistrationModel
-            .findByIdAndUpdate(registrationId, { isActive: false }, { new:true })
+            .findByIdAndUpdate(registrationId, { isActive: false }, { new: true })
 
             return response.status(400).json({
                 message: 'member registration expired',
@@ -224,16 +285,17 @@ const updateMemberAttendance = async (request, response) => {
         const NEW_ATTENDANCE = MEMBER_CURRENT_ATTENDANCE + 1
 
         let updatedRegistration
+        let newAttendance = { staffId, attendanceDate: new Date() }
 
         if(PACKAGE_ATTENDANCE == NEW_ATTENDANCE) {
             
             updatedRegistration = await RegistrationModel
-            .findByIdAndUpdate(registrationId, { attended: NEW_ATTENDANCE, isActive: false }, { new: true })
+            .findByIdAndUpdate(registrationId, { attended: NEW_ATTENDANCE, $push: { attendances: newAttendance }, isActive: false }, { new: true })
         
         } else {
 
             updatedRegistration = await RegistrationModel
-            .findByIdAndUpdate(registrationId, { attended: NEW_ATTENDANCE }, { new: true })
+            .findByIdAndUpdate(registrationId, { attended: NEW_ATTENDANCE, $push: { attendances: newAttendance } }, { new: true })
  
         }
 
@@ -253,4 +315,4 @@ const updateMemberAttendance = async (request, response) => {
 
 
 
-module.exports = { addRegistration, getMemberRegistrations, updateMemberAttendance }
+module.exports = { addRegistration, getMemberRegistrations, updateMemberAttendance, getRegistrations }
