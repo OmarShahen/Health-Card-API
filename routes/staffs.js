@@ -6,7 +6,7 @@ router.post('/staffs/owners', (request, response) => staffsController.addClubOwn
 
 router.post('/staffs/staffs', (request, response) => staffsController.addStaff(request, response))
 
-router.get('/staffs/clubs/:clubId', (request, response) => staffsController.getStaffs(request, response))
+router.get('/staffs/clubs/:clubId', verifyIds.verifyClubId, (request, response) => staffsController.getStaffs(request, response))
 
 router.put('/staffs/:staffId', verifyIds.verifyStaffId, (request, response) => staffsController.updateStaff(request, response))
 

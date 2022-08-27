@@ -15,4 +15,6 @@ router.patch('/members/:memberId', verifyIds.verifyMemberId, (request, response)
 
 router.delete('/members/:memberId/wild', verifyIds.verifyMemberId, (request, response) => membersController.deleteMemberAndRelated(request, response))
 
+router.get('/members/clubs/:clubId', verifyIds.verifyClubId, (request, response) => membersController.getMembers(request, response))
+
 module.exports = router

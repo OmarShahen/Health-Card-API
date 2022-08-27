@@ -163,17 +163,31 @@ const getStaffs = async (request, response) => {
     try {
 
         const { clubId } = request.params
+        const { accountStatus } = request.query
 
-        if(!utils.isObjectId(clubId)) {
-            return response.status(400).json({
-                message: 'invalid club Id formate',
-                field: 'clubId'
-            })
+        let staffs 
+
+        if(accountStatus == 'active') {
+
+            staffs = await StaffModel
+            .find({ clubId, role: 'STAFF', isAccountActive: true })
+            .sort({ createdAt: -1 })
+            .select({ password: 0 })
+
+        } else if(accountStatus == 'removed') {
+
+            staffs = await StaffModel
+            .find({ clubId, role: 'STAFF', isAccountActive: false })
+            .sort({ createdAt: -1 })
+            .select({ password: 0 })
+
+        } else {
+
+            staffs = await StaffModel
+            .find({ clubId, role: 'STAFF' })
+            .sort({ createdAt: -1 })
+            .select({ password: 0 })
         }
-
-        const staffs = await StaffModel
-        .find({ clubId, role: 'STAFF' })
-        .sort({ createdAt: -1 })
 
         return response.status(200).json({
             staffs

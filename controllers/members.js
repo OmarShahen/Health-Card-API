@@ -143,6 +143,45 @@ const searchMembersByPhone = async (request, response) => {
     }
 }
 
+const getMembers = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { status } = request.query
+
+        let members
+
+        if(status == 'active') {
+
+            members = await MemberModel
+            .find({ clubId, isBlocked: false })
+
+        } else if(status == 'blocked') {
+
+            members = await MemberModel
+            .find({ clubId, isBlocked: true })
+
+        } else {
+
+            members = await MemberModel
+            .find({ clubId })
+        }
+
+        return response.status(200).json({
+            members
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deleteMember = async (request, response) => {
 
     try {
@@ -322,5 +361,6 @@ module.exports = {
     deleteMember, 
     updateMember,
     updateMemberStatus,
-    deleteMemberAndRelated
+    deleteMemberAndRelated,
+    getMembers
 }

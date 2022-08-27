@@ -62,12 +62,35 @@ const getPackages = async (request, response) => {
     try {
 
         const { clubId } = request.params
+        const { status } = request.query
 
-        const packagesList = await PackageModel
-        .find({ clubId })
+        let packages
+
+        if(status == 'active') {
+
+            packages = await PackageModel
+            .find({ clubId, isOpen: true })
+
+        } else if(status == 'removed') {
+
+            packages = await PackageModel
+            .find({ clubId, isOpen: false })
+
+        } else if(status == 'all') {
+
+            packages = await PackageModel
+            .find({ clubId })
+
+        } else {
+
+            packages = await PackageModel
+            .find({ clubId, isOpen: true })
+
+        }
+
 
         return response.status(200).json({
-            packages: packagesList
+            packages
         })
 
     } catch(error) {
