@@ -355,6 +355,54 @@ const deleteMemberAndRelated = async (request, response) => {
     }
 }
 
+const getMembersStatsByDate = async (request, response) => {
+
+    try {
+
+        const { clubId, statsDate } = request.params
+
+        if(!utils.isDateValid(statsDate)) {
+            return response.status(400).json({
+                message: 'invalid date formate',
+                field: 'statsDate'
+            })
+        }
+
+        let fromDateTemp = new Date(statsDate)
+        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+
+        const members = await MemberModel
+        .find({ clubId, createdAt: {
+            $lte: toDate
+        }})
+
+        const numberOfMembers = members.length
+
+        const activeMembers = members.filter(member => member.isBlocked == false)
+        const numberOfActiveMembers = activeMembers.length
+
+        const blockedMembers = members.filter(member => member.isBlocked == true)
+        const numberOfBlockedMembers = blockedMembers.length
+
+        return response.status(200).json({
+            message: 'nothing',
+            numberOfMembers,
+            numberOfActiveMembers,
+            numberOfBlockedMembers,
+            members,
+            activeMembers,
+            blockedMembers
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addMember, 
     searchMembersByPhone, 
@@ -362,5 +410,6 @@ module.exports = {
     updateMember,
     updateMemberStatus,
     deleteMemberAndRelated,
-    getMembers
+    getMembers,
+    getMembersStatsByDate
 }

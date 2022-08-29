@@ -14,4 +14,6 @@ router.patch('/packages/:packageId', verifyIds.verifyPackageId, (request, respon
 
 router.delete('/packages/:packageId/wild', verifyIds.verifyPackageId, (request, response) => packagesController.deletedPackageAndRelated(request, response))
 
+router.get('/packages/clubs/:clubId/stats/:statsDate', verifyIds.verifyClubId, (request, response) => packagesController.getClubPackagesStatsByDate(request, response))
+
 module.exports = router

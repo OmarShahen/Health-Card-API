@@ -2,6 +2,7 @@ const packageValidation = require('../validations/packages')
 const PackageModel = require('../models/PackageModel')
 const ClubModel = require('../models/ClubModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const utils = require('../utils/utils')
 
 
 const addPackage = async (request, response) => {
@@ -252,11 +253,60 @@ const deletedPackageAndRelated = async (request, response) => {
     }
 }
 
+const getClubPackagesStatsByDate = async (request, response) => {
+
+    try {
+
+        const { clubId, statsDate } = request.params
+
+        if(!utils.isDateValid(statsDate)) {
+            return response.status(400).json({
+                message: 'invalid date formate',
+                field: 'statsDate'
+            })
+        }
+
+        let fromDateTemp = new Date(statsDate)
+        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+
+        const packages = await PackageModel
+        .find({ clubId, createdAt: {
+            $lte: toDate
+        }})
+        .select({ updatedAt: 0, __v: 0 })
+
+        const numberOfPackages = packages.length
+
+        const closedPackages = packages.filter(package => package.isOpen == false)
+        const numberOfClosedPackages = closedPackages.length
+
+        const openedPackages = packages.filter(package => package.isOpen == true)
+        const numberOfOpenedPackages = openedPackages.length
+
+        return response.status(200).json({
+            numberOfPackages,
+            packages,
+            numberOfClosedPackages,
+            closedPackages,
+            numberOfOpenedPackages,
+            openedPackages
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addPackage, 
     getPackages, 
     updatePackage, 
     deletePackage,
     updatePackageStatus,
-    deletedPackageAndRelated
+    deletedPackageAndRelated,
+    getClubPackagesStatsByDate
 }

@@ -58,6 +58,8 @@ const addRegistration = async (request, response) => {
             })
         }
 
+        console.log(packagesList)
+
         if(packagesList.length == 0) {
             return response.status(400).json({
                 message: 'package Id does not exist',
@@ -315,4 +317,9 @@ const updateMemberAttendance = async (request, response) => {
 
 
 
-module.exports = { addRegistration, getMemberRegistrations, updateMemberAttendance, getRegistrations }
+module.exports = { 
+    addRegistration, 
+    getMemberRegistrations, 
+    updateMemberAttendance, 
+    getRegistrations,
+}

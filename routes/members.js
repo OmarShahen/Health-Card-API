@@ -17,4 +17,6 @@ router.delete('/members/:memberId/wild', verifyIds.verifyMemberId, (request, res
 
 router.get('/members/clubs/:clubId', verifyIds.verifyClubId, (request, response) => membersController.getMembers(request, response))
 
+router.get('/members/clubs/:clubId/stats/:statsDate', verifyIds.verifyClubId, (request, response) => membersController.getMembersStatsByDate(request, response))
+
 module.exports = router

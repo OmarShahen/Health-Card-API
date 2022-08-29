@@ -9,6 +9,8 @@ const { isExpirationPeriodValid } = require('./validateExpiresIn')
 const { calculateExpirationDate } = require('./calculateExpirationDate')
 const { joinRegistrationPackages } = require('./joinRegistrationPackages')
 const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
+const { isDateValid } = require('./validateDate')
+const { calculateRegistrationsTotalEarnings, calculateTotalAttendanceByDate } = require('./calculations')
 
 module.exports = {
     isNameValid,
@@ -21,5 +23,8 @@ module.exports = {
     isExpirationPeriodValid,
     calculateExpirationDate,
     joinRegistrationPackages,
-    isWhatsappLanguageValid
+    isWhatsappLanguageValid,
+    isDateValid,
+    calculateRegistrationsTotalEarnings,
+    calculateTotalAttendanceByDate
 }
