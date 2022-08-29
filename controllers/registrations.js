@@ -27,7 +27,7 @@ const addRegistration = async (request, response) => {
             ClubModel.find({ _id: clubId }),
             MemberModel.find({ _id: memberId, clubId }),
             StaffModel.find({ _id: staffId, clubId }),
-            PackageModel.find({ _id: packageId, clubId, isOpen: true })
+            PackageModel.find({ _id: packageId, clubId })
         ])
 
         if(clubsList.length == 0) {
