@@ -16,4 +16,6 @@ router.delete('/packages/:packageId/wild', verifyIds.verifyPackageId, (request, 
 
 router.get('/packages/clubs/:clubId/stats/:statsDate', verifyIds.verifyClubId, (request, response) => packagesController.getClubPackagesStatsByDate(request, response))
 
+router.get('/packages/:packageId/stats/:statsDate', verifyIds.verifyPackageId, (request, response) => packagesController.getClubPackageStatsByDate(request, response))
+
 module.exports = router

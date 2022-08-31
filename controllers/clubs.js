@@ -74,26 +74,6 @@ const addClub = async (request, response) => {
     }
 }
 
-const getClubs = async (request, response) => {
-
-    try {
-
-        const clubs = await ClubModel
-        .find()
-        .select({ _id: 1, name: 1 })
-
-        return response.status(200).json({
-            clubs
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
 
 const getClubStatsByDate = async (request, response) => {
 
@@ -204,5 +184,24 @@ const getClubStatsByDate = async (request, response) => {
     }
 }
 
+const getClubs = async (request, response) => {
 
-module.exports = { addClub, getClubs, getClubStatsByDate }
+    try {
+
+        const clubs = await ClubModel.find()
+
+        return response.status(200).json({
+            clubs
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
+module.exports = { addClub, getClubStatsByDate, getClubs }

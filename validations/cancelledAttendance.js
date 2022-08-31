@@ -14,10 +14,6 @@ const cancelledAttendanceData = (cancelledAttendanceData) => {
 
     if(!validator.isObjectId(staffId)) return { isAccepted: false, message: 'invalid staff Id formate', field: 'staffId' }
 
-    if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
-
-    if(!validator.isObjectId(clubId)) return { isAccepted: false, message: 'invalid club Id formate', field: 'clubId' }
-
 
     return { isAccepted: true, message: 'data is valid', data: cancelledAttendanceData }
 

@@ -13,6 +13,6 @@ module.exports = {
         BASE_URL: 'https://graph.facebook.com/v13.0',
         TOKEN: process.env.WHATSAPP_TOKEN,
         LANGUAGES: ['en_US'],
-        PHONE_NUMBER_ID: 106539322179267
+        PHONE_NUMBER_ID: 100238229498518
     }
 }

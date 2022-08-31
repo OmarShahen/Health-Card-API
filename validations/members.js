@@ -3,7 +3,7 @@ const validator = require('../utils/utils')
 
 const memberData = (memberData) => {
 
-    const { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, languageCode } = memberData
+    const { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
 
@@ -31,7 +31,11 @@ const memberData = (memberData) => {
 
     if(canAuthenticate == true ) {
         if(!QRCodeURL) return { isAccepted: false, message: 'QR code URL is required', field: 'QRCodeURL' }
-    
+        
+        if(!QRCodeUUID) return { isAccepted: false, message: 'QR code UUID is required', field: 'QRCodeUUID' }
+
+        if(!validator.isUUIDValid(QRCodeUUID)) return { isAccepted: false, message: 'invalid QR code UUID formate', field: 'QRCodeUUID' }
+
         if(!languageCode) return { isAccepted: false, message: 'languageCode is required', field: 'languageCode' }
         
         if(!validator.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: 'language code is not registered', field: 'languageCode' }
@@ -74,4 +78,18 @@ const updateMemberData = (memberData) => {
 
 }
 
-module.exports = { memberData, updateMemberData } 
+const updateMemberQRcodeVerificationData = (memberData) => {
+
+    const { QRCodeURL, QRCodeUUID } = memberData
+
+    if(!QRCodeURL) return { isAccepted: false, message: 'QR code URL is required', field: 'QRCodeURL' }
+        
+    if(!QRCodeUUID) return { isAccepted: false, message: 'QR code UUID is required', field: 'QRCodeUUID' }
+
+    if(!validator.isUUIDValid(QRCodeUUID)) return { isAccepted: false, message: 'invalid QR code UUID formate', field: 'QRCodeUUID' }
+
+    return { isAccepted: true, message: 'data is valid', data: memberData }
+
+}
+
+module.exports = { memberData, updateMemberData, updateMemberQRcodeVerificationData } 

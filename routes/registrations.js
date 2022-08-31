@@ -11,6 +11,8 @@ router.patch('/registrations/:registrationId/staffs/:staffId',
  verifyIds.verifyStaffId,
   (request, response) => registrationsController.updateMemberAttendance(request, response))
 
-router.get('/registrations/clubs/:clubId', (request, response) => registrationsController.getRegistrations(request, response))
+router.get('/registrations/clubs/:clubId', verifyIds.verifyClubId, (request, response) => registrationsController.getRegistrations(request, response))
+
+router.get('/registrations/clubs/:clubId/stats/:statsDate', verifyIds.verifyClubId, (request, response) => registrationsController.getClubRegistrationsStatsByDate(request, response))
 
 module.exports = router

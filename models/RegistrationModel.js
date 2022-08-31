@@ -7,12 +7,6 @@ const RegistrationSchema = new mongoose.Schema({
     packageId: { type: mongoose.Types.ObjectId, required: true },
     isActive: { type: Boolean, default: true },
     attended: { type: Number, default: 0 },
-    attendances: [
-        {
-            staffId: { type: mongoose.Types.ObjectId },
-            attendanceDate: { type: Date }
-        }
-    ],
     expiresAt: { type: Date },
     paid: { type: Number, required: true }
 

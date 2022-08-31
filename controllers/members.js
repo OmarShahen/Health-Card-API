@@ -1,6 +1,10 @@
+const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
 const MemberModel = require('../models/MemberModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const AttendanceModel = require('../models/AttendanceModel')
+const CancelledRegistrations = require('../models/CancelledRegistrationModel')
+const CancelledAttendances = require('../models/CancelledAttendanceModel')
 const memberValidation = require('../validations/members')
 const utils = require('../utils/utils')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
@@ -18,7 +22,7 @@ const addMember = async (request, response) => {
             })
         }
 
-        const { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, languageCode } = request.body
+        const { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
 
         const club = await ClubModel.findById(clubId)
 
@@ -58,7 +62,7 @@ const addMember = async (request, response) => {
 
         if(canAuthenticate) {
 
-            memberData = { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL }
+            memberData = { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID }
 
             const memberPhone = countryCode + phone
             const clubData = {
@@ -385,7 +389,6 @@ const getMembersStatsByDate = async (request, response) => {
         const numberOfBlockedMembers = blockedMembers.length
 
         return response.status(200).json({
-            message: 'nothing',
             numberOfMembers,
             numberOfActiveMembers,
             numberOfBlockedMembers,
@@ -403,6 +406,313 @@ const getMembersStatsByDate = async (request, response) => {
     }
 }
 
+const getMemberRegistrationsStatsByDate = async (request, response) => {
+
+    try {
+
+        const { memberId, statsDate } = request.params
+
+        if(!utils.isDateValid(statsDate)) {
+            return response.status(400).json({
+                message: 'invalid date formate',
+                field: 'statsDate'
+            })
+        }
+
+        let fromDateTemp = new Date(statsDate)
+        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+
+
+        const registrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: {
+                    memberId: mongoose.Types.ObjectId(memberId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0,
+                }
+            }
+        ])
+
+        const attendancesPromise = AttendanceModel.aggregate([
+            {
+                $match: {
+                    memberId: mongoose.Types.ObjectId(memberId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0,
+                }
+            }
+        ])
+
+        const cancelledRegistrationsPromise = CancelledRegistrations.aggregate([
+            {
+                $match: {
+                    memberId: mongoose.Types.ObjectId(memberId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const cancelledAttendancesPromise = CancelledAttendances.aggregate([
+            {
+                $match: {
+                    memberId: mongoose.Types.ObjectId(memberId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const [registrations, attendances, cancelledRegistrations, cancelledAttendances] = await Promise.all([
+            registrationsPromise,
+            attendancesPromise,
+            cancelledRegistrationsPromise,
+            cancelledAttendancesPromise
+        ])
+
+        const numberOfRegistrations = registrations.length
+        const numberOfAttendances = attendances.length
+        const numberOfCancelledRegistrations = cancelledRegistrations.length
+        const numberOfCancelledAttendances = cancelledAttendances.length
+
+
+        return response.status(200).json({
+            numberOfRegistrations,
+            numberOfAttendances,
+            numberOfCancelledRegistrations,
+            numberOfCancelledAttendances,
+            registrations,
+            attendances,
+            cancelledRegistrations,
+            cancelledAttendances
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateMemberQRcodeVerification = async (request, response) => {
+
+    try {
+
+        const dataValidation = memberValidation
+        .updateMemberQRcodeVerificationData(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { memberId } = request.params
+        const { QRCodeURL, QRCodeUUID } = request.body
+
+        const member = await MemberModel.findById(memberId)
+
+        if(!member.canAuthenticate) {
+            return response.status(400).json({
+                message: 'member account authentication is closed',
+                field: 'memberId'
+            })
+        }
+
+        const updatedMember = await MemberModel
+        .findByIdAndUpdate(
+            memberId,
+            { QRCodeURL, QRCodeUUID },
+            { new: true }
+        )
+
+        return response.status(200).json({
+            message: 'member data is updated successfully',
+            member: updatedMember
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
 module.exports = { 
     addMember, 
     searchMembersByPhone, 
@@ -411,5 +721,7 @@ module.exports = {
     updateMemberStatus,
     deleteMemberAndRelated,
     getMembers,
-    getMembersStatsByDate
+    getMembersStatsByDate,
+    getMemberRegistrationsStatsByDate,
+    updateMemberQRcodeVerification
 }

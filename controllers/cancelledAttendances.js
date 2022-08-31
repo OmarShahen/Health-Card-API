@@ -6,6 +6,7 @@ const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
 const PackageModel = require('../models/PackageModel')
+const AttendanceModel = require('../models/AttendanceModel')
 
 const addCancelAttendance = async (request, response) => {
 
@@ -20,20 +21,12 @@ const addCancelAttendance = async (request, response) => {
             })
         }
 
-        const { clubId, registrationId, staffId } = request.body
+        const { registrationId, staffId } = request.body
 
-        const [club, registration, staff] = await Promise.all([
-            ClubModel.findById(clubId),
+        const [registration, staff] = await Promise.all([
             RegistrationModel.findById(registrationId),
             StaffModel.findById(staffId)
         ])
-
-        if(!club) {
-            return response.status(404).json({
-                message: 'club Id does not exists',
-                field: 'clubId'
-            })
-        }
 
         if(!registration) {
             return response.status(404).json({
@@ -63,7 +56,7 @@ const addCancelAttendance = async (request, response) => {
        if(package.attendance == 1 && (package.expiresIn == '1 day' || package.expiresIn == '1 days')) {
             
         const cancelRegistrationData = {
-            clubId,
+            clubId: registration.clubId,
             staffId,
             memberId: registration.memberId,
             packageId: registration.packageId,
@@ -105,7 +98,7 @@ const addCancelAttendance = async (request, response) => {
         }
 
        const cancelAttendanceData = {
-        clubId,
+        clubId: registration.clubId,
         registrationId,
         memberId: registration.memberId,
         staffId
@@ -120,12 +113,22 @@ const addCancelAttendance = async (request, response) => {
             RegistrationModel
             .findByIdAndUpdate(registrationId, { attended: NEW_ATTENDANCE }, { new: true })
         ])
+
+        const memberAttendances = await AttendanceModel
+        .find({ registrationId })
+        .sort({ createdAt: -1 })
+
+        const LAST_ATTENDANCE_ID = memberAttendances[0]._id
+
+        const deletedAttendance = await AttendanceModel
+        .findByIdAndDelete(LAST_ATTENDANCE_ID)
         
 
         return response.status(200).json({
             message: 'member attendance is cancelled successfully',
             registration: updateRegistration,
-            cancelledAttendance: newCancelAttendance
+            cancelledAttendance: newCancelAttendance,
+            deletedAttendance
         })
 
     } catch(error) {

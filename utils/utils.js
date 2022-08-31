@@ -11,6 +11,9 @@ const { joinRegistrationPackages } = require('./joinRegistrationPackages')
 const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
 const { isDateValid } = require('./validateDate')
 const { calculateRegistrationsTotalEarnings, calculateTotalAttendanceByDate } = require('./calculations')
+const { extractAttendances, extractStaffs, extractMembers } = require('./extracts')
+const { joinStaffsWithAttendances, joinMembersWithAttendances } = require('./joins')
+const { isUUIDValid } = require('./validateUUID')
 
 module.exports = {
     isNameValid,
@@ -18,6 +21,7 @@ module.exports = {
     cleanObject,
     isObjectId,
     isPhoneValid,
+    isUUIDValid,
     isAdminRole,
     isCountryCodeValid,
     isExpirationPeriodValid,
@@ -26,5 +30,10 @@ module.exports = {
     isWhatsappLanguageValid,
     isDateValid,
     calculateRegistrationsTotalEarnings,
-    calculateTotalAttendanceByDate
+    calculateTotalAttendanceByDate,
+    extractAttendances,
+    extractStaffs,
+    extractMembers,
+    joinStaffsWithAttendances,
+    joinMembersWithAttendances
 }

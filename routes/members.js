@@ -19,4 +19,8 @@ router.get('/members/clubs/:clubId', verifyIds.verifyClubId, (request, response)
 
 router.get('/members/clubs/:clubId/stats/:statsDate', verifyIds.verifyClubId, (request, response) => membersController.getMembersStatsByDate(request, response))
 
+router.get('/members/:memberId/stats/:statsDate', verifyIds.verifyMemberId, (request, response) => membersController.getMemberRegistrationsStatsByDate(request, response))
+
+router.patch('/members/:memberId/QR-code', verifyIds.verifyMemberId, (request, response) => membersController.updateMemberQRcodeVerification(request, response))
+
 module.exports = router

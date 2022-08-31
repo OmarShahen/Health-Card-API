@@ -16,7 +16,7 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
         to: phone,
         type: "template",
         template: {
-            name: "qr_code_verification",
+            name: "member_qr_code_verification",
             language: {
                 code: languageCode
             },
@@ -41,11 +41,11 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
                         },
                         {
                             type: "text",
-                            text: club.phone
+                            text: club.address
                         },
                         {
                             type: "text",
-                            text: club.address
+                            text: club.phone
                         }
                     ]
                 }
@@ -58,6 +58,8 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
     try {
 
         const sendMessage = await whatsappRequest.post(`/${config.WHATSAPP.PHONE_NUMBER_ID}/messages`, requestBody)
+
+        console.log(sendMessage)
 
         return { isSent: true }
 

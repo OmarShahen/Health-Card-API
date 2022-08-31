@@ -301,6 +301,52 @@ const getClubPackagesStatsByDate = async (request, response) => {
     }
 }
 
+const getClubPackageStatsByDate = async (request, response) => {
+
+    try {
+
+        const { packageId, statsDate } = request.params
+
+        if(!utils.isDateValid(statsDate)) {
+            return response.status(400).json({
+                message: 'invalid date formate',
+                field: 'statsDate'
+            })
+        }
+
+        let fromDateTemp = new Date(statsDate)
+        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+
+        const packageRegistrations = await RegistrationModel
+        .find({ packageId, createdAt: { $lte: toDate } })
+
+        const numberOfPackageRegistrations = packageRegistrations.length
+
+        const activePackageRegistrations = packageRegistrations.filter(registration => registration.isActive == true)
+        const numberOfActiveRegistrations = activePackageRegistrations.length
+
+        const expiredPackageRegistrations = packageRegistrations
+        .filter(registration => registration.expiresAt <= toDate || registrations.isActive == false)
+        const numberOfExpiredRegistrations = expiredPackageRegistrations.length
+
+        return response.status(200).json({
+            numberOfPackageRegistrations,
+            packageRegistrations,
+            numberOfActiveRegistrations,
+            activePackageRegistrations,
+            numberOfExpiredRegistrations,
+            expiredPackageRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addPackage, 
     getPackages, 
@@ -308,5 +354,6 @@ module.exports = {
     deletePackage,
     updatePackageStatus,
     deletedPackageAndRelated,
-    getClubPackagesStatsByDate
+    getClubPackagesStatsByDate,
+    getClubPackageStatsByDate
 }

@@ -8,6 +8,7 @@ const MemberSchema = new mongoose.Schema({
     countryCode: { type: String, required: true },
     canAuthenticate: { type: Boolean, required: true },
     QRCodeURL: { type: String },
+    QRCodeUUID: { type: String },
     isBlocked: { type: Boolean, default: false }
 
 }, { timestamps: true })

@@ -22,20 +22,13 @@ const addCancelRegistration = async (request, response) => {
             })
         }
 
-        const { clubId, registrationId, staffId } = request.body
+        const { registrationId, staffId } = request.body
 
-        const [club, registration, staff] = await Promise.all([
-            ClubModel.findById(clubId),
+        const [registration, staff] = await Promise.all([
             RegistrationModel.findById(registrationId),
             StaffModel.findById(staffId)
         ])
 
-        if(!club) {
-            return response.status(404).json({
-                message: 'club Id does not exists',
-                field: 'clubId'
-            })
-        }
 
         if(!registration) {
             return response.status(404).json({
@@ -65,7 +58,7 @@ const addCancelRegistration = async (request, response) => {
        if(package.attendance == 1 && (package.expiresIn == '1 day' || package.expiresIn == '1 days')) {
             
         const cancelRegistrationData = {
-            clubId,
+            clubId: registration.clubId,
             staffId,
             memberId: registration.memberId,
             packageId: registration.packageId,
@@ -99,7 +92,7 @@ const addCancelRegistration = async (request, response) => {
 
 
         const cancelRegistrationData = {
-            clubId,
+            clubId: registration.clubId,
             staffId,
             memberId: registration.memberId,
             packageId: registration.packageId,

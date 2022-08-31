@@ -1,8 +1,12 @@
+const mongoose = require('mongoose')
 const config = require('../config/config')
 const staffValidation = require('../validations/staffs')
 const ClubModel = require('../models/ClubModel')
 const StaffModel = require('../models/StaffModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const AttendanceModel = require('../models/AttendanceModel')
+const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
+const CancelledAttendancesModel = require('../models/CancelledAttendanceModel')
 const bcrypt = require('bcrypt')
 const utils = require('../utils/utils')
 
@@ -389,6 +393,275 @@ const deleteStaffAndRelated = async (request, response) => {
     }
 }
 
+const getStaffStatsByDate = async (request, response) => {
+
+    try {
+
+        const { staffId, statsDate } = request.params
+
+        if(!utils.isDateValid(statsDate)) {
+            return response.status(400).json({
+                message: 'invalid date formate',
+                field: 'statsDate'
+            })
+        }
+
+        let fromDateTemp = new Date(statsDate)
+        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+
+        const registrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: {
+                    staffId: mongoose.Types.ObjectId(staffId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const attendancesPromise = AttendanceModel.aggregate([
+            {
+                $match: {
+                    staffId: mongoose.Types.ObjectId(staffId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ]) 
+
+        const cancelledRegistrationsPromise = CancelledRegistrationsModel.aggregate([
+            {
+                $match: {
+                    staffId: mongoose.Types.ObjectId(staffId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const cancelledAttendancesPromise = CancelledAttendancesModel.aggregate([
+            {
+                $match: {
+                    staffId: mongoose.Types.ObjectId(staffId),
+                    createdAt: { $lte: toDate }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const [registrations, attendances, cancelledRegistrations, cancelledAttendances] = await Promise.all([
+            registrationsPromise,
+            attendancesPromise,
+            cancelledRegistrationsPromise,
+            cancelledAttendancesPromise
+        ])
+
+        const numberOfRegistrations = registrations.length
+        const numberOfAttendances = attendances.length
+        const numberOfCancelledRegistrations = cancelledRegistrations.length
+        const numberOfCancelledAttendances = cancelledAttendances.length
+
+        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+
+        
+
+        return response.status(200).json({
+            numberOfRegistrations,
+            numberOfAttendances,
+            numberOfCancelledRegistrations,
+            numberOfCancelledAttendances,
+            totalEarnings,
+            registrations,
+            attendances,
+            cancelledRegistrations,
+            cancelledAttendances
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addClubOwner, 
     addStaff, 
@@ -396,5 +669,6 @@ module.exports = {
     updateStaff, 
     deleteStaff, 
     updateStaffStatus,
-    deleteStaffAndRelated
+    deleteStaffAndRelated,
+    getStaffStatsByDate
  }
