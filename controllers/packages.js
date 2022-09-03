@@ -1,4 +1,5 @@
 const packageValidation = require('../validations/packages')
+const statsValidation = require('../validations/stats')
 const PackageModel = require('../models/PackageModel')
 const ClubModel = require('../models/ClubModel')
 const RegistrationModel = require('../models/RegistrationModel')
@@ -257,22 +258,20 @@ const getClubPackagesStatsByDate = async (request, response) => {
 
     try {
 
-        const { clubId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+        const { clubId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const packages = await PackageModel
-        .find({ clubId, createdAt: {
-            $lte: toDate
-        }})
+        .find(searchQuery)
         .select({ updatedAt: 0, __v: 0 })
 
         const numberOfPackages = packages.length
@@ -285,10 +284,10 @@ const getClubPackagesStatsByDate = async (request, response) => {
 
         return response.status(200).json({
             numberOfPackages,
-            packages,
             numberOfClosedPackages,
-            closedPackages,
             numberOfOpenedPackages,
+            packages,
+            closedPackages,
             openedPackages
         })
 
@@ -305,20 +304,20 @@ const getClubPackageStatsByDate = async (request, response) => {
 
     try {
 
-        const { packageId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+        const { packageId } = request.params
+        const { searchQuery, toDate } = utils.statsQueryGenerator('packageId', packageId, request.query)
 
         const packageRegistrations = await RegistrationModel
-        .find({ packageId, createdAt: { $lte: toDate } })
+        .find(searchQuery)
 
         const numberOfPackageRegistrations = packageRegistrations.length
 
@@ -326,15 +325,15 @@ const getClubPackageStatsByDate = async (request, response) => {
         const numberOfActiveRegistrations = activePackageRegistrations.length
 
         const expiredPackageRegistrations = packageRegistrations
-        .filter(registration => registration.expiresAt <= toDate || registrations.isActive == false)
+        .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
         const numberOfExpiredRegistrations = expiredPackageRegistrations.length
 
         return response.status(200).json({
             numberOfPackageRegistrations,
-            packageRegistrations,
             numberOfActiveRegistrations,
-            activePackageRegistrations,
             numberOfExpiredRegistrations,
+            packageRegistrations,
+            activePackageRegistrations,
             expiredPackageRegistrations
         })
 

@@ -1,6 +1,6 @@
 const config = require('../config/config')
 
-const isExpirationPeriodValid = (period) => {
+const isDatePeriodValid = (period) => {
 
     const periodSplit = period.split(' ')
 
@@ -25,19 +25,19 @@ const isExpirationPeriodValid = (period) => {
 
     if((periodName == 'day' || periodName == 'days') && (periodNumber > 365 || periodNumber < 0)) {
 
-        return { isAccepted: false, message: 'days must be between 1 to 365 days', field: 'expiresIn' }
+        return { isAccepted: false, message: 'days must be between 1 to 365 days' }
 
     } else if((periodName == 'week' || periodName == 'weeks') && (periodNumber > 48 || periodNumber < 0)) {
 
-        return { isAccepted: false, message: 'weeks must be between 1 to 48 weeks', field: 'expiresIn' }
+        return { isAccepted: false, message: 'weeks must be between 1 to 48 weeks' }
 
     } else if((periodName == 'month' || periodName == 'months') && (periodNumber > 12 || periodNumber < 0)) {
 
-        return { isAccepted: false, message: 'months must be between 1 to 12 weeks', field: 'expiresIn' }
+        return { isAccepted: false, message: 'months must be between 1 to 12 months' }
 
     } else if((periodName == 'year') && (periodNumber > 1 || periodNumber < 0)) {
 
-        return { isAccepted: false, message: 'only 1 year period is valid', field: 'expiresIn' }
+        return { isAccepted: false, message: 'only 1 year period is valid' }
 
     }
 
@@ -45,4 +45,4 @@ const isExpirationPeriodValid = (period) => {
 
 }
 
-module.exports = { isExpirationPeriodValid }
+module.exports = { isDatePeriodValid }

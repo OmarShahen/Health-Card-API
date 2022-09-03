@@ -30,4 +30,5 @@ const registrationData = (registrationData) => {
 
 }
 
+
 module.exports = { registrationData } 

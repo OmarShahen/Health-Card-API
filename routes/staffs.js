@@ -16,6 +16,6 @@ router.patch('/staffs/:staffId', verifyIds.verifyStaffId, (request, response) =>
 
 router.delete('/staffs/:staffId/wild', verifyIds.verifyStaffId, (request, response) => staffsController.deleteStaffAndRelated(request, response))
 
-router.get('/staffs/:staffId/stats/:statsDate', verifyIds.verifyStaffId, (request, response) => staffsController.getStaffStatsByDate(request, response))
+router.get('/staffs/:staffId/stats', verifyIds.verifyStaffId, (request, response) => staffsController.getStaffStatsByDate(request, response))
 
 module.exports = router

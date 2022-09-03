@@ -42,11 +42,13 @@ const adminPermission = (request, response, next) => {
 
     try {
 
+        const validRoles = ['APP-ADMIN']
+
         verifyToken(request, response, () => {
 
-            const { role, user } = request.user
+            const { role } = request.user
 
-            if(user == 'ADMIN' && role == 'SUPER') {
+            if(validRoles.includes(role)) {
 
                 next()
 
@@ -69,15 +71,17 @@ const adminPermission = (request, response, next) => {
     }
 }
 
-const adminAndClubOwnerPermission = (request, response, next) => {
+const adminAndClubAdminPermission = (request, response, next) => {
 
     try {
 
+        const validRoles = ['APP-ADMIN', 'CLUB-OWNER']
+
         verifyToken(request, response, () => {
 
-            const { role, user } = request.user
+            const { role } = request.user
 
-            if((user == 'ADMIN' && role == 'SUPER') || (user == 'STAFF' && role == 'OWNER')) {
+            if(validRoles.includes(role)) {
 
                 next()
 
@@ -104,11 +108,13 @@ const adminAndStaffPermission = (request, response, next) => {
 
     try {
 
+        const validRoles = ['APP-ADMIN', 'STAFF']
+
         verifyToken(request, response, () => {
 
-            const { role, user } = request.user
+            const { role } = request.user
 
-            if((user == 'ADMIN' && role == 'SUPER') || (user == 'STAFF' && role == 'STAFF')) {
+            if(validRoles.includes(role)) {
 
                 next()
 
@@ -131,4 +137,42 @@ const adminAndStaffPermission = (request, response, next) => {
     }
 }
 
-module.exports = { adminPermission, adminAndClubOwnerPermission, adminAndStaffPermission }
+const appUsersPermission = (request, response, next) => {
+
+    try {
+
+        const validRoles = ['APP-ADMIN', 'STAFF', 'CLUB-ADMIN', 'CHAIN-OWNER']
+
+        verifyToken(request, response, () => {
+
+            const { role } = request.user
+
+            if(validRoles.includes(role)) {
+
+                next()
+
+            } else {
+
+                return response.status(403).json({
+                    message: 'unauthorized',
+                    field: 'token'
+                })
+            }
+            
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { 
+    adminPermission, 
+    adminAndClubAdminPermission, 
+    adminAndStaffPermission, 
+    appUsersPermission 
+}

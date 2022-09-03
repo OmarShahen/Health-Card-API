@@ -6,6 +6,6 @@ router.post('/clubs', (request, response) => clubsController.addClub(request, re
 
 router.get('/clubs', (request, response) => clubsController.getClubs(request, response))
 
-router.get('/clubs/:clubId/stats/:statsDate', verifyIds.verifyClubId, (request, response) => clubsController.getClubStatsByDate(request, response))
+router.get('/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => clubsController.getClubStatsByDate(request, response))
 
 module.exports = router

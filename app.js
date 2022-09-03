@@ -21,6 +21,7 @@ app.use('/api/v1', require('./routes/registrations'))
 app.use('/api/v1', require('./routes/attendances'))
 app.use('/api/v1', require('./routes/cancelledAttendances'))
 app.use('/api/v1', require('./routes/cancelledRegistrations'))
+app.use('/api/v1', require('./routes/freezedRegistrations'))
 
 db()
 

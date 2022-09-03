@@ -12,7 +12,9 @@ module.exports = {
     WHATSAPP:{
         BASE_URL: 'https://graph.facebook.com/v13.0',
         TOKEN: process.env.WHATSAPP_TOKEN,
-        LANGUAGES: ['en_US'],
-        PHONE_NUMBER_ID: 100238229498518
+        LANGUAGES: ['en', 'ar'],
+        PHONE_NUMBER_ID: 100238229498518,
+        MEMBER_QR_CODE_VERIFICATION_TEMPLATE: 'member_identity_verification_qr_code',
+        MEMBER_QR_CODE_RESET_TEMPLATE: 'reset_member_qr_code'
     }
 }

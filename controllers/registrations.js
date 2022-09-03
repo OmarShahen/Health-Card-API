@@ -8,6 +8,7 @@ const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
 const CancelledAttendances = require('../models/CancelledAttendanceModel')
 const registrationValidation = require('../validations/registrations')
+const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
 
 
@@ -335,25 +336,22 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
 
     try {
 
-        const { clubId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+        const { clubId } = request.params
+        const { searchQuery, fromDate, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
-                $match: {
-                    clubId: mongoose.Types.ObjectId(clubId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -404,10 +402,7 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
 
         const cancelledRegistrationsModelPromise = CancelledRegistrationsModel.aggregate([
             {
-                $match: {
-                    clubId: mongoose.Types.ObjectId(clubId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -490,6 +485,7 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
         })
     }
 }
+
 
 
 

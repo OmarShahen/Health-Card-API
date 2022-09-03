@@ -8,7 +8,7 @@ const whatsappRequest = axios.create({
     }
 })
 
-const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
+const sendMemberQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
 
 
     const requestBody = {
@@ -16,7 +16,7 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
         to: phone,
         type: "template",
         template: {
-            name: "member_qr_code_verification",
+            name: config.WHATSAPP.MEMBER_QR_CODE_VERIFICATION_TEMPLATE,
             language: {
                 code: languageCode
             },
@@ -37,15 +37,19 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
                     parameters: [
                         {
                             type: "text",
+                            text: club.memberName
+                        },
+                        {
+                            type: "text",
                             text: club.name
                         },
                         {
                             type: "text",
-                            text: club.address
+                            text: club.phone
                         },
                         {
                             type: "text",
-                            text: club.phone
+                            text: club.address
                         }
                     ]
                 }
@@ -59,7 +63,70 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
 
         const sendMessage = await whatsappRequest.post(`/${config.WHATSAPP.PHONE_NUMBER_ID}/messages`, requestBody)
 
-        console.log(sendMessage)
+        return { isSent: true }
+
+    } catch(error) {
+
+        console.error(error.response)
+        return { isSent: false }
+    }
+
+}
+
+const sendMemberResetQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
+
+
+    const requestBody = {
+        messaging_product: "whatsapp",
+        to: phone,
+        type: "template",
+        template: {
+            name: config.WHATSAPP.MEMBER_QR_CODE_RESET_TEMPLATE,
+            language: {
+                code: languageCode
+            },
+            components: [
+                {
+                    type: "header",
+                    parameters: [
+                        {
+                            type: "image",
+                            image: {
+                                link: `${QR_CODE_URL}`
+                            }
+                        }
+                    ]
+                },
+                {
+                    type: "body",
+                    parameters: [
+                        {
+                            type: "text",
+                            text: club.memberName
+                        },
+                        {
+                            type: "text",
+                            text: club.name
+                        },
+                        {
+                            type: "text",
+                            text: club.phone
+                        },
+                        {
+                            type: "text",
+                            text: club.address
+                        }
+                    ]
+                }
+            ]
+        }
+        
+    }
+    
+
+    try {
+
+        const sendMessage = await whatsappRequest.post(`/${config.WHATSAPP.PHONE_NUMBER_ID}/messages`, requestBody)
 
         return { isSent: true }
 
@@ -71,4 +138,4 @@ const sendQRCode = async (phone, languageCode, QR_CODE_URL, club) => {
 
 }
 
-module.exports = { sendQRCode }
+module.exports = { sendMemberQRCode, sendMemberResetQRCode }

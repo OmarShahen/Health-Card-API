@@ -6,6 +6,7 @@ const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrations = require('../models/CancelledRegistrationModel')
 const CancelledAttendances = require('../models/CancelledAttendanceModel')
 const memberValidation = require('../validations/members')
+const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 
@@ -66,12 +67,13 @@ const addMember = async (request, response) => {
 
             const memberPhone = countryCode + phone
             const clubData = {
+                memberName: name,
                 name: club.name,
                 phone: club.countryCode + club.phone,
                 address: `${club.location.address} ${club.location.city} ${club.location.country}`
             }
 
-            const messageResponse = await whatsappRequest.sendQRCode(memberPhone, languageCode, QRCodeURL, clubData)
+            const messageResponse = await whatsappRequest.sendMemberQRCode(memberPhone, languageCode, QRCodeURL, clubData)
 
             if(messageResponse.isSent) {
                 verificationMessage = {
@@ -363,22 +365,20 @@ const getMembersStatsByDate = async (request, response) => {
 
     try {
 
-        const { clubId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+        const { clubId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const members = await MemberModel
-        .find({ clubId, createdAt: {
-            $lte: toDate
-        }})
+        .find(searchQuery)
 
         const numberOfMembers = members.length
 
@@ -410,25 +410,22 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
 
     try {
 
-        const { memberId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+        const { memberId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('memberId', memberId, request.query)
 
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
-                $match: {
-                    memberId: mongoose.Types.ObjectId(memberId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -479,10 +476,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
 
         const attendancesPromise = AttendanceModel.aggregate([
             {
-                $match: {
-                    memberId: mongoose.Types.ObjectId(memberId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -525,10 +519,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
 
         const cancelledRegistrationsPromise = CancelledRegistrations.aggregate([
             {
-                $match: {
-                    memberId: mongoose.Types.ObjectId(memberId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -579,10 +570,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
 
         const cancelledAttendancesPromise = CancelledAttendances.aggregate([
             {
-                $match: {
-                    memberId: mongoose.Types.ObjectId(memberId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {

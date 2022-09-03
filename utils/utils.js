@@ -5,7 +5,7 @@ const { isObjectId } = require('./validateObjectId')
 const { isPhoneValid } = require('./validatePhone')
 const { isAdminRole } = require('./validateRoles')
 const { isCountryCodeValid } = require('./validateCountryCodes')
-const { isExpirationPeriodValid } = require('./validateExpiresIn')
+const { isDatePeriodValid } = require('./validateDatePeriod')
 const { calculateExpirationDate } = require('./calculateExpirationDate')
 const { joinRegistrationPackages } = require('./joinRegistrationPackages')
 const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
@@ -14,6 +14,7 @@ const { calculateRegistrationsTotalEarnings, calculateTotalAttendanceByDate } = 
 const { extractAttendances, extractStaffs, extractMembers } = require('./extracts')
 const { joinStaffsWithAttendances, joinMembersWithAttendances } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
+const { statsQueryGenerator } = require('./queryGenerator')
 
 module.exports = {
     isNameValid,
@@ -24,7 +25,7 @@ module.exports = {
     isUUIDValid,
     isAdminRole,
     isCountryCodeValid,
-    isExpirationPeriodValid,
+    isDatePeriodValid,
     calculateExpirationDate,
     joinRegistrationPackages,
     isWhatsappLanguageValid,
@@ -34,6 +35,5 @@ module.exports = {
     extractAttendances,
     extractStaffs,
     extractMembers,
-    joinStaffsWithAttendances,
-    joinMembersWithAttendances
+    statsQueryGenerator
 }

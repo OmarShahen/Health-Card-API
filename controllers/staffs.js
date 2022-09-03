@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const config = require('../config/config')
 const staffValidation = require('../validations/staffs')
+const statsValidation = require('../validations/stats')
 const ClubModel = require('../models/ClubModel')
 const StaffModel = require('../models/StaffModel')
 const RegistrationModel = require('../models/RegistrationModel')
@@ -397,24 +398,21 @@ const getStaffStatsByDate = async (request, response) => {
 
     try {
 
-        const { staffId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
+        const { staffId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('staffId', staffId, request.query)
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
-                $match: {
-                    staffId: mongoose.Types.ObjectId(staffId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -465,10 +463,7 @@ const getStaffStatsByDate = async (request, response) => {
 
         const attendancesPromise = AttendanceModel.aggregate([
             {
-                $match: {
-                    staffId: mongoose.Types.ObjectId(staffId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -519,10 +514,7 @@ const getStaffStatsByDate = async (request, response) => {
 
         const cancelledRegistrationsPromise = CancelledRegistrationsModel.aggregate([
             {
-                $match: {
-                    staffId: mongoose.Types.ObjectId(staffId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -573,10 +565,7 @@ const getStaffStatsByDate = async (request, response) => {
 
         const cancelledAttendancesPromise = CancelledAttendancesModel.aggregate([
             {
-                $match: {
-                    staffId: mongoose.Types.ObjectId(staffId),
-                    createdAt: { $lte: toDate }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {

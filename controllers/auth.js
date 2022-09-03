@@ -190,16 +190,18 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
         const QR_CODE_URL = member.QRCodeURL
         const memberPhone = member.countryCode + member.phone
         const clubData = {
+            memberName: member.name,
             name: memberClub.name,
             phone: memberClub.countryCode + memberClub.phone,
-            address: `${memberClub.location.address} ${memberClub.location.city} ${memberClub.location.country}`
+            address: `${memberClub.location.address}, ${memberClub.location.city}, ${memberClub.location.country}`
         }
 
-       const messageResponse = await whatsappRequest.sendQRCode(memberPhone, languageCode, QR_CODE_URL, clubData)
+       const messageResponse = await whatsappRequest
+       .sendMemberResetQRCode(memberPhone, languageCode, QR_CODE_URL, clubData)
 
         if(messageResponse.isSent == false) {
             return response.status(400).json({
-                message: 'could not send member message',
+                message: 'could not send member QR code message',
                 field: 'memberId'
             })
         }

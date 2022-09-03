@@ -5,7 +5,9 @@ const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
 const CountryModel = require('../models/countryModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const AttendanceModel = require('../models/AttendanceModel')
 const clubValidation = require('../validations/clubs')
+const statsValidation = require('../validations/stats')
 
 const addClub = async (request, response) => {
 
@@ -79,36 +81,25 @@ const getClubStatsByDate = async (request, response) => {
 
     try {
 
-        const { clubId, statsDate } = request.params
+        const dataValidation = statsValidation.statsDates(request.query)
 
-        if(!utils.isDateValid(statsDate)) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'invalid date formate',
-                field: 'statsDate'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        let fromDateTemp = new Date(statsDate)
-        let toDate = new Date(fromDateTemp.setDate(fromDateTemp.getDate() + 1))
-        let fromDate = new Date(statsDate)
+        const { clubId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const registrationsPromise = RegistrationModel
-        .find({ clubId, createdAt: {
-            $gte: fromDate,
-            $lte: toDate
-        }})
-        .select({ attendances: 0 })
+        .find(searchQuery)
 
 
-        const attendancesListPromise = RegistrationModel.aggregate([
+        const attendancesPromise = AttendanceModel.aggregate([
             {
-                $match: {
-                    clubId: mongoose.Types.ObjectId(clubId),
-                    'attendances.attendanceDate': {
-                        $gte: fromDate,
-                        $lte: toDate
-                }
-            }
+                $match: searchQuery
         },
         {
             $lookup: {
@@ -128,14 +119,6 @@ const getClubStatsByDate = async (request, response) => {
         },
         {
             $lookup: {
-                from: 'packages',
-                localField: 'packageId',
-                foreignField: '_id',
-                as: 'package'
-            }
-        },
-        {
-            $lookup: {
                 from: 'clubs',
                 localField: 'clubId',
                 foreignField: '_id',
@@ -151,28 +134,25 @@ const getClubStatsByDate = async (request, response) => {
                 'staff.password': 0,
                 'staff.updatedAt': 0,
                 'staff.__v': 0,
-                'package.updatedAt': 0,
-                'package.__v': 0
             }
         }
         ])
 
-        const [registrations, attendancesList] = await Promise.all([
+        const [registrations, attendances] = await Promise.all([
             registrationsPromise,
-            attendancesListPromise
+            attendancesPromise
         ])
 
         const totalRegistrations = registrations.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
-        const attendances = utils.calculateTotalAttendanceByDate(attendancesList, fromDate, toDate)
         const totalAttendances = attendances.length
 
         return response.status(200).json({
-            registrations,
             totalRegistrations,
-            totalEarnings,
-            attendances,
             totalAttendances,
+            totalEarnings,
+            registrations,
+            attendances
         })
 
     } catch(error) {

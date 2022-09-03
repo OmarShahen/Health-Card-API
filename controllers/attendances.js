@@ -5,9 +5,6 @@ const MemberModel = require('../models/MemberModel')
 const StaffModel = require('../models/StaffModel')
 const PackageModel = require('../models/PackageModel')
 const AttendanceModel = require('../models/AttendanceModel')
-const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
-const CancelledAttendances = require('../models/CancelledAttendanceModel')
-const registrationValidation = require('../validations/registrations')
 const utils = require('../utils/utils')
 
 const addAttendance = async (request, response) => {
@@ -63,6 +60,13 @@ const addAttendance = async (request, response) => {
         if(registration.isActive == false) {
             return response.status(400).json({
                 message: 'member registered expired',
+                field: 'registrationId'
+            })
+        }
+
+        if(registration.isFreezed == true) {
+            return response.status(400).json({
+                message: 'member registered is freezed',
                 field: 'registrationId'
             })
         }

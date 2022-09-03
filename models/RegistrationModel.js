@@ -8,7 +8,8 @@ const RegistrationSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true },
     attended: { type: Number, default: 0 },
     expiresAt: { type: Date },
-    paid: { type: Number, required: true }
+    paid: { type: Number, required: true },
+    isFreezed: { type: Boolean, default: false }
 
 }, { timestamps: true })
 
