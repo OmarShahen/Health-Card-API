@@ -39,7 +39,6 @@ router.patch(
 
 router.delete(
     '/members/:memberId/wild', 
-    tokenMiddleware.adminPermission, 
     verifyIds.verifyMemberId, 
     (request, response) => membersController.deleteMemberAndRelated(request, response)
     )
