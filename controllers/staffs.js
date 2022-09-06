@@ -168,18 +168,18 @@ const getStaffs = async (request, response) => {
     try {
 
         const { clubId } = request.params
-        const { accountStatus } = request.query
+        const { status } = request.query
 
         let staffs 
 
-        if(accountStatus == 'active') {
+        if(status == 'active') {
 
             staffs = await StaffModel
             .find({ clubId, role: 'STAFF', isAccountActive: true })
             .sort({ createdAt: -1 })
             .select({ password: 0 })
 
-        } else if(accountStatus == 'removed') {
+        } else if(status == 'removed') {
 
             staffs = await StaffModel
             .find({ clubId, role: 'STAFF', isAccountActive: false })
@@ -483,14 +483,6 @@ const getStaffStatsByDate = async (request, response) => {
             },
             {
                 $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $lookup: {
                     from: 'clubs',
                     localField: 'clubId',
                     foreignField: '_id',
@@ -506,8 +498,7 @@ const getStaffStatsByDate = async (request, response) => {
                     'staff.password': 0,
                     'staff.updatedAt': 0,
                     'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0
+
                 }
             }
         ]) 

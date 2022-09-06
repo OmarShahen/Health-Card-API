@@ -32,4 +32,6 @@ router.get(
 
 router.get('/registrations/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => registrationsController.getClubRegistrationsStatsByDate(request, response))
 
+router.post('/registrations/check-data', (request, response) => registrationsController.checkAddRegistrationData(request, response))
+
 module.exports = router

@@ -5,6 +5,7 @@ const FreezeRegistrationSchema = new mongoose.Schema({
     staffId: { type: mongoose.Types.ObjectId, required: true },
     memberId: { type: mongoose.Types.ObjectId, required: true },
     registrationId: { type: mongoose.Types.ObjectId, required: true },
+    packageId: { type: mongoose.Types.ObjectId, required: true },
     reactivationDate: { type: Date, required: true },
     freezeDuration: { type: String, required: true },
     registrationNewExpirationDate: { type: Date, required: true },

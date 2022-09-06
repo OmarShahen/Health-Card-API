@@ -377,8 +377,25 @@ const getMembersStatsByDate = async (request, response) => {
         const { clubId } = request.params
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const members = await MemberModel
+        const membersPromise = MemberModel
         .find(searchQuery)
+
+        const membersStatsPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const [members, membersStats] = await Promise.all([
+            membersPromise,
+            membersStatsPromise
+        ])
 
         const numberOfMembers = members.length
 
@@ -392,6 +409,7 @@ const getMembersStatsByDate = async (request, response) => {
             numberOfMembers,
             numberOfActiveMembers,
             numberOfBlockedMembers,
+            membersStats,
             members,
             activeMembers,
             blockedMembers
@@ -496,6 +514,14 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
             },
             {
                 $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
                     from: 'clubs',
                     localField: 'clubId',
                     foreignField: '_id',
@@ -513,6 +539,18 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
                     'staff.__v': 0,
                     'package.updatedAt': 0,
                     'package.__v': 0,
+                }
+            }
+        ])
+
+        const attendancesStatsPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 },
                 }
             }
         ])
@@ -619,9 +657,10 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const [registrations, attendances, cancelledRegistrations, cancelledAttendances] = await Promise.all([
+        const [registrations, attendances, attendancesStats, cancelledRegistrations, cancelledAttendances] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
+            attendancesStatsPromise,
             cancelledRegistrationsPromise,
             cancelledAttendancesPromise
         ])
@@ -633,6 +672,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
 
 
         return response.status(200).json({
+            attendancesStats,
             numberOfRegistrations,
             numberOfAttendances,
             numberOfCancelledRegistrations,

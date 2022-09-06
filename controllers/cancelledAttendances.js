@@ -100,6 +100,7 @@ const addCancelAttendance = async (request, response) => {
        const cancelAttendanceData = {
         clubId: registration.clubId,
         registrationId,
+        packageId: registration.packageId,
         memberId: registration.memberId,
         staffId
         }

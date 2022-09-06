@@ -12,7 +12,7 @@ const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
 const { isDateValid } = require('./validateDate')
 const { calculateRegistrationsTotalEarnings, calculateTotalAttendanceByDate } = require('./calculations')
 const { extractAttendances, extractStaffs, extractMembers } = require('./extracts')
-const { joinStaffsWithAttendances, joinMembersWithAttendances } = require('./joins')
+const { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator } = require('./queryGenerator')
 
@@ -35,5 +35,6 @@ module.exports = {
     extractAttendances,
     extractStaffs,
     extractMembers,
-    statsQueryGenerator
+    statsQueryGenerator,
+    joinPackages
 }

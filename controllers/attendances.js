@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const attendanceValidation = require('../validations/attendances')
+const statsValidation = require('../validations/stats')
 const RegistrationModel = require('../models/RegistrationModel')
 const MemberModel = require('../models/MemberModel')
 const StaffModel = require('../models/StaffModel')
@@ -107,6 +108,7 @@ const addAttendance = async (request, response) => {
 
         const newAttendanceData = {
             clubId: registration.clubId,
+            packageId: registration.packageId,
             staffId: registration.staffId,
             memberId: registration.memberId,
             registrationId: registration._id
@@ -130,4 +132,63 @@ const addAttendance = async (request, response) => {
     }
 }
 
-module.exports = { addAttendance }
+const getClubAttendancesStatsByDate = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const attendancesStatsByHoursPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%dT%H', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsByMonthsPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const [attendancesStatsByHours, attendancesStatsByMonths] = await Promise.all([
+            attendancesStatsByHoursPromise,
+            attendancesStatsByMonthsPromise
+        ])
+
+        return response.status(200).json({
+            attendancesStatsByHours,
+            attendancesStatsByMonths
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { addAttendance, getClubAttendancesStatsByDate }

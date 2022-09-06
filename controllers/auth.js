@@ -105,6 +105,8 @@ const staffLogin = async (request, response) => {
 
         const token = jwt.sign(staffList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
 
+        staffList[0].password = null
+
         return response.status(200).json({
             token: token,
             staff: staffList[0]

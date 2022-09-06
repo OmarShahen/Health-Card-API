@@ -56,6 +56,7 @@ const addFreezeRegistration = async (request, response) => {
             staffId,
             memberId: registration.memberId,
             registrationId: registration._id,
+            packageId: registration.packageId,
             freezeDuration,
             registrationNewExpirationDate: newExpirationDate,
             reactivationDate: registrationReactivationDate

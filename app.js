@@ -7,7 +7,7 @@ const db = require('./config/database')
 
 const app = express()
 
-app.use(morgan('dev'))
+app.use(morgan('common'))
 app.use(express.json())
 
 app.use('/api/v1/auth', require('./routes/auth'))

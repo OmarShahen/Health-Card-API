@@ -37,4 +37,21 @@ const joinMembersWithAttendances = (members, attendances) => {
     return memberAttendance
 }
 
-module.exports = { joinStaffsWithAttendances, joinMembersWithAttendances }
+const joinPackages = (packages, packagesIdsList) => {
+
+    for(let i=0;i<packages.length;i++) {
+
+        for(let j=0;j<packagesIdsList.length;j++) {
+
+            if(packages[i]._id.toString() === packagesIdsList[j]._id.toString()) {
+
+                packagesIdsList[j].title = packages[i].title
+                break
+            }
+        }
+    }
+
+    return packagesIdsList
+}
+
+module.exports = { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages }

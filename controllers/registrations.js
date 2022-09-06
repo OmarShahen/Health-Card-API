@@ -6,7 +6,7 @@ const StaffModel = require('../models/StaffModel')
 const PackageModel = require('../models/PackageModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
-const CancelledAttendances = require('../models/CancelledAttendanceModel')
+const FreezeRegistrationModel = require('../models/FreezeRegistrationModel')
 const registrationValidation = require('../validations/registrations')
 const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
@@ -113,6 +113,7 @@ const addRegistration = async (request, response) => {
         const newAttendanceData = {
             clubId,
             staffId,
+            packageId,
             memberId,
             registrationId: newRegistration._id
         }
@@ -124,6 +125,94 @@ const addRegistration = async (request, response) => {
             message: 'registered to package successfully',
             registration: newRegistration,
             attendance: newAttendance
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const checkAddRegistrationData = async (request, response) => {
+
+    try {
+
+        const dataValidation = registrationValidation.registrationData(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId, memberId, staffId, packageId, paid } = request.body
+
+        const [clubsList, membersList, staffsList, packagesList] = await Promise.all([
+            ClubModel.find({ _id: clubId }),
+            MemberModel.find({ _id: memberId, clubId }),
+            StaffModel.find({ _id: staffId, clubId }),
+            PackageModel.find({ _id: packageId, clubId, isActive: true })
+        ])
+
+        if(clubsList.length == 0) {
+            return response.status(404).json({
+                message: 'club Id does not exist',
+                field: 'clubId'
+            })
+        }
+
+        if(membersList.length == 0) {
+            return response.status(400).json({
+                message: 'member Id does not exist',
+                field: 'memberId'
+            })
+        }
+
+        if(membersList[0].isBlocked == true) {
+            return response.status(400).json({
+                message: 'member is blocked',
+                field: 'memberId'
+            })
+        }
+
+        if(staffsList.length == 0) {
+            return response.status(400).json({
+                message: 'staff Id does not exist',
+                field: 'staffId'
+            })
+        }
+
+        if(staffsList[0].isAccountActive == false) {
+            return response.status(401).json({
+                message: 'staff account is not active',
+                field: 'staffId'
+            })
+        }
+
+        if(packagesList.length == 0) {
+            return response.status(400).json({
+                message: 'package Id does not exist',
+                field: 'packageId'
+            })
+        }
+
+        const memberActivePackagesList = await RegistrationModel
+        .find({ clubId, memberId, isActive: true })
+
+        if(memberActivePackagesList.length != 0) {
+            return response.status(400).json({
+                message: 'member is already registered in a package',
+                field: 'memberId'
+            })
+        }
+
+
+        return response.status(200).json({
+            message: 'registration data is valid'
         })
 
     } catch(error) {
@@ -346,7 +435,7 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
-        const { searchQuery, fromDate, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
+        const { searchQuery, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
 
         const registrationsPromise = RegistrationModel.aggregate([
@@ -400,7 +489,19 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const cancelledRegistrationsModelPromise = CancelledRegistrationsModel.aggregate([
+        const registrationsStatsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const cancelledRegistrationsPromise = CancelledRegistrationsModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -451,13 +552,61 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const [registrations, cancelledRegistrationsModel] = await Promise.all([
+        const freezedRegistrationsPromise = FreezeRegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+    
+
+        const [registrations, cancelledRegistrations, freezedRegistrations, registrationsStats] = await Promise.all([
             registrationsPromise,
-            cancelledRegistrationsModelPromise
+            cancelledRegistrationsPromise,
+            freezedRegistrationsPromise,
+            registrationsStatsPromise
         ])
 
         const numberOfRegistrations = registrations.length
-        const numberOfCancelledRegistrationsModel = cancelledRegistrationsModel.length
+        const numberOfCancelledRegistrations = cancelledRegistrations.length
+        const numberOfFreezedRegistrations = freezedRegistrations.length
 
         const activeRegistrations = registrations.filter(registration => registration.isActive == true)
         const numberOfActiveRegistrations = activeRegistrations.length
@@ -468,13 +617,16 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
 
         return response.status(200).json({
             numberOfRegistrations,
+            numberOfFreezedRegistrations,
             numberOfActiveRegistrations,
             numberOfExpiredRegistrations,
-            numberOfCancelledRegistrationsModel,
+            numberOfCancelledRegistrations,
+            registrationsStats,
             registrations,
+            freezedRegistrations,
             activeRegistrations,
             expiredRegistrations,
-            cancelledRegistrationsModel,
+            cancelledRegistrations,
         })
 
     } catch(error) {
@@ -495,4 +647,5 @@ module.exports = {
     updateMemberAttendance, 
     getRegistrations,
     getClubRegistrationsStatsByDate,
+    checkAddRegistrationData,
 }

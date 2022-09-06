@@ -270,9 +270,28 @@ const getClubPackagesStatsByDate = async (request, response) => {
         const { clubId } = request.params
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const packages = await PackageModel
+        const packagesPromise = PackageModel
         .find(searchQuery)
         .select({ updatedAt: 0, __v: 0 })
+
+        const packagesRegistrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$packageId',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        let [packages, packagesRegistrations] = await Promise.all([
+            packagesPromise,
+            packagesRegistrationsPromise
+        ])
+
+        packagesRegistrations = utils.joinPackages(packages, packagesRegistrations)
 
         const numberOfPackages = packages.length
 
@@ -283,6 +302,7 @@ const getClubPackagesStatsByDate = async (request, response) => {
         const numberOfOpenedPackages = openedPackages.length
 
         return response.status(200).json({
+            packagesRegistrations,
             numberOfPackages,
             numberOfClosedPackages,
             numberOfOpenedPackages,

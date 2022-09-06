@@ -93,8 +93,49 @@ const getClubStatsByDate = async (request, response) => {
         const { clubId } = request.params
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const registrationsPromise = RegistrationModel
-        .find(searchQuery)
+
+        const registrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+        },
+        {
+            $lookup: {
+                from: 'members',
+                localField: 'memberId',
+                foreignField: '_id',
+                as: 'member'
+            }
+        },
+        {
+            $lookup: {
+                from: 'staffs',
+                localField: 'staffId',
+                foreignField: '_id',
+                as: 'staff'
+            }
+        },
+        {
+            $lookup: {
+                from: 'packages',
+                localField: 'packageId',
+                foreignField: '_id',
+                as: 'package'
+            }
+        },
+        {
+            $project: {
+                'member.canAuthenticate': 0,
+                'member.QRCodeURL': 0,
+                'member.updatedAt': 0,
+                'member.__v': 0,
+                'staff.password': 0,
+                'staff.updatedAt': 0,
+                'staff.__v': 0,
+                'package.updatedAt': 0,
+                'package.__v': 0
+            }
+        }
+        ])
 
 
         const attendancesPromise = AttendanceModel.aggregate([
@@ -119,6 +160,14 @@ const getClubStatsByDate = async (request, response) => {
         },
         {
             $lookup: {
+                from: 'packages',
+                localField: 'packageId',
+                foreignField: '_id',
+                as: 'package'
+            }
+        },
+        {
+            $lookup: {
                 from: 'clubs',
                 localField: 'clubId',
                 foreignField: '_id',
@@ -134,13 +183,41 @@ const getClubStatsByDate = async (request, response) => {
                 'staff.password': 0,
                 'staff.updatedAt': 0,
                 'staff.__v': 0,
+                'package.updatedAt': 0,
+                'package.__v': 0
             }
         }
         ])
 
-        const [registrations, attendances] = await Promise.all([
+        const attendancesStatsByHoursPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%dT%H', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsByMonthsPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const [registrations, attendances, attendancesStatsByHours, attendancesStatsByMonths] = await Promise.all([
             registrationsPromise,
-            attendancesPromise
+            attendancesPromise,
+            attendancesStatsByHoursPromise,
+            attendancesStatsByMonthsPromise
         ])
 
         const totalRegistrations = registrations.length
@@ -152,7 +229,9 @@ const getClubStatsByDate = async (request, response) => {
             totalAttendances,
             totalEarnings,
             registrations,
-            attendances
+            attendances,
+            attendancesStatsByHours,
+            attendancesStatsByMonths,
         })
 
     } catch(error) {
