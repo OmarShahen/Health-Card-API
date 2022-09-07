@@ -3,11 +3,15 @@ const validator = require('../utils/utils')
 
 const memberData = (memberData) => {
 
-    const { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = memberData
+    const { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
 
     if(!validator.isObjectId(clubId)) return { isAccepted: false, message: 'invalid club Id formate', field: 'clubId' }
+
+    if(!staffId) return { isAccepted: false, message: 'staff Id is required', field: 'staffId' }
+
+    if(!validator.isObjectId(staffId)) return { isAccepted: false, message: 'invalid staff Id formate', field: 'staffId' }
 
     if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
 
@@ -47,7 +51,7 @@ const memberData = (memberData) => {
 
 const updateMemberData = (memberData) => {
 
-    const { name, email, phone, countryCode, canAuthenticate, QRCodeURL } = memberData
+    const { name, email, phone, countryCode } = memberData
 
 
     if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
@@ -67,12 +71,7 @@ const updateMemberData = (memberData) => {
     if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
-
-    if(typeof canAuthenticate != 'boolean') return { isAccepted: false, message: 'invalid can authenticate input', field: 'canAuthenticate' }
-
-    if(canAuthenticate == true ) {
-        if(!QRCodeURL) return { isAccepted: false, message: 'QR code URL is required', field: 'QRCodeURL' }            
-    }
+    
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
 
@@ -92,4 +91,27 @@ const updateMemberQRcodeVerificationData = (memberData) => {
 
 }
 
-module.exports = { memberData, updateMemberData, updateMemberQRcodeVerificationData } 
+const updateMemberAuthenticationStatusData = (memberData) => {
+
+    const { canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = memberData
+
+    if(typeof canAuthenticate != 'boolean') return { isAccepted: false, message: 'invalid authentication status formate', field: 'canAuthenticate' } 
+
+    if(canAuthenticate) {
+
+        if(!QRCodeURL) return { isAccepted: false, message: 'QR code URL is required', field: 'QRCodeURL' }
+        
+        if(!QRCodeUUID) return { isAccepted: false, message: 'QR code UUID is required', field: 'QRCodeUUID' }
+
+        if(!validator.isUUIDValid(QRCodeUUID)) return { isAccepted: false, message: 'invalid QR code UUID formate', field: 'QRCodeUUID' }
+
+        if(!languageCode) return { isAccepted: false, message: 'language code is required', field: 'languageCode' }
+
+        if(!validator.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: 'invalid language code', field: 'languageCode' }
+    }
+
+    return { isAccepted: true, message: 'data is valid', data: memberData }
+
+}
+
+module.exports = { memberData, updateMemberData, updateMemberQRcodeVerificationData, updateMemberAuthenticationStatusData } 

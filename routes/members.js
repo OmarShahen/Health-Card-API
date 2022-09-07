@@ -61,4 +61,10 @@ router.patch(
     (request, response) => membersController.updateMemberQRcodeVerification(request, response)
     )
 
+router.patch(
+    '/members/:memberId/authentication',
+    verifyIds.verifyMemberId,
+    (request, response) => membersController.updateMemberAuthenticationStatus(request, response)
+)
+
 module.exports = router

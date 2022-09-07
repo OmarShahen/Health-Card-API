@@ -191,4 +191,54 @@ const getClubAttendancesStatsByDate = async (request, response) => {
     }
 }
 
-module.exports = { addAttendance, getClubAttendancesStatsByDate }
+
+const getRegistrationAttendancesWithStaffData = async (request, response) => {
+
+    try {
+
+        const { registrationId } = request.params
+
+        const registrationAttendances = await AttendanceModel.aggregate([
+            {
+                $match: { registrationId: mongoose.Types.ObjectId(registrationId) }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    __v: 0,
+                    updatedAt: 0
+                }
+            }
+        ])
+
+        return response.status(200).json({
+            attendances: registrationAttendances
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
+
+module.exports = { addAttendance, getClubAttendancesStatsByDate, getRegistrationAttendancesWithStaffData }

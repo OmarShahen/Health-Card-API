@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const MemberSchema = new mongoose.Schema({
 
     clubId: { type: mongoose.Types.ObjectId, required: true },
+    staffId: { type: mongoose.Types.ObjectId, required: true },
     name: { type: String, required: true },
     email: { type: String },
     phone: { type: String, required: true, },

@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
 const MemberModel = require('../models/MemberModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const StaffModel = require('../models/StaffModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrations = require('../models/CancelledRegistrationModel')
 const CancelledAttendances = require('../models/CancelledAttendanceModel')
@@ -23,7 +24,7 @@ const addMember = async (request, response) => {
             })
         }
 
-        const { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
+        const { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
 
         const club = await ClubModel.findById(clubId)
 
@@ -57,13 +58,22 @@ const addMember = async (request, response) => {
             })
         }
 
+        const clubStaffList = await StaffModel.find({ clubId, staffId })
+
+        if(clubStaffList.length == 0) {
+            return response.status(404).json({
+                message: 'staff account does not exist in the club',
+                field: 'staffId'
+            })
+        }
+
 
         let memberData
         let verificationMessage
 
         if(canAuthenticate) {
 
-            memberData = { clubId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID }
+            memberData = { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID }
 
             const memberPhone = countryCode + phone
             const clubData = {
@@ -91,7 +101,7 @@ const addMember = async (request, response) => {
 
 
         } else {
-            memberData = { clubId, name, email, phone, countryCode, canAuthenticate }
+            memberData = { clubId, staffId, name, email, phone, countryCode, canAuthenticate }
         }
 
         const memberObj = new MemberModel(memberData)
@@ -241,7 +251,7 @@ const updateMember = async (request, response) => {
             })
         }
 
-        const { name, email, phone, countryCode, canAuthenticate, QRCodeURL } = request.body
+        const { name, email, phone, countryCode } = request.body
 
         const member = await MemberModel.findById(memberId)
 
@@ -271,11 +281,9 @@ const updateMember = async (request, response) => {
             }
         }
 
-        let memberData = { name, countryCode, phone, canAuthenticate }
+        let memberData = { name, countryCode, phone }
 
         if(email) memberData = { ...memberData, email }
-
-        if(canAuthenticate == true) memberData = { ...memberData, QRCodeURL }
 
         const updatedMember = await MemberModel
         .findByIdAndUpdate(
@@ -740,6 +748,83 @@ const updateMemberQRcodeVerification = async (request, response) => {
     }
 }
 
+const updateMemberAuthenticationStatus = async (request, response) => {
+
+    try {
+
+        const dataValidation = memberValidation
+        .updateMemberAuthenticationStatusData(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { memberId } = request.params
+        const { canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
+
+        let updatedMember = {}
+        let message = { isSent: false }
+
+        if(!canAuthenticate) {
+
+            updatedMember = await MemberModel
+            .findByIdAndUpdate(memberId, { canAuthenticate }, { new: true })
+
+        } else if(canAuthenticate) {
+
+            const member = await MemberModel.findById(memberId)
+            const club = await ClubModel.findById(member.clubId)
+
+            const updatedMemberPromise = await MemberModel
+            .findByIdAndUpdate(memberId, { canAuthenticate, QRCodeURL, QRCodeUUID }, { new: true })
+
+            const RECEPIENT_PHONE = member.countryCode + member.phone
+            const QR_CODE_URL = member.QRCodeURL
+            const messageBody = {
+                memberName: member.name,
+                name: club.name,
+                phone: club.countryCode + club.phone,
+                address: `${club.location.address}, ${club.location.city}, ${club.location.country}`
+            }
+
+            const messagePromise = await whatsappRequest
+            .sendMemberResetQRCode(RECEPIENT_PHONE, languageCode, QR_CODE_URL, messageBody)
+
+            const [updatedMemberResult, messageResult] = await Promise.all([
+                updatedMemberPromise,
+                messagePromise
+            ])
+
+            updatedMember = updatedMemberResult
+            message = messageResult
+
+
+            if(!message.isSent) {
+                message.message = 'could not send member QR code message'
+            } else {
+                message.message = 'member QR code is sent successfully'
+            }
+
+
+        }
+
+        return response.status(200).json({
+            updatedMember,
+            whatsappMessage: message
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addMember, 
@@ -751,5 +836,6 @@ module.exports = {
     getMembers,
     getMembersStatsByDate,
     getMemberRegistrationsStatsByDate,
-    updateMemberQRcodeVerification
+    updateMemberQRcodeVerification,
+    updateMemberAuthenticationStatus
 }

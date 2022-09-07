@@ -6,5 +6,11 @@ router.post('/attendances', (request, response) => attendancesController.addAtte
 
 router.get('/attendances/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => attendancesController.getClubAttendancesStatsByDate(request, response))
 
+router.get(
+    '/attendances/registrations/:registrationId/staff', 
+    verifyIds.verifyRegistrationId, 
+    (request, response) => attendancesController.getRegistrationAttendancesWithStaffData(request, response)
+    )
+
 
 module.exports = router
