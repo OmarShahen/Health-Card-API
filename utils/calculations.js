@@ -33,4 +33,50 @@ const calculateTotalAttendanceByDate = (registrations, fromDate, toDate) => {
     return attendances
 }
 
-module.exports = { calculateRegistrationsTotalEarnings, calculateTotalAttendanceByDate }
+const calculatePackagePercentage = (packageId, packages) => {
+
+    let total = 0
+    let packageTotal = 0
+
+    for(let i=0;i<packages.length;i++) {
+
+        if(packages[i]._id == packageId) {
+            packageTotal = packages[i].count
+        } 
+
+        total += packages[i].count
+    }
+
+    const packagePercentage = ((packageTotal/total) * 100).toFixed(2)
+    const otherPackagesPercentage = (((total - packageTotal) / total) * 100).toFixed(2)
+
+    return { packagePercentage, otherPackagesPercentage }
+}
+
+const calculateCompletedPackageAttendances = (registrations) => {
+
+    let complete = 0
+    let incomplete = 0
+
+    for(let i=0;i<registrations.length;i++) {
+
+        const memberPackage = registrations[i].package[0]
+        const packageAttendance = memberPackage.attendance
+        const memberAttended = registrations[i].attended
+
+        if(memberAttended == packageAttendance) {
+            complete += 1
+        } else {
+            incomplete += 1
+        }
+    }
+
+    return { completedAttendance: complete, incompletedAttendance: incomplete, total: complete + incomplete }
+}
+
+module.exports = { 
+    calculateRegistrationsTotalEarnings, 
+    calculateTotalAttendanceByDate, 
+    calculatePackagePercentage,
+    calculateCompletedPackageAttendances
+}

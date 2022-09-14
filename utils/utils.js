@@ -10,7 +10,12 @@ const { calculateExpirationDate } = require('./calculateExpirationDate')
 const { joinRegistrationPackages } = require('./joinRegistrationPackages')
 const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
 const { isDateValid } = require('./validateDate')
-const { calculateRegistrationsTotalEarnings, calculateTotalAttendanceByDate } = require('./calculations')
+const { 
+    calculateRegistrationsTotalEarnings, 
+    calculateTotalAttendanceByDate, 
+    calculatePackagePercentage,
+    calculateCompletedPackageAttendances
+} = require('./calculations')
 const { extractAttendances, extractStaffs, extractMembers } = require('./extracts')
 const { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
@@ -32,6 +37,8 @@ module.exports = {
     isDateValid,
     calculateRegistrationsTotalEarnings,
     calculateTotalAttendanceByDate,
+    calculatePackagePercentage,
+    calculateCompletedPackageAttendances,
     extractAttendances,
     extractStaffs,
     extractMembers,

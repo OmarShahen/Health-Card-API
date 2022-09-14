@@ -34,4 +34,6 @@ router.get('/registrations/clubs/:clubId/stats', verifyIds.verifyClubId, (reques
 
 router.post('/registrations/check-data', (request, response) => registrationsController.checkAddRegistrationData(request, response))
 
+router.get('/registrations/clubs/:clubId/data-joined', verifyIds.verifyClubId, (request, response) => registrationsController.getClubRegistrationsDataJoined(request, response))
+
 module.exports = router

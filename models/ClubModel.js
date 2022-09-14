@@ -2,10 +2,14 @@ const mongoose = require('mongoose')
 
 const ClubSchema = new mongoose.Schema({
 
+    ownerId: { type: mongoose.Types.ObjectId, required: true },
     name: { type: String, required: true },
+    description: { type: String, required: true },
+    clubCode: { type: String, required: true },
     imageURL: { type: String },
     phone: { type: String, required: true },
     countryCode: { type: String, required: true },
+    currency: { type: String, required: true },
     location:{
         address: { type: String, required: true },
         city: { type: String, required: true },

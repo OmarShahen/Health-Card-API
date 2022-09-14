@@ -8,6 +8,7 @@ const RegistrationModel = require('../models/RegistrationModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
 const CancelledAttendancesModel = require('../models/CancelledAttendanceModel')
+const FreezedRegistrationsModel = require('../models/FreezeRegistrationModel')
 const bcrypt = require('bcrypt')
 const utils = require('../utils/utils')
 
@@ -60,14 +61,14 @@ const addClubOwner = async (request, response) => {
             phone,
             countryCode,
             password: bcrypt.hashSync(password, config.SALT_ROUNDS),
-            role: 'OWNER'
+            role: 'CLUB-ADMIN'
         }       
         
         const ownerObj = new StaffModel(owner)
         const newOwner = await ownerObj.save()
 
         return response.status(200).json({
-            message: `${name} is added successfully as club owner`,
+            message: `${name} is added successfully as club administrator`,
             newOwner
         })
 
@@ -439,14 +440,6 @@ const getStaffStatsByDate = async (request, response) => {
                 }
             },
             {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
                 $project: {
                     'member.canAuthenticate': 0,
                     'member.QRCodeURL': 0,
@@ -487,6 +480,14 @@ const getStaffStatsByDate = async (request, response) => {
                     localField: 'clubId',
                     foreignField: '_id',
                     as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
                 }
             },
             {
@@ -583,14 +584,6 @@ const getStaffStatsByDate = async (request, response) => {
                 }
             },
             {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
                 $project: {
                     'member.canAuthenticate': 0,
                     'member.QRCodeURL': 0,
@@ -605,32 +598,33 @@ const getStaffStatsByDate = async (request, response) => {
             }
         ])
 
+
+
         const [registrations, attendances, cancelledRegistrations, cancelledAttendances] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
             cancelledRegistrationsPromise,
-            cancelledAttendancesPromise
+            cancelledAttendancesPromise,
         ])
 
-        const numberOfRegistrations = registrations.length
-        const numberOfAttendances = attendances.length
-        const numberOfCancelledRegistrations = cancelledRegistrations.length
-        const numberOfCancelledAttendances = cancelledAttendances.length
-
+        const totalRegistrations = registrations.length
+        const totalAttendances = attendances.length
+        const totalCancelledRegistrations = cancelledRegistrations.length
+        const totalCancelledAttendances = cancelledAttendances.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
 
         
 
         return response.status(200).json({
-            numberOfRegistrations,
-            numberOfAttendances,
-            numberOfCancelledRegistrations,
-            numberOfCancelledAttendances,
+            totalRegistrations,
+            totalAttendances,
+            totalCancelledRegistrations,
+            totalCancelledAttendances,
             totalEarnings,
             registrations,
             attendances,
             cancelledRegistrations,
-            cancelledAttendances
+            cancelledAttendances,
         })
 
     } catch(error) {

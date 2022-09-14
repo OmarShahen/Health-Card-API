@@ -3,9 +3,15 @@ const validator = require('../utils/utils')
 
 const clubData = (clubData) => {
 
-    const { name, phone, countryCode, location } = clubData
+    const { ownerId, name, description, phone, countryCode, location } = clubData
+
+    if(!ownerId) return { isAccepted: false, message: 'owner Id is required', field: 'ownerId'}
+
+    if(!validator.isObjectId(ownerId)) return { isAccepted: false, message: 'invalid owner Id formate', field: 'ownerId' }
 
     if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
+
+    if(!description) return { isAccepted: false, message: 'description is required', field: 'description' }
 
     if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
 

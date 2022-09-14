@@ -6,6 +6,7 @@ const ClubModel = require('../models/ClubModel')
 const CountryModel = require('../models/countryModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const AttendanceModel = require('../models/AttendanceModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const clubValidation = require('../validations/clubs')
 const statsValidation = require('../validations/stats')
 
@@ -22,9 +23,19 @@ const addClub = async (request, response) => {
             })
         }
 
-        const { phone, countryCode } = request.body
+        const { ownerId, name, description, phone, countryCode } = request.body
 
-        const phoneList = await ClubModel.find({ phone, countryCode })
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        if(!owner) {
+            return response.status(404).json({
+                message: 'owner Id does not exist',
+                field: 'ownerId'
+            })
+        }
+
+        const phoneList = await ClubModel
+        .find({ phone, countryCode, ownerId: { $ne: ownerId } })
 
         if(phoneList.length != 0) {
             return response.status(400).json({
@@ -33,7 +44,7 @@ const addClub = async (request, response) => {
             })
         }
 
-        let { country, city } = request.body.location
+        let { country, city, address } = request.body.location
 
         country = country.toUpperCase()
         city = city.toUpperCase()
@@ -56,14 +67,28 @@ const addClub = async (request, response) => {
             })
         }
 
-        const club = request.body
+        const clubsList = await ClubModel
+        .find({ ownerId, name })
+
+        const clubCode = `${name.toUpperCase()}-${clubsList.length + 1}.0`
+
+        const club = {
+            ownerId,
+            name,
+            description,
+            clubCode,
+            phone,
+            countryCode,
+            currency: countriesList[0].currency,
+            location: { country, city, address },
+        }
 
         const clubObj = new ClubModel(club)
         const newClub = await clubObj.save()
 
 
         return response.status(200).json({
-            message: `${club.name} is added to our gyms network successfully`,
+            message: `${club.name} is added to our clubs network successfully!`,
             club: newClub
         })
 
@@ -75,7 +100,6 @@ const addClub = async (request, response) => {
         })
     }
 }
-
 
 const getClubStatsByDate = async (request, response) => {
 
@@ -224,14 +248,21 @@ const getClubStatsByDate = async (request, response) => {
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
 
+        attendancesStatsByHours.forEach(hour => hour._id = hour._id.split('T')[1] + ':00')
+        attendancesStatsByHours
+        .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
+
+        attendancesStatsByMonths
+        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
         return response.status(200).json({
+            attendancesStatsByHours,
+            attendancesStatsByMonths,
             totalRegistrations,
             totalAttendances,
             totalEarnings,
             registrations,
             attendances,
-            attendancesStatsByHours,
-            attendancesStatsByMonths,
         })
 
     } catch(error) {
@@ -247,7 +278,9 @@ const getClubs = async (request, response) => {
 
     try {
 
-        const clubs = await ClubModel.find()
+        const clubs = await ClubModel
+        .find()
+        .sort({ createdAt: -1 })
 
         return response.status(200).json({
             clubs

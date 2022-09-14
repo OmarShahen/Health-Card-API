@@ -170,6 +170,14 @@ const getClubCancelledAttendance = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
                 $project: {
                     memberId: 0,
                     staffId: 0,

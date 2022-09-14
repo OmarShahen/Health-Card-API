@@ -12,5 +12,7 @@ router.get(
     (request, response) => attendancesController.getRegistrationAttendancesWithStaffData(request, response)
     )
 
+router.get('/attendances/clubs/:clubId', verifyIds.verifyClubId, (request, response) => attendancesController.getClubAttendances(request, response))
+
 
 module.exports = router

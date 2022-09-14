@@ -467,14 +467,6 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
                 }
             },
             {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
                 $project: {
                     'member.canAuthenticate': 0,
                     'member.QRCodeURL': 0,
@@ -604,23 +596,27 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
             registrationsStatsPromise
         ])
 
-        const numberOfRegistrations = registrations.length
-        const numberOfCancelledRegistrations = cancelledRegistrations.length
-        const numberOfFreezedRegistrations = freezedRegistrations.length
+        const totalRegistrations = registrations.length
+        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+        const totalCancelledRegistrations = cancelledRegistrations.length
+        const totalFreezedRegistrations = freezedRegistrations.length
 
         const activeRegistrations = registrations.filter(registration => registration.isActive == true)
-        const numberOfActiveRegistrations = activeRegistrations.length
+        const totalActiveRegistrations = activeRegistrations.length
 
         const expiredRegistrations = registrations
         .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
-        const numberOfExpiredRegistrations = expiredRegistrations.length
+        const totalExpiredRegistrations = expiredRegistrations.length
+
+        registrationsStats.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
         return response.status(200).json({
-            numberOfRegistrations,
-            numberOfFreezedRegistrations,
-            numberOfActiveRegistrations,
-            numberOfExpiredRegistrations,
-            numberOfCancelledRegistrations,
+            totalRegistrations,
+            totalEarnings,
+            totalFreezedRegistrations,
+            totalActiveRegistrations,
+            totalExpiredRegistrations,
+            totalCancelledRegistrations,
             registrationsStats,
             registrations,
             freezedRegistrations,
@@ -638,6 +634,72 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
     }
 }
 
+const getClubRegistrationsDataJoined = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        const registrations  = await RegistrationModel.aggregate([
+            {
+                $match: { clubId: mongoose.Types.ObjectId(clubId) }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        return response.status(200).json({
+            registrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 
 
@@ -648,4 +710,5 @@ module.exports = {
     getRegistrations,
     getClubRegistrationsStatsByDate,
     checkAddRegistrationData,
+    getClubRegistrationsDataJoined
 }

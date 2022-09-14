@@ -1,40 +1,24 @@
 const utils = require('../utils/utils')
 const CountryModel = require('../models/countryModel')
+const countryValidation = require('../validations/countries')
+
 const addCountry = async (request, response) => {
 
     try {
 
-        let { name, code } = request.body
+        const dataValidation = countryValidation.countryData(request.body)
 
-        if(!name) {
+        if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                message: 'country name is required',
-                field: 'name'
+                message: dataValidation.message,
+                field: dataValidation.field
             })
         }
 
-        if(!utils.isNameValid(name)) {
-            return response.status(400).json({
-                message: 'invalid country name formate',
-                field: 'name'
-            })
-        }
-
-        if(!code) {
-            return response.status(400).json({
-                message: 'country code is required',
-                field: 'code'
-            })
-        }
-
-        if(!Number.isInteger(code)) {
-            return response.status(400).json({
-                message: 'country code must be a number',
-                field: 'code'
-            })
-        }
+        let { name, code, currency } = request.body
 
         name = name.toUpperCase()
+        currency = currency.toUpperCase()
 
         const countriesList = await CountryModel.find({ name })
 
@@ -54,7 +38,7 @@ const addCountry = async (request, response) => {
             })
         }
 
-        const countryObj = new CountryModel({ name, code })
+        const countryObj = new CountryModel({ name, code, currency })
         const newCountry = await countryObj.save() 
 
         return response.status(200).json({

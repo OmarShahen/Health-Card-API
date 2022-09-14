@@ -405,18 +405,21 @@ const getMembersStatsByDate = async (request, response) => {
             membersStatsPromise
         ])
 
-        const numberOfMembers = members.length
+        const totalMembers = members.length
 
         const activeMembers = members.filter(member => member.isBlocked == false)
-        const numberOfActiveMembers = activeMembers.length
+        const totalActiveMembers = activeMembers.length
 
         const blockedMembers = members.filter(member => member.isBlocked == true)
-        const numberOfBlockedMembers = blockedMembers.length
+        const totalBlockedMembers = blockedMembers.length
+
+        membersStats
+        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
         return response.status(200).json({
-            numberOfMembers,
-            numberOfActiveMembers,
-            numberOfBlockedMembers,
+            totalMembers,
+            totalActiveMembers,
+            totalBlockedMembers,
             membersStats,
             members,
             activeMembers,
@@ -551,7 +554,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const attendancesStatsPromise = AttendanceModel.aggregate([
+        const attendancesStatsByMonthPromise = AttendanceModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -562,6 +565,31 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
                 }
             }
         ])
+
+        const attendancesStatsByDaysPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsByHoursPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m-%dT%H', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
 
         const cancelledRegistrationsPromise = CancelledRegistrations.aggregate([
             {
@@ -665,26 +693,53 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const [registrations, attendances, attendancesStats, cancelledRegistrations, cancelledAttendances] = await Promise.all([
+        const [
+            registrations, 
+            attendances, 
+            cancelledRegistrations, 
+            cancelledAttendances,
+            attendancesStatsByMonths,
+            attendancesStatsByDays,
+            attendancesStatsByHours
+        ] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
-            attendancesStatsPromise,
             cancelledRegistrationsPromise,
-            cancelledAttendancesPromise
+            cancelledAttendancesPromise,
+            attendancesStatsByMonthPromise,
+            attendancesStatsByDaysPromise,
+            attendancesStatsByHoursPromise
         ])
 
-        const numberOfRegistrations = registrations.length
-        const numberOfAttendances = attendances.length
-        const numberOfCancelledRegistrations = cancelledRegistrations.length
-        const numberOfCancelledAttendances = cancelledAttendances.length
+        const totalRegistrations = registrations.length
+        const totalAttendances = attendances.length
+        const totalCancelledRegistrations = cancelledRegistrations.length
+        const totalCancelledAttendances = cancelledAttendances.length
+
+        attendancesStatsByHours.forEach(hour => hour._id = hour._id.split('T')[1] + ':00')
+        attendancesStatsByHours
+        .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
+
+        attendancesStatsByMonths
+        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        attendancesStatsByDays.forEach(day => {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            day._id = days[new Date(day._id).getDay()]
+        })
+
+        attendancesStatsByDays.sort((day1, day2) => day2.count - day1.count)
+
 
 
         return response.status(200).json({
-            attendancesStats,
-            numberOfRegistrations,
-            numberOfAttendances,
-            numberOfCancelledRegistrations,
-            numberOfCancelledAttendances,
+            totalRegistrations,
+            totalAttendances,
+            totalCancelledRegistrations,
+            totalCancelledAttendances,
+            attendancesStatsByMonths,
+            attendancesStatsByDays,
+            attendancesStatsByHours,
             registrations,
             attendances,
             cancelledRegistrations,

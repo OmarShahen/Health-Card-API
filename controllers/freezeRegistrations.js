@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const RegistrationModel = require('../models/RegistrationModel')
 const PackageModel = require('../models/PackageModel')
 const FreezeRegistrationModel = require('../models/FreezeRegistrationModel')
@@ -96,9 +97,71 @@ const getClubFreezedRegistrations = async (request, response) => {
 
         const { clubId } = request.params
 
-        const freezedRegistrations = await FreezeRegistrationModel
-        .find({ clubId })
-        .sort({ createdAt: -1 })
+        const freezedRegistrations = await FreezeRegistrationModel.aggregate([
+            {
+                $match: {
+                    clubId: mongoose.Types.ObjectId(clubId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'registrations',
+                    localField: 'registrationId',
+                    foreignField: '_id',
+                    as: 'registration'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'reactivation.staffId',
+                    foreignField: '_id',
+                    as: 'activator'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'activator.password': 0,
+                    'activator.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0,
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
 
         return response.status(200).json({
             freezedRegistrations

@@ -274,7 +274,7 @@ const getClubPackagesStatsByDate = async (request, response) => {
         .find(searchQuery)
         .select({ updatedAt: 0, __v: 0 })
 
-        const packagesRegistrationsPromise = RegistrationModel.aggregate([
+        const packagesRegistrationsStatsPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -286,26 +286,26 @@ const getClubPackagesStatsByDate = async (request, response) => {
             }
         ])
 
-        let [packages, packagesRegistrations] = await Promise.all([
+        let [packages, packagesRegistrationsStats] = await Promise.all([
             packagesPromise,
-            packagesRegistrationsPromise
+            packagesRegistrationsStatsPromise
         ])
 
-        packagesRegistrations = utils.joinPackages(packages, packagesRegistrations)
+        packagesRegistrationsStats = utils.joinPackages(packages, packagesRegistrationsStats)
 
-        const numberOfPackages = packages.length
+        const totalPackages = packages.length
 
         const closedPackages = packages.filter(package => package.isOpen == false)
-        const numberOfClosedPackages = closedPackages.length
+        const totalClosedPackages = closedPackages.length
 
         const openedPackages = packages.filter(package => package.isOpen == true)
-        const numberOfOpenedPackages = openedPackages.length
+        const totalOpenedPackages = openedPackages.length
 
         return response.status(200).json({
-            packagesRegistrations,
-            numberOfPackages,
-            numberOfClosedPackages,
-            numberOfOpenedPackages,
+            packagesRegistrationsStats,
+            totalPackages,
+            totalClosedPackages,
+            totalOpenedPackages,
             packages,
             closedPackages,
             openedPackages
@@ -315,7 +315,8 @@ const getClubPackagesStatsByDate = async (request, response) => {
         console.error(error)
         return response.status(500).json({
             message: 'internal server error',
-            error: error.message
+            error: error.message,
+            field: null
         })
     }
 }
@@ -334,24 +335,128 @@ const getClubPackageStatsByDate = async (request, response) => {
         }
 
         const { packageId } = request.params
-        const { searchQuery, toDate } = utils.statsQueryGenerator('packageId', packageId, request.query)
+        const packageSearchQuery = utils.statsQueryGenerator('packageId', packageId, request.query)
 
-        const packageRegistrations = await RegistrationModel
-        .find(searchQuery)
+        const clubPackage = await PackageModel.findById(packageId)
 
-        const numberOfPackageRegistrations = packageRegistrations.length
+        const clubId = clubPackage.clubId
+        const clubPackagesSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const activePackageRegistrations = packageRegistrations.filter(registration => registration.isActive == true)
-        const numberOfActiveRegistrations = activePackageRegistrations.length
+
+
+        const packageRegistrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: packageSearchQuery.searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+        }])
+
+        const packagesPromise = PackageModel
+        .find(clubPackagesSearchQuery.searchQuery)
+        .select({ updatedAt: 0, __v: 0 })
+
+        const packagesRegistrationsStatsPromise = RegistrationModel.aggregate([
+            {
+                $match: clubPackagesSearchQuery.searchQuery
+            },
+            {
+                $group: {
+                    _id: '$packageId',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        let [packageRegistrations, packages, packagesRegistrationsStats] = await Promise.all([
+            packageRegistrationsPromise,
+            packagesPromise,
+            packagesRegistrationsStatsPromise
+        ])
+
+        packagesRegistrationsStats = utils.joinPackages(packages, packagesRegistrationsStats)
+
+        packageRegistrations.forEach(registration => {
+            if(registration.expiresAt <= packageSearchQuery.toDate) {
+                registration.isActive = false
+            }
+        })
+
+        const totalPackageRegistrations = packageRegistrations.length
+
+        const activePackageRegistrations = packageRegistrations
+        .filter(registration => registration.expiresAt > packageSearchQuery.toDate || registration.isActive == true)
+        const totalActiveRegistrations = activePackageRegistrations.length
 
         const expiredPackageRegistrations = packageRegistrations
-        .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
-        const numberOfExpiredRegistrations = expiredPackageRegistrations.length
+        .filter(registration => registration.expiresAt <= packageSearchQuery.toDate || registration.isActive == false)
+        const totalExpiredRegistrations = expiredPackageRegistrations.length
+
+
+        const packageStats = utils.calculatePackagePercentage(packageId, packagesRegistrationsStats)
+
+        const packageCompletion = utils.calculateCompletedPackageAttendances(expiredPackageRegistrations)
+
+        packageStats.packagePercentage = Math.round(Number.parseFloat(packageStats.packagePercentage))
+        packageStats.otherPackagesPercentage = Math.round(Number.parseFloat(packageStats.otherPackagesPercentage))
+
+        let completedPackageAttendance = ((packageCompletion.completedAttendance / packageCompletion.total) * 100).toFixed(2)
+        let incompletedPackageAttendance = ((packageCompletion.incompletedAttendance/ packageCompletion.total) * 100).toFixed(2)
+
+
+        const packageCompletionStat = {
+            completedPackageAttendancePercentage: String(completedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(completedPackageAttendance)) : 0,
+            completedPackageAttendance: packageCompletion.completedAttendance,
+            incompletedPackageAttendancePercentage: String(incompletedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(incompletedPackageAttendance)) : 0,
+            incompletedPackageAttendance: packageCompletion.incompletedAttendance,
+            total: packageCompletion.total
+        }
+
 
         return response.status(200).json({
-            numberOfPackageRegistrations,
-            numberOfActiveRegistrations,
-            numberOfExpiredRegistrations,
+            package: clubPackage,
+            packageStats,
+            packageCompletionStat,
+            totalPackageRegistrations,
+            totalActiveRegistrations,
+            totalExpiredRegistrations,
             packageRegistrations,
             activePackageRegistrations,
             expiredPackageRegistrations

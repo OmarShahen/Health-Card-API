@@ -57,8 +57,9 @@ const updatePackageData = (packageData) => {
 
     if(!expiresIn) return { isAccepted: false, message: 'expiration period is required', field: 'expiresIn' }
 
-    const validateExpirationPeriod = validator.isExpirationPeriodValid(expiresIn)
+    const validateExpirationPeriod = validator.isDatePeriodValid(expiresIn)
     if(!validateExpirationPeriod.isAccepted) {
+        validateExpirationPeriod.field = 'expiresIn'
         return validateExpirationPeriod
     }
 

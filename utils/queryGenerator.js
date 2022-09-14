@@ -34,7 +34,6 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
 
             const dateQuery = { $gte: fromDate, $lte: toDate }
             searchQuery = { ...searchQuery, createdAt: dateQuery }
-
         }
 
         return { searchQuery, fromDate, toDate }

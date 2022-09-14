@@ -3,14 +3,17 @@ const dotenv = require('dotenv').config()
 const config = require('./config/config')
 const morgan = require('morgan')
 const db = require('./config/database')
+const cors = require('cors')
 
 
 const app = express()
 
 app.use(morgan('common'))
 app.use(express.json())
+app.use(cors())
 
 app.use('/api/v1/auth', require('./routes/auth'))
+app.use('/api/v1', require('./routes/chainOwners'))
 app.use('/api/v1', require('./routes/admins'))
 app.use('/api/v1', require('./routes/clubs'))
 app.use('/api/v1', require('./routes/countries'))
