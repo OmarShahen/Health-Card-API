@@ -8,4 +8,6 @@ router.get('/clubs', (request, response) => clubsController.getClubs(request, re
 
 router.get('/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => clubsController.getClubStatsByDate(request, response))
 
+router.get('/clubs/owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => clubsController.getClubsByOwner(request, response))
+
 module.exports = router

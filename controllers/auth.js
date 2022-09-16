@@ -5,6 +5,7 @@ const AdminModel = require('../models/AdminModel')
 const ClubModel = require('../models/ClubModel')
 const MemberModel = require('../models/MemberModel')
 const StaffModel = require('../models/StaffModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
@@ -121,6 +122,108 @@ const staffLogin = async (request, response) => {
     }
 }
 
+const clubAdminLogin = async (request, response) => {
+
+    try {
+
+        const dataValidation = authValidation.staffLogin(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { phone, countryCode, password } = request.body
+
+        const clubAdminList = await StaffModel
+        .find({ phone, countryCode, isAccountActive: true })
+
+        if(clubAdminList.length == 0) {
+            return response.status(404).json({
+                message: 'Account does not exists',
+                field: 'phone'
+            })
+        }
+
+        if(!bcrypt.compareSync(password, clubAdminList[0].password)) {
+            return response.status(400).json({
+                message: 'wrong password',
+                field: 'password'
+            })
+        }
+
+        clubAdminList[0].password = null
+
+        const token = jwt.sign(clubAdminList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
+
+        return response.status(200).json({
+            token,
+            clubAdmin: clubAdminList[0]
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const chainOwnerLogin = async (request, response) => {
+
+    try {
+
+        const dataValidation = authValidation.chainOwnerLogin(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { phone, countryCode, password } = request.body
+
+        const chainOwnerList = await ChainOwnerModel
+        .find({ phone, countryCode })
+
+        if(chainOwnerList.length == 0) {
+            return response.status(404).json({
+                message: 'Account does not exists',
+                field: 'phone'
+            })
+        }
+
+        if(!bcrypt.compareSync(password, chainOwnerList[0].password)) {
+            return response.status(400).json({
+                message: 'wrong password',
+                field: 'password'
+            })
+        }
+
+        chainOwnerList[0].password = null
+
+        const token = jwt.sign(chainOwnerList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
+
+        return response.status(200).json({
+            token,
+            chainOwner: chainOwnerList[0]
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const sendForgetPasswordMail = async (request, response) => {
 
     try {
@@ -226,6 +329,8 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
 module.exports = {
     adminLogin,
     staffLogin,
+    clubAdminLogin,
+    chainOwnerLogin,
     sendForgetPasswordMail,
     sendMemberQRCodeWhatsapp
 }

@@ -4,6 +4,7 @@ const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const PackageModel = require('../models/PackageModel')
 const MemberModel = require('../models/MemberModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 
 const verifyClubId = async (request, response, next) => {
 
@@ -170,8 +171,48 @@ const verifyMemberId = async (request, response, next) => {
     }
 }
 
+const verifyChainOwnerId = async (request, response, next) => {
+
+    try {
+
+        const { ownerId } = request.params
+
+        if(!utils.isObjectId(ownerId)) {
+            return response.status(400).json({
+                message: 'invalid owner Id formate',
+                field: 'owner'
+            })
+        }
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        if(!owner) {
+            return response.status(404).json({
+                message: 'owner Id does not exist',
+                field: 'ownerId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 
 
 
-module.exports = { verifyClubId, verifyRegistrationId, verifyStaffId, verifyPackageId, verifyMemberId }
+
+module.exports = { 
+    verifyClubId, 
+    verifyRegistrationId, 
+    verifyStaffId, 
+    verifyPackageId, 
+    verifyMemberId,
+    verifyChainOwnerId
+}

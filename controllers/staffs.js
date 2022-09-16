@@ -208,6 +208,50 @@ const getStaffs = async (request, response) => {
     }
 }
 
+const getClubAdmins = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { status } = request.query
+
+        let staffs 
+
+        if(status == 'active') {
+
+            staffs = await StaffModel
+            .find({ clubId, role: 'CLUB-ADMIN', isAccountActive: true })
+            .sort({ createdAt: -1 })
+            .select({ password: 0 })
+
+        } else if(status == 'removed') {
+
+            staffs = await StaffModel
+            .find({ clubId, role: 'CLUB-ADMIN', isAccountActive: false })
+            .sort({ createdAt: -1 })
+            .select({ password: 0 })
+
+        } else {
+
+            staffs = await StaffModel
+            .find({ clubId, role: 'CLUB-ADMIN' })
+            .sort({ createdAt: -1 })
+            .select({ password: 0 })
+        }
+
+        return response.status(200).json({
+            staffs
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const updateStaff = async (request, response) => {
 
     try {
@@ -640,6 +684,7 @@ module.exports = {
     addClubOwner, 
     addStaff, 
     getStaffs, 
+    getClubAdmins,
     updateStaff, 
     deleteStaff, 
     updateStaffStatus,

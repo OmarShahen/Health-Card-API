@@ -295,5 +295,26 @@ const getClubs = async (request, response) => {
     }
 }
 
+const getClubsByOwner = async (request, response) => {
 
-module.exports = { addClub, getClubStatsByDate, getClubs }
+    try {
+
+        const { ownerId } = request.params
+
+        const clubs = await ClubModel.find({ ownerId })
+
+        return response.status(200).json({
+            clubs
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
+module.exports = { addClub, getClubStatsByDate, getClubs, getClubsByOwner }
