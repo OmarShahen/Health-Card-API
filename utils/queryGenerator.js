@@ -5,7 +5,13 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
 
         
         let searchQuery = {}
-        searchQuery[entityIdKey] = mongoose.Types.ObjectId(entityIdValue) 
+
+        if(typeof entityIdValue == 'string') {
+            searchQuery[entityIdKey] = mongoose.Types.ObjectId(entityIdValue)
+
+        } else if(typeof entityIdValue == 'object') {
+            searchQuery[entityIdKey] = { $in: entityIdValue }
+        }
 
         let toDate = new Date()
         let fromDate = new Date()
@@ -39,5 +45,6 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
         return { searchQuery, fromDate, toDate }
     
 }
+
 
 module.exports = { statsQueryGenerator }

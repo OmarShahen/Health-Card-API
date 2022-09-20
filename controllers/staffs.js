@@ -9,6 +9,7 @@ const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
 const CancelledAttendancesModel = require('../models/CancelledAttendanceModel')
 const FreezedRegistrationsModel = require('../models/FreezeRegistrationModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const bcrypt = require('bcrypt')
 const utils = require('../utils/utils')
 
@@ -680,6 +681,69 @@ const getStaffStatsByDate = async (request, response) => {
     }
 }
 
+const getStaffsByOwner = async (request, response) => {
+
+    try {
+
+        let { ownerId, role } = request.params
+        
+        role = role.toUpperCase()
+
+        if(!config.APP_ROLES.includes(role)) {
+            return response.status(400).json({
+                message: 'invalid role',
+                field: 'role'
+            })
+        }
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const staffs = await StaffModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                    role
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        staffs.forEach(staff => staff.club = staff.club[0])
+
+        return response.status(200).json({
+            staffs
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addClubOwner, 
     addStaff, 
@@ -689,5 +753,6 @@ module.exports = {
     deleteStaff, 
     updateStaffStatus,
     deleteStaffAndRelated,
-    getStaffStatsByDate
+    getStaffStatsByDate,
+    getStaffsByOwner
  }

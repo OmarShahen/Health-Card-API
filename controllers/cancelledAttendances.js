@@ -5,6 +5,7 @@ const CancelledRegistrationModel = require('../models/CancelledRegistrationModel
 const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const PackageModel = require('../models/PackageModel')
 const AttendanceModel = require('../models/AttendanceModel')
 
@@ -203,6 +204,88 @@ const getClubCancelledAttendance = async (request, response) => {
     }
 }
 
+const getCancelledAttendancesByOwner = async (request, response) => {
+
+    try {
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const cancelledAttendances = await CancelledAttendanceModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        cancelledAttendances.forEach(cancelledAttendance => {
+            cancelledAttendance.club = cancelledAttendance.club[0]
+            cancelledAttendance.member = cancelledAttendance.memer[0]
+            cancelledAttendance.staff = cancelledAttendance.staff[0]
+            cancelledAttendance.package = cancelledAttendance.package[0]
+        })
+
+        return response.status(200).json({
+            cancelledAttendances
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 
-module.exports = { addCancelAttendance, getClubCancelledAttendance }
+
+module.exports = { addCancelAttendance, getClubCancelledAttendance, getCancelledAttendancesByOwner }

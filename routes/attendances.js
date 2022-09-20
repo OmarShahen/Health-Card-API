@@ -14,5 +14,8 @@ router.get(
 
 router.get('/attendances/clubs/:clubId', verifyIds.verifyClubId, (request, response) => attendancesController.getClubAttendances(request, response))
 
+router.get('/attendances/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => attendancesController.getAttendancesByOwner(request, response))
+
+router.get('/attendances/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => attendancesController.getChainOwnerAttendancesStatsByDate(request, response))
 
 module.exports = router

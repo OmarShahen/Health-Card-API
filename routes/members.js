@@ -9,6 +9,12 @@ router.post(
     (request, response) => membersController.addMember(request, response)
     )
 
+router.post(
+    '/members/check',
+    tokenMiddleware.appUsersPermission,
+    (request, response) => membersController.CheckaddMember(request, response)
+     )
+
 router.get(
     '/members/clubs/:clubId/search',
     tokenMiddleware.appUsersPermission,
@@ -66,5 +72,9 @@ router.patch(
     verifyIds.verifyMemberId,
     (request, response) => membersController.updateMemberAuthenticationStatus(request, response)
 )
+
+router.get('/members/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => membersController.getMembersByOwner(request, response))
+
+router.get('/members/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => membersController.getChainOwnerMembersStatsByDate(request, response))
 
 module.exports = router

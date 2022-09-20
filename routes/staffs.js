@@ -2,7 +2,7 @@ const router = require('express').Router()
 const verifyIds = require('../middlewares/verify-routes-params')
 const staffsController = require('../controllers/staffs')
 
-router.post('/staffs/owners', (request, response) => staffsController.addClubOwner(request, response))
+router.post('/staffs/club-admin', (request, response) => staffsController.addClubOwner(request, response))
 
 router.post('/staffs/staffs', (request, response) => staffsController.addStaff(request, response))
 
@@ -19,5 +19,7 @@ router.patch('/staffs/:staffId', verifyIds.verifyStaffId, (request, response) =>
 router.delete('/staffs/:staffId/wild', verifyIds.verifyStaffId, (request, response) => staffsController.deleteStaffAndRelated(request, response))
 
 router.get('/staffs/:staffId/stats', verifyIds.verifyStaffId, (request, response) => staffsController.getStaffStatsByDate(request, response))
+
+router.get('/staffs/chain-owners/:ownerId/role/:role', verifyIds.verifyChainOwnerId, (request, response) => staffsController.getStaffsByOwner(request, response))
 
 module.exports = router

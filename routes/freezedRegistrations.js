@@ -18,4 +18,10 @@ router.patch(
     (request, response) => freezeRegistrationsController.reactivateRegistration(request, response)
     )
 
+router.get(
+    '/freeze-registrations/chain-owners/:ownerId', 
+    verifyIds.verifyChainOwnerId, 
+    (request, response) => freezeRegistrationsController.getFreezeRegistrationsByOwner(request, response))
+
+
 module.exports = router

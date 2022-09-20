@@ -6,6 +6,7 @@ const StaffModel = require('../models/StaffModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrations = require('../models/CancelledRegistrationModel')
 const CancelledAttendances = require('../models/CancelledAttendanceModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const memberValidation = require('../validations/members')
 const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
@@ -26,12 +27,22 @@ const addMember = async (request, response) => {
 
         const { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
 
-        const club = await ClubModel.findById(clubId)
+        const clubPromise = ClubModel.findById(clubId)
+        const staffPromise = StaffModel.findById(staffId)
+
+        const [club, staff] = await Promise.all([clubPromise, staffPromise])
 
         if(!club) {
             return response.status(404).json({
                 message: 'club Id does not exist',
                 field: 'clubId'
+            })
+        }
+
+        if(!staff) {
+            return response.status(404).json({
+                message: 'staff Id does not exist',
+                field: 'staffId'
             })
         }
 
@@ -55,15 +66,6 @@ const addMember = async (request, response) => {
             return response.status(400).json({
                 message: 'phone number already registered in the club',
                 field: 'phone'
-            })
-        }
-
-        const clubStaffList = await StaffModel.find({ clubId, staffId })
-
-        if(clubStaffList.length == 0) {
-            return response.status(404).json({
-                message: 'staff account does not exist in the club',
-                field: 'staffId'
             })
         }
 
@@ -112,6 +114,77 @@ const addMember = async (request, response) => {
             message: `${name} is added to the club successfully`,
             newMember,
             verificationMessage
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message:'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const CheckaddMember = async (request, response) => {
+
+    try {
+
+        const dataValidation = memberValidation.memberDataCheck(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId, staffId, email, phone, countryCode } = request.body
+
+        const clubPromise = ClubModel.findById(clubId)
+        const staffPromise = StaffModel.findById(staffId)
+
+        const [club, staff] = await Promise.all([clubPromise, staffPromise])
+
+        if(!club) {
+            return response.status(404).json({
+                message: 'club Id does not exist',
+                field: 'clubId'
+            })
+        }
+
+        if(!staff) {
+            return response.status(404).json({
+                message: 'staff Id does not exist',
+                field: 'staffId'
+            })
+        }
+
+        if(email) {
+
+            const emailList = await MemberModel
+            .find({ clubId, email })
+
+            if(emailList.length != 0) {
+                return response.status(400).json({
+                    message: 'email is already registered in the club',
+                    field: 'email'
+                })
+            }
+        }
+
+        const phoneList = await MemberModel
+        .find({ clubId, phone, countryCode })
+
+        if(phoneList.length != 0) {
+            return response.status(400).json({
+                message: 'phone number already registered in the club',
+                field: 'phone'
+            })
+        }
+
+        return response.status(200).json({
+            message: `Member data is valid`,
+            isValid: true
         })
 
     } catch(error) {
@@ -880,9 +953,200 @@ const updateMemberAuthenticationStatus = async (request, response) => {
     }
 }
 
+const getMembersByOwner = async (request, response) => {
+
+    try {
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const members = await MemberModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        members.forEach(member => {
+            member.club = member.club[0]
+            member.staff = member.staff[0]
+        })
+
+        return response.status(200).json({
+            members
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getChainOwnerMembersStatsByDate = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+
+        const membersPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0
+                }
+            }
+        ])
+
+        const membersStatsByMonthPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const clubsMembersStatsPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$clubId',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            }
+        ])
+
+
+        const [members, membersStatsByMonth, clubsMembersStats] = await Promise.all([
+            membersPromise,
+            membersStatsByMonthPromise,
+            clubsMembersStatsPromise
+        ])
+
+        const totalMembers = members.length
+
+        const activeMembers = members.filter(member => !member.isBlocked)
+        const blockedMembers = members.filter(member => member.isBlocked)
+
+
+        membersStatsByMonth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        clubsMembersStats.forEach(stat => stat.club = stat.club[0])
+
+        members.forEach(member => {
+            member.club = member.club[0]
+            member.staff = member.staff[0]
+        })
+
+        return response.status(200).json({
+            totalMembers,
+            totalActiveMembers: activeMembers.length,
+            totalBlockedMembers: blockedMembers.length,
+            membersStatsByMonth,
+            clubsMembersStats,
+            members
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addMember, 
+    CheckaddMember,
     searchMembersByPhone, 
     deleteMember, 
     updateMember,
@@ -892,5 +1156,7 @@ module.exports = {
     getMembersStatsByDate,
     getMemberRegistrationsStatsByDate,
     updateMemberQRcodeVerification,
-    updateMemberAuthenticationStatus
+    updateMemberAuthenticationStatus,
+    getMembersByOwner,
+    getChainOwnerMembersStatsByDate
 }

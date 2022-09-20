@@ -60,7 +60,7 @@ const calculateCompletedPackageAttendances = (registrations) => {
 
     for(let i=0;i<registrations.length;i++) {
 
-        const memberPackage = registrations[i].package[0]
+        const memberPackage = registrations[i].package
         const packageAttendance = memberPackage.attendance
         const memberAttended = registrations[i].attended
 

@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const RegistrationModel = require('../models/RegistrationModel')
 const PackageModel = require('../models/PackageModel')
 const FreezeRegistrationModel = require('../models/FreezeRegistrationModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const freezeRegistrationValidation = require('../validations/freezeRegistration')
 const utils = require('../utils/utils')
 
@@ -273,4 +274,109 @@ const reactivateRegistration = async (request, response) => {
     }
 }
 
-module.exports = { addFreezeRegistration, getClubFreezedRegistrations, reactivateRegistration }
+const getFreezeRegistrationsByOwner = async (request, response) => {
+
+    try {
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const freezedRegistrations = await FreezeRegistrationModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'reactivation.staffId',
+                    foreignField: '_id',
+                    as: 'activator'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'registrations',
+                    localField: 'registrationId',
+                    foreignField: '_id',
+                    as: 'registration'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        freezedRegistrations.forEach(freezedRegistration => {
+            freezedRegistration.club = freezedRegistration.club[0]
+            freezedRegistration.staff = freezedRegistration.staff[0]
+            freezedRegistration.member = freezedRegistration.member[0]
+            freezedRegistration.package = freezedRegistration.package[0]
+            freezedRegistration.registration = freezedRegistration.registration[0]
+            freezedRegistration.activator = freezedRegistration.activator[0] || null
+        })
+
+        return response.status(200).json({
+            freezedRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { 
+    addFreezeRegistration, 
+    getClubFreezedRegistrations, 
+    reactivateRegistration,
+    getFreezeRegistrationsByOwner
+}

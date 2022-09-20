@@ -7,4 +7,6 @@ router.post('/cancelled-attendances', (request, response) => cancelledAttendance
 
 router.get('/cancelled-attendances/clubs/:clubId', verifyIds.verifyClubId, (request, response) => cancelledAttendancesController.getClubCancelledAttendance(request, response))
 
+router.get('/cancelled-attendances/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => cancelledAttendancesController.getCancelledAttendancesByOwner(request, response))
+
 module.exports = router

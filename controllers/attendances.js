@@ -8,6 +8,7 @@ const StaffModel = require('../models/StaffModel')
 const PackageModel = require('../models/PackageModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const utils = require('../utils/utils')
 
 const addAttendance = async (request, response) => {
@@ -437,6 +438,229 @@ const getClubAttendancesStatsByDate = async (request, response) => {
     }
 }
 
+const getAttendancesByOwner = async (request, response) => {
+
+    try {
+
+        let { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const attendances = await AttendanceModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        attendances.forEach(attendance => {
+            attendance.club = attendance.club[0]
+            attendance.package = attendance.package[0]
+            attendance.staff = attendance.staff[0]
+            attendance.member = attendance.member[0]
+        })
+
+        return response.status(200).json({
+            attendances
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getChainOwnerAttendancesStatsByDate = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+
+        const attendancesPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const attendancesStatsByMonthPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const clubsAttendancesStatsPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$clubId',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            }
+        ])
+
+
+        const [attendances, attendancesStatsByMonth, clubsAttendancesStats] = await Promise.all([
+            attendancesPromise,
+            attendancesStatsByMonthPromise,
+            clubsAttendancesStatsPromise
+        ])
+
+        const totalAttendances = attendances.length
+
+        attendancesStatsByMonth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        attendances.forEach(attendance => {
+            attendance.club = attendance.club[0]
+            attendance.package = attendance.package[0]
+            attendance.staff = attendance.staff[0]
+            attendance.member = attendance.member[0]
+        })
+
+        clubsAttendancesStats.forEach(stat => stat.club = stat.club[0])
+
+        return response.status(200).json({
+            totalAttendances,
+            clubsAttendancesStats,
+            attendancesStatsByMonth,
+            attendances,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 
 module.exports = { 
@@ -444,4 +668,6 @@ module.exports = {
     getClubAttendancesStatsByDate, 
     getRegistrationAttendancesWithStaffData, 
     getClubAttendances,
+    getAttendancesByOwner,
+    getChainOwnerAttendancesStatsByDate
 }

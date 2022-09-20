@@ -3,6 +3,7 @@ const statsValidation = require('../validations/stats')
 const PackageModel = require('../models/PackageModel')
 const ClubModel = require('../models/ClubModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const utils = require('../utils/utils')
 
 
@@ -339,7 +340,8 @@ const getClubPackageStatsByDate = async (request, response) => {
 
         const clubPackage = await PackageModel.findById(packageId)
 
-        const clubId = clubPackage.clubId
+        const clubId = clubPackage._id.toString()
+
         const clubPackagesSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
 
 
@@ -421,6 +423,12 @@ const getClubPackageStatsByDate = async (request, response) => {
 
         const totalPackageRegistrations = packageRegistrations.length
 
+        packageRegistrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
+
         const activePackageRegistrations = packageRegistrations
         .filter(registration => registration.expiresAt > packageSearchQuery.toDate || registration.isActive == true)
         const totalActiveRegistrations = activePackageRegistrations.length
@@ -471,6 +479,146 @@ const getClubPackageStatsByDate = async (request, response) => {
     }
 }
 
+const getPackagesByOwner = async (request, response) => {
+
+    try {
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const packages = await PackageModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        packages.forEach(package => package.club = package.club[0])
+
+        return response.status(200).json({
+            packages
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getChainOwnerPackagesStatsByDate = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+        const packagesPromise = PackageModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        const packagesStatsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $group: {
+                    _id: '$package.title',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+
+        const [packages, packagesStats] = await Promise.all([
+            packagesPromise,
+            packagesStatsPromise,
+        ])
+
+        const totalPackages = packages.length
+
+        packagesStats.forEach(stat => stat._id = stat._id[0])
+
+        packages.forEach(packageObj => packageObj.club = packageObj.club[0])
+
+        return response.status(200).json({
+            totalPackages,
+            packagesStats,
+            packages,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addPackage, 
     getPackages, 
@@ -479,5 +627,7 @@ module.exports = {
     updatePackageStatus,
     deletedPackageAndRelated,
     getClubPackagesStatsByDate,
-    getClubPackageStatsByDate
+    getClubPackageStatsByDate,
+    getPackagesByOwner,
+    getChainOwnerPackagesStatsByDate
 }

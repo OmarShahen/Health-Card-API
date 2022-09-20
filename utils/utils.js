@@ -20,6 +20,7 @@ const { extractAttendances, extractStaffs, extractMembers } = require('./extract
 const { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator } = require('./queryGenerator')
+const { distinctValues } = require('./distincts')
 
 module.exports = {
     isNameValid,
@@ -43,5 +44,6 @@ module.exports = {
     extractStaffs,
     extractMembers,
     statsQueryGenerator,
-    joinPackages
+    joinPackages,
+    distinctValues
 }

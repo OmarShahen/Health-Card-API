@@ -7,6 +7,11 @@ const CountryModel = require('../models/countryModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
+const MemberModel = require('../models/MemberModel')
+const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
+const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
+const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
+const StaffModel = require('../models/StaffModel')
 const clubValidation = require('../validations/clubs')
 const statsValidation = require('../validations/stats')
 
@@ -86,10 +91,17 @@ const addClub = async (request, response) => {
         const clubObj = new ClubModel(club)
         const newClub = await clubObj.save()
 
+        const newClubId = newClub._id
+
+        const updatedChainOwner = await ChainOwnerModel
+        .findByIdAndUpdate(ownerId, { $push: { clubs: newClubId } }, { new: true } )
+
+        updatedChainOwner.password = null
 
         return response.status(200).json({
             message: `${club.name} is added to our clubs network successfully!`,
-            club: newClub
+            club: newClub,
+            chainOwner: updatedChainOwner
         })
 
     } catch(error) {
@@ -278,7 +290,7 @@ const getClubs = async (request, response) => {
 
     try {
 
-        const clubs = await ClubModel
+        let clubs = await ClubModel
         .find()
         .sort({ createdAt: -1 })
 
@@ -316,5 +328,202 @@ const getClubsByOwner = async (request, response) => {
     }
 }
 
+const updateClub = async (request, response) => {
 
-module.exports = { addClub, getClubStatsByDate, getClubs, getClubsByOwner }
+    try {
+
+        const { clubId } = request.params
+
+        const dataValidation = clubValidation.updateClubData(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { description, phone, countryCode } = request.body
+
+        const club = await ClubModel.findById(clubId)
+
+        if(club.countryCode == club && club.phone != phone) {
+
+            const phoneList = await ClubModel
+            .find({ countryCode, phone })
+
+            if(phoneList.length != 0) {
+                return response.status(400).json({
+                    message: 'phone is already registered',
+                    field: 'phone'
+                })
+            }
+        }
+
+        let clubData = { description, countryCode, phone }
+
+
+        const updatedClub = await ClubModel
+        .findByIdAndUpdate(
+            clubId,
+            clubData,
+            { new: true }
+        )
+
+        return response.status(200).json({
+            message: 'club data updated successfully',
+            club: updatedClub
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateClubStatus = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { isActive } = request.body
+
+
+        if(typeof isActive != 'boolean') {
+            return response.status(400).json({
+                message: 'club status must be boolean',
+                field: 'isActive'
+            })
+        }
+
+        const updatedClub = await ClubModel
+        .findByIdAndUpdate(
+            clubId,
+            { isActive },
+            { new: true }
+        )
+
+
+        return response.status(200).json({
+            message: 'club status is updated successfully',
+            club: updatedClub
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteClub = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        const clubStaffs = await StaffModel.find({ clubId })
+
+        if(clubStaffs.length != 0) {
+            return response.status(400).json({
+                message: `club has ${clubStaffs.length} registered club`,
+                field: 'clubId'
+            })
+        }
+
+        const deletedClub = await ClubModel.findByIdAndDelete(clubId)
+
+        return response.status(200).json({
+            club: deletedClub
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteClubAndRelated = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        const deleteStaffsPromise = StaffModel.deleteMany({ clubId })
+
+        const deleteMembersPromise = MemberModel.deleteMany({ clubId })
+
+        const deleteAttendancesPromise = AttendanceModel.deleteMany({ clubId })
+
+        const deleteRegistrationsPromise = RegistrationModel.deleteMany({ clubId })
+
+        const deleteCancelledAttendancesPromise = CancelledAttendanceModel.deleteMany({ clubId })
+
+        const deleteCancelledRegistrationsPromise = CancelledRegistrationModel.deleteMany({ clubId })
+
+        const deleteFreezedRegistrationsPromise = FreezedRegistrationModel.deleteMany({ clubId })
+
+        const deletedClubPromise = ClubModel.findByIdAndDelete(clubId)
+
+        const [
+            deletedStaffs,
+            deletedMembers,
+            deletedAttendances,
+            deletedRegistrations,
+            deletedCancelledAttendances,
+            deletedCancelledRegistrations,
+            deletedFreezedRegistrations,
+            deletedClub
+
+        ] = await Promise.all([
+            deleteStaffsPromise,
+            deleteMembersPromise,
+            deleteAttendancesPromise,
+            deleteRegistrationsPromise,
+            deleteCancelledAttendancesPromise,
+            deleteCancelledRegistrationsPromise,
+            deleteFreezedRegistrationsPromise,
+            deletedClubPromise
+        ])
+
+
+        return response.status(200).json({
+            message: 'club deleted successfully and all related data',
+            club: deletedClub,
+            deletedStaffs: deletedStaffs.deletedCount,
+            deletedMembers: deletedMembers.deletedCount,
+            deletedAttendances: deletedAttendances.deletedCount,
+            deletedRegistrations: deletedRegistrations.deletedCount,
+            deletedCancelledAttendances: deletedCancelledAttendances.deletedCount,
+            deletedCancelledRegistrations: deletedCancelledRegistrations.deletedCount,
+            deletedFreezedRegistrations: deletedFreezedRegistrations.deletedCount,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
+module.exports = { 
+    addClub, 
+    getClubStatsByDate, 
+    getClubs, 
+    getClubsByOwner, 
+    updateClub,
+    updateClubStatus,
+    deleteClub,
+    deleteClubAndRelated
+}

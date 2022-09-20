@@ -5,6 +5,7 @@ const CancelledRegistrationModel = require('../models/CancelledRegistrationModel
 const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
+const ChainOwnerModel = require('../models/ChainOwnerModel')
 const PackageModel = require('../models/PackageModel')
 const utils = require('../utils/utils')
 
@@ -198,4 +199,90 @@ const getCancelledRegistrations = async (request, response) => {
     }
 }
 
-module.exports = { addCancelRegistration, getCancelledRegistrations }
+const getCancelledRegistrationsByOwner = async (request, response) => {
+
+    try {
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const cancelledRegistrations = await CancelledRegistrationModel.aggregate([
+            {
+                $match: {
+                    clubId: { $in: clubs },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    password: 0,
+                    updatedAt: 0,
+                    __v: 0,
+                    'club.updatedAt': 0,
+                    'club.__v': 0
+                }
+            }
+        ])
+
+        cancelledRegistrations.forEach(cancelledRegistration => {
+            cancelledRegistration.club = cancelledRegistration.club[0]
+            cancelledRegistration.member = cancelledRegistration.member[0]
+            cancelledRegistration.staff = cancelledRegistration.staff[0]
+            cancelledRegistration.package = cancelledRegistration.package[0]
+        })
+
+        return response.status(200).json({
+            cancelledRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { 
+    addCancelRegistration, 
+    getCancelledRegistrations, 
+    getCancelledRegistrationsByOwner 
+}

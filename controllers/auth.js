@@ -189,7 +189,7 @@ const chainOwnerLogin = async (request, response) => {
         const { phone, countryCode, password } = request.body
 
         const chainOwnerList = await ChainOwnerModel
-        .find({ phone, countryCode })
+        .find({ phone, countryCode, isAccountActive: true })
 
         if(chainOwnerList.length == 0) {
             return response.status(404).json({

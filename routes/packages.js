@@ -24,4 +24,8 @@ router.get('/packages/clubs/:clubId/stats', verifyIds.verifyClubId, (request, re
 
 router.get('/packages/:packageId/stats', verifyIds.verifyPackageId, (request, response) => packagesController.getClubPackageStatsByDate(request, response))
 
+router.get('/packages/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => packagesController.getPackagesByOwner(request, response))
+
+router.get('/packages/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => packagesController.getChainOwnerPackagesStatsByDate(request, response))
+
 module.exports = router

@@ -7,6 +7,7 @@ const ChainOwnerSchema = new mongoose.Schema({
     countryCode: { type: String, required: true },
     password: { type: String, required: true },
     clubs: [],
+    isAccountActive: { type: Boolean, default: true }
 
 }, { timestamps: true })
 

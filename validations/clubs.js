@@ -37,4 +37,23 @@ const clubData = (clubData) => {
 
 }
 
-module.exports = { clubData } 
+const updateClubData = (clubData) => {
+
+    const { description, phone, countryCode } = clubData
+
+    if(!description) return { isAccepted: false, message: 'description is required', field: 'description' }
+
+    if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
+
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'phone formate is invalid', field: 'phone' }
+
+    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
+
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
+    
+
+    return { isAccepted: true, message: 'data is valid', data: clubData }
+
+}
+
+module.exports = { clubData, updateClubData } 
