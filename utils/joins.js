@@ -54,4 +54,20 @@ const joinPackages = (packages, packagesIdsList) => {
     return packagesIdsList
 }
 
-module.exports = { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages }
+const joinMonths = (data) => {
+
+    const months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ]
+
+    for(let i=0;i<data.length;i++) {
+
+        const dataMonthIndex = Number.parseInt(data[i]._id)
+        data[i].month = months[dataMonthIndex - 1]
+    }
+
+    return data
+}
+
+module.exports = { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages, joinMonths }

@@ -3,7 +3,20 @@ const validator = require('../utils/utils')
 
 const memberData = (memberData) => {
 
-    const { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = memberData
+    const { 
+        clubId, 
+        staffId, 
+        name, 
+        email, 
+        phone, 
+        countryCode, 
+        gender,
+        age,
+        canAuthenticate, 
+        QRCodeURL, 
+        QRCodeUUID, 
+        languageCode 
+    } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
 
@@ -30,6 +43,10 @@ const memberData = (memberData) => {
     if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
+
+    if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: 'invalid gender', field: 'gender' }
+
+    if(age && !Number.parseInt(age)) return { isAccepted: false, message: 'invalid age', field: 'age' }
 
     if(typeof canAuthenticate != 'boolean') return { isAccepted: false, message: 'invalid can authenticate input', field: 'canAuthenticate' }
 
@@ -51,7 +68,7 @@ const memberData = (memberData) => {
 
 const memberDataCheck = (memberData) => {
 
-    const { clubId, staffId, name, email, phone, countryCode } = memberData
+    const { clubId, staffId, name, email, phone, countryCode, gender, age } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
 
@@ -78,6 +95,13 @@ const memberDataCheck = (memberData) => {
     if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
+
+    if(!gender) return { isAccepted: false, message: 'gender is required', field: 'gender' }
+
+    if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: 'invalid gender', field: 'gender' }
+
+    if(age && !Number.parseInt(age)) return { isAccepted: false, message: 'invalid age', field: 'age' }
+
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
 

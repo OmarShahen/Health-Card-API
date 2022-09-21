@@ -11,6 +11,7 @@ const memberValidation = require('../validations/members')
 const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
+const moment = require('moment')
 
 const addMember = async (request, response) => {
 
@@ -25,7 +26,7 @@ const addMember = async (request, response) => {
             })
         }
 
-        const { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
+        const { clubId, staffId, name, email, phone, countryCode, gender, age, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -69,13 +70,18 @@ const addMember = async (request, response) => {
             })
         }
 
+        let memberData = { clubId, staffId, name, email, phone, countryCode, gender, canAuthenticate }
 
-        let memberData
+        if(age) {
+            memberData.birthDate = moment().subtract(age, 'years')
+        }
+
         let verificationMessage
 
         if(canAuthenticate) {
 
-            memberData = { clubId, staffId, name, email, phone, countryCode, canAuthenticate, QRCodeURL, QRCodeUUID }
+            memberData.QRCodeURL = QRCodeURL
+            memberData.QRCodeUUID = QRCodeUUID
 
             const memberPhone = countryCode + phone
             const clubData = {
@@ -100,10 +106,6 @@ const addMember = async (request, response) => {
                     message: 'verification message is not sent'
                 }
             }
-
-
-        } else {
-            memberData = { clubId, staffId, name, email, phone, countryCode, canAuthenticate }
         }
 
         const memberObj = new MemberModel(memberData)
@@ -138,7 +140,7 @@ const CheckaddMember = async (request, response) => {
             })
         }
 
-        const { clubId, staffId, email, phone, countryCode } = request.body
+        const { clubId, staffId, email, phone, countryCode, gender, age } = request.body
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -182,9 +184,11 @@ const CheckaddMember = async (request, response) => {
             })
         }
 
+
         return response.status(200).json({
             message: `Member data is valid`,
-            isValid: true
+            isValid: true,
+            member: request.body
         })
 
     } catch(error) {

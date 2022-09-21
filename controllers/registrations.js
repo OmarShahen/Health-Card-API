@@ -611,6 +611,12 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
 
         registrationsStats.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
+        registrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
+
         return response.status(200).json({
             totalRegistrations,
             totalEarnings,
@@ -857,13 +863,25 @@ const getChainOwnerRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const registrationsStatsByMonthPromise = RegistrationModel.aggregate([
+        const registrationsStatsGrowthPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
             {
                 $group: {
                     _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const registrationsStatsMonthsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%m', date: '$createdAt' } },
                     count: { $sum: 1 }
                 }
             }
@@ -889,27 +907,26 @@ const getChainOwnerRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
+        const cancelledRegistrationsPromise = CancelledRegistrationsModel.find(searchQuery)
 
-        const [registrations, registrationsStatsByMonth, clubsRegistrationsStats] = await Promise.all([
+        const freezedRegistrationsPromise = FreezeRegistrationModel.find(searchQuery)
+
+
+        let [
+            registrations, 
+            registrationsStatsGrowth, 
+            registrationsStatsMonths,
+            clubsRegistrationsStats, 
+            cancelledRegistrations, 
+            freezedRegistrations
+        ] = await Promise.all([
             registrationsPromise,
-            registrationsStatsByMonthPromise,
-            clubsRegistrationsStatsPromise
+            registrationsStatsGrowthPromise,
+            registrationsStatsMonthsPromise,
+            clubsRegistrationsStatsPromise,
+            cancelledRegistrationsPromise,
+            freezedRegistrationsPromise
         ])
-
-        const totalRegistrations = registrations.length
-        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
-
-
-        const activeRegistrations = registrations.filter(registration => registration.isActive == true)
-        const totalActiveRegistrations = activeRegistrations.length
-
-        const expiredRegistrations = registrations
-        .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
-        const totalExpiredRegistrations = expiredRegistrations.length
-
-        registrationsStatsByMonth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
-
-        clubsRegistrationsStats.forEach(stat => stat.club = stat.club[0])
 
         registrations.forEach(registration => {
             registration.club = registration.club[0]
@@ -918,10 +935,50 @@ const getChainOwnerRegistrationsStatsByDate = async (request, response) => {
             registration.package = registration.package[0]
         })
 
+        const totalRegistrations = registrations.length
+        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+
+        const totalCancelledRegistrations = cancelledRegistrations.length
+        const totalFreezedRegistrations = freezedRegistrations.length
+
+        const activeRegistrations = registrations.filter(registration => registration.isActive == true)
+        const totalActiveRegistrations = activeRegistrations.length
+
+        const expiredRegistrations = registrations
+        .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
+        const totalExpiredRegistrations = expiredRegistrations.length
+
+        registrationsStatsGrowth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        clubsRegistrationsStats.forEach(stat => stat.club = stat.club[0])
+
+        registrationsStatsMonths = utils.joinMonths(registrationsStatsMonths)
+
+        registrationsStatsMonths.sort((month1, month2) => Number.parseInt(month1._id) - Number.parseInt(month2._id))
+
+        const expirationStats = utils.calculateCompletedPackageAttendances(expiredRegistrations)
+
+        let completedPackageAttendance = ((expirationStats.completedAttendance / expirationStats.total) * 100).toFixed(2)
+        let incompletedPackageAttendance = ((expirationStats.incompletedAttendance/ expirationStats.total) * 100).toFixed(2)
+
+
+        const registrationCompletionStat = {
+            completedRegistrationAttendancePercentage: String(completedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(completedPackageAttendance)) : 0,
+            completedRegistrationAttendance: expirationStats.completedAttendance,
+            incompleteRegistrationAttendancePercentage: String(incompletedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(incompletedPackageAttendance)) : 0,
+            incompleteRegistrationAttendance: expirationStats.incompletedAttendance,
+            total: expirationStats.total
+        }
+
+
         return response.status(200).json({
-            registrationsStatsByMonth,
+            registrationCompletionStat,
+            registrationsStatsMonths,
+            registrationsStatsGrowth,
             totalRegistrations,
             totalEarnings,
+            totalCancelledRegistrations,
+            totalFreezedRegistrations,
             totalActiveRegistrations,
             totalExpiredRegistrations,
             clubsRegistrationsStats,

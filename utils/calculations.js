@@ -74,6 +74,7 @@ const calculateCompletedPackageAttendances = (registrations) => {
     return { completedAttendance: complete, incompletedAttendance: incomplete, total: complete + incomplete }
 }
 
+
 module.exports = { 
     calculateRegistrationsTotalEarnings, 
     calculateTotalAttendanceByDate, 

@@ -600,12 +600,20 @@ const getChainOwnerPackagesStatsByDate = async (request, response) => {
 
         const totalPackages = packages.length
 
+        const openedPackages = packages.filter(package => package.isOpen)
+        const closedPackages = packages.filter(package => !package.isOpen)
+
+        const totalOpenedPackages = openedPackages.length
+        const totalClosedPackages = closedPackages.length
+
         packagesStats.forEach(stat => stat._id = stat._id[0])
 
         packages.forEach(packageObj => packageObj.club = packageObj.club[0])
 
         return response.status(200).json({
             totalPackages,
+            totalOpenedPackages,
+            totalClosedPackages,
             packagesStats,
             packages,
         })

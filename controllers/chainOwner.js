@@ -3,6 +3,7 @@ const ChainOwnerModel = require('../models/ChainOwnerModel')
 const ClubModel = require('../models/ClubModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const AttendanceModel = require('../models/AttendanceModel')
+const MemberModel = require('../models/MemberModel')
 const bcrypt = require('bcrypt')
 const config = require('../config/config')
 const statsValidation = require('../validations/stats')
@@ -276,9 +277,51 @@ const getChainOwnerStatsByDate = async (request, response) => {
 
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
 
-        const registrationsPromise = RegistrationModel.find(searchQuery)
+        const registrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: 'clubId',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+            
+        ])
 
         const attendancesPromise = AttendanceModel.find(searchQuery)
+
+        const membersPromise = MemberModel.find(searchQuery)
 
         const registrationsStatsByMonthsPromise = RegistrationModel.aggregate([
             {
@@ -292,32 +335,37 @@ const getChainOwnerStatsByDate = async (request, response) => {
             }
         ])
 
-        const clubsQuery = utils.statsQueryGenerator('ownerId', ownerId, request.query)
 
-        const ownerClubsPromise = ClubModel
-        .find(clubsQuery.searchQuery)
-        .sort({ createdAt: -1 })
-
-        const [registrations, attendances, registrationsStatsByMonths, ownerClubs] = await Promise.all([
+        const [registrations, attendances, members, registrationsStatsByMonths] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
+            membersPromise,
             registrationsStatsByMonthsPromise,
-            ownerClubsPromise
         ])
 
         const totalRegistrations = registrations.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
+        const totalMembers = members.length
 
         registrationsStatsByMonths
         .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        registrations.forEach(registration => {
+            registration.club = registration.club[0]
+            registration.package = registration.package[0]
+            registration.member = registration.member[0]
+            registration.staff = registration.staff[0]
+        })
+
 
         return response.status(200).json({
             registrationsStatsByMonths,
             totalRegistrations,
             totalAttendances,
+            totalMembers,
             totalEarnings,
-            ownerClubs,
+            registrations,
         })
 
     } catch(error) {
