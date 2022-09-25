@@ -74,10 +74,43 @@ const calculateCompletedPackageAttendances = (registrations) => {
     return { completedAttendance: complete, incompletedAttendance: incomplete, total: complete + incomplete }
 }
 
+const calculateGenderPercentages = members => {
+
+    let male = 0
+    let female = 0
+    const TOTAL_MEMBERS = members.length 
+
+    for(let i=0;i<members.length;i++) {
+
+        if(members[i].gender == 'male') {
+            male += 1
+        } else if(members[i].gender == 'female') {
+            female += 1 
+        }
+    }
+
+    let malePercentage = ((male/TOTAL_MEMBERS) * 100).toFixed(2)
+    let femalePercentage = ((female/TOTAL_MEMBERS) * 100).toFixed(2)
+
+    malePercentage = String(malePercentage) != 'NaN' ? Math.round(Number.parseFloat(malePercentage)) : 0
+    femalePercentage = String(femalePercentage) != 'NaN' ? Math.round(Number.parseFloat(femalePercentage)) : 0
+
+
+    return { 
+        totalMembers: TOTAL_MEMBERS, 
+        totalMales: male, 
+        totalFemales: female,
+        malePercentage,
+        femalePercentage
+    }
+
+}
+
 
 module.exports = { 
     calculateRegistrationsTotalEarnings, 
     calculateTotalAttendanceByDate, 
     calculatePackagePercentage,
-    calculateCompletedPackageAttendances
+    calculateCompletedPackageAttendances,
+    calculateGenderPercentages
 }

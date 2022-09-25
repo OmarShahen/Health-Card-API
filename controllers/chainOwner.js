@@ -275,7 +275,7 @@ const getChainOwnerStatsByDate = async (request, response) => {
 
         const clubs = owner.clubs
 
-        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+        const { searchQuery, until, specific, from, to } = utils.statsQueryGenerator('clubId', clubs, request.query)
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
@@ -323,9 +323,22 @@ const getChainOwnerStatsByDate = async (request, response) => {
 
         const membersPromise = MemberModel.find(searchQuery)
 
+        let growthUntilDate
+
+        if(until) {
+            growthUntilDate = until
+        } else if(to) {
+            growthUntilDate = to
+        } else if(specific) {
+            growthUntilDate = specific
+        } 
+
+        const growthQuery = utils
+        .statsQueryGenerator('clubId', clubs, { until: growthUntilDate })
+
         const registrationsStatsByMonthsPromise = RegistrationModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {

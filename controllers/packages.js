@@ -269,55 +269,67 @@ const getClubPackagesStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
+
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const packagesPromise = PackageModel
         .find(searchQuery)
-        .select({ updatedAt: 0, __v: 0 })
+        .sort({ createdAt: -1 })
 
-        const packagesRegistrationsStatsPromise = RegistrationModel.aggregate([
+        const packagesStatsPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
             {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
                 $group: {
-                    _id: '$packageId',
+                    _id: '$package.title',
                     count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {
+                    count: -1
                 }
             }
         ])
 
-        let [packages, packagesRegistrationsStats] = await Promise.all([
-            packagesPromise,
-            packagesRegistrationsStatsPromise
-        ])
 
-        packagesRegistrationsStats = utils.joinPackages(packages, packagesRegistrationsStats)
+        const [packages, packagesStats] = await Promise.all([
+            packagesPromise,
+            packagesStatsPromise,
+        ])
 
         const totalPackages = packages.length
 
-        const closedPackages = packages.filter(package => package.isOpen == false)
+        const openedPackages = packages.filter(package => package.isOpen)
+        const closedPackages = packages.filter(package => !package.isOpen)
+
+        const totalOpenedPackages = openedPackages.length
         const totalClosedPackages = closedPackages.length
 
-        const openedPackages = packages.filter(package => package.isOpen == true)
-        const totalOpenedPackages = openedPackages.length
+        packagesStats.forEach(stat => stat._id = stat._id[0])
 
         return response.status(200).json({
-            packagesRegistrationsStats,
             totalPackages,
-            totalClosedPackages,
             totalOpenedPackages,
+            totalClosedPackages,
+            packagesStats,
             packages,
-            closedPackages,
-            openedPackages
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
             message: 'internal server error',
-            error: error.message,
-            field: null
+            error: error.message
         })
     }
 }
@@ -340,11 +352,9 @@ const getClubPackageStatsByDate = async (request, response) => {
 
         const clubPackage = await PackageModel.findById(packageId)
 
-        const clubId = clubPackage._id.toString()
+        const clubId = clubPackage.clubId.toString()
 
         const clubPackagesSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
-
-
 
         const packageRegistrationsPromise = RegistrationModel.aggregate([
             {
@@ -391,10 +401,6 @@ const getClubPackageStatsByDate = async (request, response) => {
                 }
         }])
 
-        const packagesPromise = PackageModel
-        .find(clubPackagesSearchQuery.searchQuery)
-        .select({ updatedAt: 0, __v: 0 })
-
         const packagesRegistrationsStatsPromise = RegistrationModel.aggregate([
             {
                 $match: clubPackagesSearchQuery.searchQuery
@@ -404,16 +410,94 @@ const getClubPackageStatsByDate = async (request, response) => {
                     _id: '$packageId',
                     count: { $sum: 1 }
                 }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'package'
+                }
             }
         ])
 
-        let [packageRegistrations, packages, packagesRegistrationsStats] = await Promise.all([
-            packageRegistrationsPromise,
-            packagesPromise,
-            packagesRegistrationsStatsPromise
+        const packageGenderStatsPromise = RegistrationModel.aggregate([
+            {
+                $match: packageSearchQuery.searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $group: {
+                    _id: '$member.gender',
+                    count: { $sum: 1 }
+                }
+            }
         ])
 
-        packagesRegistrationsStats = utils.joinPackages(packages, packagesRegistrationsStats)
+        const packageAgeStatsPromise = RegistrationModel.aggregate([
+            {
+                $match: packageSearchQuery.searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $group: {
+                    _id: '$member.birthYear',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const packageRegistrationsStatsGrowthPromise = RegistrationModel.aggregate([
+            {
+                $match: packageSearchQuery.searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        let [
+            packageRegistrations, 
+            packagesRegistrationsStats, 
+            packageGenderStats, 
+            packageAgeStats,
+            packageRegistrationsStatsGrowth
+        ] = await Promise.all([
+            packageRegistrationsPromise,
+            packagesRegistrationsStatsPromise,
+            packageGenderStatsPromise,
+            packageAgeStatsPromise,
+            packageRegistrationsStatsGrowthPromise
+        ])
+
+        packageGenderStats.forEach(stat => stat._id = stat._id[0])
+
+        packageAgeStats.forEach(stat => {
+            stat._id = stat._id[0]
+            stat._id = new Date().getFullYear() - new Date(stat._id).getFullYear()
+        })
+
+        packageRegistrationsStatsGrowth
+        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        packagesRegistrationsStats.forEach(stat => stat.package = stat.package[0])
 
         packageRegistrations.forEach(registration => {
             if(registration.expiresAt <= packageSearchQuery.toDate) {
@@ -442,8 +526,11 @@ const getClubPackageStatsByDate = async (request, response) => {
 
         const packageCompletion = utils.calculateCompletedPackageAttendances(expiredPackageRegistrations)
 
-        packageStats.packagePercentage = Math.round(Number.parseFloat(packageStats.packagePercentage))
-        packageStats.otherPackagesPercentage = Math.round(Number.parseFloat(packageStats.otherPackagesPercentage))
+        packageStats.packagePercentage = String(packageStats.packagePercentage) != 'NaN' 
+        ? Math.round(Number.parseFloat(packageStats.packagePercentage)) : 0
+        
+        packageStats.otherPackagesPercentage = String(packageStats.otherPackagesPercentage) != 'NaN'
+        ? Math.round(Number.parseFloat(packageStats.otherPackagesPercentage)) : 0
 
         let completedPackageAttendance = ((packageCompletion.completedAttendance / packageCompletion.total) * 100).toFixed(2)
         let incompletedPackageAttendance = ((packageCompletion.incompletedAttendance/ packageCompletion.total) * 100).toFixed(2)
@@ -457,8 +544,16 @@ const getClubPackageStatsByDate = async (request, response) => {
             total: packageCompletion.total
         }
 
+        const members = packageRegistrations.map(registration => registration.member)
+        const packageGenderPercentageStat = utils.calculateGenderPercentages(members)
+
+
 
         return response.status(200).json({
+            packageGenderPercentageStat,
+            packageRegistrationsStatsGrowth,
+            packageAgeStats,
+            packageGenderStats,
             package: clubPackage,
             packageStats,
             packageCompletionStat,
@@ -466,8 +561,6 @@ const getClubPackageStatsByDate = async (request, response) => {
             totalActiveRegistrations,
             totalExpiredRegistrations,
             packageRegistrations,
-            activePackageRegistrations,
-            expiredPackageRegistrations
         })
 
     } catch(error) {

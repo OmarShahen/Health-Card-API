@@ -56,9 +56,9 @@ router.get(
     (request, response) => membersController.getMembers(request, response)
     )
 
-router.get('/members/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => membersController.getMembersStatsByDate(request, response))
+router.get('/members/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => membersController.getClubMembersStatsByDate(request, response))
 
-router.get('/members/:memberId/stats', verifyIds.verifyMemberId, (request, response) => membersController.getMemberRegistrationsStatsByDate(request, response))
+router.get('/members/:memberId/stats', verifyIds.verifyMemberId, (request, response) => membersController.getMemberStatsByDate(request, response))
 
 router.patch(
     '/members/:memberId/QR-code', 

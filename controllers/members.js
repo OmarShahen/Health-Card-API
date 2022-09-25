@@ -1,3 +1,4 @@
+const config = require('../config/config')
 const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
 const MemberModel = require('../models/MemberModel')
@@ -73,7 +74,7 @@ const addMember = async (request, response) => {
         let memberData = { clubId, staffId, name, email, phone, countryCode, gender, canAuthenticate }
 
         if(age) {
-            memberData.birthDate = moment().subtract(age, 'years')
+            memberData.birthYear = new Date(moment().subtract(age, 'years')).getFullYear()
         }
 
         let verificationMessage
@@ -249,16 +250,19 @@ const getMembers = async (request, response) => {
 
             members = await MemberModel
             .find({ clubId, isBlocked: false })
+            .sort({ createdAt: -1 })
 
         } else if(status == 'blocked') {
 
             members = await MemberModel
             .find({ clubId, isBlocked: true })
+            .sort({ createdAt: -1 })
 
         } else {
 
             members = await MemberModel
             .find({ clubId })
+            .sort({ createdAt: -1 })
         }
 
         return response.status(200).json({
@@ -446,7 +450,7 @@ const deleteMemberAndRelated = async (request, response) => {
     }
 }
 
-const getMembersStatsByDate = async (request, response) => {
+const getClubMembersStatsByDate = async (request, response) => {
 
     try {
 
@@ -460,12 +464,34 @@ const getMembersStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
+
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const membersPromise = MemberModel
-        .find(searchQuery)
+        const membersPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0
+                }
+            }
+        ])
 
-        const membersStatsPromise = MemberModel.aggregate([
+        const membersStatsGrowthPromise = MemberModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -477,30 +503,72 @@ const getMembersStatsByDate = async (request, response) => {
             }
         ])
 
-        const [members, membersStats] = await Promise.all([
+
+        const membersGenderStatsPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$gender',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const membersAgeStatsPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$birthYear',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {
+                    _id: 1
+                }
+            }
+        ])
+
+
+        const [members, membersStatsGrowth, membersGenderStats, membersAgeStats] = await Promise.all([
             membersPromise,
-            membersStatsPromise
+            membersStatsGrowthPromise,
+            membersGenderStatsPromise,
+            membersAgeStatsPromise
         ])
 
         const totalMembers = members.length
 
-        const activeMembers = members.filter(member => member.isBlocked == false)
-        const totalActiveMembers = activeMembers.length
+        const activeMembers = members.filter(member => !member.isBlocked)
+        const blockedMembers = members.filter(member => member.isBlocked)
 
-        const blockedMembers = members.filter(member => member.isBlocked == true)
-        const totalBlockedMembers = blockedMembers.length
 
-        membersStats
-        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+        membersStatsGrowth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        const todayDate = new Date()
+
+        membersAgeStats
+        .forEach(stat => stat._id = todayDate.getFullYear() - new Date(stat._id).getFullYear())
+
+        members.forEach(member => {
+            member.staff = member.staff[0]
+        })
+
+        const membersGenderPercentageStat = utils.calculateGenderPercentages(members)
 
         return response.status(200).json({
+            membersGenderPercentageStat,
+            membersAgeStats,
+            membersGenderStats,
             totalMembers,
-            totalActiveMembers,
-            totalBlockedMembers,
-            membersStats,
-            members,
-            activeMembers,
-            blockedMembers
+            totalActiveMembers: activeMembers.length,
+            totalBlockedMembers: blockedMembers.length,
+            membersStatsGrowth,
+            members
         })
 
     } catch(error) {
@@ -512,7 +580,8 @@ const getMembersStatsByDate = async (request, response) => {
     }
 }
 
-const getMemberRegistrationsStatsByDate = async (request, response) => {
+
+const getMemberStatsByDate = async (request, response) => {
 
     try {
 
@@ -526,8 +595,9 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
         }
 
         const { memberId } = request.params
-        const { searchQuery } = utils.statsQueryGenerator('memberId', memberId, request.query)
+        const { searchQuery, toDate } = utils.statsQueryGenerator('memberId', memberId, request.query)
 
+        const memberPromise = MemberModel.findById(memberId)
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
@@ -539,7 +609,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
                     localField: 'memberId',
                     foreignField: '_id',
                     as: 'member'
-                }
+                }     
             },
             {
                 $lookup: {
@@ -547,7 +617,7 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
                     localField: 'staffId',
                     foreignField: '_id',
                     as: 'staff'
-                }
+                }     
             },
             {
                 $lookup: {
@@ -555,27 +625,16 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
                     localField: 'packageId',
                     foreignField: '_id',
                     as: 'package'
-                }
+                }     
             },
             {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
+                $sort: {
+                    createdAt: -1
                 }
             },
             {
                 $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
                     'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0,
                 }
             }
         ])
@@ -586,52 +645,25 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
             },
             {
                 $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
                     from: 'staffs',
                     localField: 'staffId',
                     foreignField: '_id',
                     as: 'staff'
-                }
+                }     
             },
             {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
+                $sort: {
+                    createdAt: -1
                 }
             },
             {
                 $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
                     'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0,
                 }
             }
         ])
 
-        const attendancesStatsByMonthPromise = AttendanceModel.aggregate([
+        const attendancesGrowthStatsPromise = AttendanceModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -643,184 +675,130 @@ const getMemberRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const attendancesStatsByDaysPromise = AttendanceModel.aggregate([
+        const attendancesStatsDayPromise = AttendanceModel.aggregate([
             {
                 $match: searchQuery
             },
             {
+                $project: {
+                    weekDay: { $dayOfWeek: '$createdAt' }
+                }
+            },
+            {
                 $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                    _id: '$weekDay',
                     count: { $sum: 1 }
                 }
             }
         ])
 
-        const attendancesStatsByHoursPromise = AttendanceModel.aggregate([
+        const attendancesStatsHourPromise = AttendanceModel.aggregate([
             {
                 $match: searchQuery
             },
             {
                 $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%dT%H', date: '$createdAt' } },
+                    _id: { $dateToString: { format: '%H', date: '$createdAt' } },
                     count: { $sum: 1 }
                 }
             }
         ])
 
-
-        const cancelledRegistrationsPromise = CancelledRegistrations.aggregate([
+        const packagesRegistrationsStatsPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
             {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
+                $group: {
+                    _id: '$packageId',
+                    count: { $sum: 1 }
                 }
             },
             {
                 $lookup: {
                     from: 'packages',
-                    localField: 'packageId',
+                    localField: '_id',
                     foreignField: '_id',
                     as: 'package'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
-                $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0
                 }
             }
         ])
 
-        const cancelledAttendancesPromise = CancelledAttendances.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
-                $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0
-                }
-            }
-        ])
-
-        const [
+        let [
+            member,
             registrations, 
             attendances, 
-            cancelledRegistrations, 
-            cancelledAttendances,
-            attendancesStatsByMonths,
-            attendancesStatsByDays,
-            attendancesStatsByHours
+            attendancesGrowthStats,
+            attendancesStatsDay,
+            attendancesStatsHour,
+            packagesRegistrationsStats
         ] = await Promise.all([
+            memberPromise,
             registrationsPromise,
             attendancesPromise,
-            cancelledRegistrationsPromise,
-            cancelledAttendancesPromise,
-            attendancesStatsByMonthPromise,
-            attendancesStatsByDaysPromise,
-            attendancesStatsByHoursPromise
+            attendancesGrowthStatsPromise,
+            attendancesStatsDayPromise,
+            attendancesStatsHourPromise,
+            packagesRegistrationsStatsPromise
         ])
+
+        const todayDate = new Date()
+        let age = todayDate.getFullYear() - new Date(member.birthYear).getFullYear()
+        member = {...member._doc, age }
+
+        registrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
+
+        attendances.forEach(attendance => attendance.staff = attendance.staff[0])
+
+        registrations = utils.joinRegistrationsByAttendance(registrations, attendances)
 
         const totalRegistrations = registrations.length
         const totalAttendances = attendances.length
-        const totalCancelledRegistrations = cancelledRegistrations.length
-        const totalCancelledAttendances = cancelledAttendances.length
 
-        attendancesStatsByHours.forEach(hour => hour._id = hour._id.split('T')[1] + ':00')
-        attendancesStatsByHours
+        attendancesStatsHour.forEach(hour => hour._id = Number.parseInt(hour._id))
+        attendancesStatsHour
         .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
 
-        attendancesStatsByMonths
+        attendancesGrowthStats
         .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
-        attendancesStatsByDays.forEach(day => {
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-            day._id = days[new Date(day._id).getDay()]
-        })
+        attendancesStatsDay.forEach((stat) => stat.dayName = config.WEEK_DAYS[stat._id - 1])
+        attendancesStatsDay.sort((day1, day2) => day2.count - day1.count)
 
-        attendancesStatsByDays.sort((day1, day2) => day2.count - day1.count)
+        const expiredRegistrations = registrations
+        .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
 
+        const registrationCompletion = utils.calculateCompletedPackageAttendances(expiredRegistrations)
+
+        let completedPackageAttendance = ((registrationCompletion.completedAttendance / registrationCompletion.total) * 100).toFixed(2)
+        let incompletedPackageAttendance = ((registrationCompletion.incompletedAttendance/ registrationCompletion.total) * 100).toFixed(2)
+
+
+        const registrationCompletionStat = {
+            completedRegistrationAttendancePercentage: String(completedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(completedPackageAttendance)) : 0,
+            completedRegistrationAttendance: registrationCompletion.completedAttendance,
+            incompletedRegistrationAttendancePercentage: String(incompletedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(incompletedPackageAttendance)) : 0,
+            incompletedRegistrationAttendance: registrationCompletion.incompletedAttendance,
+            total: registrationCompletion.total
+        }
+
+        packagesRegistrationsStats.forEach(stat => stat.package = stat.package[0])
 
 
         return response.status(200).json({
+            member,
+            packagesRegistrationsStats,
+            registrationCompletionStat,
             totalRegistrations,
             totalAttendances,
-            totalCancelledRegistrations,
-            totalCancelledAttendances,
-            attendancesStatsByMonths,
-            attendancesStatsByDays,
-            attendancesStatsByHours,
-            registrations,
-            attendances,
-            cancelledRegistrations,
-            cancelledAttendances
+            attendancesGrowthStats,
+            attendancesStatsDay,
+            attendancesStatsHour,
+            registrations
         })
 
 
@@ -1075,7 +1053,7 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
             }
         ])
 
-        const membersStatsByMonthPromise = MemberModel.aggregate([
+        const membersStatsGrowthPromise = MemberModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -1107,11 +1085,42 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
             }
         ])
 
+        const membersGenderStatsPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$gender',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
 
-        const [members, membersStatsByMonth, clubsMembersStats] = await Promise.all([
+        const membersAgeStatsPromise = MemberModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$birthYear',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $sort: {
+                    _id: 1
+                }
+            }
+        ])
+
+
+        const [members, membersStatsGrowth, clubsMembersStats, membersGenderStats, membersAgeStats] = await Promise.all([
             membersPromise,
-            membersStatsByMonthPromise,
-            clubsMembersStatsPromise
+            membersStatsGrowthPromise,
+            clubsMembersStatsPromise,
+            membersGenderStatsPromise,
+            membersAgeStatsPromise
         ])
 
         const totalMembers = members.length
@@ -1120,20 +1129,30 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
         const blockedMembers = members.filter(member => member.isBlocked)
 
 
-        membersStatsByMonth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+        membersStatsGrowth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
         clubsMembersStats.forEach(stat => stat.club = stat.club[0])
+
+        const todayDate = new Date()
+
+        membersAgeStats
+        .forEach(stat => stat._id = todayDate.getFullYear() - new Date(stat._id).getFullYear())
 
         members.forEach(member => {
             member.club = member.club[0]
             member.staff = member.staff[0]
         })
 
+        const membersGenderPercentageStat = utils.calculateGenderPercentages(members)
+
         return response.status(200).json({
+            membersGenderPercentageStat,
+            membersAgeStats,
+            membersGenderStats,
             totalMembers,
             totalActiveMembers: activeMembers.length,
             totalBlockedMembers: blockedMembers.length,
-            membersStatsByMonth,
+            membersStatsGrowth,
             clubsMembersStats,
             members
         })
@@ -1157,8 +1176,8 @@ module.exports = {
     updateMemberStatus,
     deleteMemberAndRelated,
     getMembers,
-    getMembersStatsByDate,
-    getMemberRegistrationsStatsByDate,
+    getClubMembersStatsByDate,
+    getMemberStatsByDate,
     updateMemberQRcodeVerification,
     updateMemberAuthenticationStatus,
     getMembersByOwner,

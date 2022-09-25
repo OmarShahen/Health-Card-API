@@ -233,6 +233,12 @@ const getClubAttendances = async (request, response) => {
             }
         ])
 
+        attendances.forEach(attendance => {
+            attendance.staff = attendance.staff[0]
+            attendance.member = attendance.member[0]
+            attendance.package = attendance.package[0]
+        })
+
         return response.status(200).json({
             attendances
         })
@@ -260,6 +266,7 @@ const getClubAttendancesStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
+
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
 
@@ -292,82 +299,8 @@ const getClubAttendancesStatsByDate = async (request, response) => {
                 }
             },
             {
-                $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0,
-                }
-            }
-        ])
-
-        const attendancesStatsByMonthPromise = AttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
-                    count: { $sum: 1 },
-                }
-            }
-        ])
-
-        const attendancesStatsByDaysPromise = AttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-                    count: { $sum: 1 }
-                }
-            }
-        ])
-
-        const attendancesStatsByHoursPromise = AttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%dT%H', date: '$createdAt' } },
-                    count: { $sum: 1 }
-                }
-            }
-        ])
-
-        const cancelledAttendancesPromise = CancelledAttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
+                $sort: {
+                    createdAt: -1
                 }
             },
             {
@@ -385,49 +318,108 @@ const getClubAttendancesStatsByDate = async (request, response) => {
             }
         ])
 
-        const [
+        const cancelledAttendancesPromise = CancelledAttendanceModel.find(searchQuery)
+
+        const attendancesStatsGrowthPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsHourPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%H', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsMonthPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsDayPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $project: {
+                    weekDay: { $dayOfWeek: '$createdAt' }
+                }
+            },
+            {
+                $group: {
+                    _id: '$weekDay',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        let [
             attendances, 
-            cancelledAttendances,
-            attendancesStatsByMonths,
-            attendancesStatsByDays,
-            attendancesStatsByHours
+            cancelledAttendances, 
+            attendancesStatsGrowth,
+            attendancesStatsHour,
+            attendancesStatsDay,
+            attendancesStatsMonth
         ] = await Promise.all([
             attendancesPromise,
             cancelledAttendancesPromise,
-            attendancesStatsByMonthPromise,
-            attendancesStatsByDaysPromise,
-            attendancesStatsByHoursPromise
+            attendancesStatsGrowthPromise,
+            attendancesStatsHourPromise,
+            attendancesStatsDayPromise,
+            attendancesStatsMonthPromise
         ])
 
         const totalAttendances = attendances.length
         const totalCancelledAttendances = cancelledAttendances.length
 
-        attendancesStatsByHours.forEach(hour => hour._id = hour._id.split('T')[1] + ':00')
-        attendancesStatsByHours
-        .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
+        attendancesStatsGrowth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
-        attendancesStatsByMonths
-        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
-
-        attendancesStatsByDays.forEach(day => {
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-            day._id = days[new Date(day._id).getDay()]
+        attendances.forEach(attendance => {
+            attendance.package = attendance.package[0]
+            attendance.staff = attendance.staff[0]
+            attendance.member = attendance.member[0]
         })
 
-        attendancesStatsByDays.sort((day1, day2) => day2.count - day1.count)
+        attendancesStatsHour.forEach(hour => hour._id = Number.parseInt(hour._id))
+        attendancesStatsHour
+        .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
 
+        attendancesStatsMonth = utils.joinMonths(attendancesStatsMonth)
+        attendancesStatsMonth.forEach(attendance => attendance._id = Number.parseInt(attendance._id))
+        attendancesStatsMonth.sort((month1, month2) => month1._id - month2._id)
 
+        attendancesStatsDay.forEach((stat) => stat.dayName = config.WEEK_DAYS[stat._id - 1])
+        attendancesStatsDay.sort((day1, day2) => day2.count - day1.count)
 
         return response.status(200).json({
             totalAttendances,
             totalCancelledAttendances,
-            attendancesStatsByMonths,
-            attendancesStatsByDays,
-            attendancesStatsByHours,
+            attendancesStatsGrowth,
+            attendancesStatsHour,
+            attendancesStatsDay,
+            attendancesStatsMonth,
             attendances,
-            cancelledAttendances
         })
-
 
     } catch(error) {
         console.error(error)
@@ -593,56 +585,7 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
             }
         ])
 
-        const cancelledAttendancesPromise = CancelledAttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0
-                }
-            }
-        ])
+        const cancelledAttendancesPromise = CancelledAttendanceModel.find(searchQuery)
 
         const attendancesStatsGrowthPromise = AttendanceModel.aggregate([
             {
@@ -747,8 +690,6 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
             attendance.staff = attendance.staff[0]
             attendance.member = attendance.member[0]
         })
-
-        clubsAttendancesStats.forEach(stat => stat.club = stat.club[0])
 
         attendancesStatsHour.forEach(hour => hour._id = Number.parseInt(hour._id))
         attendancesStatsHour

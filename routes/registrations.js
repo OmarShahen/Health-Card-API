@@ -40,4 +40,8 @@ router.get('/registrations/chain-owners/:ownerId', verifyIds.verifyChainOwnerId,
 
 router.get('/registrations/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => registrationsController.getChainOwnerRegistrationsStatsByDate(request, response))
 
+router.get('/registrations/clubs/:clubId/staffs/payments', verifyIds.verifyClubId, (request, response) =>registrationsController.getClubStaffsPayments(request, response))
+
+router.get('/registrations/chain-owners/:ownerId/payments', verifyIds.verifyChainOwnerId, (request, response) => registrationsController.getOwnerClubsPayments(request, response))
+
 module.exports = router

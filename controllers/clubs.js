@@ -159,55 +159,8 @@ const getClubStatsByDate = async (request, response) => {
             }
         },
         {
-            $project: {
-                'member.canAuthenticate': 0,
-                'member.QRCodeURL': 0,
-                'member.updatedAt': 0,
-                'member.__v': 0,
-                'staff.password': 0,
-                'staff.updatedAt': 0,
-                'staff.__v': 0,
-                'package.updatedAt': 0,
-                'package.__v': 0
-            }
-        }
-        ])
-
-
-        const attendancesPromise = AttendanceModel.aggregate([
-            {
-                $match: searchQuery
-        },
-        {
-            $lookup: {
-                from: 'members',
-                localField: 'memberId',
-                foreignField: '_id',
-                as: 'member'
-            }
-        },
-        {
-            $lookup: {
-                from: 'staffs',
-                localField: 'staffId',
-                foreignField: '_id',
-                as: 'staff'
-            }
-        },
-        {
-            $lookup: {
-                from: 'packages',
-                localField: 'packageId',
-                foreignField: '_id',
-                as: 'package'
-            }
-        },
-        {
-            $lookup: {
-                from: 'clubs',
-                localField: 'clubId',
-                foreignField: '_id',
-                as: 'club'
+            $sort: {
+                createdAt: -1
             }
         },
         {
@@ -225,19 +178,9 @@ const getClubStatsByDate = async (request, response) => {
         }
         ])
 
-        const attendancesStatsByHoursPromise = AttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $group: {
-                    _id: { $dateToString: { format: '%Y-%m-%dT%H', date: '$createdAt' } },
-                    count: { $sum: 1 }
-                }
-            }
-        ])
+        const attendancesPromise = AttendanceModel.find(searchQuery)
 
-        const attendancesStatsByMonthsPromise = AttendanceModel.aggregate([
+        const registrationsGrowthStatsPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -249,32 +192,33 @@ const getClubStatsByDate = async (request, response) => {
             }
         ])
 
-        const [registrations, attendances, attendancesStatsByHours, attendancesStatsByMonths] = await Promise.all([
+
+        const [registrations, attendances, registrationsGrowthStats] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
-            attendancesStatsByHoursPromise,
-            attendancesStatsByMonthsPromise
+            registrationsGrowthStatsPromise
         ])
+
+        registrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
 
         const totalRegistrations = registrations.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
 
-        attendancesStatsByHours.forEach(hour => hour._id = hour._id.split('T')[1] + ':00')
-        attendancesStatsByHours
-        .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
 
-        attendancesStatsByMonths
+        registrationsGrowthStats
         .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
         return response.status(200).json({
-            attendancesStatsByHours,
-            attendancesStatsByMonths,
+            registrationsGrowthStats,
             totalRegistrations,
             totalAttendances,
             totalEarnings,
             registrations,
-            attendances,
         })
 
     } catch(error) {

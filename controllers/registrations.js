@@ -239,27 +239,67 @@ const getRegistrations = async (request, response) => {
             })
         }
 
-        let registrations
+        let searchQuery = {}
 
         if(status == 'active') {
-
-            registrations = await RegistrationModel
-            .find({ clubId, isActive: true })
-            .sort({ createdAt: -1 })
-
+            searchQuery = { clubId: mongoose.Types.ObjectId(clubId), isActive: true }
         } else if(status == 'expired') {
-
-            registrations = await RegistrationModel
-            .find({ clubId, isActive: false })
-            .sort({ createdAt: -1 })
-
+            searchQuery = { clubId: mongoose.Types.ObjectId(clubId), isActive: false }
         } else {
-
-            registrations = await RegistrationModel
-            .find({ clubId })
-            .sort({ createdAt: -1 })
-
+            searchQuery = { clubId: mongoose.Types.ObjectId(clubId) }
         }
+
+        const registrations = await RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ]) 
+
+        registrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
 
         return response.status(200).json({
             registrations
@@ -436,8 +476,8 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
-        const { searchQuery, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
+        const { searchQuery, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
@@ -468,6 +508,11 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
                 }
             },
             {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
                 $project: {
                     'member.canAuthenticate': 0,
                     'member.QRCodeURL': 0,
@@ -482,7 +527,7 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const registrationsStatsPromise = RegistrationModel.aggregate([
+        const registrationsStatsGrowthPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -494,122 +539,36 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
             }
         ])
 
-        const cancelledRegistrationsPromise = CancelledRegistrationsModel.aggregate([
+        const registrationsStatsMonthsPromise = RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
             {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'clubs',
-                    localField: 'clubId',
-                    foreignField: '_id',
-                    as: 'club'
-                }
-            },
-            {
-                $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0
+                $group: {
+                    _id: { $dateToString: { format: '%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
                 }
             }
         ])
 
-        const freezedRegistrationsPromise = FreezeRegistrationModel.aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $project: {
-                    'member.canAuthenticate': 0,
-                    'member.QRCodeURL': 0,
-                    'member.updatedAt': 0,
-                    'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
-                    'package.updatedAt': 0,
-                    'package.__v': 0
-                }
-            }
-        ])
+        const cancelledRegistrationsPromise = CancelledRegistrationsModel.find(searchQuery)
 
-    
+        const freezedRegistrationsPromise = FreezeRegistrationModel.find(searchQuery)
 
-        const [registrations, cancelledRegistrations, freezedRegistrations, registrationsStats] = await Promise.all([
+
+        let [
+            registrations, 
+            registrationsStatsGrowth, 
+            registrationsStatsMonths,
+            cancelledRegistrations, 
+            freezedRegistrations
+        ] = await Promise.all([
             registrationsPromise,
+            registrationsStatsGrowthPromise,
+            registrationsStatsMonthsPromise,
             cancelledRegistrationsPromise,
-            freezedRegistrationsPromise,
-            registrationsStatsPromise
+            freezedRegistrationsPromise
         ])
-
-        const totalRegistrations = registrations.length
-        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
-        const totalCancelledRegistrations = cancelledRegistrations.length
-        const totalFreezedRegistrations = freezedRegistrations.length
-
-        const activeRegistrations = registrations.filter(registration => registration.isActive == true)
-        const totalActiveRegistrations = activeRegistrations.length
-
-        const expiredRegistrations = registrations
-        .filter(registration => registration.expiresAt <= toDate || registration.isActive == false)
-        const totalExpiredRegistrations = expiredRegistrations.length
-
-        registrationsStats.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
         registrations.forEach(registration => {
             registration.staff = registration.staff[0]
@@ -617,19 +576,57 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
             registration.package = registration.package[0]
         })
 
+        const totalRegistrations = registrations.length
+        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+
+        const totalCancelledRegistrations = cancelledRegistrations.length
+        const totalFreezedRegistrations = freezedRegistrations.length
+
+        const activeRegistrations = registrations.filter(registration => registration.isActive == true)
+        const totalActiveRegistrations = activeRegistrations.length
+
+        const expiredRegistrations = registrations
+        .filter(registration => {
+            if(registration.expiresAt <= toDate || registration.isActive == false) {
+                registration.isActive = false
+                return registration
+            }
+        })
+        const totalExpiredRegistrations = expiredRegistrations.length
+
+        registrationsStatsGrowth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+
+        registrationsStatsMonths = utils.joinMonths(registrationsStatsMonths)
+
+        registrationsStatsMonths.sort((month1, month2) => Number.parseInt(month1._id) - Number.parseInt(month2._id))
+
+        const expirationStats = utils.calculateCompletedPackageAttendances(expiredRegistrations)
+
+        let completedPackageAttendance = ((expirationStats.completedAttendance / expirationStats.total) * 100).toFixed(2)
+        let incompletedPackageAttendance = ((expirationStats.incompletedAttendance/ expirationStats.total) * 100).toFixed(2)
+
+
+        const registrationCompletionStat = {
+            completedRegistrationAttendancePercentage: String(completedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(completedPackageAttendance)) : 0,
+            completedRegistrationAttendance: expirationStats.completedAttendance,
+            incompleteRegistrationAttendancePercentage: String(incompletedPackageAttendance) != 'NaN' ? Math.round(Number.parseFloat(incompletedPackageAttendance)) : 0,
+            incompleteRegistrationAttendance: expirationStats.incompletedAttendance,
+            total: expirationStats.total
+        }
+
+
         return response.status(200).json({
+            registrationCompletionStat,
+            registrationsStatsMonths,
+            registrationsStatsGrowth,
             totalRegistrations,
             totalEarnings,
+            totalCancelledRegistrations,
             totalFreezedRegistrations,
             totalActiveRegistrations,
             totalExpiredRegistrations,
-            totalCancelledRegistrations,
-            registrationsStats,
             registrations,
-            freezedRegistrations,
-            activeRegistrations,
-            expiredRegistrations,
-            cancelledRegistrations,
         })
 
     } catch(error) {
@@ -690,10 +687,12 @@ const getClubRegistrationsDataJoined = async (request, response) => {
             },
             {
                 $sort: {
-                    createdAt: -1
+                    createdAt: -1,
+                    active: 1
                 }
             }
         ])
+
 
         return response.status(200).json({
             registrations
@@ -996,6 +995,205 @@ const getChainOwnerRegistrationsStatsByDate = async (request, response) => {
     }
 }
 
+const getClubStaffsPayments = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const staffPaymentsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$staffId',
+                    count: { $sum: '$paid' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                }
+            }
+        ])
+
+        const registrationsPromise = RegistrationModel .aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'package',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                }
+            }
+        ])
+
+        let [staffPayments, registrations] = await Promise.all([
+            staffPaymentsPromise,
+            registrationsPromise
+        ])
+
+        registrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
+
+        let totalEarnings = 0
+
+        staffPayments.forEach(registration => {
+            registration.staff = registration.staff[0]
+            totalEarnings += registration.count
+        })
+
+        staffPayments = utils
+        .joinStaffRegistrationsByRegistrations(staffPayments, registrations)
+
+        return response.status(200).json({
+            totalEarnings,
+            staffPayments,
+            registrations
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getOwnerClubsPayments = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+
+        const clubs = owner.clubs
+
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+        const payments = await RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$clubId',
+                    count: { $sum: '$paid' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'club.updatedAt': 0,
+                    'club.__v': 0,
+                }
+            }
+        ])
+
+        let totalEarnings = 0
+
+        payments.forEach(payment => {
+            payment.club = payment.club[0]
+            totalEarnings += payment.count
+        })
+
+        return response.status(200).json({
+            totalEarnings,
+            payments
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+} 
+
 
 
 
@@ -1008,5 +1206,7 @@ module.exports = {
     checkAddRegistrationData,
     getClubRegistrationsDataJoined,
     getRegistrationsByOwner,
-    getChainOwnerRegistrationsStatsByDate
+    getChainOwnerRegistrationsStatsByDate,
+    getClubStaffsPayments,
+    getOwnerClubsPayments
 }

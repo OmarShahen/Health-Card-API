@@ -37,6 +37,34 @@ const joinMembersWithAttendances = (members, attendances) => {
     return memberAttendance
 }
 
+const joinRegistrationsByAttendance = (registrations, attendances) => {
+
+    for(let i=0;i<registrations.length;i++) {
+        registrations[i].registrationAttendances = []
+        for(let j=0;j<attendances.length;j++) {
+            if(toString(registrations[i]._id) == toString(attendances[j].registrationId)) {
+                registrations[i].registrationAttendances.push(attendances[j])
+            }
+        }
+    }
+
+    return registrations
+}
+
+const joinStaffRegistrationsByRegistrations = (staffRegistrations, registrations) => {
+
+    for(let i=0;i<staffRegistrations.length;i++) {
+        staffRegistrations[i].registrations = []
+        for(let j=0;j<registrations.length;j++) {
+            if(toString(staffRegistrations[i].staff._id) == toString(registrations[j].staffId)) {
+                staffRegistrations[i].registrations.push(registrations[j])
+            }
+        }
+    }
+
+    return staffRegistrations
+}
+
 const joinPackages = (packages, packagesIdsList) => {
 
     for(let i=0;i<packages.length;i++) {
@@ -70,4 +98,11 @@ const joinMonths = (data) => {
     return data
 }
 
-module.exports = { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages, joinMonths }
+module.exports = { 
+    joinStaffsWithAttendances, 
+    joinMembersWithAttendances, 
+    joinPackages, 
+    joinMonths,
+    joinRegistrationsByAttendance,
+    joinStaffRegistrationsByRegistrations
+}

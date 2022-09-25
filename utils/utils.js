@@ -14,10 +14,18 @@ const {
     calculateRegistrationsTotalEarnings, 
     calculateTotalAttendanceByDate, 
     calculatePackagePercentage,
-    calculateCompletedPackageAttendances
+    calculateCompletedPackageAttendances,
+    calculateGenderPercentages
 } = require('./calculations')
 const { extractAttendances, extractStaffs, extractMembers } = require('./extracts')
-const { joinStaffsWithAttendances, joinMembersWithAttendances, joinPackages, joinMonths } = require('./joins')
+const { 
+    joinStaffsWithAttendances, 
+    joinMembersWithAttendances, 
+    joinPackages, 
+    joinMonths, 
+    joinRegistrationsByAttendance,
+    joinStaffRegistrationsByRegistrations
+} = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator } = require('./queryGenerator')
 const { distinctValues } = require('./distincts')
@@ -35,12 +43,15 @@ module.exports = {
     calculateExpirationDate,
     joinRegistrationPackages,
     joinMonths,
+    joinRegistrationsByAttendance,
+    joinStaffRegistrationsByRegistrations,
     isWhatsappLanguageValid,
     isDateValid,
     calculateRegistrationsTotalEarnings,
     calculateTotalAttendanceByDate,
     calculatePackagePercentage,
     calculateCompletedPackageAttendances,
+    calculateGenderPercentages,
     extractAttendances,
     extractStaffs,
     extractMembers,

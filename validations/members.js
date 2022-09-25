@@ -68,7 +68,7 @@ const memberData = (memberData) => {
 
 const memberDataCheck = (memberData) => {
 
-    const { clubId, staffId, name, email, phone, countryCode, gender, age } = memberData
+    const { clubId, staffId, name, email, phone, countryCode } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
 
@@ -95,12 +95,6 @@ const memberDataCheck = (memberData) => {
     if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
-
-    if(!gender) return { isAccepted: false, message: 'gender is required', field: 'gender' }
-
-    if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: 'invalid gender', field: 'gender' }
-
-    if(age && !Number.parseInt(age)) return { isAccepted: false, message: 'invalid age', field: 'age' }
 
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
