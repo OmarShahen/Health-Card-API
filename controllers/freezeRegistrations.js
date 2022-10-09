@@ -164,6 +164,15 @@ const getClubFreezedRegistrations = async (request, response) => {
             }
         ])
 
+        freezedRegistrations.forEach(registration => {
+            registration.registration = registration.registration[0]
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.activator = registration.activator[0]
+            registration.package = registration.package[0]
+
+        })
+
         return response.status(200).json({
             freezedRegistrations
         })

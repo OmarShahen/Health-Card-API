@@ -45,6 +45,7 @@ const addCancelRegistration = async (request, response) => {
             })
         }
 
+
         const currentDate = new Date()
 
         if(registration.expiresAt < currentDate) {
@@ -84,12 +85,12 @@ const addCancelRegistration = async (request, response) => {
 
        }
 
-        if(!registration.isActive) {
-            return response.status(400).json({
-                message: 'member registration is already expired',
-                field: 'registrationId'
-            })
-        }
+       if(!registration.isActive) {
+        return response.status(400).json({
+            message: 'member registration is already expired',
+            field: 'registrationId'
+        })
+    }
 
 
         const cancelRegistrationData = {
@@ -185,6 +186,13 @@ const getCancelledRegistrations = async (request, response) => {
                 $sort: { createdAt: -1 }
             }
         ])
+
+        cancelledRegistrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+
+        })
 
         return response.status(200).json({
             cancelledRegistrations

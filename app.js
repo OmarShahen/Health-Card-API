@@ -1,12 +1,14 @@
 const express = require('express')
+const app = express()
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
 const morgan = require('morgan')
 const db = require('./config/database')
 const cors = require('cors')
+const http = require('http').Server(app)
+const webSocketInitializer = require('./socket-events/socket')
 
-
-const app = express()
+const io = require('socket.io')(http)
 
 app.use(morgan('common'))
 app.use(express.json())
@@ -27,6 +29,9 @@ app.use('/api/v1', require('./routes/cancelledRegistrations'))
 app.use('/api/v1', require('./routes/freezedRegistrations'))
 
 db()
+webSocketInitializer(io)
+
+
 
 app.get('/', (request, response) => {
 
@@ -36,6 +41,6 @@ app.get('/', (request, response) => {
 })
 
 
-app.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [GYM-APP]`))
+http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [GYM-APP]`))
 
 

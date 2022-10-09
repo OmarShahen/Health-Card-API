@@ -24,10 +24,20 @@ const {
     joinPackages, 
     joinMonths, 
     joinRegistrationsByAttendance,
-    joinStaffRegistrationsByRegistrations
+    joinStaffRegistrationsByRegistrations,
+    joinOfflineMembersIdsByOnlineMembers,
+    joinOfflineRegistrationsByOnlineMembers,
+    joinOfflineRegistrationsIdsByOnlineRegistrations,
+    joinOfflineAttendancesByOnlineMembers,
+    joinOfflineAttendancesByOnlineRegistrations,
+    joinOfflineCancelledRegistrationsByOnlineMembers,
+    joinOfflineCancelledAttendancesByOnlineMembers,
+    joinOfflineCancelledAttendancesByOnlineRegistrations,
+    joinOfflineFreezedRegistrationsByOnlineMembers,
+    joinOfflineFreezedRegistrationsByOnlineRegistrations
 } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
-const { statsQueryGenerator } = require('./queryGenerator')
+const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
 const { distinctValues } = require('./distincts')
 
 module.exports = {
@@ -45,6 +55,16 @@ module.exports = {
     joinMonths,
     joinRegistrationsByAttendance,
     joinStaffRegistrationsByRegistrations,
+    joinOfflineMembersIdsByOnlineMembers,
+    joinOfflineRegistrationsByOnlineMembers,
+    joinOfflineRegistrationsIdsByOnlineRegistrations,
+    joinOfflineAttendancesByOnlineMembers,
+    joinOfflineAttendancesByOnlineRegistrations,
+    joinOfflineCancelledRegistrationsByOnlineMembers,
+    joinOfflineCancelledAttendancesByOnlineMembers,
+    joinOfflineCancelledAttendancesByOnlineRegistrations,
+    joinOfflineFreezedRegistrationsByOnlineMembers,
+    joinOfflineFreezedRegistrationsByOnlineRegistrations,
     isWhatsappLanguageValid,
     isDateValid,
     calculateRegistrationsTotalEarnings,
@@ -56,6 +76,7 @@ module.exports = {
     extractStaffs,
     extractMembers,
     statsQueryGenerator,
+    growthDatePicker,
     joinPackages,
     distinctValues
 }

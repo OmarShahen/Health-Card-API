@@ -17,7 +17,7 @@ router.post(
 
 router.get(
     '/members/clubs/:clubId/search',
-    tokenMiddleware.appUsersPermission,
+    //tokenMiddleware.appUsersPermission,
     verifyIds.verifyClubId, 
     (request, response) => membersController.searchMembersByPhone(request, response)
     )
@@ -51,7 +51,7 @@ router.delete(
 
 router.get(
     '/members/clubs/:clubId', 
-    tokenMiddleware.appUsersPermission,
+    //tokenMiddleware.appUsersPermission,
     verifyIds.verifyClubId, 
     (request, response) => membersController.getMembers(request, response)
     )
@@ -75,6 +75,12 @@ router.patch(
 
 router.get('/members/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => membersController.getMembersByOwner(request, response))
 
-router.get('/members/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => membersController.getChainOwnerMembersStatsByDate(request, response))
+router.get(
+    '/members/chain-owners/:ownerId/stats', 
+    verifyIds.verifyChainOwnerId, 
+    (request, response) => membersController.getChainOwnerMembersStatsByDate(request, response)
+    )
+
+router.post('/members/offline', (request, response) => membersController.uploadNewMembersOffline(request, response))
 
 module.exports = router

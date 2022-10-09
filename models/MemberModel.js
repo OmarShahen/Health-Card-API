@@ -9,7 +9,7 @@ const MemberSchema = new mongoose.Schema({
     countryCode: { type: String, required: true },
     gender: { type: String, required: true, enum: ['male', 'female']},
     birthYear: { type: String },
-    canAuthenticate: { type: Boolean, required: true },
+    canAuthenticate: { type: Boolean, default: false },
     QRCodeURL: { type: String },
     QRCodeUUID: { type: String },
     isBlocked: { type: Boolean, default: false }

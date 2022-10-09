@@ -5,7 +5,7 @@ const registrationsController = require('../controllers/registrations')
 
 router.post(
   '/registrations', 
-  tokenMiddleware.appUsersPermission, 
+  //tokenMiddleware.appUsersPermission, 
   (request, response) => registrationsController.addRegistration(request, response)
   )
 
@@ -25,7 +25,7 @@ router.patch(
 
 router.get(
   '/registrations/clubs/:clubId',
-  tokenMiddleware.appUsersPermission,
+  //tokenMiddleware.appUsersPermission,
   verifyIds.verifyClubId, 
   (request, response) => registrationsController.getRegistrations(request, response)
   )
@@ -43,5 +43,11 @@ router.get('/registrations/chain-owners/:ownerId/stats', verifyIds.verifyChainOw
 router.get('/registrations/clubs/:clubId/staffs/payments', verifyIds.verifyClubId, (request, response) =>registrationsController.getClubStaffsPayments(request, response))
 
 router.get('/registrations/chain-owners/:ownerId/payments', verifyIds.verifyChainOwnerId, (request, response) => registrationsController.getOwnerClubsPayments(request, response))
+
+router.get('/registrations/members/:memberId', (request, response) => registrationsController.getRegistrationsByMember(request, response))
+
+router.get('/registrations/staffs/:staffId', (request, response) => registrationsController.getRegistrationsByStaff(request, response))
+
+router.get('/registrations/packages/:packageId', (request, response) => registrationsController.getRegistrationsByPackage(request, response))
 
 module.exports = router

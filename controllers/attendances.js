@@ -135,7 +135,6 @@ const addAttendance = async (request, response) => {
     }
 }
 
-
 const getRegistrationAttendancesWithStaffData = async (request, response) => {
 
     try {
@@ -266,8 +265,12 @@ const getClubAttendancesStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
+        const { specific, until, to } = request.query
 
-        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+        const { searchQuery, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, to, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubId, { until: growthUntilDate })
 
 
         const attendancesPromise = AttendanceModel.aggregate([
@@ -322,7 +325,7 @@ const getClubAttendancesStatsByDate = async (request, response) => {
 
         const attendancesStatsGrowthPromise = AttendanceModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {
@@ -690,6 +693,8 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
             attendance.staff = attendance.staff[0]
             attendance.member = attendance.member[0]
         })
+
+        clubsAttendancesStats.forEach(clubAttendance => clubAttendance.club = clubAttendance.club[0])
 
         attendancesStatsHour.forEach(hour => hour._id = Number.parseInt(hour._id))
         attendancesStatsHour

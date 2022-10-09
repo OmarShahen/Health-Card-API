@@ -464,8 +464,12 @@ const getClubMembersStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
+        const { specific, until, to } = request.query
 
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, to, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubId, { until: growthUntilDate })
 
         const membersPromise = MemberModel.aggregate([
             {
@@ -493,7 +497,7 @@ const getClubMembersStatsByDate = async (request, response) => {
 
         const membersStatsGrowthPromise = MemberModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {
@@ -595,7 +599,12 @@ const getMemberStatsByDate = async (request, response) => {
         }
 
         const { memberId } = request.params
+        const { specific, until, to } = request.query
+
         const { searchQuery, toDate } = utils.statsQueryGenerator('memberId', memberId, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, to, specific)
+        const growthQuery = utils.statsQueryGenerator('memberId', memberId, { until: growthUntilDate })
 
         const memberPromise = MemberModel.findById(memberId)
 
@@ -642,30 +651,12 @@ const getMemberStatsByDate = async (request, response) => {
         const attendancesPromise = AttendanceModel.aggregate([
             {
                 $match: searchQuery
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }     
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
-            },
-            {
-                $project: {
-                    'staff.password': 0,
-                }
             }
         ])
 
         const attendancesGrowthStatsPromise = AttendanceModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {
@@ -729,7 +720,7 @@ const getMemberStatsByDate = async (request, response) => {
             registrations, 
             attendances, 
             attendancesGrowthStats,
-            attendancesStatsDay,
+                   attendancesStatsDay,
             attendancesStatsHour,
             packagesRegistrationsStats
         ] = await Promise.all([
@@ -751,10 +742,6 @@ const getMemberStatsByDate = async (request, response) => {
             registration.member = registration.member[0]
             registration.package = registration.package[0]
         })
-
-        attendances.forEach(attendance => attendance.staff = attendance.staff[0])
-
-        registrations = utils.joinRegistrationsByAttendance(registrations, attendances)
 
         const totalRegistrations = registrations.length
         const totalAttendances = attendances.length
@@ -1165,6 +1152,7 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
         })
     }
 }
+
 
 
 module.exports = { 

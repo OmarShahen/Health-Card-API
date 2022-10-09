@@ -476,8 +476,12 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
         }
 
         const { clubId } = request.params
+        const { specific, until, to } = request.query
 
         const { searchQuery, toDate } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, to, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubId, { until: growthUntilDate })
 
         const registrationsPromise = RegistrationModel.aggregate([
             {
@@ -529,7 +533,7 @@ const getClubRegistrationsStatsByDate = async (request, response) => {
 
         const registrationsStatsGrowthPromise = RegistrationModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {
@@ -1011,7 +1015,7 @@ const getClubStaffsPayments = async (request, response) => {
         const { clubId } = request.params
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const staffPaymentsPromise = RegistrationModel.aggregate([
+        const staffPayments = await RegistrationModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -1043,57 +1047,6 @@ const getClubStaffsPayments = async (request, response) => {
             }
         ])
 
-        const registrationsPromise = RegistrationModel .aggregate([
-            {
-                $match: searchQuery
-            },
-            {
-                $lookup: {
-                    from: 'members',
-                    localField: 'memberId',
-                    foreignField: '_id',
-                    as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'package',
-                    localField: 'packageId',
-                    foreignField: '_id',
-                    as: 'package'
-                }
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
-            },
-            {
-                $project: {
-                    'staff.password': 0,
-                }
-            }
-        ])
-
-        let [staffPayments, registrations] = await Promise.all([
-            staffPaymentsPromise,
-            registrationsPromise
-        ])
-
-        registrations.forEach(registration => {
-            registration.staff = registration.staff[0]
-            registration.member = registration.member[0]
-            registration.package = registration.package[0]
-        })
-
         let totalEarnings = 0
 
         staffPayments.forEach(registration => {
@@ -1101,15 +1054,10 @@ const getClubStaffsPayments = async (request, response) => {
             totalEarnings += registration.count
         })
 
-        staffPayments = utils
-        .joinStaffRegistrationsByRegistrations(staffPayments, registrations)
-
         return response.status(200).json({
             totalEarnings,
             staffPayments,
-            registrations
         })
-
 
     } catch(error) {
         console.error(error)
@@ -1194,6 +1142,232 @@ const getOwnerClubsPayments = async (request, response) => {
     }
 } 
 
+const getRegistrationsByMember = async (request, response) => {
+
+    try {
+
+        const { memberId } = request.params
+
+        const memberRegistrations = await RegistrationModel.aggregate([
+            {
+                $match: { memberId: mongoose.Types.ObjectId(memberId) }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1,
+                    active: 1
+                }
+            }
+        ])
+
+        memberRegistrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+
+        })
+
+        return response.status(200).json({
+            registrations: memberRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getRegistrationsByStaff = async (request, response) => {
+
+    try {
+
+        const { staffId } = request.params
+
+        const staffRegistrations = await RegistrationModel.aggregate([
+            {
+                $match: { memberId: mongoose.Types.ObjectId(staffId) }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1,
+                    active: 1
+                }
+            }
+        ])
+
+        staffRegistrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+
+        })
+
+        return response.status(200).json({
+            registrations: staffRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getRegistrationsByPackage = async (request, response) => {
+
+    try {
+
+        const { packageId } = request.params
+
+        const packageRegistrations = await RegistrationModel.aggregate([
+            {
+                $match: { memberId: mongoose.Types.ObjectId(packageId) }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1,
+                    active: 1
+                }
+            }
+        ])
+
+        packageRegistrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+
+        })
+
+        return response.status(200).json({
+            registrations: packageRegistrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
 
 
 
@@ -1208,5 +1382,9 @@ module.exports = {
     getRegistrationsByOwner,
     getChainOwnerRegistrationsStatsByDate,
     getClubStaffsPayments,
-    getOwnerClubsPayments
+    getOwnerClubsPayments,
+    getRegistrationsByMember,
+    getRegistrationsByStaff,
+    getRegistrationsByPackage
+    
 }

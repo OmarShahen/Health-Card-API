@@ -46,5 +46,20 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
     
 }
 
+const growthDatePicker = (until, to, specific) => {
 
-module.exports = { statsQueryGenerator }
+    let growthUntilDate
+
+    if(until) {
+        growthUntilDate = until
+    } else if(to) {
+        growthUntilDate = to
+    } else if(specific) {
+        growthUntilDate = specific
+    } 
+
+    return growthUntilDate
+}
+
+
+module.exports = { statsQueryGenerator, growthDatePicker }

@@ -7,7 +7,7 @@ router.post('/packages', (request, response) => packagesController.addPackage(re
 
 router.get(
     '/packages/clubs/:clubId', 
-    tokenMiddleware.appUsersPermission, 
+    //tokenMiddleware.appUsersPermission, 
     verifyIds.verifyClubId, 
     (request, response) => packagesController.getPackages(request, response)
     )

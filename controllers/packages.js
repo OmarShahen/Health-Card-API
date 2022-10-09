@@ -348,7 +348,12 @@ const getClubPackageStatsByDate = async (request, response) => {
         }
 
         const { packageId } = request.params
+        const { specific, until, to } = request.query
+
         const packageSearchQuery = utils.statsQueryGenerator('packageId', packageId, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, to, specific)
+        const growthQuery = utils.statsQueryGenerator('packageId', packageId, { until: growthUntilDate })
 
         const clubPackage = await PackageModel.findById(packageId)
 
@@ -463,7 +468,7 @@ const getClubPackageStatsByDate = async (request, response) => {
 
         const packageRegistrationsStatsGrowthPromise = RegistrationModel.aggregate([
             {
-                $match: packageSearchQuery.searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {

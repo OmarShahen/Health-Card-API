@@ -191,6 +191,12 @@ const getClubCancelledAttendance = async (request, response) => {
 
         ])
 
+        cancelledAttendances.forEach(cancelledAttendance => {
+            cancelledAttendance.member = cancelledAttendance.member[0]
+            cancelledAttendance.staff = cancelledAttendance.staff[0]
+            cancelledAttendance.package = cancelledAttendance.package[0]
+        })
+
         return response.status(200).json({
             cancelledAttendances: cancelledAttendances
         })

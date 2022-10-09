@@ -156,10 +156,13 @@ const clubAdminLogin = async (request, response) => {
 
         clubAdminList[0].password = null
 
+        const club = await ClubModel.findById(clubAdminList[0].clubId)
+
         const token = jwt.sign(clubAdminList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
 
         return response.status(200).json({
             token,
+            club,
             clubAdmin: clubAdminList[0]
         })
 
@@ -206,6 +209,19 @@ const chainOwnerLogin = async (request, response) => {
         }
 
         chainOwnerList[0].password = null
+
+        let chainOwner = chainOwnerList[0]
+
+        const ownedClubs = await ClubModel.aggregate([
+            {
+                $match: {
+                    _id: { $in: chainOwner.clubs }
+                }
+            }
+        ])
+
+        chainOwner.clubs = ownedClubs
+
 
         const token = jwt.sign(chainOwnerList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
 
