@@ -8,10 +8,13 @@ const ClubModel = require('../models/ClubModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const PackageModel = require('../models/PackageModel')
 const AttendanceModel = require('../models/AttendanceModel')
+const translations = require('../i18n/index')
 
 const addCancelAttendance = async (request, response) => {
 
     try {
+
+        const { lang } = request.query
 
         const dataValidation = cancelAttendanceValidation.cancelledAttendanceData(request.body)
 
@@ -47,7 +50,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(registration.expiresAt < currentDate) {
             return response.status(400).json({
-                message: 'member registration has passed the expiry date',
+                message: translations[lang]['Member registration has passed the expiry date'],
                 field: 'registrationId'
             })
         }
@@ -76,7 +79,7 @@ const addCancelAttendance = async (request, response) => {
 
 
         return response.status(200).json({
-            message: 'member registration is deleted successfully',
+            message: 'Member registration is deleted successfully',
             registration: deletedRegistration,
             cancelledRegistration: cancelledRegistration
         })
@@ -86,14 +89,14 @@ const addCancelAttendance = async (request, response) => {
 
         if(!registration.isActive) {
             return response.status(400).json({
-                message: 'member registration is already expired',
+                message: 'Member registration is already expired',
                 field: 'registrationId'
             })
         }
 
         if(registration.attended == 0) {
             return response.status(400).json({
-                message: 'there is no attendance to cancel',
+                message: 'There is no attendance to cancel',
                 field: 'registrationId'
             })
         }

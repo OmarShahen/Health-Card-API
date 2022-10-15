@@ -50,7 +50,7 @@ const calculatePackagePercentage = (packageId, packages) => {
     const packagePercentage = ((packageTotal/total) * 100).toFixed(2)
     const otherPackagesPercentage = (((total - packageTotal) / total) * 100).toFixed(2)
 
-    return { packagePercentage, otherPackagesPercentage }
+    return { packagePercentage, otherPackagesPercentage, othersTotal: total - packageTotal, packageTotal }
 }
 
 const calculateCompletedPackageAttendances = (registrations) => {

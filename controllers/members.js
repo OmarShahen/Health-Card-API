@@ -13,12 +13,15 @@ const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 const moment = require('moment')
+const translations = require('../i18n/index')
 
-const addMember = async (request, response) => {
+const addMember = async (request, response, next) => {
 
     try {
 
-        const dataValidation = memberValidation.memberData(request.body)
+        const { lang } = request.query
+
+        const dataValidation = memberValidation.memberData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -55,7 +58,7 @@ const addMember = async (request, response) => {
 
             if(emailList.length != 0) {
                 return response.status(400).json({
-                    message: 'email is already registered in the club',
+                    message: translations[lang]['Email is already registered in the club'],
                     field: 'email'
                 })
             }
@@ -66,7 +69,7 @@ const addMember = async (request, response) => {
 
         if(phoneList.length != 0) {
             return response.status(400).json({
-                message: 'phone number already registered in the club',
+                message: translations[lang]['Phone number is already registered in the club'],
                 field: 'phone'
             })
         }
@@ -97,14 +100,14 @@ const addMember = async (request, response) => {
             if(messageResponse.isSent) {
                 verificationMessage = {
                     isSent: true,
-                    message: 'verification message is sent successfully'
+                    message: translations[lang]['Verification message is sent successfully']
                 }
 
             } else {
 
                 verificationMessage = {
                     isSent: false,
-                    message: 'verification message is not sent'
+                    message: translations[lang]['Verification message is not sent']
                 }
             }
         }
@@ -132,7 +135,9 @@ const CheckaddMember = async (request, response) => {
 
     try {
 
-        const dataValidation = memberValidation.memberDataCheck(request.body)
+        const { lang } = request.query
+
+        const dataValidation = memberValidation.memberDataCheck(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -169,7 +174,7 @@ const CheckaddMember = async (request, response) => {
 
             if(emailList.length != 0) {
                 return response.status(400).json({
-                    message: 'email is already registered in the club',
+                    message: translations[lang]['Email is already registered in the club'],
                     field: 'email'
                 })
             }
@@ -180,7 +185,7 @@ const CheckaddMember = async (request, response) => {
 
         if(phoneList.length != 0) {
             return response.status(400).json({
-                message: 'phone number already registered in the club',
+                message: translations[lang]['Phone number already registered in the club'],
                 field: 'phone'
             })
         }
@@ -1005,7 +1010,10 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
 
         const clubs = owner.clubs
 
-        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+        const { searchQuery, until, toDate, specific } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, toDate, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubs, { until: growthUntilDate })
 
 
         const membersPromise = MemberModel.aggregate([
@@ -1042,7 +1050,7 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
 
         const membersStatsGrowthPromise = MemberModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {

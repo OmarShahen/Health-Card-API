@@ -26,7 +26,7 @@ const addFreezeRegistration = async (request, response) => {
 
         if(registration.isActive == false || currentDate > registration.expiresAt) {
             return response.status(400).json({
-                message: 'member registration is expired',
+                message: 'Member registration is expired',
                 field: 'registrationId'
             })
         }
@@ -34,7 +34,7 @@ const addFreezeRegistration = async (request, response) => {
 
         if(registration.isFreezed) {
             return response.status(400).json({
-                message: 'member registration is already freezed',
+                message: 'Member registration is already freezed',
                 field: 'registrationId'
             })
         }
@@ -45,7 +45,7 @@ const addFreezeRegistration = async (request, response) => {
 
         if(PACKAGE_DURATION == '1 day' || PACKAGE_DURATION == '1 days') {
             return response.status(400).json({
-                message: 'can not freeze a registration with a daily package',
+                message: 'Can not freeze a registration with a daily package',
                 field: 'registrationId'
             })
         }
@@ -207,7 +207,7 @@ const reactivateRegistration = async (request, response) => {
 
         if(!registration.isFreezed) {
             return response.status(400).json({
-                message: 'registration is already activated',
+                message: 'Registration is already active',
                 field: 'registrationId'
             })
         }
@@ -218,7 +218,7 @@ const reactivateRegistration = async (request, response) => {
 
         if(freezedRegistrations.length == 0) {
             return response.status(404).json({
-                message: 'registration has not been freezed',
+                message: 'Registration has not been freezed',
                 field: 'registrationId'
             })
         }

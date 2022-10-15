@@ -7,12 +7,15 @@ const db = require('./config/database')
 const cors = require('cors')
 const http = require('http').Server(app)
 const webSocketInitializer = require('./socket-events/socket')
+const { verifyLanguage } = require('./middlewares/language')
 
 const io = require('socket.io')(http)
 
 app.use(morgan('common'))
 app.use(express.json())
 app.use(cors())
+app.use(verifyLanguage)
+
 
 app.use('/api/v1/auth', require('./routes/auth'))
 app.use('/api/v1', require('./routes/chainOwners'))

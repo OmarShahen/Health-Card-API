@@ -1,7 +1,8 @@
 const validator = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
-const memberData = (memberData) => {
+const memberData = (memberData, lang) => {
 
     const { 
         clubId, 
@@ -26,40 +27,40 @@ const memberData = (memberData) => {
 
     if(!validator.isObjectId(staffId)) return { isAccepted: false, message: 'invalid staff Id formate', field: 'staffId' }
 
-    if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
+    if(!name) return { isAccepted: false, message: translations[lang]['Name is required'], field: 'name' }
 
-    if(!validator.isNameValid(name)) return { isAccepted: false, message: 'invalid name formate', field: 'name' }
+    if(!validator.isNameValid(name)) return { isAccepted: false, message: translations[lang]['Invalid name formate'], field: 'name' }
 
-    if(name.split(' ').length != 2) return { isAccepted: false, message: 'name must be 2 words', field: 'name' }
+    if(name.split(' ').length != 2) return { isAccepted: false, message: translations[lang]['Name must be two words'], field: 'name' }
 
     if(email) {
-        if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'email formate is invalid', field: 'email' }
+        if(!validator.isEmailValid(email)) return { isAccepted: false, message: translations[lang]['Email formate is invalid'], field: 'email' }
     }
 
-    if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
+    if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'phone formate is invalid', field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Phone formate is invalid'], field: 'phone' }
 
-    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
+    if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }
 
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country code'], field: 'countryCode' }
 
-    if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: 'invalid gender', field: 'gender' }
+    if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
-    if(age && !Number.parseInt(age)) return { isAccepted: false, message: 'invalid age', field: 'age' }
+    if(age && !Number.parseInt(age)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
 
-    if(typeof canAuthenticate != 'boolean') return { isAccepted: false, message: 'invalid can authenticate input', field: 'canAuthenticate' }
+    if(typeof canAuthenticate != 'boolean') return { isAccepted: false, message: 'Invalid can authenticate input', field: 'canAuthenticate' }
 
     if(canAuthenticate == true ) {
         if(!QRCodeURL) return { isAccepted: false, message: 'QR code URL is required', field: 'QRCodeURL' }
         
         if(!QRCodeUUID) return { isAccepted: false, message: 'QR code UUID is required', field: 'QRCodeUUID' }
 
-        if(!validator.isUUIDValid(QRCodeUUID)) return { isAccepted: false, message: 'invalid QR code UUID formate', field: 'QRCodeUUID' }
+        if(!validator.isUUIDValid(QRCodeUUID)) return { isAccepted: false, message: 'Invalid QR code UUID formate', field: 'QRCodeUUID' }
 
-        if(!languageCode) return { isAccepted: false, message: 'languageCode is required', field: 'languageCode' }
+        if(!languageCode) return { isAccepted: false, message: 'LanguageCode is required', field: 'languageCode' }
         
-        if(!validator.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: 'language code is not registered', field: 'languageCode' }
+        if(!validator.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: 'Language code is not registered', field: 'languageCode' }
     }
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
@@ -324,7 +325,7 @@ const offlineUpdateMemberData = (memberData) => {
 
 }
 
-const memberDataCheck = (memberData) => {
+const memberDataCheck = (memberData, lang) => {
 
     const { clubId, staffId, name, email, phone, countryCode } = memberData
 
@@ -336,23 +337,23 @@ const memberDataCheck = (memberData) => {
 
     if(!validator.isObjectId(staffId)) return { isAccepted: false, message: 'invalid staff Id formate', field: 'staffId' }
 
-    if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
+    if(!name) return { isAccepted: false, message: translations[lang]['Name is required'], field: 'name' }
 
-    if(!validator.isNameValid(name)) return { isAccepted: false, message: 'invalid name formate', field: 'name' }
+    if(!validator.isNameValid(name)) return { isAccepted: false, message: translations[lang]['Invalid name formate'], field: 'name' }
 
-    if(name.split(' ').length != 2) return { isAccepted: false, message: 'name must be 2 words', field: 'name' }
+    if(name.split(' ').length != 2) return { isAccepted: false, message: translations[lang]['Name must be 2 words'], field: 'name' }
 
     if(email) {
-        if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'email formate is invalid', field: 'email' }
+        if(!validator.isEmailValid(email)) return { isAccepted: false, message: translations[lang]['Email formate is invalid'], field: 'email' }
     }
 
-    if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
+    if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'phone formate is invalid', field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Phone formate is invalid'], field: 'phone' }
 
-    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
+    if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }
 
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country Code'], field: 'countryCode' }
 
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
@@ -365,23 +366,23 @@ const updateMemberData = (memberData) => {
     const { name, email, phone, countryCode } = memberData
 
 
-    if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
+    if(!name) return { isAccepted: false, message: 'Name is required', field: 'name' }
 
-    if(!validator.isNameValid(name)) return { isAccepted: false, message: 'invalid name formate', field: 'name' }
+    if(!validator.isNameValid(name)) return { isAccepted: false, message: 'Invalid name formate', field: 'name' }
 
-    if(name.split(' ').length != 2) return { isAccepted: false, message: 'name must be 2 words', field: 'name' }
+    if(name.split(' ').length != 2) return { isAccepted: false, message: 'Name must be 2 words', field: 'name' }
 
     if(email) {
-        if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'email formate is invalid', field: 'email' }
+        if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
     }
 
-    if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
+    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'phone formate is invalid', field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
 
-    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
+    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
 
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country Code', field: 'countryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'Invalid country Code', field: 'countryCode' }
     
 
     return { isAccepted: true, message: 'data is valid', data: memberData }

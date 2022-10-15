@@ -8,11 +8,14 @@ const ClubModel = require('../models/ClubModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const PackageModel = require('../models/PackageModel')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
 const addCancelRegistration = async (request, response) => {
 
     try {
+
+        const { lang } = request.query
 
         const dataValidation = cancelRegistrationValidation.cancelledRegistrationData(request.body)
 
@@ -50,7 +53,7 @@ const addCancelRegistration = async (request, response) => {
 
         if(registration.expiresAt < currentDate) {
             return response.status(400).json({
-                message: 'member registration has passed the expiry date',
+                message: translations[lang]['Member registration has passed the expiry date'],
                 field: 'registrationId'
             })
         }
@@ -87,7 +90,7 @@ const addCancelRegistration = async (request, response) => {
 
        if(!registration.isActive) {
         return response.status(400).json({
-            message: 'member registration is already expired',
+            message: translations[lang]['Member registration is already expired'],
             field: 'registrationId'
         })
     }

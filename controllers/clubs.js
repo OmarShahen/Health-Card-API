@@ -276,6 +276,8 @@ const getClubMainStatsByDate = async (request, response) => {
 
         const attendancesPromise = AttendanceModel.find(searchQuery)
 
+        const membersPromise = MemberModel.find(searchQuery)
+
         const registrationsGrowthStatsPromise = RegistrationModel.aggregate([
             {
                 $match: growthQuery.searchQuery
@@ -289,14 +291,15 @@ const getClubMainStatsByDate = async (request, response) => {
         ])
 
 
-        const [club, registrations, attendances, registrationsGrowthStats] = await Promise.all([
+        const [club, registrations, attendances, registrationsGrowthStats, members] = await Promise.all([
             clubPromise,
             registrationsPromise,
             attendancesPromise,
             registrationsGrowthStatsPromise,
+            membersPromise
         ])
 
-
+        const totalMembers = members.length
         const totalRegistrations = registrations.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
@@ -311,6 +314,7 @@ const getClubMainStatsByDate = async (request, response) => {
             totalRegistrations,
             totalAttendances,
             totalEarnings,
+            totalMembers
         })
 
     } catch(error) {

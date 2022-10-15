@@ -348,13 +348,36 @@ const getChainOwnerStatsByDate = async (request, response) => {
             }
         ])
 
+        const clubsRegistrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$clubId',
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clubs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'club'
+                }
+            }
+        ])
 
-        const [registrations, attendances, members, registrationsStatsByMonths] = await Promise.all([
+
+        const [registrations, attendances, members, registrationsStatsByMonths, clubsRegistrationsStats] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
             membersPromise,
             registrationsStatsByMonthsPromise,
+            clubsRegistrationsPromise
         ])
+
+        clubsRegistrationsStats.forEach(stat => stat.club = stat.club[0])
 
         const totalRegistrations = registrations.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
@@ -373,6 +396,7 @@ const getChainOwnerStatsByDate = async (request, response) => {
 
 
         return response.status(200).json({
+            clubsRegistrationsStats,
             registrationsStatsByMonths,
             totalRegistrations,
             totalAttendances,

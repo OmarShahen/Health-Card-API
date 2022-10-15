@@ -10,10 +10,13 @@ const AttendanceModel = require('../models/AttendanceModel')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 const addAttendance = async (request, response) => {
 
     try {
+
+        const { lang } = request.query
 
         const dataValidation = attendanceValidation.attendanceData(request.body)
 
@@ -56,21 +59,21 @@ const addAttendance = async (request, response) => {
 
         if(member.isBlocked) {
             return response.status(401).json({
-                message: 'member account is blocked',
+                message: translations[lang]['member account is blocked'],
                 field: 'memberId'
             })
         }   
 
         if(registration.isActive == false) {
             return response.status(400).json({
-                message: 'member registered expired',
+                message: translations[lang]['Member registration is expired'],
                 field: 'registrationId'
             })
         }
 
         if(registration.isFreezed == true) {
             return response.status(400).json({
-                message: 'member registered is freezed',
+                message: translations[lang]['Member registration is freezed'],
                 field: 'registrationId'
             })
         }
@@ -83,7 +86,7 @@ const addAttendance = async (request, response) => {
             .findByIdAndUpdate(registrationId, { isActive: false }, { new: true })
 
             return response.status(400).json({
-                message: 'member registration expired',
+                message: translations[lang]['Member registration is expired'],
                 field: 'registrationId'
             })
         }
@@ -534,7 +537,10 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
 
         const clubs = owner.clubs
 
-        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+        const { searchQuery, until, toDate, specific } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, toDate, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubs, { until: growthUntilDate })
 
 
         const attendancesPromise = AttendanceModel.aggregate([
@@ -588,11 +594,9 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
             }
         ])
 
-        const cancelledAttendancesPromise = CancelledAttendanceModel.find(searchQuery)
-
         const attendancesStatsGrowthPromise = AttendanceModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {
@@ -601,6 +605,8 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
                 }
             }
         ])
+
+        const cancelledAttendancesPromise = CancelledAttendanceModel.find(searchQuery)
 
         const attendancesStatsHourPromise = AttendanceModel.aggregate([
             {
@@ -668,24 +674,22 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
             attendances, 
             cancelledAttendances, 
             clubsAttendancesStats,
-            attendancesStatsGrowth,
             attendancesStatsHour,
             attendancesStatsDay,
-            attendancesStatsMonth
+            attendancesStatsMonth,
+            attendancesStatsGrowth
         ] = await Promise.all([
             attendancesPromise,
             cancelledAttendancesPromise,
             clubsAttendancesStatsPromise,
-            attendancesStatsGrowthPromise,
             attendancesStatsHourPromise,
             attendancesStatsDayPromise,
-            attendancesStatsMonthPromise
+            attendancesStatsMonthPromise,
+            attendancesStatsGrowthPromise
         ])
 
         const totalAttendances = attendances.length
         const totalCancelledAttendances = cancelledAttendances.length
-
-        attendancesStatsGrowth.sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
         attendances.forEach(attendance => {
             attendance.club = attendance.club[0]
@@ -708,10 +712,10 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
         attendancesStatsDay.sort((day1, day2) => day2.count - day1.count)
 
         return response.status(200).json({
+            attendancesStatsGrowth,
             totalAttendances,
             totalCancelledAttendances,
             clubsAttendancesStats,
-            attendancesStatsGrowth,
             attendancesStatsHour,
             attendancesStatsDay,
             attendancesStatsMonth,

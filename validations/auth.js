@@ -1,5 +1,5 @@
 const validator = require('../utils/utils')
-
+const translations = require('../i18n/index')
 
 const adminLogin = (adminData) => {
 
@@ -15,19 +15,19 @@ const adminLogin = (adminData) => {
 
 }
 
-const staffLogin = (staffData) => {
+const staffLogin = (staffData, lang) => {
 
     const { phone, countryCode, password } = staffData
    
-    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
+    if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }
 
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country code', field: 'countryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country code'], field: 'countryCode' }
     
-    if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
+    if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'invalid phone formate', field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Invalid phone formate'], field: 'phone' }
  
-    if(!password) return { isAccepted: false, message: 'password is required', field: 'password' }
+    if(!password) return { isAccepted: false, message: translations[lang]['Password is required'], field: 'password' }
 
     return { isAccepted: true, message: 'data is valid', data: staffData }
 

@@ -4,7 +4,7 @@ const staffsController = require('../controllers/staffs')
 
 router.post('/staffs/club-admin', (request, response) => staffsController.addClubOwner(request, response))
 
-router.post('/staffs/staffs', (request, response) => staffsController.addStaff(request, response))
+router.post('/staffs/staff', (request, response) => staffsController.addStaff(request, response))
 
 router.get('/staffs/clubs/:clubId/roles/staff', verifyIds.verifyClubId, (request, response) => staffsController.getStaffs(request, response))
 

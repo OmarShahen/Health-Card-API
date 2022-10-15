@@ -9,6 +9,7 @@ const ChainOwnerModel = require('../models/ChainOwnerModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
+const translations = require('../i18n/index')
 
 const adminLogin = async (request, response) => {
 
@@ -75,7 +76,11 @@ const staffLogin = async (request, response) => {
 
     try {
 
-        const dataValidation = authValidation.staffLogin(request.body)
+        const { lang } = request.query
+
+        console.log(request.query)
+
+        const dataValidation = authValidation.staffLogin(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -91,14 +96,14 @@ const staffLogin = async (request, response) => {
 
         if(staffList.length == 0) {
             return response.status(400).json({
-                message: 'phone number is not registered',
+                message: translations[lang]['Phone number is not registered'],
                 field: 'phone'
             })
         }
 
         if(!bcrypt.compareSync(password, staffList[0].password)) {
             return response.status(400).json({
-                message: 'wrong password',
+                message: translations[lang]['Incorrect password'],
                 field: 'password'
             })
         }
@@ -108,9 +113,14 @@ const staffLogin = async (request, response) => {
 
         staffList[0].password = null
 
+        let staff = staffList[0]
+
+        const staffClub = await ClubModel.findById(staff.clubId)
+
         return response.status(200).json({
             token: token,
-            staff: staffList[0]
+            staff: staff,
+            club: staffClub
         })
 
     } catch(error) {
@@ -301,7 +311,7 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
 
         if(!member.canAuthenticate) {
             return response.status(400).json({
-                message: 'authentication is closed for this member',
+                message: 'Authentication is closed for this member',
                 field: 'memberId'
             })
         }
@@ -322,14 +332,14 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
 
         if(messageResponse.isSent == false) {
             return response.status(400).json({
-                message: 'could not send member QR code message',
+                message: 'Could not send member QR code message',
                 field: 'memberId'
             })
         }
 
 
         return response.status(200).json({
-            message: 'verification message is sent successfully',
+            message: 'Verification message is sent successfully',
             member,
         })
 

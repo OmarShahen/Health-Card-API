@@ -11,6 +11,7 @@ module.exports = {
     EXPIRATION_PERIODS: ['day', 'days', 'week', 'weeks', 'month', 'months', 'year'],
     MAX_ATTENDANCE: 1095,
     WEEK_DAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    LANGUAGES: ['en', 'ar'],
     WHATSAPP:{
         BASE_URL: 'https://graph.facebook.com/v13.0',
         TOKEN: process.env.WHATSAPP_TOKEN,

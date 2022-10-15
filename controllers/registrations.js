@@ -11,11 +11,14 @@ const ChainOwnerModel = require('../models/ChainOwnerModel')
 const registrationValidation = require('../validations/registrations')
 const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
 const addRegistration = async (request, response) => {
 
     try {
+
+        const { lang } = request.query
 
         const dataValidation = registrationValidation.registrationData(request.body)
 
@@ -51,7 +54,7 @@ const addRegistration = async (request, response) => {
 
         if(membersList[0].isBlocked == true) {
             return response.status(400).json({
-                message: 'member is blocked',
+                message: translations[lang]['member is blocked'],
                 field: 'memberId'
             })
         }
@@ -72,7 +75,7 @@ const addRegistration = async (request, response) => {
 
         if(packagesList.length == 0) {
             return response.status(400).json({
-                message: 'package Id does not exist',
+                message: translations[lang]['package Id does not exist'],
                 field: 'packageId'
             })
         }
@@ -82,7 +85,7 @@ const addRegistration = async (request, response) => {
 
         if(memberActivePackagesList.length != 0) {
             return response.status(400).json({
-                message: 'member is already registered in a package',
+                message: translations[lang]['Member is already registered in a package'],
                 field: 'memberId'
             })
         }
@@ -175,7 +178,7 @@ const checkAddRegistrationData = async (request, response) => {
 
         if(membersList[0].isBlocked == true) {
             return response.status(400).json({
-                message: 'member is blocked',
+                message: translations[lang]['Member is blocked'],
                 field: 'memberId'
             })
         }
@@ -206,7 +209,7 @@ const checkAddRegistrationData = async (request, response) => {
 
         if(memberActivePackagesList.length != 0) {
             return response.status(400).json({
-                message: 'member is already registered in a package',
+                message: 'Member is already registered in a package',
                 field: 'memberId'
             })
         }
@@ -812,7 +815,10 @@ const getChainOwnerRegistrationsStatsByDate = async (request, response) => {
 
         const clubs = owner.clubs
 
-        const { searchQuery, toDate } = utils.statsQueryGenerator('clubId', clubs, request.query)
+        const { searchQuery, toDate, specific, until } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, toDate, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubs, { until: growthUntilDate })
 
 
         const registrationsPromise = RegistrationModel.aggregate([
@@ -868,7 +874,7 @@ const getChainOwnerRegistrationsStatsByDate = async (request, response) => {
 
         const registrationsStatsGrowthPromise = RegistrationModel.aggregate([
             {
-                $match: searchQuery
+                $match: growthQuery.searchQuery
             },
             {
                 $group: {
