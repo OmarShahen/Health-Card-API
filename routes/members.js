@@ -83,4 +83,6 @@ router.get(
 
 router.post('/members/offline', (request, response) => membersController.uploadNewMembersOffline(request, response))
 
+router.post('/members/insert-many', (request, response) => membersController.insertManyMembers(request, response))
+
 module.exports = router

@@ -33,19 +33,19 @@ const staffLogin = (staffData, lang) => {
 
 }
 
-const chainOwnerLogin = (chainOwnerData) => {
+const chainOwnerLogin = (chainOwnerData, lang) => {
 
     const { phone, countryCode, password } = chainOwnerData
 
-    if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
+    if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'invalid phone formate', field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Invalid phone formate'], field: 'phone' }
     
-    if(!countryCode) return { isAccepted: false, message: 'country code is required', field: 'countryCode' }
+    if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }
 
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'invalid country code', field: 'countryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country code'], field: 'countryCode' }
     
-    if(!password) return { isAccepted: false, message: 'password is required', field: 'password' }
+    if(!password) return { isAccepted: false, message: translations[lang]['Password is required'], field: 'password' }
 
     return { isAccepted: true, message: 'data is valid', data: chainOwnerData }
 

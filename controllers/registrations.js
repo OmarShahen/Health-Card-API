@@ -1040,6 +1040,22 @@ const getClubStaffsPayments = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'registrations',
+                    localField: 'staff._id',
+                    foreignField: 'staffId',
+                    as: 'registrations'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'registrations.packageId',
+                    foreignField: '_id',
+                    as: 'packages'
+                }
+            },
+            {
                 $sort: {
                     createdAt: -1
                 }
@@ -1053,10 +1069,14 @@ const getClubStaffsPayments = async (request, response) => {
             }
         ])
 
+        const packages = staffPayments.map(payment => payment.packages)[0]
+
         let totalEarnings = 0
 
         staffPayments.forEach(registration => {
+
             registration.staff = registration.staff[0]
+            registration.registrations = utils.joinRegistrationsByPackages(registration.registrations, packages)
             totalEarnings += registration.count
         })
 

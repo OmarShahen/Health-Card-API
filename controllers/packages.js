@@ -5,13 +5,16 @@ const ClubModel = require('../models/ClubModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
 const addPackage = async (request, response) => {
 
     try {
 
-        const dataValidation = packageValidation.packageData(request.body)
+        const { lang } = request.query
+
+        const dataValidation = packageValidation.packageData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -36,7 +39,7 @@ const addPackage = async (request, response) => {
 
         if(packagesNameList.length != 0) {
             return response.status(400).json({
-                message: 'package title is already registered',
+                message: translations[lang]['Package title is already registered'],
                 field: 'title'
             })
         }
@@ -47,7 +50,7 @@ const addPackage = async (request, response) => {
         const newPackage = await packageObj.save()
 
         return response.status(200).json({
-            message: 'package is added successfully',
+            message: translations[lang]['Package is added successfully'],
             newPackage
         })
 
@@ -109,6 +112,8 @@ const updatePackage = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const dataValidation = packageValidation.updatePackageData(request.body)
 
         if(!dataValidation.isAccepted) {
@@ -130,7 +135,7 @@ const updatePackage = async (request, response) => {
 
             if(titleList.length != 0) {
                 return response.status(400).json({
-                    message: 'title is already registered',
+                    message: translations[lang]['Title is already registered'],
                     field: 'title'
                 })
             }
@@ -146,7 +151,7 @@ const updatePackage = async (request, response) => {
         )
 
         return response.status(200).json({
-            message: 'club package is updated successfully',
+            message: translations[lang]['Club package is updated successfully'],
             package: updatedPackage
         })
 
@@ -163,6 +168,8 @@ const deletePackage = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const { packageId } = request.params
 
         const registrationList = await RegistrationModel
@@ -170,7 +177,7 @@ const deletePackage = async (request, response) => {
 
         if(registrationList.length != 0) {
             return response.status(400).json({
-                message: 'this package is registered in some members registrations',
+                message: translations[lang]['This package is registered in some members registrations'],
                 field: 'packageId'
             })
         }
@@ -179,7 +186,7 @@ const deletePackage = async (request, response) => {
         .findByIdAndDelete(packageId)
 
         return response.status(200).json({
-            message: 'package is deleted successfully',
+            message: translations[lang]['Package is deleted successfully'],
             package: deletedPackage
         })
 
@@ -196,6 +203,7 @@ const updatePackageStatus = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { packageId } = request.params
         const { isOpen } = request.body
 
@@ -215,7 +223,7 @@ const updatePackageStatus = async (request, response) => {
         )
 
         return response.status(200).json({
-            message: 'package status is updated successfully',
+            message: translations[lang]['Package status is updated successfully'],
             package: updatedPackage
         })
 

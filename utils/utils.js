@@ -34,7 +34,8 @@ const {
     joinOfflineCancelledAttendancesByOnlineMembers,
     joinOfflineCancelledAttendancesByOnlineRegistrations,
     joinOfflineFreezedRegistrationsByOnlineMembers,
-    joinOfflineFreezedRegistrationsByOnlineRegistrations
+    joinOfflineFreezedRegistrationsByOnlineRegistrations,
+    joinRegistrationsByPackages
 } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
@@ -65,6 +66,7 @@ module.exports = {
     joinOfflineCancelledAttendancesByOnlineRegistrations,
     joinOfflineFreezedRegistrationsByOnlineMembers,
     joinOfflineFreezedRegistrationsByOnlineRegistrations,
+    joinRegistrationsByPackages,
     isWhatsappLanguageValid,
     isDateValid,
     calculateRegistrationsTotalEarnings,

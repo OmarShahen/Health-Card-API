@@ -182,6 +182,8 @@ const getClubStatsByDate = async (request, response) => {
 
         const attendancesPromise = AttendanceModel.find(searchQuery)
 
+        const membersPromise = MemberModel.find(searchQuery)
+
         const registrationsGrowthStatsPromise = RegistrationModel.aggregate([
             {
                 $match: growthQuery.searchQuery
@@ -207,9 +209,10 @@ const getClubStatsByDate = async (request, response) => {
         ])
 
 
-        const [registrations, attendances, registrationsGrowthStats, attendancesStatsHour] = await Promise.all([
+        const [registrations, attendances, members, registrationsGrowthStats, attendancesStatsHour] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
+            membersPromise,
             registrationsGrowthStatsPromise,
             attendancesStatsHourPromise
         ])
@@ -228,6 +231,7 @@ const getClubStatsByDate = async (request, response) => {
         const totalRegistrations = registrations.length
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
+        const totalMembers = members.length
 
 
         registrationsGrowthStats
@@ -238,6 +242,7 @@ const getClubStatsByDate = async (request, response) => {
             registrationsGrowthStats,
             totalRegistrations,
             totalAttendances,
+            totalMembers,
             totalEarnings,
             registrations,
         })
@@ -476,6 +481,13 @@ const deleteClub = async (request, response) => {
             })
         }
 
+        const ownerList = await ChainOwnerModel.find({ 'clubs': mongoose.Types.ObjectId(clubId) })
+        const owner = ownerList[0]
+
+        owner.clubs = owner.clubs.filter(club => clubId != club)
+
+        const updateOwner = await ChainOwnerModel.findByIdAndUpdate(owner._id, { clubs: owner.clubs })
+
         const deletedClub = await ClubModel.findByIdAndDelete(clubId)
 
         return response.status(200).json({
@@ -497,6 +509,13 @@ const deleteClubAndRelated = async (request, response) => {
 
         const { clubId } = request.params
 
+        const ownerList = await ChainOwnerModel.find({ 'clubs': mongoose.Types.ObjectId(clubId) })
+        const owner = ownerList[0]
+
+        owner.clubs = owner.clubs.filter(club => clubId != club)
+
+        const updateOwnerPromise = ChainOwnerModel.findByIdAndUpdate(owner._id, { clubs: owner.clubs })
+
         const deleteStaffsPromise = StaffModel.deleteMany({ clubId })
 
         const deleteMembersPromise = MemberModel.deleteMany({ clubId })
@@ -514,6 +533,7 @@ const deleteClubAndRelated = async (request, response) => {
         const deletedClubPromise = ClubModel.findByIdAndDelete(clubId)
 
         const [
+            updateOwner,
             deletedStaffs,
             deletedMembers,
             deletedAttendances,
@@ -524,6 +544,7 @@ const deleteClubAndRelated = async (request, response) => {
             deletedClub
 
         ] = await Promise.all([
+            updateOwnerPromise,
             deleteStaffsPromise,
             deleteMembersPromise,
             deleteAttendancesPromise,

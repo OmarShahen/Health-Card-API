@@ -136,7 +136,9 @@ const clubAdminLogin = async (request, response) => {
 
     try {
 
-        const dataValidation = authValidation.staffLogin(request.body)
+        const { lang } = request.query
+
+        const dataValidation = authValidation.staffLogin(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -148,18 +150,18 @@ const clubAdminLogin = async (request, response) => {
         const { phone, countryCode, password } = request.body
 
         const clubAdminList = await StaffModel
-        .find({ phone, countryCode, isAccountActive: true })
+        .find({ phone, countryCode, isAccountActive: true, role: 'CLUB-ADMIN' })
 
         if(clubAdminList.length == 0) {
             return response.status(404).json({
-                message: 'Account does not exists',
+                message: translations[lang]['Account does not exists'],
                 field: 'phone'
             })
         }
 
         if(!bcrypt.compareSync(password, clubAdminList[0].password)) {
             return response.status(400).json({
-                message: 'wrong password',
+                message: translations[lang]['Wrong password'],
                 field: 'password'
             })
         }
@@ -190,6 +192,8 @@ const chainOwnerLogin = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const dataValidation = authValidation.chainOwnerLogin(request.body)
 
         if(!dataValidation.isAccepted) {
@@ -206,14 +210,14 @@ const chainOwnerLogin = async (request, response) => {
 
         if(chainOwnerList.length == 0) {
             return response.status(404).json({
-                message: 'Account does not exists',
+                message: translations[lang]['Account does not exists'],
                 field: 'phone'
             })
         }
 
         if(!bcrypt.compareSync(password, chainOwnerList[0].password)) {
             return response.status(400).json({
-                message: 'wrong password',
+                message: translations[lang]['Wrong password'],
                 field: 'password'
             })
         }
@@ -304,14 +308,14 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
 
         if(!member) {
             return response.status(404).json({
-                message: 'member account does not exist',
+                message: translations[lang]['member account does not exist'],
                 field: 'memberId'
             })
         }
 
         if(!member.canAuthenticate) {
             return response.status(400).json({
-                message: 'Authentication is closed for this member',
+                message: translations[lang]['Authentication is closed for this member'],
                 field: 'memberId'
             })
         }
@@ -332,14 +336,14 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
 
         if(messageResponse.isSent == false) {
             return response.status(400).json({
-                message: 'Could not send member QR code message',
+                message: translations[lang]['Could not send member QR code message'],
                 field: 'memberId'
             })
         }
 
 
         return response.status(200).json({
-            message: 'Verification message is sent successfully',
+            message: translations[lang]['Verification message is sent successfully'],
             member,
         })
 

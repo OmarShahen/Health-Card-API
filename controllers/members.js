@@ -589,7 +589,6 @@ const getClubMembersStatsByDate = async (request, response) => {
     }
 }
 
-
 const getMemberStatsByDate = async (request, response) => {
 
     try {
@@ -1161,6 +1160,25 @@ const getChainOwnerMembersStatsByDate = async (request, response) => {
     }
 }
 
+const insertManyMembers = async (request, response) => {
+
+    try {
+
+        const { members } = request.body
+
+        const newMembers = await MemberModel.insertMany(members)
+
+        return response.status(200).json(newMembers)
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 
 module.exports = { 
@@ -1177,5 +1195,6 @@ module.exports = {
     updateMemberQRcodeVerification,
     updateMemberAuthenticationStatus,
     getMembersByOwner,
-    getChainOwnerMembersStatsByDate
+    getChainOwnerMembersStatsByDate,
+    insertManyMembers
 }

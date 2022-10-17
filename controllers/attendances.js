@@ -157,6 +157,22 @@ const getRegistrationAttendancesWithStaffData = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
                 $sort: {
                     createdAt: -1
                 }
@@ -171,6 +187,13 @@ const getRegistrationAttendancesWithStaffData = async (request, response) => {
                 }
             }
         ])
+
+        registrationAttendances.forEach(attendance => {
+            attendance.staff = attendance.staff[0]
+            attendance.member = attendance.member[0]
+            attendance.package = attendance.package[0]
+
+        })
 
         return response.status(200).json({
             attendances: registrationAttendances

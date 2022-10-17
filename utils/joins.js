@@ -286,6 +286,20 @@ const joinOfflineFreezedRegistrationsByOnlineRegistrations = (freezedRegistratio
     return newFreezedRegistrations
 }
 
+const joinRegistrationsByPackages = (registrations, packages) => {
+
+    for(let i=0;i<registrations.length;i++) {
+        for(let j=0;j<packages.length;j++) {
+            if(registrations[i].packageId.equals(packages[j]._id)) {
+                registrations[i].package = packages[j]
+                break
+            }
+        }
+    }
+
+    return registrations
+}
+
 module.exports = { 
     joinStaffsWithAttendances, 
     joinMembersWithAttendances, 
@@ -302,5 +316,6 @@ module.exports = {
     joinOfflineCancelledAttendancesByOnlineMembers,
     joinOfflineCancelledAttendancesByOnlineRegistrations,
     joinOfflineFreezedRegistrationsByOnlineMembers,
-    joinOfflineFreezedRegistrationsByOnlineRegistrations
+    joinOfflineFreezedRegistrationsByOnlineRegistrations,
+    joinRegistrationsByPackages
 }

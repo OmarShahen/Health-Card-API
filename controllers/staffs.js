@@ -12,6 +12,7 @@ const FreezedRegistrationsModel = require('../models/FreezeRegistrationModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const bcrypt = require('bcrypt')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 const addClubOwner = async (request, response) => {
 
@@ -86,8 +87,9 @@ const addStaff = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
 
-        const dataValidation = staffValidation.staffData(request.body)
+        const dataValidation = staffValidation.staffData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -113,7 +115,7 @@ const addStaff = async (request, response) => {
 
             if(emailList.length != 0) {
                 return response.status(400).json({
-                    message: 'email is already registered',
+                    message: translations[lang]['Email is already registered'],
                     field: 'email'
                 })
             }
@@ -123,7 +125,7 @@ const addStaff = async (request, response) => {
 
         if(phoneList.length != 0) {
             return response.status(400).json({
-                message: 'phone is already registered',
+                message: translations[lang]['Phone is already registered'],
                 field: 'phone'
             })
         }
@@ -133,7 +135,7 @@ const addStaff = async (request, response) => {
 
         if(closedAccountsList.length != 0) {
             return response.status(400).json({
-                message: 'staff account is already registered in the club but closed',
+                message: translations[lang]['Staff account is already registered in the club but closed'],
                 field:'staffId'
             })
         }
@@ -152,7 +154,7 @@ const addStaff = async (request, response) => {
         const newStaff = await staffObj.save()
 
         return response.status(200).json({
-            message: `${name} is added successfully as club staff`,
+            message: translations[lang][`Added new club staff`],
             newStaff
         })
 
@@ -257,7 +259,9 @@ const updateStaff = async (request, response) => {
 
     try {
 
-        const dataValidation = staffValidation.updateStaffData(request.body)
+        const { lang } = request.query
+
+        const dataValidation = staffValidation.updateStaffData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -278,7 +282,7 @@ const updateStaff = async (request, response) => {
 
             if(emailList.length != 0) {
                 return response.status(400).json({
-                    message: 'email is already registered',
+                    message: translations[lang]['Email is already registered'],
                     field: 'email'
                 })
             }
@@ -291,7 +295,7 @@ const updateStaff = async (request, response) => {
 
             if(phoneList.length != 0) {
                 return response.status(400).json({
-                    message: 'phone is already registered',
+                    message: translations[lang]['Phone is already registered'],
                     field: 'phone'
                 })
             }
@@ -316,7 +320,7 @@ const updateStaff = async (request, response) => {
         updatedStaff.password = null
 
         return response.status(200).json({
-            message: 'staff member is updated successfully',
+            message: translations[lang]['Staff member is updated successfully'],
             staff: updatedStaff
         })
 
@@ -333,6 +337,8 @@ const deleteStaff = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const { staffId } = request.params
 
         const registrationList = await RegistrationModel
@@ -340,7 +346,7 @@ const deleteStaff = async (request, response) => {
 
         if(registrationList.length != 0) {
             return response.status(400).json({
-                message: 'this staff member is registered in some members registrations',
+                message: translations[lang]['This staff member is registered in some members registrations'],
                 field: 'staffId'
             })
         }
@@ -349,7 +355,7 @@ const deleteStaff = async (request, response) => {
         .findByIdAndDelete(staffId)
 
         return response.status(200).json({
-            message: 'staff is deleted successfully',
+            message: translations[lang]['Staff is deleted successfully'],
             staff: deletedStaff
         })
 
@@ -365,6 +371,8 @@ const deleteStaff = async (request, response) => {
 const updateStaffStatus = async (request, response) => {
 
     try {
+
+        const { lang } = request.query
 
         const { staffId } = request.params
         const { isAccountActive } = request.body
@@ -386,7 +394,7 @@ const updateStaffStatus = async (request, response) => {
 
             if(staffList.length != 0) {
                 return response.status(400).json({
-                    message: 'this staff account is used in another club',
+                    message: translations[lang]['This staff account is used in another club'],
                     field: 'staffId'
                 })
             }
@@ -400,7 +408,7 @@ const updateStaffStatus = async (request, response) => {
         )
 
         return response.status(200).json({
-            message: 'staff status is updated successfully',
+            message: translations[lang]['Staff status is updated successfully'],
             staff: updatedStaff
         })
 
