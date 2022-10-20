@@ -18,4 +18,10 @@ router.get('/attendances/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (
 
 router.get('/attendances/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => attendancesController.getChainOwnerAttendancesStatsByDate(request, response))
 
+router.post(
+    '/attendances/members/:memberId', 
+    verifyIds.verifyMemberId, 
+    (request, response) => attendancesController.addAttendanceByMember(request, response)
+    )
+
 module.exports = router

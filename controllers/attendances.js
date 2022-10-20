@@ -59,7 +59,7 @@ const addAttendance = async (request, response) => {
 
         if(member.isBlocked) {
             return response.status(401).json({
-                message: translations[lang]['member account is blocked'],
+                message: translations[lang]['Member account is blocked'],
                 field: 'memberId'
             })
         }   
@@ -132,6 +132,110 @@ const addAttendance = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const addAttendanceByMember = async (request, response) => {
+
+    try {
+
+        const { memberId } = request.params
+
+        const memberRegistrationList = await RegistrationModel
+        .find({ memberId, isActive: true })
+
+        if(memberRegistrationList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Member has no active registration'
+            })
+        }
+
+        const memberRegistration = memberRegistrationList[0]
+
+        if(memberRegistration.isFreezed) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Member registration is freezed'
+            })
+        }
+
+
+        const currentDate = new Date()
+        if(memberRegistration.expiresAt < currentDate && memberRegistration.isActive) {
+            
+            const updatedRegistration = await RegistrationModel
+            .findByIdAndUpdate(memberRegistration._id, { isActive: false }, { new: true })
+
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member registration is expired'],
+                field: 'registrationId'
+            })
+
+        } else if(memberRegistration.expiresAt < currentDate && !memberRegistration.isActive) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member registration is expired'],
+                field: 'registrationId'
+            })
+        }
+
+        const registrationPackage = await PackageModel.find({ _id: memberRegistration.packageId })
+
+        const MEMBER_CURRENT_ATTENDANCE = memberRegistration.attended
+        const PACKAGE_ATTENDANCE = registrationPackage[0].attendance
+        const NEW_ATTENDANCE = MEMBER_CURRENT_ATTENDANCE + 1
+        const REMAINING_ATTENDANCE = PACKAGE_ATTENDANCE - NEW_ATTENDANCE
+
+        let registrationExpirationNote
+        let updatedRegistrationPromise
+
+        if(PACKAGE_ATTENDANCE == NEW_ATTENDANCE) {
+            
+            registrationExpirationNote = 'This was the last attendance for the member in his registration'
+
+            updatedRegistrationPromise = RegistrationModel
+            .findByIdAndUpdate(memberRegistration._id, { attended: NEW_ATTENDANCE, isActive: false }, { new: true })
+        
+        } else {
+
+            updatedRegistrationPromise = RegistrationModel
+            .findByIdAndUpdate(memberRegistration._id, { attended: NEW_ATTENDANCE }, { new: true })
+ 
+        }
+
+        const newAttendanceData = {
+            clubId: memberRegistration.clubId,
+            packageId: memberRegistration.packageId,
+            staffId: memberRegistration.staffId,
+            memberId: memberRegistration.memberId,
+            registrationId: memberRegistration._id
+        }
+
+        const attendanceObj = new AttendanceModel(newAttendanceData)
+
+        const [updatedRegistration, newAttendance] = await Promise.all([
+            updatedRegistrationPromise,
+            attendanceObj.save()
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            remainingAttendance: REMAINING_ATTENDANCE,
+            note: registrationExpirationNote,
+            message: 'Confirmed member attendance successfully',
+            registration: updatedRegistration,
+            attendance: newAttendance
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -762,5 +866,6 @@ module.exports = {
     getRegistrationAttendancesWithStaffData, 
     getClubAttendances,
     getAttendancesByOwner,
-    getChainOwnerAttendancesStatsByDate
+    getChainOwnerAttendancesStatsByDate,
+    addAttendanceByMember
 }
