@@ -142,6 +142,7 @@ const addAttendanceByMember = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { memberId } = request.params
 
         const memberRegistrationList = await RegistrationModel
@@ -150,7 +151,7 @@ const addAttendanceByMember = async (request, response) => {
         if(memberRegistrationList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Member has no active registration'
+                message: translations[lang]['Member has no active registration']
             })
         }
 
@@ -159,7 +160,7 @@ const addAttendanceByMember = async (request, response) => {
         if(memberRegistration.isFreezed) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Member registration is freezed'
+                message: translations[lang]['Member registration is freezed']
             })
         }
 
@@ -172,14 +173,14 @@ const addAttendanceByMember = async (request, response) => {
 
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Member registration is expired'],
+                message: translations[lang]['Member registration has passed expiration date'],
                 field: 'registrationId'
             })
 
         } else if(memberRegistration.expiresAt < currentDate && !memberRegistration.isActive) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Member registration is expired'],
+                message: translations[lang]['Member registration has passed expiration date'],
                 field: 'registrationId'
             })
         }
@@ -226,8 +227,8 @@ const addAttendanceByMember = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             remainingAttendance: REMAINING_ATTENDANCE,
-            note: registrationExpirationNote,
-            message: 'Confirmed member attendance successfully',
+            note: translations[lang][registrationExpirationNote],
+            message: translations[lang]['Confirmed attendance successfully'],
             registration: updatedRegistration,
             attendance: newAttendance
         })

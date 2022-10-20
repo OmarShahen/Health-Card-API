@@ -57,5 +57,8 @@ module.exports = {
     "This package is registered in some members registrations": "هذه العرض مسجلة في بعض تسجيلات الأعضاء",
     "Package is deleted successfully": "تم حذف العرض بنجاح",
     "Package status is updated successfully": "تم تحديث حالة العرض بنجاح",
-    "Wrong password": "كلمة المرور خاطة"
+    "Wrong password": "كلمة المرور خاطة",
+    "Member has no active registration": "لا يوجد اي تسجيل نشط للعضو",
+    "This was the last attendance for the member in his registration": "هذه كانت اخر مره حضور في اشتراك العضو",
+    "Confirmed attendance successfully": "تم تاكيد الحضور بنجاح"
 }

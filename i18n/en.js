@@ -59,5 +59,8 @@ module.exports = {
     "This package is registered in some members registrations": "This package is registered in some members registrations",
     "Package is deleted successfully": "Package is deleted successfully",
     "Package status is updated successfully": "Package status is updated successfully",
-    "Wrong password": "Wrong password"
+    "Wrong password": "Wrong password",
+    "Member has no active registration": "Member has no active registration",
+    "This was the last attendance for the member in his registration": "This was the last attendance for the member in his registration",
+    "Confirmed attendance successfully": "Confirmed attendance successfully"
 }
