@@ -62,7 +62,7 @@ router.get('/members/:memberId/stats', verifyIds.verifyMemberId, (request, respo
 
 router.patch(
     '/members/:memberId/QR-code', 
-    tokenMiddleware.appUsersPermission, 
+    //tokenMiddleware.appUsersPermission, 
     verifyIds.verifyMemberId, 
     (request, response) => membersController.updateMemberQRcodeVerification(request, response)
 )
