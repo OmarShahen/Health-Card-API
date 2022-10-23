@@ -25,6 +25,7 @@ const addMember = async (request, response, next) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -39,6 +40,7 @@ const addMember = async (request, response, next) => {
 
         if(!club) {
             return response.status(404).json({
+                accepted: false,
                 message: 'club Id does not exist',
                 field: 'clubId'
             })
@@ -46,6 +48,7 @@ const addMember = async (request, response, next) => {
 
         if(!staff) {
             return response.status(404).json({
+                accepted: false,
                 message: 'staff Id does not exist',
                 field: 'staffId'
             })
@@ -58,6 +61,7 @@ const addMember = async (request, response, next) => {
 
             if(emailList.length != 0) {
                 return response.status(400).json({
+                    accepted: false,
                     message: translations[lang]['Email is already registered in the club'],
                     field: 'email'
                 })
@@ -69,6 +73,7 @@ const addMember = async (request, response, next) => {
 
         if(phoneList.length != 0) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Phone number is already registered in the club'],
                 field: 'phone'
             })
@@ -117,6 +122,7 @@ const addMember = async (request, response, next) => {
 
     
         return response.status(200).json({
+            accepted: true,
             message: `${name} is added to the club successfully`,
             newMember,
             verificationMessage
@@ -125,6 +131,7 @@ const addMember = async (request, response, next) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message:'internal server error',
             error: error.message
         })
@@ -271,6 +278,7 @@ const getMembers = async (request, response) => {
         }
 
         return response.status(200).json({
+            accepted: true,
             members
         })
 
@@ -278,6 +286,7 @@ const getMembers = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -292,6 +301,7 @@ const deleteMember = async (request, response) => {
 
         if(!utils.isObjectId(memberId)) {
             return response.status(400).json({
+                accepted: false,
                 message: 'invalid member Id formate',
                 field: 'memberId'
             })
@@ -302,6 +312,7 @@ const deleteMember = async (request, response) => {
 
         if(memberRegistrationsList.length != 0) {
             return response.status(400).json({
+                accepted: false,
                 message: 'member has registered packages',
                 field: 'memberId'
             })
@@ -310,12 +321,14 @@ const deleteMember = async (request, response) => {
         const deleteMember = await MemberModel.findByIdAndDelete(memberId)
 
         return response.status(200).json({
+            accepted: true,
             member: deleteMember
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -402,6 +415,7 @@ const updateMemberStatus = async (request, response) => {
 
         if(typeof isBlocked != 'boolean') {
             return response.status(400).json({
+                accepted: false,
                 message: 'member status must be boolean',
                 field: 'isBlocked'
             })
@@ -415,6 +429,7 @@ const updateMemberStatus = async (request, response) => {
         )
 
         return response.status(200).json({
+            accepted: true,
             message: 'member status is updated successfully',
             member: updatedMember
         })
@@ -422,6 +437,7 @@ const updateMemberStatus = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })

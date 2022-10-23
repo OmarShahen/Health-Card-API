@@ -83,6 +83,7 @@ const staffLogin = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -95,6 +96,7 @@ const staffLogin = async (request, response) => {
 
         if(staffList.length == 0) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Phone number is not registered'],
                 field: 'phone'
             })
@@ -102,6 +104,7 @@ const staffLogin = async (request, response) => {
 
         if(!bcrypt.compareSync(password, staffList[0].password)) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Incorrect password'],
                 field: 'password'
             })
@@ -117,6 +120,7 @@ const staffLogin = async (request, response) => {
         const staffClub = await ClubModel.findById(staff.clubId)
 
         return response.status(200).json({
+            accepted: true,
             token: token,
             staff: staff,
             club: staffClub
@@ -125,6 +129,7 @@ const staffLogin = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })

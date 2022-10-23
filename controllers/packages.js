@@ -18,6 +18,7 @@ const addPackage = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -29,6 +30,7 @@ const addPackage = async (request, response) => {
 
         if(!club) {
             return response.status(404).json({
+                accepted: false,
                 message: 'club Id does not exist',
                 field: 'clubId'
             })
@@ -39,6 +41,7 @@ const addPackage = async (request, response) => {
 
         if(packagesNameList.length != 0) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Package title is already registered'],
                 field: 'title'
             })
@@ -50,6 +53,7 @@ const addPackage = async (request, response) => {
         const newPackage = await packageObj.save()
 
         return response.status(200).json({
+            accepted: true,
             message: translations[lang]['Package is added successfully'],
             newPackage
         })
@@ -57,6 +61,7 @@ const addPackage = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -96,12 +101,14 @@ const getPackages = async (request, response) => {
 
 
         return response.status(200).json({
+            accepted: true,
             packages
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })

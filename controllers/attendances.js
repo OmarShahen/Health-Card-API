@@ -22,6 +22,7 @@ const addAttendance = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -33,6 +34,7 @@ const addAttendance = async (request, response) => {
 
         if(!registration) {
             return response.status(404).json({
+                accepted: false,
                 message: 'registration Id does not exist',
                 field: 'registrationId'
             })
@@ -43,6 +45,7 @@ const addAttendance = async (request, response) => {
 
         if(!staff) {
             return response.status(404).json({
+                accepted: false,
                 message: 'staff Id does not exist',
                 field: 'staffId'
             })
@@ -50,6 +53,7 @@ const addAttendance = async (request, response) => {
 
         if(staff.isAccountActive == false) {
             return response.status(401).json({
+                accepted: false,
                 message: 'staff account is not active',
                 field: 'staffId'
             })
@@ -59,6 +63,7 @@ const addAttendance = async (request, response) => {
 
         if(member.isBlocked) {
             return response.status(401).json({
+                accepted: false,
                 message: translations[lang]['Member account is blocked'],
                 field: 'memberId'
             })
@@ -66,6 +71,7 @@ const addAttendance = async (request, response) => {
 
         if(registration.isActive == false) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Member registration is expired'],
                 field: 'registrationId'
             })
@@ -73,6 +79,7 @@ const addAttendance = async (request, response) => {
 
         if(registration.isFreezed == true) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Member registration is freezed'],
                 field: 'registrationId'
             })
@@ -86,6 +93,7 @@ const addAttendance = async (request, response) => {
             .findByIdAndUpdate(registrationId, { isActive: false }, { new: true })
 
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Member registration is expired'],
                 field: 'registrationId'
             })
@@ -124,6 +132,7 @@ const addAttendance = async (request, response) => {
         const newAttendance = await attendanceObj.save()
 
         return response.status(200).json({
+            accepted: true,
             message: 'updated attendance successfully',
             attendance: newAttendance,
             registration: updatedRegistration
@@ -132,6 +141,7 @@ const addAttendance = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -301,12 +311,14 @@ const getRegistrationAttendancesWithStaffData = async (request, response) => {
         })
 
         return response.status(200).json({
+            accepted: true,
             attendances: registrationAttendances
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -858,7 +870,6 @@ const getChainOwnerAttendancesStatsByDate = async (request, response) => {
         })
     }
 }
-
 
 
 module.exports = { 

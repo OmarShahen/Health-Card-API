@@ -24,6 +24,7 @@ const addRegistration = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -40,6 +41,7 @@ const addRegistration = async (request, response) => {
 
         if(clubsList.length == 0) {
             return response.status(404).json({
+                accepted: false,
                 message: 'club Id does not exist',
                 field: 'clubId'
             })
@@ -47,6 +49,7 @@ const addRegistration = async (request, response) => {
 
         if(membersList.length == 0) {
             return response.status(400).json({
+                accepted: false,
                 message: 'member Id does not exist',
                 field: 'memberId'
             })
@@ -54,6 +57,7 @@ const addRegistration = async (request, response) => {
 
         if(membersList[0].isBlocked == true) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['member is blocked'],
                 field: 'memberId'
             })
@@ -61,6 +65,7 @@ const addRegistration = async (request, response) => {
 
         if(staffsList.length == 0) {
             return response.status(400).json({
+                accepted: false,
                 message: 'staff Id does not exist',
                 field: 'staffId'
             })
@@ -68,6 +73,7 @@ const addRegistration = async (request, response) => {
 
         if(staffsList[0].isAccountActive == false) {
             return response.status(401).json({
+                accepted: false,
                 message: 'staff account is not active',
                 field: 'staffId'
             })
@@ -75,6 +81,7 @@ const addRegistration = async (request, response) => {
 
         if(packagesList.length == 0) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['package Id does not exist'],
                 field: 'packageId'
             })
@@ -85,6 +92,7 @@ const addRegistration = async (request, response) => {
 
         if(memberActivePackagesList.length != 0) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Member is already registered in a package'],
                 field: 'memberId'
             })
@@ -126,6 +134,7 @@ const addRegistration = async (request, response) => {
         const newAttendance = await attendanceObj.save()
 
         return response.status(200).json({
+            accepted: true,
             message: 'registered to package successfully',
             registration: newRegistration,
             attendance: newAttendance
@@ -134,6 +143,7 @@ const addRegistration = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -237,6 +247,7 @@ const getRegistrations = async (request, response) => {
 
         if(!utils.isObjectId(clubId)) {
             return response.status(400).json({
+                accepted: false,
                 message: 'invalid club Id formate',
                 field: 'clubId'
             })
@@ -305,12 +316,14 @@ const getRegistrations = async (request, response) => {
         })
 
         return response.status(200).json({
+            accepted: true,
             registrations
         })
 
     } catch(error) {
         console.log(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -327,6 +340,7 @@ const getMemberRegistrations = async (request, response) => {
 
         if(memberList.length == 0) {
             return response.status(404).json({
+                accepted: false,
                 message: 'member does not exist',
                 field: 'member'
             })
@@ -378,12 +392,14 @@ const getMemberRegistrations = async (request, response) => {
 
         
         return response.status(200).json({
+            accepted: true,
             memberRegistrations
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })

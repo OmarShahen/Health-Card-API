@@ -14,6 +14,7 @@ const addFreezeRegistration = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -26,6 +27,7 @@ const addFreezeRegistration = async (request, response) => {
 
         if(registration.isActive == false || currentDate > registration.expiresAt) {
             return response.status(400).json({
+                accepted: false,
                 message: 'Member registration is expired',
                 field: 'registrationId'
             })
@@ -34,6 +36,7 @@ const addFreezeRegistration = async (request, response) => {
 
         if(registration.isFreezed) {
             return response.status(400).json({
+                accepted: false,
                 message: 'Member registration is already freezed',
                 field: 'registrationId'
             })
@@ -79,6 +82,7 @@ const addFreezeRegistration = async (request, response) => {
         ])
 
         return response.status(200).json({
+            accepted: true,
             freezedRegistration: newFreezedRegistration,
             registration: updatedRegistration
         })
@@ -86,6 +90,7 @@ const addFreezeRegistration = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -174,12 +179,14 @@ const getClubFreezedRegistrations = async (request, response) => {
         })
 
         return response.status(200).json({
+            accepted: true,
             freezedRegistrations
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -194,6 +201,7 @@ const reactivateRegistration = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -207,6 +215,7 @@ const reactivateRegistration = async (request, response) => {
 
         if(!registration.isFreezed) {
             return response.status(400).json({
+                accepted: false,
                 message: 'Registration is already active',
                 field: 'registrationId'
             })
@@ -242,6 +251,7 @@ const reactivateRegistration = async (request, response) => {
             ])
 
             return response.status(200).json({
+                accepted: true,
                 freezedRegistration: updateFreezedRegistration,
                 registration: updateRegistration
             })
@@ -270,6 +280,7 @@ const reactivateRegistration = async (request, response) => {
 
 
             return response.status(200).json({
+                accepted: true,
                 freezedRegistration: updateFreezedRegistration,
                 registration: updateRegistration
             })
@@ -277,6 +288,7 @@ const reactivateRegistration = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })

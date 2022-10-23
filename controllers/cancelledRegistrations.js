@@ -21,6 +21,7 @@ const addCancelRegistration = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -36,6 +37,7 @@ const addCancelRegistration = async (request, response) => {
 
         if(!registration) {
             return response.status(404).json({
+                accepted: false,
                 message: 'registration Id does not exists',
                 field: 'registrationId'
             })
@@ -43,6 +45,7 @@ const addCancelRegistration = async (request, response) => {
 
         if(!staff) {
             return response.status(404).json({
+                accepted: false,
                 message: 'staff Id does not exists',
                 field: 'staff'
             })
@@ -53,6 +56,7 @@ const addCancelRegistration = async (request, response) => {
 
         if(registration.expiresAt < currentDate) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Member registration has passed the expiry date'],
                 field: 'registrationId'
             })
@@ -82,6 +86,7 @@ const addCancelRegistration = async (request, response) => {
 
 
         return response.status(200).json({
+            accepted: true,
             message: 'member registration is deleted successfully',
             cancelledRegistration: cancelledRegistration
         })
@@ -90,6 +95,7 @@ const addCancelRegistration = async (request, response) => {
 
        if(!registration.isActive) {
         return response.status(400).json({
+            accepted: false,
             message: translations[lang]['Member registration is already expired'],
             field: 'registrationId'
         })
@@ -116,6 +122,7 @@ const addCancelRegistration = async (request, response) => {
         
 
         return response.status(200).json({
+            accepted: true,
             message: 'member registration is cancelled successfully',
             cancelledRegistration: cancelledRegistration
         })
@@ -123,6 +130,7 @@ const addCancelRegistration = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -137,6 +145,7 @@ const getCancelledRegistrations = async (request, response) => {
 
         if(!utils.isObjectId(clubId)) {
             return response.status(400).json({
+                accepted: false,
                 message: 'invalid club Id formate',
                 field: 'clubId'
             })
@@ -198,12 +207,14 @@ const getCancelledRegistrations = async (request, response) => {
         })
 
         return response.status(200).json({
+            accepted: true,
             cancelledRegistrations
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
