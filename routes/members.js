@@ -65,7 +65,13 @@ router.patch(
     tokenMiddleware.appUsersPermission, 
     verifyIds.verifyMemberId, 
     (request, response) => membersController.updateMemberQRcodeVerification(request, response)
-    )
+)
+
+router.post(
+    '/members/:memberId/language/:languageCode/whatsapp/verification', 
+    (request, response) => membersController.sendMemberQRCodeWhatsapp(request, response)
+)
+
 
 router.patch(
     '/members/:memberId/authentication',

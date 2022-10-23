@@ -14,8 +14,6 @@ router.post('/reset-password/mail/staff', (request, response) => authController.
 
 router.post('/reset-password/mail/chain-owner', (request, response) => authController.sendChainOwnerResetPasswordMail(request, response))
 
-router.post('/members/:memberId/language/:languageCode/whatsapp/verification', (request, response) => authController.sendMemberQRCodeWhatsapp(request, response))
-
 router.post('/verify-token', (request, response) => authController.verifyToken(request, response))
 
 router.patch('/reset-password', tokenMiddleware.verifyToken, (request, response) => authController.resetPassword(request, response))

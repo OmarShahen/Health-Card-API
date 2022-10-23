@@ -67,5 +67,16 @@ module.exports = {
     "Email is sent successfully!": "تم ارسال البريد بنجاح",
     "Your new password cannot be the same as your old one": "كلمة المرور الجديدة يجب ان تكون مختلفة عن القديمة",
     "Password changed successfully": "تم تغير كلمة المرور بنجاح",
-    "Account Password Reset": "تعديل كلمة مرور الحساب"
+    "Account Password Reset": "تعديل كلمة مرور الحساب",
+    "Member is added to the club successfully!": "تم اضافة العضو الي النادي بنجاح",
+    "Could not send member QR code message": "هناك مشكلة في ارسال رمز الاستجابة السريعة الخاص بلعضو",
+    "Member QR code is sent successfully": "تم ارسال رمز الاستجابة السريعة بنجاح",
+    "Member status is updated successfully": "تم تحديث حالة حساب العضو بنجاح",
+    "Member account authentication is closed": "تامين حساب العضو مغلق",
+    "Member data is updated successfully": "تم تحديث بيانات العضو بنجاح",
+    "Member account does not exist": "هذا الحساب غير مسجل"
 }
+
+
+
+

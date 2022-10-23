@@ -31,7 +31,7 @@ const addMember = async (request, response, next) => {
             })
         }
 
-        const { clubId, staffId, name, email, phone, countryCode, gender, age, canAuthenticate, QRCodeURL, QRCodeUUID, languageCode } = request.body
+        const { clubId, staffId, name, email, phone, countryCode, gender, age } = request.body
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -79,42 +79,10 @@ const addMember = async (request, response, next) => {
             })
         }
 
-        let memberData = { clubId, staffId, name, email, phone, countryCode, gender, canAuthenticate }
+        let memberData = { clubId, staffId, name, email, phone, countryCode, gender }
 
         if(age) {
             memberData.birthYear = new Date(moment().subtract(age, 'years')).getFullYear()
-        }
-
-        let verificationMessage
-
-        if(canAuthenticate) {
-
-            memberData.QRCodeURL = QRCodeURL
-            memberData.QRCodeUUID = QRCodeUUID
-
-            const memberPhone = countryCode + phone
-            const clubData = {
-                memberName: name,
-                name: club.name,
-                phone: club.countryCode + club.phone,
-                address: `${club.location.address} ${club.location.city} ${club.location.country}`
-            }
-
-            const messageResponse = await whatsappRequest.sendMemberQRCode(memberPhone, languageCode, QRCodeURL, clubData)
-
-            if(messageResponse.isSent) {
-                verificationMessage = {
-                    isSent: true,
-                    message: translations[lang]['Verification message is sent successfully']
-                }
-
-            } else {
-
-                verificationMessage = {
-                    isSent: false,
-                    message: translations[lang]['Verification message is not sent']
-                }
-            }
         }
 
         const memberObj = new MemberModel(memberData)
@@ -123,9 +91,8 @@ const addMember = async (request, response, next) => {
     
         return response.status(200).json({
             accepted: true,
-            message: `${name} is added to the club successfully`,
+            message: translations[lang][`Member is added to the club successfully!`],
             newMember,
-            verificationMessage
         })
 
     } catch(error) {
@@ -409,6 +376,7 @@ const updateMemberStatus = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { memberId } = request.params
         const { isBlocked } = request.body
 
@@ -430,7 +398,7 @@ const updateMemberStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'member status is updated successfully',
+            message: translations[lang]['Member status is updated successfully'],
             member: updatedMember
         })
 
@@ -822,11 +790,14 @@ const updateMemberQRcodeVerification = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const dataValidation = memberValidation
         .updateMemberQRcodeVerificationData(request.body)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -839,7 +810,8 @@ const updateMemberQRcodeVerification = async (request, response) => {
 
         if(!member.canAuthenticate) {
             return response.status(400).json({
-                message: 'member account authentication is closed',
+                accepted: false,
+                message: translations[lang]['Member account authentication is closed'],
                 field: 'memberId'
             })
         }
@@ -852,13 +824,15 @@ const updateMemberQRcodeVerification = async (request, response) => {
         )
 
         return response.status(200).json({
-            message: 'member data is updated successfully',
+            accepted: true,
+            message: translations[lang]['Member data is updated successfully'],
             member: updatedMember
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -869,11 +843,14 @@ const updateMemberAuthenticationStatus = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const dataValidation = memberValidation
         .updateMemberAuthenticationStatusData(request.body)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -895,7 +872,8 @@ const updateMemberAuthenticationStatus = async (request, response) => {
             const member = await MemberModel.findById(memberId)
             const club = await ClubModel.findById(member.clubId)
 
-            const updatedMemberPromise = await MemberModel
+
+            const updatedMemberPromise = MemberModel
             .findByIdAndUpdate(memberId, { canAuthenticate, QRCodeURL, QRCodeUUID }, { new: true })
 
             const RECEPIENT_PHONE = member.countryCode + member.phone
@@ -907,7 +885,7 @@ const updateMemberAuthenticationStatus = async (request, response) => {
                 address: `${club.location.address}, ${club.location.city}, ${club.location.country}`
             }
 
-            const messagePromise = await whatsappRequest
+            const messagePromise = whatsappRequest
             .sendMemberResetQRCode(RECEPIENT_PHONE, languageCode, QR_CODE_URL, messageBody)
 
             const [updatedMemberResult, messageResult] = await Promise.all([
@@ -920,15 +898,15 @@ const updateMemberAuthenticationStatus = async (request, response) => {
 
 
             if(!message.isSent) {
-                message.message = 'could not send member QR code message'
+                message.message = translations[lang]['Could not send member QR code message']
             } else {
-                message.message = 'member QR code is sent successfully'
+                message.message = translations[lang]['Member QR code is sent successfully']
             }
-
 
         }
 
         return response.status(200).json({
+            accepted: true,
             updatedMember,
             whatsappMessage: message
         })
@@ -936,6 +914,87 @@ const updateMemberAuthenticationStatus = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const sendMemberQRCodeWhatsapp = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { memberId, languageCode } = request.params
+
+        if(!utils.isObjectId(memberId)) {
+            return response.status(406).json({
+                accepted: false,
+                message: 'invalid member Id formate',
+                field: 'memberId'
+            })
+        }
+
+        if(!utils.isWhatsappLanguageValid(languageCode)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid language code',
+                field: 'languageCode'
+            })
+        }
+
+        const member = await MemberModel.findById(memberId)
+
+        if(!member) {
+            return response.status(404).json({
+                accepted: false,
+                message: translations[lang]['Member account does not exist'],
+                field: 'memberId'
+            })
+        }
+
+        if(!member.canAuthenticate) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Authentication is closed for this member'],
+                field: 'memberId'
+            })
+        }
+
+        const memberClub = await ClubModel.findById(member.clubId)
+
+        const QR_CODE_URL = member.QRCodeURL
+        const memberPhone = member.countryCode + member.phone
+        const clubData = {
+            memberName: member.name,
+            name: memberClub.name,
+            phone: memberClub.countryCode + memberClub.phone,
+            address: `${memberClub.location.address}, ${memberClub.location.city}, ${memberClub.location.country}`
+        }
+
+       const messageResponse = await whatsappRequest
+       .sendMemberResetQRCode(memberPhone, languageCode, QR_CODE_URL, clubData)
+
+        if(messageResponse.isSent == false) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Could not send member QR code message'],
+                field: 'memberId'
+            })
+        }
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang]['Verification message is sent successfully'],
+            member,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -1196,7 +1255,6 @@ const insertManyMembers = async (request, response) => {
 }
 
 
-
 module.exports = { 
     addMember, 
     CheckaddMember,
@@ -1208,6 +1266,7 @@ module.exports = {
     getMembers,
     getClubMembersStatsByDate,
     getMemberStatsByDate,
+    sendMemberQRCodeWhatsapp,
     updateMemberQRcodeVerification,
     updateMemberAuthenticationStatus,
     getMembersByOwner,

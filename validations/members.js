@@ -12,11 +12,7 @@ const memberData = (memberData, lang) => {
         phone, 
         countryCode, 
         gender,
-        age,
-        canAuthenticate, 
-        QRCodeURL, 
-        QRCodeUUID, 
-        languageCode 
+        age 
     } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
@@ -48,21 +44,8 @@ const memberData = (memberData, lang) => {
     if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
     if(age && !Number.parseInt(age)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
-
-    if(typeof canAuthenticate != 'boolean') return { isAccepted: false, message: 'Invalid can authenticate input', field: 'canAuthenticate' }
-
-    if(canAuthenticate == true ) {
-        if(!QRCodeURL) return { isAccepted: false, message: 'QR code URL is required', field: 'QRCodeURL' }
-        
-        if(!QRCodeUUID) return { isAccepted: false, message: 'QR code UUID is required', field: 'QRCodeUUID' }
-
-        if(!validator.isUUIDValid(QRCodeUUID)) return { isAccepted: false, message: 'Invalid QR code UUID formate', field: 'QRCodeUUID' }
-
-        if(!languageCode) return { isAccepted: false, message: 'LanguageCode is required', field: 'languageCode' }
-        
-        if(!validator.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: 'Language code is not registered', field: 'languageCode' }
-    }
-
+    
+    
     return { isAccepted: true, message: 'data is valid', data: memberData }
 
 }
@@ -359,7 +342,6 @@ const memberDataCheck = (memberData, lang) => {
     return { isAccepted: true, message: 'data is valid', data: memberData }
 
 }
-
 
 const updateMemberData = (memberData) => {
 

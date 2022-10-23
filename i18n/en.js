@@ -69,5 +69,12 @@ module.exports = {
     "Email is sent successfully!": "Email is sent successfully",
     "Your new password cannot be the same as your old one": "Your new password cannot be the same as your old one",
     "Password changed successfully": "Password changed successfully",
-    "Account Password Reset": "Account Password Reset"
+    "Account Password Reset": "Account Password Reset",
+    "Member is added to the club successfully!": "Member is added to the club successfully!",
+    "Could not send member QR code message": "Could not send member QR code message",
+    "Member QR code is sent successfully": "Member QR code is sent successfully",
+    "Member status is updated successfully": "Member status is updated successfully",
+    "Member account authentication is closed": "Member account authentication is closed",
+    "Member data is updated successfully": "Member data is updated successfully",
+    "Member account does not exist": "Member account does not exist"
 }

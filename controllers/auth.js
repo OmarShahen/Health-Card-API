@@ -258,78 +258,6 @@ const chainOwnerLogin = async (request, response) => {
     }
 }
 
-const sendMemberQRCodeWhatsapp = async (request, response) => {
-
-    try {
-
-        const { memberId, languageCode } = request.params
-
-        if(!utils.isObjectId(memberId)) {
-            return response.status(406).json({
-                message: 'invalid member Id formate',
-                field: 'memberId'
-            })
-        }
-
-        if(!utils.isWhatsappLanguageValid(languageCode)) {
-            return response.status(400).json({
-                message: 'invalid language code',
-                field: 'languageCode'
-            })
-        }
-
-        const member = await MemberModel.findById(memberId)
-
-        if(!member) {
-            return response.status(404).json({
-                message: translations[lang]['member account does not exist'],
-                field: 'memberId'
-            })
-        }
-
-        if(!member.canAuthenticate) {
-            return response.status(400).json({
-                message: translations[lang]['Authentication is closed for this member'],
-                field: 'memberId'
-            })
-        }
-
-        const memberClub = await ClubModel.findById(member.clubId)
-
-        const QR_CODE_URL = member.QRCodeURL
-        const memberPhone = member.countryCode + member.phone
-        const clubData = {
-            memberName: member.name,
-            name: memberClub.name,
-            phone: memberClub.countryCode + memberClub.phone,
-            address: `${memberClub.location.address}, ${memberClub.location.city}, ${memberClub.location.country}`
-        }
-
-       const messageResponse = await whatsappRequest
-       .sendMemberResetQRCode(memberPhone, languageCode, QR_CODE_URL, clubData)
-
-        if(messageResponse.isSent == false) {
-            return response.status(400).json({
-                message: translations[lang]['Could not send member QR code message'],
-                field: 'memberId'
-            })
-        }
-
-
-        return response.status(200).json({
-            message: translations[lang]['Verification message is sent successfully'],
-            member,
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
 const sendStaffResetPasswordMail = async (request, response) => {
 
     try {
@@ -569,7 +497,6 @@ module.exports = {
     staffLogin,
     clubAdminLogin,
     chainOwnerLogin,
-    sendMemberQRCodeWhatsapp,
     sendStaffResetPasswordMail,
     verifyToken,
     resetPassword,
