@@ -60,5 +60,12 @@ module.exports = {
     "Wrong password": "كلمة المرور خاطة",
     "Member has no active registration": "لا يوجد اي تسجيل نشط للعضو",
     "This was the last attendance for the member in his registration": "هذه كانت اخر مره حضور في اشتراك العضو",
-    "Confirmed attendance successfully": "تم تاكيد الحضور بنجاح"
+    "Confirmed attendance successfully": "تم تاكيد الحضور بنجاح",
+    "Email is required": "البريد مطلوب",
+    "Email is not registered": "البريد غير مسجل",
+    "There was a problem sending your email": "هناك مشكلة في ارسال البريد",
+    "Email is sent successfully!": "تم ارسال البريد بنجاح",
+    "Your new password cannot be the same as your old one": "كلمة المرور الجديدة يجب ان تكون مختلفة عن القديمة",
+    "Password changed successfully": "تم تغير كلمة المرور بنجاح",
+    "Account Password Reset": "تعديل كلمة مرور الحساب"
 }

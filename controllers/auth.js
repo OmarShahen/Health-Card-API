@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 const translations = require('../i18n/index')
+const mails = require('../mails/reset-password')
 
 const adminLogin = async (request, response) => {
 
@@ -77,8 +78,6 @@ const staffLogin = async (request, response) => {
     try {
 
         const { lang } = request.query
-
-        console.log(request.query)
 
         const dataValidation = authValidation.staffLogin(request.body, lang)
 
@@ -254,36 +253,6 @@ const chainOwnerLogin = async (request, response) => {
     }
 }
 
-const sendForgetPasswordMail = async (request, response) => {
-
-    try {
-
-        const { email } = request.body
-
-        const emailList = await StaffModel.find({ email })
-
-        if(emailList.length == 0) {
-            return response.status(404).json({
-                message: 'email does not exist',
-                field: 'email'
-            })
-        }
-
-        console.log(emailList)
-
-        return response.status(200).json({
-            message: 'done'
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
 const sendMemberQRCodeWhatsapp = async (request, response) => {
 
     try {
@@ -356,11 +325,248 @@ const sendMemberQRCodeWhatsapp = async (request, response) => {
     }
 }
 
+const sendStaffResetPasswordMail = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { email } = request.body
+
+        const dataValidation = authValidation.resetPasswordMail(request.body, lang)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: false,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const emailList = await StaffModel.find({ email, isAccountActive: true })
+
+        if(emailList.length == 0) {
+            return response.status(404).json({
+                accepted: false,
+                message: translations[lang]['Email is not registered'],
+                field: 'email'
+            })
+        }
+
+        const user = emailList[0]
+        const token = jwt.sign({ userId: user._id, role: user.role }, config.SECRET_KEY, { expiresIn: '24h' })
+
+        const userData = {
+            name: user.name,
+            email: user.email,
+            token: token
+        }
+
+        const mailStatus = await mails.sendResetPassword(userData, lang)
+
+        if(!mailStatus.isSent) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['There was a problem sending your email'],
+                field: 'email'
+            })
+        }
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang][`Email is sent successfully!`],
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyToken = (request, response) => {
+
+    try {
+
+        const { token } = request.body
+
+        if(!token) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'token is required',
+                field: 'token'
+            })
+        }
+
+        jwt.verify(token, config.SECRET_KEY, (error, data) => {
+
+            if(error) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Invalid token',
+                    field: 'token'
+                })
+            }
+
+            return response.status(200).json(data)
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const resetPassword = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { password } = request.body
+
+        if(!password) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Password is required'],
+                field: 'password'
+            })
+        }
+
+        const userId = request.user.userId
+        const role = request.user.role
+
+        let user
+
+        if(role == 'STAFF' || role == 'CLUB-ADMIN') {
+            user = await StaffModel.findById(userId)
+        } else if(role == 'OWNER') {
+            user = await ChainOwnerModel.findById(userId)
+        }
+
+        if(!user) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'user Id does not exist',
+                field: 'memberId'
+            })
+        }
+
+
+        if(bcrypt.compareSync(password, user.password)) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Your new password cannot be the same as your old one'],
+                field: 'password'
+            })
+        }
+
+        const newPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
+
+        let updatedUser
+
+        if(role == 'STAFF' || role == 'CLUB-ADMIN') {
+            updatedUser = await StaffModel
+            .findByIdAndUpdate(userId, { password: newPassword }, { new: true })
+        } else if(role == 'OWNER') {
+            updatedUser = await ChainOwnerModel
+            .findByIdAndUpdate(userId, { password: newPassword }, { new: true })
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            role: role,
+            message: translations[lang]['Password changed successfully'],
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error'
+        })
+    }
+}
+
+const sendChainOwnerResetPasswordMail = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { email } = request.body
+
+        const dataValidation = authValidation.resetPasswordMail(request.body, lang)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: false,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const emailList = await ChainOwnerModel.find({ email, isAccountActive: true })
+
+        if(emailList.length == 0) {
+            return response.status(404).json({
+                accepted: false,
+                message: translations[lang]['Email is not registered']
+            })
+        }
+
+        const user = emailList[0]
+        const token = jwt.sign({ userId: user._id, role: 'OWNER' }, config.SECRET_KEY, { expiresIn: '24h' })
+
+        const userData = {
+            name: user.name,
+            email: user.email,
+            token: token
+        }
+
+        const mailStatus = await mails.sendResetPassword(userData, lang)
+
+        if(!mailStatus.isSent) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['There was a problem sending your email']
+            })
+        }
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang][`Email is sent successfully!`],
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
+
 module.exports = {
     adminLogin,
     staffLogin,
     clubAdminLogin,
     chainOwnerLogin,
-    sendForgetPasswordMail,
-    sendMemberQRCodeWhatsapp
+    sendMemberQRCodeWhatsapp,
+    sendStaffResetPasswordMail,
+    verifyToken,
+    resetPassword,
+    sendChainOwnerResetPasswordMail,
 }

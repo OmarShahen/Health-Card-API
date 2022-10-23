@@ -1,8 +1,13 @@
 module.exports = {
 
+    WEB_FORGOT_PASSWORD_URL: `http://localhost:3000/reset-password`,
     PORT: process.env.PORT,
     DB_URL: process.env.DB_URL,
-    MAIL_APP_PASSWORD: process.env.MAIL_APP_PASSWORD,
+    EMAIL: {
+        APP_MAIL: 'barbellseg@gmail.com',
+        APP_MAIL_PASSWORD: process.env.APP_MAIL_PASSWORD,
+        APP_MAIL_SERVICE: 'gmail'
+    },
     SALT_ROUNDS: Number.parseInt(process.env.SALT_ROUNDS),
     SECRET_KEY: process.env.SECRET_KEY,
     ADMIN_ROLES: ['SUPER'],

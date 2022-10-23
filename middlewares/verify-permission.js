@@ -171,6 +171,7 @@ const appUsersPermission = (request, response, next) => {
 }
 
 module.exports = { 
+    verifyToken,
     adminPermission, 
     adminAndClubAdminPermission, 
     adminAndStaffPermission, 

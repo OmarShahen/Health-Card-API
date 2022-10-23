@@ -62,5 +62,12 @@ module.exports = {
     "Wrong password": "Wrong password",
     "Member has no active registration": "Member has no active registration",
     "This was the last attendance for the member in his registration": "This was the last attendance for the member in his registration",
-    "Confirmed attendance successfully": "Confirmed attendance successfully"
+    "Confirmed attendance successfully": "Confirmed attendance successfully",
+    "Email is required": "Email is required",
+    "Email is not registered": "Email is not registered",
+    "There was a problem sending your email": "There was a problem sending your email",
+    "Email is sent successfully!": "Email is sent successfully",
+    "Your new password cannot be the same as your old one": "Your new password cannot be the same as your old one",
+    "Password changed successfully": "Password changed successfully",
+    "Account Password Reset": "Account Password Reset"
 }

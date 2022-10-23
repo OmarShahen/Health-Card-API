@@ -38,7 +38,7 @@ const addClubOwner = async (request, response) => {
             })
         }
 
-        const emailList = await StaffModel.find({ clubId, email })
+        const emailList = await StaffModel.find({ email, isAccountActive: true })
 
         if(emailList.length != 0) {
             return response.status(400).json({
@@ -47,7 +47,7 @@ const addClubOwner = async (request, response) => {
             })
         }
 
-        const phoneList = await StaffModel.find({ clubId, phone, countryCode })
+        const phoneList = await StaffModel.find({ phone, countryCode, isAccountActive: true })
 
         if(phoneList.length != 0) {
             return response.status(400).json({

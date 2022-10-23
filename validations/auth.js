@@ -51,6 +51,30 @@ const chainOwnerLogin = (chainOwnerData, lang) => {
 
 }
 
+const resetPasswordMail = (resetData, lang) => {
+
+    const { email } = resetData
+
+    if(!email) return { isAccepted: false, message: translations[lang]['Email is required'], field: 'email' }
+    
+    if(!validator.isEmailValid(email)) return { isAccepted: false, message: translations[lang]['Email formate is invalid'], field: 'email' }
+
+    return { isAccepted: true, message: 'data is valid', data: resetData }
+}
+
+const verifyToken = (verificationData) => {
+
+    const { userId, token } = verificationData
+
+    if(!userId) return { isAccepted: false, message: 'user Id is required', field: 'userId' }
+
+    if(!validator.isObjectId(userId)) return { isAccepted: false, message: 'invalid user Id formate', field: 'userId' }
+
+    if(!token) return { isAccepted: false, message: 'token is required', field: 'token' }
+
+    return { isAccepted: true, message: 'data is valid', data: verificationData }
+    
+}
 
 
-module.exports = { adminLogin, staffLogin, chainOwnerLogin } 
+module.exports = { adminLogin, staffLogin, chainOwnerLogin, resetPasswordMail, verifyToken } 
