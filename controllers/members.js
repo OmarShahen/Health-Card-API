@@ -872,12 +872,10 @@ const updateMemberAuthenticationStatus = async (request, response) => {
             const member = await MemberModel.findById(memberId)
             const club = await ClubModel.findById(member.clubId)
 
-
             const updatedMemberPromise = MemberModel
             .findByIdAndUpdate(memberId, { canAuthenticate, QRCodeURL, QRCodeUUID }, { new: true })
 
             const RECEPIENT_PHONE = member.countryCode + member.phone
-            const QR_CODE_URL = member.QRCodeURL
             const messageBody = {
                 memberName: member.name,
                 name: club.name,
@@ -886,7 +884,7 @@ const updateMemberAuthenticationStatus = async (request, response) => {
             }
 
             const messagePromise = whatsappRequest
-            .sendMemberResetQRCode(RECEPIENT_PHONE, languageCode, QR_CODE_URL, messageBody)
+            .sendMemberResetQRCode(RECEPIENT_PHONE, languageCode, QRCodeURL, messageBody)
 
             const [updatedMemberResult, messageResult] = await Promise.all([
                 updatedMemberPromise,
@@ -895,7 +893,6 @@ const updateMemberAuthenticationStatus = async (request, response) => {
 
             updatedMember = updatedMemberResult
             message = messageResult
-
 
             if(!message.isSent) {
                 message.message = translations[lang]['Could not send member QR code message']
