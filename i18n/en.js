@@ -76,5 +76,8 @@ module.exports = {
     "Member status is updated successfully": "Member status is updated successfully",
     "Member account authentication is closed": "Member account authentication is closed",
     "Member data is updated successfully": "Member data is updated successfully",
-    "Member account does not exist": "Member account does not exist"
+    "Member account does not exist": "Member account does not exist",
+    "Membership is already registered in the club": "Membership is already registered in the club",
+    "Membership must be a number": "Membership must be a number",
+    "Membership is required and must be a number": "Membership is required and must be a number"
 }

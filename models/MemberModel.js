@@ -7,6 +7,7 @@ const MemberSchema = new mongoose.Schema({
     email: { type: String },
     phone: { type: String, required: true, },
     countryCode: { type: String, required: true },
+    membership: { type: Number },
     gender: { type: String, required: true, enum: ['male', 'female']},
     birthYear: { type: String },
     canAuthenticate: { type: Boolean, default: false },

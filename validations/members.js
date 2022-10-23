@@ -10,7 +10,8 @@ const memberData = (memberData, lang) => {
         name, 
         email, 
         phone, 
-        countryCode, 
+        countryCode,
+        membership, 
         gender,
         age 
     } = memberData
@@ -41,11 +42,15 @@ const memberData = (memberData, lang) => {
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country code'], field: 'countryCode' }
 
+    if(membership && !Number.parseInt(membership)) {
+        return { isAccepted: false, message: translations[lang]['Membership must be a number'], field: 'membership' }
+    }   
+
     if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
     if(age && !Number.parseInt(age)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
     
-    
+
     return { isAccepted: true, message: 'data is valid', data: memberData }
 
 }

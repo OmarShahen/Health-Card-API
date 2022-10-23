@@ -74,7 +74,10 @@ module.exports = {
     "Member status is updated successfully": "تم تحديث حالة حساب العضو بنجاح",
     "Member account authentication is closed": "تامين حساب العضو مغلق",
     "Member data is updated successfully": "تم تحديث بيانات العضو بنجاح",
-    "Member account does not exist": "هذا الحساب غير مسجل"
+    "Member account does not exist": "هذا الحساب غير مسجل",
+    "Membership is already registered in the club": "رقم العضوية مسجل مسبقا",
+    "Membership must be a number": "العضوية يجب ان تكون رقما",
+    "Membership is required and must be a number": "رقم العضوية مطلوب و يجب ان يكون رقم"
 }
 
 

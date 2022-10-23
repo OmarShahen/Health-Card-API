@@ -31,7 +31,7 @@ const addMember = async (request, response, next) => {
             })
         }
 
-        const { clubId, staffId, name, email, phone, countryCode, gender, age } = request.body
+        const { clubId, staffId, name, email, phone, countryCode, membership, gender, age } = request.body
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -79,7 +79,27 @@ const addMember = async (request, response, next) => {
             })
         }
 
-        let memberData = { clubId, staffId, name, email, phone, countryCode, gender }
+        if(club.hasMembership) {
+
+            if(!membership || typeof membership != 'number') {
+                return response.status(400).json({
+                    accepted: false,
+                    message: translations[lang]['Membership is required and must be a number'],
+                    field: 'membership'
+                })
+            }
+
+            const membershipsList = await MemberModel.find({ clubId, membership })
+            if(membershipsList.length != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: translations[lang]['Membership is already registered in the club'],
+                    field: 'membership'
+                })
+            }
+        }
+
+        let memberData = { clubId, staffId, name, email, phone, countryCode, membership, gender }
 
         if(age) {
             memberData.birthYear = new Date(moment().subtract(age, 'years')).getFullYear()
