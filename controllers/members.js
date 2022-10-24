@@ -31,7 +31,7 @@ const addMember = async (request, response, next) => {
             })
         }
 
-        const { clubId, staffId, name, email, phone, countryCode, membership, gender, age } = request.body
+        let { clubId, staffId, name, email, phone, countryCode, membership, gender, age } = request.body
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -97,6 +97,8 @@ const addMember = async (request, response, next) => {
                     field: 'membership'
                 })
             }
+        } else {
+            membership = Date.now()
         }
 
         let memberData = { clubId, staffId, name, email, phone, countryCode, membership, gender }
@@ -105,10 +107,25 @@ const addMember = async (request, response, next) => {
             memberData.birthYear = new Date(moment().subtract(age, 'years')).getFullYear()
         }
 
+        if(lang == 'en') {
+            splitted = memberData.name.split(' ')
+
+            let firstName = splitted[0]
+            let lastName = splitted[1]
+
+            const firstNameLetter = firstName[0]
+            const lastNameLetter = lastName[0]
+
+            newFirstName = firstName.replace(firstNameLetter, firstNameLetter.toUpperCase())
+            newLastName = lastName.replace(lastNameLetter, lastNameLetter.toUpperCase())
+
+            memberData.name = `${newFirstName} ${newLastName}`
+
+        }
+
         const memberObj = new MemberModel(memberData)
         const newMember = await memberObj.save()
 
-    
         return response.status(200).json({
             accepted: true,
             message: translations[lang][`Member is added to the club successfully!`],

@@ -3,6 +3,10 @@ const isPhoneValid = (phoneNumber) => {
 
     const numbers = '0123456789'
 
+    if(phoneNumber.length != 10) {
+        return false
+    }
+
     for(let i=0;i<phoneNumber.length;i++) {
 
         let found = false

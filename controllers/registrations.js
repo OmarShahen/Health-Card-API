@@ -1056,22 +1056,6 @@ const getClubStaffsPayments = async (request, response) => {
                 }
             },
             {
-                $lookup: {
-                    from: 'registrations',
-                    localField: 'staff._id',
-                    foreignField: 'staffId',
-                    as: 'registrations'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'packages',
-                    localField: 'registrations.packageId',
-                    foreignField: '_id',
-                    as: 'packages'
-                }
-            },
-            {
                 $sort: {
                     createdAt: -1
                 }
@@ -1092,7 +1076,6 @@ const getClubStaffsPayments = async (request, response) => {
         staffPayments.forEach(registration => {
 
             registration.staff = registration.staff[0]
-            registration.registrations = utils.joinRegistrationsByPackages(registration.registrations, packages)
             totalEarnings += registration.count
         })
 
@@ -1265,9 +1248,11 @@ const getRegistrationsByStaff = async (request, response) => {
 
         const { staffId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('staffId', staffId, request.query)
+
         const staffRegistrations = await RegistrationModel.aggregate([
             {
-                $match: { memberId: mongoose.Types.ObjectId(staffId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -1275,14 +1260,6 @@ const getRegistrationsByStaff = async (request, response) => {
                     localField: 'memberId',
                     foreignField: '_id',
                     as: 'member'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'staffs',
-                    localField: 'staffId',
-                    foreignField: '_id',
-                    as: 'staff'
                 }
             },
             {
@@ -1299,9 +1276,6 @@ const getRegistrationsByStaff = async (request, response) => {
                     'member.QRCodeURL': 0,
                     'member.updatedAt': 0,
                     'member.__v': 0,
-                    'staff.password': 0,
-                    'staff.updatedAt': 0,
-                    'staff.__v': 0,
                     'package.updatedAt': 0,
                     'package.__v': 0
                 }
@@ -1309,13 +1283,11 @@ const getRegistrationsByStaff = async (request, response) => {
             {
                 $sort: {
                     createdAt: -1,
-                    active: 1
                 }
             }
         ])
 
         staffRegistrations.forEach(registration => {
-            registration.staff = registration.staff[0]
             registration.member = registration.member[0]
             registration.package = registration.package[0]
 
