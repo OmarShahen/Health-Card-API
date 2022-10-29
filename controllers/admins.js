@@ -44,7 +44,6 @@ const addAdmin = async (request, response) => {
             phone,
             countryCode,
             password: bcrypt.hashSync(password, config.SALT_ROUNDS),
-            role
         }
 
         const adminObj = new AdminModel(admin)
