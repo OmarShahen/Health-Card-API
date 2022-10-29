@@ -6,6 +6,7 @@ const ChainOwnerSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     countryCode: { type: String, required: true },
     password: { type: String, required: true },
+    role: { type: String, role: 'OWNER' },
     clubs: [],
     isAccountActive: { type: Boolean, default: true }
 

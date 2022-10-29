@@ -42,7 +42,7 @@ const memberData = (memberData, lang) => {
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country code'], field: 'countryCode' }
 
-    if(membership && !Number.parseInt(membership)) {
+    if(membership && typeof membership != 'number') {
         return { isAccepted: false, message: translations[lang]['Membership must be a number'], field: 'membership' }
     }   
 
@@ -348,29 +348,36 @@ const memberDataCheck = (memberData, lang) => {
 
 }
 
-const updateMemberData = (memberData) => {
+const updateMemberData = (memberData, lang) => {
 
-    const { name, email, phone, countryCode } = memberData
+    const { name, email, phone, countryCode, membership, gender, age } = memberData
 
 
-    if(!name) return { isAccepted: false, message: 'Name is required', field: 'name' }
+    if(!name) return { isAccepted: false, message: translations[lang]['Name is required'], field: 'name' }
 
-    if(!validator.isNameValid(name)) return { isAccepted: false, message: 'Invalid name formate', field: 'name' }
+    if(!validator.isNameValid(name)) return { isAccepted: false, message: translations[lang]['Invalid name formate'], field: 'name' }
 
-    if(name.split(' ').length != 2) return { isAccepted: false, message: 'Name must be 2 words', field: 'name' }
+    if(name.split(' ').length != 2) return { isAccepted: false, message: translations[lang]['Name must be 2 words'], field: 'name' }
 
     if(email) {
-        if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
+        if(!validator.isEmailValid(email)) return { isAccepted: false, message: translations[lang]['Email formate is invalid'], field: 'email' }
     }
 
-    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
+    if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Phone formate is invalid'], field: 'phone' }
 
-    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
+    if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }
 
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'Invalid country Code', field: 'countryCode' }
+    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country Code'], field: 'countryCode' }
     
+    if(!membership) return { isAccepted: false, message: translations[lang]['Membership is required'], field: 'membership' }
+
+    if(gender && !['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
+
+    if(age && !Number.parseInt(age)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
+
+    if(typeof membership != 'number') return { isAccepted: false, message: translations[lang]['Membership must be a number'], field: 'membership' }
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
 

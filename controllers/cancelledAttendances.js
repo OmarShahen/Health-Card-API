@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const cancelAttendanceValidation = require('../validations/cancelledAttendance')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
 const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
+const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
@@ -20,6 +21,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: false,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -34,6 +36,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(!registration) {
             return response.status(404).json({
+                accepted: false,
                 message: 'registration Id does not exists',
                 field: 'registrationId'
             })
@@ -41,6 +44,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(!staff) {
             return response.status(404).json({
+                accepted: false,
                 message: 'staff Id does not exists',
                 field: 'staff'
             })
@@ -50,6 +54,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(registration.expiresAt < currentDate) {
             return response.status(400).json({
+                accepted: false,
                 message: translations[lang]['Member registration has passed the expiry date'],
                 field: 'registrationId'
             })
@@ -72,16 +77,19 @@ const addCancelAttendance = async (request, response) => {
         
         const cancelRegistrationObj = new CancelledRegistrationModel(cancelRegistrationData)
 
-        const [cancelledRegistration, deletedRegistration] = await Promise.all([
+        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration] = await Promise.all([
             cancelRegistrationObj.save(),
-            RegistrationModel.findByIdAndDelete(registrationId)
+            RegistrationModel.findByIdAndDelete(registrationId),
+            FreezedRegistrationModel.delete({ registrationId })
         ])
 
 
         return response.status(200).json({
+            accepted: true,
             message: 'Member registration is deleted successfully',
             registration: deletedRegistration,
-            cancelledRegistration: cancelledRegistration
+            cancelledRegistration: cancelledRegistration,
+            deleteFreezedRegistration
         })
 
        }
@@ -89,6 +97,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(!registration.isActive) {
             return response.status(400).json({
+                accepted: false,
                 message: 'Member registration is already expired',
                 field: 'registrationId'
             })
@@ -96,6 +105,7 @@ const addCancelAttendance = async (request, response) => {
 
         if(registration.attended == 0) {
             return response.status(400).json({
+                accepted: false,
                 message: 'There is no attendance to cancel',
                 field: 'registrationId'
             })
@@ -130,6 +140,7 @@ const addCancelAttendance = async (request, response) => {
         
 
         return response.status(200).json({
+            accepted: true,
             message: 'member attendance is cancelled successfully',
             registration: updateRegistration,
             cancelledAttendance: newCancelAttendance,
@@ -201,12 +212,14 @@ const getClubCancelledAttendance = async (request, response) => {
         })
 
         return response.status(200).json({
+            accepted: true,
             cancelledAttendances: cancelledAttendances
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -294,7 +307,6 @@ const getCancelledAttendancesByOwner = async (request, response) => {
         })
     }
 }
-
 
 
 module.exports = { addCancelAttendance, getClubCancelledAttendance, getCancelledAttendancesByOwner }

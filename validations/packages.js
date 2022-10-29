@@ -32,7 +32,7 @@ const packageData = (packageData, lang) => {
 
     if(!price) return { isAccepted: false, message: translations[lang]['Price is required'], field: 'price' }
 
-    if(!Number.isInteger(price)) return { isAccepted: false, message: translations[lang]['Price must be a number'], field: 'price' }
+    if(!Number.parseFloat(price)) return { isAccepted: false, message: translations[lang]['Price must be a number'], field: 'price' }
 
     if(price < 0) return { isAccepted: false, message: translations[lang]['Price must be atleast 0'], field: 'price' }
 

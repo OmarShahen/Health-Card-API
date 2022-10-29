@@ -77,7 +77,9 @@ module.exports = {
     "Member account does not exist": "هذا الحساب غير مسجل",
     "Membership is already registered in the club": "رقم العضوية مسجل مسبقا",
     "Membership must be a number": "العضوية يجب ان تكون رقما",
-    "Membership is required and must be a number": "رقم العضوية مطلوب و يجب ان يكون رقم"
+    "Membership is required and must be a number": "رقم العضوية مطلوب و يجب ان يكون رقم",
+    "Membership is required": "رقم العضوية مطلوب",
+    "Member updated successfully": "تم تعديل العضو بنجاح"
 }
 
 

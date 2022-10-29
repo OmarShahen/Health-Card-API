@@ -25,7 +25,7 @@ const staffLogin = (staffData, lang) => {
     
     if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Invalid phone formate'], field: 'phone' }
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Phone formate is invalid'], field: 'phone' }
  
     if(!password) return { isAccepted: false, message: translations[lang]['Password is required'], field: 'password' }
 
@@ -39,8 +39,8 @@ const chainOwnerLogin = (chainOwnerData, lang) => {
 
     if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
 
-    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Invalid phone formate'], field: 'phone' }
-    
+    if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Phone formate is invalid'], field: 'phone' }
+
     if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }
 
     if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: translations[lang]['Invalid country code'], field: 'countryCode' }

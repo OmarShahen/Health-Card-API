@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 const cancelRegistrationValidation = require('../validations/cancelledRegistration')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
 const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
+const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
@@ -79,16 +80,19 @@ const addCancelRegistration = async (request, response) => {
         
         const cancelRegistrationObj = new CancelledRegistrationModel(cancelRegistrationData)
 
-        const [cancelledRegistration, deletedRegistration] = await Promise.all([
+        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration] = await Promise.all([
             cancelRegistrationObj.save(),
-            RegistrationModel.findByIdAndDelete(registrationId)
+            RegistrationModel.findByIdAndDelete(registrationId),
+            FreezedRegistrationModel.deleteOne({ registrationId })
         ])
 
 
         return response.status(200).json({
             accepted: true,
             message: 'member registration is deleted successfully',
-            cancelledRegistration: cancelledRegistration
+            cancelledRegistration: cancelledRegistration,
+            deletedRegistration,
+            deleteFreezedRegistration
         })
 
        }
@@ -115,16 +119,19 @@ const addCancelRegistration = async (request, response) => {
 
         const cancelRegistrationObj = new CancelledRegistrationModel(cancelRegistrationData)
 
-        const [cancelledRegistration, deletedRegistration] = await Promise.all([
+        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration] = await Promise.all([
             cancelRegistrationObj.save(),
-            RegistrationModel.findByIdAndDelete(registrationId)
+            RegistrationModel.findByIdAndDelete(registrationId),
+            FreezedRegistrationModel.deleteOne({ registrationId })
         ])
         
 
         return response.status(200).json({
             accepted: true,
             message: 'member registration is cancelled successfully',
-            cancelledRegistration: cancelledRegistration
+            cancelledRegistration: cancelledRegistration,
+            deletedRegistration,
+            deleteFreezedRegistration
         })
 
     } catch(error) {

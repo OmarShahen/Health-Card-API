@@ -79,5 +79,7 @@ module.exports = {
     "Member account does not exist": "Member account does not exist",
     "Membership is already registered in the club": "Membership is already registered in the club",
     "Membership must be a number": "Membership must be a number",
-    "Membership is required and must be a number": "Membership is required and must be a number"
+    "Membership is required and must be a number": "Membership is required and must be a number",
+    "Membership is required": "Membership is required",
+    "Member updated successfully": "Member updated successfully"
 }

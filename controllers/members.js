@@ -14,6 +14,7 @@ const utils = require('../utils/utils')
 const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 const moment = require('moment')
 const translations = require('../i18n/index')
+const prettier = require('../utils/pretty')
 
 const addMember = async (request, response, next) => {
 
@@ -108,19 +109,7 @@ const addMember = async (request, response, next) => {
         }
 
         if(lang == 'en') {
-            splitted = memberData.name.split(' ')
-
-            let firstName = splitted[0]
-            let lastName = splitted[1]
-
-            const firstNameLetter = firstName[0]
-            const lastNameLetter = lastName[0]
-
-            newFirstName = firstName.replace(firstNameLetter, firstNameLetter.toUpperCase())
-            newLastName = lastName.replace(lastNameLetter, lastNameLetter.toUpperCase())
-
-            memberData.name = `${newFirstName} ${newLastName}`
-
+            memberData.name = prettier.username(name)
         }
 
         const memberObj = new MemberModel(memberData)
@@ -343,9 +332,10 @@ const updateMember = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { memberId } = request.params
 
-        const dataValidation = memberValidation.updateMemberData(request.body)
+        const dataValidation = memberValidation.updateMemberData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -354,7 +344,7 @@ const updateMember = async (request, response) => {
             })
         }
 
-        const { name, email, phone, countryCode } = request.body
+        const { name, email, phone, countryCode, membership, age, gender } = request.body
 
         const member = await MemberModel.findById(memberId)
 
@@ -365,8 +355,21 @@ const updateMember = async (request, response) => {
 
             if(emailList.length != 0) {
                 return response.status(400).json({
-                    message: 'email is already registered',
+                    message: translations[lang]['Email is already registered'],
                     field: 'email'
+                })
+            }
+        }
+
+        if(member.membership != membership) {
+
+            const membershipsList = await MemberModel
+            .find({ clubId: member.clubId, membership })
+
+            if(membershipsList.length != 0) {
+                return response.status(400).json({
+                    message: translations[lang]['Membership is already registered in the club'],
+                    field: 'membership'
                 })
             }
         }
@@ -378,15 +381,19 @@ const updateMember = async (request, response) => {
 
             if(phoneList.length != 0) {
                 return response.status(400).json({
-                    message: 'phone is already registered',
+                    message: translations[lang]['Phone is already registered'],
                     field: 'phone'
                 })
             }
         }
 
-        let memberData = { name, countryCode, phone }
+        let memberData = { name, countryCode, phone, membership, gender, birthYear: new Date(moment().subtract(age, 'years')).getFullYear() }
 
         if(email) memberData = { ...memberData, email }
+
+        if(lang == 'en') {
+            memberData.name = prettier.username(name)
+        }
 
         const updatedMember = await MemberModel
         .findByIdAndUpdate(
@@ -396,7 +403,7 @@ const updateMember = async (request, response) => {
         )
 
         return response.status(200).json({
-            message: 'member updated successfully',
+            message: translations[lang]['Member updated successfully'],
             member: updatedMember
         })
 

@@ -21,7 +21,7 @@ const staffData = (staffData, lang) => {
     }
 
     if(!phone) return { isAccepted: false, message: translations[lang]['Phone is required'], field: 'phone' }
-
+    
     if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: translations[lang]['Phone formate is invalid'], field: 'phone' }
 
     if(!countryCode) return { isAccepted: false, message: translations[lang]['Country code is required'], field: 'countryCode' }

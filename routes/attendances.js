@@ -1,25 +1,46 @@
 const router = require('express').Router()
 const verifyIds = require('../middlewares/verify-routes-params')
+const tokenMiddleware = require('../middlewares/verify-permission')
 const attendancesController = require('../controllers/attendances')
 
-router.post('/attendances', (request, response) => attendancesController.addAttendance(request, response))
-
-router.get('/attendances/clubs/:clubId/stats', verifyIds.verifyClubId, (request, response) => attendancesController.getClubAttendancesStatsByDate(request, response))
+router.post(
+    '/attendances',
+    tokenMiddleware.appUsersPermission, 
+    (request, response) => attendancesController.addAttendance(request, response))
 
 router.get(
-    '/attendances/registrations/:registrationId', 
+    '/attendances/clubs/:clubId/stats',
+    tokenMiddleware.adminAndManagmentPermission, 
+    verifyIds.verifyClubId, (request, response) => attendancesController.getClubAttendancesStatsByDate(request, response))
+
+router.get(
+    '/attendances/registrations/:registrationId',
+    tokenMiddleware.appUsersPermission,
     verifyIds.verifyRegistrationId, 
     (request, response) => attendancesController.getRegistrationAttendancesWithStaffData(request, response)
     )
 
-router.get('/attendances/clubs/:clubId', verifyIds.verifyClubId, (request, response) => attendancesController.getClubAttendances(request, response))
+router.get(
+    '/attendances/clubs/:clubId',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId, 
+    (request, response) => attendancesController.getClubAttendances(request, response))
 
-router.get('/attendances/chain-owners/:ownerId', verifyIds.verifyChainOwnerId, (request, response) => attendancesController.getAttendancesByOwner(request, response))
+router.get(
+    '/attendances/chain-owners/:ownerId',
+    tokenMiddleware.adminAndOwnerPermission, 
+    verifyIds.verifyChainOwnerId, 
+    (request, response) => attendancesController.getAttendancesByOwner(request, response))
 
-router.get('/attendances/chain-owners/:ownerId/stats', verifyIds.verifyChainOwnerId, (request, response) => attendancesController.getChainOwnerAttendancesStatsByDate(request, response))
+router.get(
+    '/attendances/chain-owners/:ownerId/stats',
+    tokenMiddleware.adminAndOwnerPermission,
+    verifyIds.verifyChainOwnerId, 
+    (request, response) => attendancesController.getChainOwnerAttendancesStatsByDate(request, response))
 
 router.post(
-    '/attendances/members/:memberId', 
+    '/attendances/members/:memberId',
+    tokenMiddleware.appUsersPermission,
     verifyIds.verifyMemberId, 
     (request, response) => attendancesController.addAttendanceByMember(request, response)
     )

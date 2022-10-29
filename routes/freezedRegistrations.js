@@ -9,7 +9,12 @@ router.post(
     (request, response) => freezeRegistrationsController.addFreezeRegistration(request, response)
     )
 
-router.get('/freeze-registrations/clubs/:clubId', verifyIds.verifyClubId, (request, response) => freezeRegistrationsController.getClubFreezedRegistrations(request, response))
+router.get(
+    '/freeze-registrations/clubs/:clubId',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId, 
+    (request, response) => freezeRegistrationsController.getClubFreezedRegistrations(request, response)
+    )
 
 router.patch(
     '/freeze-registrations/registrations/:registrationId', 
@@ -19,9 +24,11 @@ router.patch(
     )
 
 router.get(
-    '/freeze-registrations/chain-owners/:ownerId', 
+    '/freeze-registrations/chain-owners/:ownerId',
+    tokenMiddleware.adminAndOwnerPermission,
     verifyIds.verifyChainOwnerId, 
-    (request, response) => freezeRegistrationsController.getFreezeRegistrationsByOwner(request, response))
+    (request, response) => freezeRegistrationsController.getFreezeRegistrationsByOwner(request, response)
+    )
 
 
 module.exports = router

@@ -23,7 +23,7 @@ const registrationData = (registrationData) => {
 
     if(!paid) return { isAccepted: false, message: 'price is required', field: 'paid' }
 
-    if(!Number.isInteger(paid)) return { isAccepted: false, message: 'price must be a number', field: 'paid' }
+    if(!Number.parseFloat(paid)) return { isAccepted: false, message: 'price must be a number', field: 'paid' }
 
 
     return { isAccepted: true, message: 'data is valid', data: registrationData }

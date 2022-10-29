@@ -114,7 +114,7 @@ const addRegistration = async (request, response) => {
             staffId,
             packageId,
             expiresAt,
-            paid,
+            paid: Number.parseFloat(paid),
             attended: 1,
             isActive
         }
@@ -1069,10 +1069,79 @@ const getClubStaffsPayments = async (request, response) => {
             }
         ])
 
-        const packages = staffPayments.map(payment => payment.packages)[0]
+        let totalEarnings = 0
+        staffPayments.forEach(registration => {
+
+            registration.staff = registration.staff[0]
+            totalEarnings += registration.count
+        })
+
+        return response.status(200).json({
+            totalEarnings,
+            staffPayments,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getChainOwnerStaffsPayments = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { ownerId } = request.params
+
+        const owner = await ChainOwnerModel.findById(ownerId)
+        const clubs = owner.clubs
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
+
+        const staffPayments = await RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$staffId',
+                    count: { $sum: '$paid' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                }
+            }
+        ])
 
         let totalEarnings = 0
-
         staffPayments.forEach(registration => {
 
             registration.staff = registration.staff[0]
@@ -1399,6 +1468,7 @@ module.exports = {
     getOwnerClubsPayments,
     getRegistrationsByMember,
     getRegistrationsByStaff,
-    getRegistrationsByPackage
+    getRegistrationsByPackage,
+    getChainOwnerStaffsPayments
     
 }
