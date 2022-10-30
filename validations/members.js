@@ -48,7 +48,7 @@ const memberData = (memberData, lang) => {
 
     if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
-    if(age && !Number.parseInt(age)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
+    if(age && (!Number.parseInt(age) || Number.parseInt(age) < 0)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
     
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
@@ -375,7 +375,7 @@ const updateMemberData = (memberData, lang) => {
 
     if(gender && !['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
-    if(age && !Number.parseInt(age)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
+    if(age && (!Number.parseInt(age) || Number.parseInt(age) < 0)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
 
     if(typeof membership != 'number') return { isAccepted: false, message: translations[lang]['Membership must be a number'], field: 'membership' }
 

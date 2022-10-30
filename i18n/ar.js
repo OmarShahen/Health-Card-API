@@ -79,7 +79,16 @@ module.exports = {
     "Membership must be a number": "العضوية يجب ان تكون رقما",
     "Membership is required and must be a number": "رقم العضوية مطلوب و يجب ان يكون رقم",
     "Membership is required": "رقم العضوية مطلوب",
-    "Member updated successfully": "تم تعديل العضو بنجاح"
+    "Member updated successfully": "تم تعديل العضو بنجاح",
+    "Invalid expiration period formate": "Invalid expiration period formate",
+    "Period number must be a number": "Period number must be a number",
+    "Invalid period name": "Invalid period name",
+    "Days must be between 1 to 365 days": "عدد الايام يجب ان يكون بين 1 يوم الي 365 يوم",
+    "Weeks must be between 1 to 48 weeks": "عدد الاسابيع يجب ان يكون بين 1 اسبوع الي 48 اسبوع",
+    "Months must be between 1 to 12 months": "عدد الشهور يجب ان يكون بين 1 الي 12 شهر",
+    "Only 1 year period is valid": "سنة واحدة هي الحد الاقصي",
+    "This QR code is invalid": "رمز الاستجابة السريعة غير صالح",
+    "Member account security is closed": "تامين حساب العضو مغلق"
 }
 
 

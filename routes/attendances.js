@@ -39,7 +39,7 @@ router.get(
     (request, response) => attendancesController.getChainOwnerAttendancesStatsByDate(request, response))
 
 router.post(
-    '/attendances/members/:memberId',
+    '/attendances/members/:memberId/QRCodes-uuids/:uuid',
     tokenMiddleware.appUsersPermission,
     verifyIds.verifyMemberId, 
     (request, response) => attendancesController.addAttendanceByMember(request, response)

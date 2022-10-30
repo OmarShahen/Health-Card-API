@@ -153,7 +153,49 @@ const addAttendanceByMember = async (request, response) => {
     try {
 
         const { lang } = request.query
-        const { memberId } = request.params
+        const { memberId, uuid } = request.params
+
+        if(!utils.isObjectId(memberId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid member Id',
+                field: 'memberId'
+            })
+        }
+
+        if(!utils.isUUIDValid(uuid)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid uuid formate',
+                field: 'QRCodeUUID'
+            })
+        }
+
+        const member = await MemberModel.findById(memberId)
+
+        if(!member) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'member Id does not exists',
+                field: 'memberId'
+            })
+        }
+
+        if(!member.canAuthenticate) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member account security is closed'],
+                field: 'memberId'
+            })
+        }
+
+        if(member.QRCodeUUID != uuid) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['This QR code is invalid'],
+                field: 'QRCodeUUID'
+            })
+        }
 
         const memberRegistrationList = await RegistrationModel
         .find({ memberId, isActive: true })

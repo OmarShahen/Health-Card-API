@@ -315,7 +315,8 @@ const deleteMember = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            member: deleteMember
+            member: deleteMember,
+            message: 'Member is deleted successfully'
         })
 
     } catch(error) {

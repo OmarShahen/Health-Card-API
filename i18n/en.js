@@ -81,5 +81,14 @@ module.exports = {
     "Membership must be a number": "Membership must be a number",
     "Membership is required and must be a number": "Membership is required and must be a number",
     "Membership is required": "Membership is required",
-    "Member updated successfully": "Member updated successfully"
+    "Member updated successfully": "Member updated successfully",
+    "Invalid expiration period formate": "Invalid expiration period formate",
+    "Period number must be a number": "Period number must be a number",
+    "Invalid period name": "Invalid period name",
+    "Days must be between 1 to 365 days": "Days must be between 1 to 365 days",
+    "Weeks must be between 1 to 48 weeks": "Weeks must be between 1 to 48 weeks",
+    "Months must be between 1 to 12 months": "Months must be between 1 to 12 months",
+    "Only 1 year period is valid": "Only 1 year period is valid",
+    "This QR code is invalid": "This QR code is invalid",
+    "Member account security is closed": "Member account security is closed"
 }

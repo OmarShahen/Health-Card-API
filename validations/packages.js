@@ -24,7 +24,7 @@ const packageData = (packageData, lang) => {
 
     if(!expiresIn) return { isAccepted: false, message: translations[lang]['Expiration period is required'], field: 'expiresIn' }
 
-    const validateExpirationPeriod = validator.isDatePeriodValid(expiresIn)
+    const validateExpirationPeriod = validator.isDatePeriodValid(expiresIn, lang)
     if(!validateExpirationPeriod.isAccepted) {
         validateExpirationPeriod.field = 'expiresIn'
         return validateExpirationPeriod
@@ -58,7 +58,7 @@ const updatePackageData = (packageData, lang) => {
 
     if(!expiresIn) return { isAccepted: false, message: translations[lang]['Expiration period is required'], field: 'expiresIn' }
 
-    const validateExpirationPeriod = validator.isDatePeriodValid(expiresIn)
+    const validateExpirationPeriod = validator.isDatePeriodValid(expiresIn, lang)
     if(!validateExpirationPeriod.isAccepted) {
         validateExpirationPeriod.field = 'expiresIn'
         return validateExpirationPeriod

@@ -2,8 +2,8 @@ module.exports = {
 
     WEB_FORGOT_PASSWORD_URL: `http://localhost:3000/reset-password`,
     PORT: process.env.PORT,
-    DB_URL: process.env.DB_URL,
-    //DB_URL: 'mongodb+srv://OmarShahen:Shahen77@first-barbells.c8xcfxc.mongodb.net/?retryWrites=true&w=majority',
+    //DB_URL: process.env.DB_URL,
+    DB_URL: 'mongodb+srv://OmarShahen:Shahen77@first-barbells.c8xcfxc.mongodb.net/?retryWrites=true&w=majority',
     EMAIL: {
         APP_MAIL: 'barbellseg@gmail.com',
         APP_MAIL_PASSWORD: process.env.APP_MAIL_PASSWORD,

@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
+
 const morgan = require('morgan')
 const db = require('./config/database')
 const cors = require('cors')
