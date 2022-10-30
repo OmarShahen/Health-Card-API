@@ -300,10 +300,11 @@ const getRegistrationAttendancesWithStaffData = async (request, response) => {
     try {
 
         const { registrationId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('registrationId', registrationId, request.query)
 
         const registrationAttendances = await AttendanceModel.aggregate([
             {
-                $match: { registrationId: mongoose.Types.ObjectId(registrationId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -353,10 +354,11 @@ const getClubAttendances = async (request, response) => {
     try {
 
         const { clubId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const attendances = await AttendanceModel.aggregate([
             {
-                $match: { clubId: mongoose.Types.ObjectId(clubId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -608,12 +610,11 @@ const getAttendancesByOwner = async (request, response) => {
         const owner = await ChainOwnerModel.findById(ownerId)
 
         const clubs = owner.clubs
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
 
         const attendances = await AttendanceModel.aggregate([
             {
-                $match: {
-                    clubId: { $in: clubs },
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {

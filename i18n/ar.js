@@ -26,7 +26,7 @@ module.exports = {
     "Member registration has passed the expiry date": "لقد مر تسجيل العضو على تاريخ انتهاء الصلاحية",
     "Member registration is already expired": "انتهت صلاحية تسجيل العضو بالفعل",
     "There is no attendance to cancel": "لا يوجد حضور للإلغاء",
-    "Member registration is already freezed": "تم تجميد تسجيل العضو بالفعل",
+    "Member registration is already freezed": "تسجيل العضو مجمد",
     "Can not freeze a registration with a daily package": "لا يمكن تجميد التسجيل ذو العرض اليومي",
     "Registration is already active": "التسجيل نشط بالفعل",
     "Registration has not been freezed": "لم يتم تجميد التسجيل",

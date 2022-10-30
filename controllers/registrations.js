@@ -244,6 +244,7 @@ const getRegistrations = async (request, response) => {
 
         const { clubId } = request.params
         const { status } = request.query
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         if(!utils.isObjectId(clubId)) {
             return response.status(400).json({
@@ -253,14 +254,10 @@ const getRegistrations = async (request, response) => {
             })
         }
 
-        let searchQuery = {}
-
         if(status == 'active') {
-            searchQuery = { clubId: mongoose.Types.ObjectId(clubId), isActive: true }
+            searchQuery.isActive = true
         } else if(status == 'expired') {
-            searchQuery = { clubId: mongoose.Types.ObjectId(clubId), isActive: false }
-        } else {
-            searchQuery = { clubId: mongoose.Types.ObjectId(clubId) }
+            searchQuery.isActive = false
         }
 
         const registrations = await RegistrationModel.aggregate([
@@ -666,10 +663,11 @@ const getClubRegistrationsDataJoined = async (request, response) => {
     try {
 
         const { clubId } = request.params
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         const registrations  = await RegistrationModel.aggregate([
             {
-                $match: { clubId: mongoose.Types.ObjectId(clubId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -739,12 +737,11 @@ const getRegistrationsByOwner = async (request, response) => {
         const owner = await ChainOwnerModel.findById(ownerId)
 
         const clubs = owner.clubs
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
 
         const registrations = await RegistrationModel.aggregate([
             {
-                $match: {
-                    clubId: { $in: clubs },
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {

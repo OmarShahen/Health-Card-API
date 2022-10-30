@@ -248,25 +248,27 @@ const getMembers = async (request, response) => {
 
         const { clubId } = request.params
         const { status } = request.query
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
         let members
 
         if(status == 'active') {
 
+            searchQuery.isBlocked = false
             members = await MemberModel
-            .find({ clubId, isBlocked: false })
+            .find(searchQuery)
             .sort({ createdAt: -1 })
 
         } else if(status == 'blocked') {
 
+            searchQuery.isBlocked = true
             members = await MemberModel
-            .find({ clubId, isBlocked: true })
+            .find(searchQuery)
             .sort({ createdAt: -1 })
 
         } else {
-
             members = await MemberModel
-            .find({ clubId })
+            .find(searchQuery)
             .sort({ createdAt: -1 })
         }
 
@@ -1052,12 +1054,11 @@ const getMembersByOwner = async (request, response) => {
         const owner = await ChainOwnerModel.findById(ownerId)
 
         const clubs = owner.clubs
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubs, request.query)
 
         const members = await MemberModel.aggregate([
             {
-                $match: {
-                    clubId: { $in: clubs },
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
