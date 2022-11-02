@@ -94,5 +94,5 @@ module.exports = {
     "Member is blocked": "Member is blocked",
     "Updated staff role successfully": "Updated staff role successfully",
     "Member registration is cancelled successfully": "Member registration is cancelled successfully",
-    "Package is closed": "Package is closed"
+    "Package is closed": "Package is closed",
 }

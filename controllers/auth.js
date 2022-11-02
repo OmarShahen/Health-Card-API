@@ -198,7 +198,7 @@ const chainOwnerLogin = async (request, response) => {
 
         const { lang } = request.query
 
-        const dataValidation = authValidation.chainOwnerLogin(request.body)
+        const dataValidation = authValidation.chainOwnerLogin(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
