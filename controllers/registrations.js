@@ -87,6 +87,15 @@ const addRegistration = async (request, response) => {
             })
         }
 
+        const memberPackage = packagesList[0]
+        if(!memberPackage.isOpen) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Package is closed'],
+                field: 'packageId'
+            })
+        }
+
         const memberActivePackagesList = await RegistrationModel
         .find({ clubId, memberId, isActive: true })
 

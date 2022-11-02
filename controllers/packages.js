@@ -121,7 +121,7 @@ const updatePackage = async (request, response) => {
 
         const { lang } = request.query
 
-        const dataValidation = packageValidation.updatePackageData(request.body)
+        const dataValidation = packageValidation.updatePackageData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -142,7 +142,7 @@ const updatePackage = async (request, response) => {
 
             if(titleList.length != 0) {
                 return response.status(400).json({
-                    message: translations[lang]['Title is already registered'],
+                    message: translations[lang]['Package title is already registered'],
                     field: 'title'
                 })
             }

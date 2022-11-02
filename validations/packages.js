@@ -44,6 +44,7 @@ const updatePackageData = (packageData, lang) => {
 
     const { title, attendance, expiresIn, price } = packageData
 
+    
     if(!title) return { isAccepted: false, message: translations[lang]['Title is required'], field: 'title' }
 
     if(!attendance) return { isAccepted: false, message: translations[lang]['Attendance is required'], field: 'attendance' }

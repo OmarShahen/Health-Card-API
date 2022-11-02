@@ -683,11 +683,7 @@ const getMemberStatsByDate = async (request, response) => {
             }
         ])
 
-        const attendancesPromise = AttendanceModel.aggregate([
-            {
-                $match: searchQuery
-            }
-        ])
+        const attendancesPromise = AttendanceModel.find(searchQuery)
 
         const attendancesGrowthStatsPromise = AttendanceModel.aggregate([
             {

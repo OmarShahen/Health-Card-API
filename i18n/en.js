@@ -90,5 +90,9 @@ module.exports = {
     "Months must be between 1 to 12 months": "Months must be between 1 to 12 months",
     "Only 1 year period is valid": "Only 1 year period is valid",
     "This QR code is invalid": "This QR code is invalid",
-    "Member account security is closed": "Member account security is closed"
+    "Member account security is closed": "Member account security is closed",
+    "Member is blocked": "Member is blocked",
+    "Updated staff role successfully": "Updated staff role successfully",
+    "Member registration is cancelled successfully": "Member registration is cancelled successfully",
+    "Package is closed": "Package is closed"
 }

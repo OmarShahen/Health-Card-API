@@ -3,6 +3,7 @@ const cancelRegistrationValidation = require('../validations/cancelledRegistrati
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
 const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
 const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
+const AttendanceModel = require('../models/AttendanceModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const ClubModel = require('../models/ClubModel')
@@ -65,6 +66,7 @@ const addCancelRegistration = async (request, response) => {
 
         const package = await PackageModel.findById(registration.packageId)
 
+        /** Because daily packages is expired by default */
        if(package.attendance == 1 && (package.expiresIn == '1 day' || package.expiresIn == '1 days')) {
             
         const cancelRegistrationData = {
@@ -80,19 +82,21 @@ const addCancelRegistration = async (request, response) => {
         
         const cancelRegistrationObj = new CancelledRegistrationModel(cancelRegistrationData)
 
-        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration] = await Promise.all([
+        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration, deletedAttendances] = await Promise.all([
             cancelRegistrationObj.save(),
             RegistrationModel.findByIdAndDelete(registrationId),
-            FreezedRegistrationModel.deleteOne({ registrationId })
+            FreezedRegistrationModel.deleteOne({ registrationId }),
+            AttendanceModel.remove({ registrationId })
         ])
 
 
         return response.status(200).json({
             accepted: true,
-            message: 'member registration is deleted successfully',
+            message: translations[lang]['Member registration is cancelled successfully'],
             cancelledRegistration: cancelledRegistration,
             deletedRegistration,
-            deleteFreezedRegistration
+            deleteFreezedRegistration,
+            deletedAttendances
         })
 
        }
@@ -119,19 +123,21 @@ const addCancelRegistration = async (request, response) => {
 
         const cancelRegistrationObj = new CancelledRegistrationModel(cancelRegistrationData)
 
-        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration] = await Promise.all([
+        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration, deletedAttendances] = await Promise.all([
             cancelRegistrationObj.save(),
             RegistrationModel.findByIdAndDelete(registrationId),
-            FreezedRegistrationModel.deleteOne({ registrationId })
+            FreezedRegistrationModel.deleteOne({ registrationId }),
+            AttendanceModel.remove({ registrationId })
         ])
         
 
         return response.status(200).json({
             accepted: true,
-            message: 'member registration is cancelled successfully',
+            message: translations[lang]['Member registration is cancelled successfully'],
             cancelledRegistration: cancelledRegistration,
             deletedRegistration,
-            deleteFreezedRegistration
+            deleteFreezedRegistration,
+            deletedAttendances
         })
 
     } catch(error) {

@@ -189,6 +189,14 @@ const addAttendanceByMember = async (request, response) => {
             })
         }
 
+        if(member.isBlocked) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member is blocked'],
+                field: 'memberId'
+            })
+        }
+
         if(member.QRCodeUUID != uuid) {
             return response.status(400).json({
                 accepted: false,
@@ -681,7 +689,6 @@ const getAttendancesByOwner = async (request, response) => {
         })
     }
 }
-
 const getChainOwnerAttendancesStatsByDate = async (request, response) => {
 
     try {

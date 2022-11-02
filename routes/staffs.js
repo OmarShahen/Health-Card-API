@@ -66,6 +66,11 @@ router.get(
     tokenMiddleware.adminAndOwnerPermission,
     verifyIds.verifyChainOwnerId, 
     (request, response) => staffsController.getStaffsByOwner(request, response)
-    )
+)
+
+router.patch(
+    '/staffs/:staffId/role', 
+    verifyIds.verifyStaffId, 
+    (request, response) => staffsController.updateStaffRole(request, response))
 
 module.exports = router

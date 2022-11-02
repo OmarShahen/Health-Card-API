@@ -194,7 +194,7 @@ const getStaffs = async (request, response) => {
 
             staffs = await StaffModel
             .find({ clubId, role: 'STAFF' })
-            .sort({ createdAt: -1 })
+            .sort({ isAccountActive: -1, createdAt: -1 })
             .select({ password: 0 })
         }
 
@@ -752,6 +752,55 @@ const getStaffsByOwner = async (request, response) => {
     }
 }
 
+const updateStaffRole = async (request, response) => {
+
+    try {
+
+        const { staffId } = request.params
+        const { lang } = request.query
+        const { role } = request.body
+
+        const clubRoles = [config.ROLES.CLUB_ADMIN, config.ROLES.STAFF]
+
+        if(!clubRoles.includes(role)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid role',
+                field: 'role'
+            })
+        }
+
+        const staff = await StaffModel.findById(staffId)
+
+        if(!staff || !staff.isAccountActive) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Staff account does not exists in the club',
+                field: 'staffId'
+            })
+        }
+
+        const updatedStaff = await StaffModel
+        .findByIdAndUpdate(staff._id, { role }, { new: true })
+        .select({ password: 0 })
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang]['Updated staff role successfully'],
+            staff: updatedStaff
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addClubOwner, 
     addStaff, 
@@ -762,5 +811,6 @@ module.exports = {
     updateStaffStatus,
     deleteStaffAndRelated,
     getStaffStatsByDate,
-    getStaffsByOwner
+    getStaffsByOwner,
+    updateStaffRole
  }

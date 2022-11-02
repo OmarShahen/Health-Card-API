@@ -88,7 +88,11 @@ module.exports = {
     "Months must be between 1 to 12 months": "عدد الشهور يجب ان يكون بين 1 الي 12 شهر",
     "Only 1 year period is valid": "سنة واحدة هي الحد الاقصي",
     "This QR code is invalid": "رمز الاستجابة السريعة غير صالح",
-    "Member account security is closed": "تامين حساب العضو مغلق"
+    "Member account security is closed": "تامين حساب العضو مغلق",
+    "Member is blocked": "العضو ممنوع من الدخول",
+    "Updated staff role successfully": "تم تحديث الدور بنجاح",
+    "Member registration is cancelled successfully": "تم الغاء اشتراك العضو بنجاح",
+    "Package is closed": "هذاالعرض مغلق"
 }
 
 
