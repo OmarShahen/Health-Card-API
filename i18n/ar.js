@@ -92,7 +92,8 @@ module.exports = {
     "Member is blocked": "العضو ممنوع من الدخول",
     "Updated staff role successfully": "تم تحديث الدور بنجاح",
     "Member registration is cancelled successfully": "تم الغاء اشتراك العضو بنجاح",
-    "Package is closed": "هذاالعرض مغلق"
+    "Package is closed": "هذاالعرض مغلق",
+    "Added new club admin": "تم اضافة مدير نادي"
 }
 
 

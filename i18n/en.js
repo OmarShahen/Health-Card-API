@@ -95,4 +95,5 @@ module.exports = {
     "Updated staff role successfully": "Updated staff role successfully",
     "Member registration is cancelled successfully": "Member registration is cancelled successfully",
     "Package is closed": "Package is closed",
+    "Added new club admin": "Added new club admin"
 }

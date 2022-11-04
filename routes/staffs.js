@@ -6,7 +6,7 @@ const staffsController = require('../controllers/staffs')
 router.post(
     '/staffs/club-admin',
     tokenMiddleware.adminAndOwnerPermission,
-    (request, response) => staffsController.addClubOwner(request, response)
+    (request, response) => staffsController.addClubAdmin(request, response)
     )
 
 router.post(

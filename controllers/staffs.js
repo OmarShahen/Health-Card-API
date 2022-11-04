@@ -14,10 +14,11 @@ const bcrypt = require('bcrypt')
 const utils = require('../utils/utils')
 const translations = require('../i18n/index')
 
-const addClubOwner = async (request, response) => {
+const addClubAdmin = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const dataValidation = staffValidation.staffData(request.body)
 
         if(!dataValidation.isAccepted) {
@@ -42,7 +43,7 @@ const addClubOwner = async (request, response) => {
 
         if(emailList.length != 0) {
             return response.status(400).json({
-                message: 'email is already registered',
+                message: translations[lang]['Email is already registered'],
                 field: 'email'
             })
         }
@@ -51,7 +52,7 @@ const addClubOwner = async (request, response) => {
 
         if(phoneList.length != 0) {
             return response.status(400).json({
-                message: 'phone is already registered',
+                message: translations[lang]['Phone is already registered'],
                 field: 'phone'
             })
         }
@@ -70,7 +71,7 @@ const addClubOwner = async (request, response) => {
         const newOwner = await ownerObj.save()
 
         return response.status(200).json({
-            message: `${name} is added successfully as club administrator`,
+            message: translations[lang]['Added new club admin'],
             newOwner
         })
 
@@ -802,7 +803,7 @@ const updateStaffRole = async (request, response) => {
 }
 
 module.exports = { 
-    addClubOwner, 
+    addClubAdmin, 
     addStaff, 
     getStaffs, 
     getClubAdmins,
