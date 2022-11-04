@@ -261,7 +261,6 @@ const updateStaff = async (request, response) => {
     try {
 
         const { lang } = request.query
-
         const dataValidation = staffValidation.updateStaffData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
@@ -339,7 +338,6 @@ const deleteStaff = async (request, response) => {
     try {
 
         const { lang } = request.query
-
         const { staffId } = request.params
 
         const registrationList = await RegistrationModel
