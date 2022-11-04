@@ -1,7 +1,7 @@
 const validator = require('../utils/utils')
 
 
-const cancelledAttendanceData = (cancelledAttendanceData) => {
+const cancelledAttendanceData = (cancelledAttendanceData, lang) => {
 
     const { clubId, registrationId, staffId } = cancelledAttendanceData
 

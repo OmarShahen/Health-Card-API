@@ -34,7 +34,7 @@ app.use('/api/v1', require('./routes/freezedRegistrations'))
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))
-.catch(error => console.error('Mongo is sad :('))
+.catch(error => console.error(error))
 
 webSocketInitializer(io)
 

@@ -82,11 +82,10 @@ const addCancelRegistration = async (request, response) => {
         
         const cancelRegistrationObj = new CancelledRegistrationModel(cancelRegistrationData)
 
-        const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration, deletedAttendances] = await Promise.all([
+        const [cancelledRegistration, deletedRegistration, deletedAttendances] = await Promise.all([
             cancelRegistrationObj.save(),
             RegistrationModel.findByIdAndDelete(registrationId),
-            FreezedRegistrationModel.deleteOne({ registrationId }),
-            AttendanceModel.remove({ registrationId })
+            AttendanceModel.deleteMany({ registrationId })
         ])
 
 
@@ -95,7 +94,6 @@ const addCancelRegistration = async (request, response) => {
             message: translations[lang]['Member registration is cancelled successfully'],
             cancelledRegistration: cancelledRegistration,
             deletedRegistration,
-            deleteFreezedRegistration,
             deletedAttendances
         })
 
@@ -126,8 +124,8 @@ const addCancelRegistration = async (request, response) => {
         const [cancelledRegistration, deletedRegistration, deleteFreezedRegistration, deletedAttendances] = await Promise.all([
             cancelRegistrationObj.save(),
             RegistrationModel.findByIdAndDelete(registrationId),
-            FreezedRegistrationModel.deleteOne({ registrationId }),
-            AttendanceModel.remove({ registrationId })
+            FreezedRegistrationModel.deleteMany({ registrationId }),
+            AttendanceModel.deleteMany({ registrationId })
         ])
         
 
