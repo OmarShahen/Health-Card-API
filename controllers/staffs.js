@@ -320,7 +320,8 @@ const updateStaff = async (request, response) => {
         updatedStaff.password = null
 
         return response.status(200).json({
-            message: translations[lang]['Staff member is updated successfully'],
+            accepted: true,
+            message: translations[lang]['Staff is updated successfully'],
             staff: updatedStaff
         })
 

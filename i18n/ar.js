@@ -93,7 +93,8 @@ module.exports = {
     "Updated staff role successfully": "تم تحديث الدور بنجاح",
     "Member registration is cancelled successfully": "تم الغاء اشتراك العضو بنجاح",
     "Package is closed": "هذاالعرض مغلق",
-    "Added new club admin": "تم اضافة مدير نادي"
+    "Added new club admin": "تم اضافة مدير نادي",
+    "Staff is updated successfully": "تم تحديث الموظف بنجاح"
 }
 
 
