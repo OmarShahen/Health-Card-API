@@ -94,7 +94,8 @@ module.exports = {
     "Member registration is cancelled successfully": "تم الغاء اشتراك العضو بنجاح",
     "Package is closed": "هذاالعرض مغلق",
     "Added new club admin": "تم اضافة مدير نادي",
-    "Staff is updated successfully": "تم تحديث الموظف بنجاح"
+    "Staff is updated successfully": "تم تحديث الموظف بنجاح",
+    "Club data updated successfully": "تم تحديث النادي بنجاح"
 }
 
 

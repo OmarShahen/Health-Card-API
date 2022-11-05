@@ -96,5 +96,6 @@ module.exports = {
     "Member registration is cancelled successfully": "Member registration is cancelled successfully",
     "Package is closed": "Package is closed",
     "Added new club admin": "Added new club admin",
-    "Staff is updated successfully": "Staff is updated successfully"
+    "Staff is updated successfully": "Staff is updated successfully",
+    "Club data updated successfully": "Club data updated successfully"
 }
