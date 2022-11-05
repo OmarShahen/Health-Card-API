@@ -1,6 +1,5 @@
 const config = require('../config/config')
 const utils = require('../utils/utils')
-const dateFNS = require('date-fns')
 const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
 const CountryModel = require('../models/countryModel')
@@ -14,6 +13,7 @@ const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const clubValidation = require('../validations/clubs')
 const statsValidation = require('../validations/stats')
+const translations = require('../i18n/index')
 
 const addClub = async (request, response) => {
 
@@ -309,7 +309,6 @@ const getClubMainStatsByDate = async (request, response) => {
         const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
 
-
         registrationsGrowthStats
         .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
 
@@ -377,9 +376,10 @@ const updateClub = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { clubId } = request.params
 
-        const dataValidation = clubValidation.updateClubData(request.body)
+        const dataValidation = clubValidation.updateClubData(request.body, lang)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
@@ -399,7 +399,7 @@ const updateClub = async (request, response) => {
 
             if(phoneList.length != 0) {
                 return response.status(400).json({
-                    message: 'phone is already registered',
+                    message: translations[lang]['Phone is already registered'],
                     field: 'phone'
                 })
             }
@@ -416,7 +416,7 @@ const updateClub = async (request, response) => {
         )
 
         return response.status(200).json({
-            message: 'club data updated successfully',
+            message: translations[lang]['Club data updated successfully'],
             club: updatedClub
         })
 
