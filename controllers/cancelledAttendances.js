@@ -287,7 +287,7 @@ const getCancelledAttendancesByOwner = async (request, response) => {
 
         cancelledAttendances.forEach(cancelledAttendance => {
             cancelledAttendance.club = cancelledAttendance.club[0]
-            cancelledAttendance.member = cancelledAttendance.memer[0]
+            cancelledAttendance.member = cancelledAttendance.member[0]
             cancelledAttendance.staff = cancelledAttendance.staff[0]
             cancelledAttendance.package = cancelledAttendance.package[0]
         })
