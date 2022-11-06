@@ -1,12 +1,9 @@
 const config = require('../config/config')
-const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
 const MemberModel = require('../models/MemberModel')
 const RegistrationModel = require('../models/RegistrationModel')
 const StaffModel = require('../models/StaffModel')
 const AttendanceModel = require('../models/AttendanceModel')
-const CancelledRegistrations = require('../models/CancelledRegistrationModel')
-const CancelledAttendances = require('../models/CancelledAttendanceModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const memberValidation = require('../validations/members')
 const statsValidation = require('../validations/stats')
@@ -15,6 +12,10 @@ const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 const moment = require('moment')
 const translations = require('../i18n/index')
 const prettier = require('../utils/pretty')
+const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
+const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
+const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
+
 
 const addMember = async (request, response, next) => {
 
@@ -292,6 +293,7 @@ const deleteMember = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { memberId } = request.params
 
         if(!utils.isObjectId(memberId)) {
@@ -308,17 +310,34 @@ const deleteMember = async (request, response) => {
         if(memberRegistrationsList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'member has registered packages',
+                message: translations[lang]['Member has registered packages'],
                 field: 'memberId'
             })
         }
 
-        const deleteMember = await MemberModel.findByIdAndDelete(memberId)
+        const deleteMemberPromise = MemberModel.findByIdAndDelete(memberId)
+        const deleteCancelledRegistrationsPromise = CancelledRegistrationModel.deleteMany({ memberId })
+        const deleteCancelledAttendancesPromise = CancelledAttendanceModel.deleteMany({ memberId })
+
+
+        const [
+            deleteMember, 
+            deleteCancelledRegistrations, 
+            deleteCancelledAttendances, 
+
+        ] = await Promise.all([
+
+            deleteMemberPromise,
+            deleteCancelledRegistrationsPromise,
+            deleteCancelledAttendancesPromise,
+        ])
 
         return response.status(200).json({
             accepted: true,
             member: deleteMember,
-            message: 'Member is deleted successfully'
+            deleteCancelledRegistrations, 
+            deleteCancelledAttendances, 
+            message: translations[lang]['Member is deleted successfully']
         })
 
     } catch(error) {

@@ -95,7 +95,9 @@ module.exports = {
     "Package is closed": "هذاالعرض مغلق",
     "Added new club admin": "تم اضافة مدير نادي",
     "Staff is updated successfully": "تم تحديث الموظف بنجاح",
-    "Club data updated successfully": "تم تحديث النادي بنجاح"
+    "Club data updated successfully": "تم تحديث النادي بنجاح",
+    "Member has registered packages": "العضو لديه اشتركات مسجلة",
+    "Member is deleted successfully": "تم مسح العضو بنجاح"
 }
 
 

@@ -97,5 +97,7 @@ module.exports = {
     "Package is closed": "Package is closed",
     "Added new club admin": "Added new club admin",
     "Staff is updated successfully": "Staff is updated successfully",
-    "Club data updated successfully": "Club data updated successfully"
+    "Club data updated successfully": "Club data updated successfully",
+    "Member has registered packages": "Member has registered packages",
+    "Member is deleted successfully": "Member is deleted successfully"
 }
