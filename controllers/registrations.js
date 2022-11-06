@@ -247,7 +247,7 @@ const checkAddRegistrationData = async (request, response) => {
     }
 }
 
-const getRegistrations = async (request, response) => {
+const getClubRegistrations = async (request, response) => {
 
     try {
 
@@ -263,10 +263,14 @@ const getRegistrations = async (request, response) => {
             })
         }
 
+        const currentDate = new Date()
+
         if(status == 'active') {
             searchQuery.isActive = true
+            searchQuery.expiresAt = { $gt: currentDate }
         } else if(status == 'expired') {
             searchQuery.isActive = false
+            searchQuery.expiresAt = { $lte: currentDate }
         }
 
         const registrations = await RegistrationModel.aggregate([
@@ -315,10 +319,15 @@ const getRegistrations = async (request, response) => {
             }
         ]) 
 
-        registrations.forEach(registration => {
+        registrations.forEach(registration => {6
             registration.staff = registration.staff[0]
             registration.member = registration.member[0]
             registration.package = registration.package[0]
+
+            if(registration.expiresAt <= currentDate) {
+                registration.isActive = false
+            }
+
         })
 
         return response.status(200).json({
@@ -1464,7 +1473,7 @@ module.exports = {
     addRegistration, 
     getMemberRegistrations, 
     updateMemberAttendance, 
-    getRegistrations,
+    getClubRegistrations,
     getClubRegistrationsStatsByDate,
     checkAddRegistrationData,
     getClubRegistrationsDataJoined,

@@ -87,7 +87,7 @@ const addAttendance = async (request, response) => {
 
         const currentDate = new Date()
 
-        if(registration.expiresAt < currentDate) {
+        if(registration.expiresAt <= currentDate) {
             
             const updatedRegistration = await RegistrationModel
             .findByIdAndUpdate(registrationId, { isActive: false }, { new: true })

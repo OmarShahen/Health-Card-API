@@ -51,7 +51,7 @@ const addCancelAttendance = async (request, response) => {
 
         const currentDate = new Date()
 
-        if(registration.expiresAt < currentDate) {
+        if(registration.expiresAt <= currentDate) {
             return response.status(400).json({
                 accepted: false,
                 message: translations[lang]['Member registration has passed the expiry date'],

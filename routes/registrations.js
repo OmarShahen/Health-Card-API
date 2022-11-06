@@ -29,7 +29,7 @@ router.get(
   '/registrations/clubs/:clubId',
   tokenMiddleware.appUsersPermission,
   verifyIds.verifyClubId, 
-  (request, response) => registrationsController.getRegistrations(request, response)
+  (request, response) => registrationsController.getClubRegistrations(request, response)
   )
 
 router.get(

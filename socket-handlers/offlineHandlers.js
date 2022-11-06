@@ -277,7 +277,6 @@ module.exports = (io, socket) => {
             const { addedMembers, membersIds, updatedMembers, invalidMembers } = await uploadMembers(data.members)
 
             console.log(addedMembers)
-            invalidMembers.forEach(member => console.log(member))
 
             /*const { addedRegistrations, updatedRegistrations, deletedRegistrations, registrationsIds } = await uploadRegistrations(data.registrations, membersIds)
 
