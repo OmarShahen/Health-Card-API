@@ -98,6 +98,13 @@ router.get(
   (request, response) => registrationsController.getRegistrationsByPackage(request, response)
   )
 
+router.get(
+  '/registrations/attendances/members/:memberId',
+  tokenMiddleware.appUsersPermission,
+  verifyIds.verifyMemberId,
+  (request, response) => registrationsController.getRegistrationsAndAttendancesByMember(request, response)
+)
+
 //router.get('/registrations/chain-owners/:ownerId/staffs/payments', (request, response) => registrationsController.getChainOwnerStaffsPayments(request, response))
 
 module.exports = router

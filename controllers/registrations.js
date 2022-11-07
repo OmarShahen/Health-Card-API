@@ -1465,6 +1465,43 @@ const getRegistrationsByPackage = async (request, response) => {
     }
 }
 
+const getRegistrationsAndAttendancesByMember = async (request, response) => {
+
+    try {
+
+        const { memberId } = request.params
+
+        const registrations = await RegistrationModel.aggregate([
+            {
+                $match: { memberId: mongoose.Types.ObjectId(memberId) }
+            },
+            {
+                $lookup: {
+                    from: 'attendances',
+                    localField: '_id',
+                    foreignField: 'registrationId',
+                    as: 'attendances'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            registrations
+        })
+
+    } catch(error) {
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 
 
@@ -1484,6 +1521,7 @@ module.exports = {
     getRegistrationsByMember,
     getRegistrationsByStaff,
     getRegistrationsByPackage,
-    getChainOwnerStaffsPayments
+    getChainOwnerStaffsPayments,
+    getRegistrationsAndAttendancesByMember
     
 }
