@@ -2,7 +2,7 @@ module.exports = {
 
     WEB_FORGOT_PASSWORD_URL: `http://localhost:3000/reset-password`,
     PORT: process.env.PORT,
-    DB_URL: process.env.DEV_DB_URL,
+    DB_URL: process.env.DB_URL,
     EMAIL: {
         APP_MAIL: 'barbellseg@gmail.com',
         APP_MAIL_PASSWORD: process.env.APP_MAIL_PASSWORD,
