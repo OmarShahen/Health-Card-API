@@ -1477,6 +1477,14 @@ const getRegistrationsAndAttendancesByMember = async (request, response) => {
             },
             {
                 $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $lookup: {
                     from: 'attendances',
                     localField: '_id',
                     foreignField: 'registrationId',
@@ -1487,6 +1495,8 @@ const getRegistrationsAndAttendancesByMember = async (request, response) => {
                 $sort: { createdAt: -1 }
             }
         ])
+
+        registrations.forEach(registration => registration.package = registration.package[0])
 
         return response.status(200).json({
             accepted: true,

@@ -97,7 +97,13 @@ module.exports = {
     "Staff is updated successfully": "تم تحديث الموظف بنجاح",
     "Club data updated successfully": "تم تحديث النادي بنجاح",
     "Member has registered packages": "العضو لديه اشتركات مسجلة",
-    "Member is deleted successfully": "تم مسح العضو بنجاح"
+    "Member is deleted successfully": "تم مسح العضو بنجاح",
+    "Offer message name is required": "اسم رسالة العرض مطلوب",
+    "Offer message body is required": "محتوي رسالة العرض مطلوب",
+    "Offer message name is already registered": "اسم رسالة العرض مسجل مسبقا",
+    "Offer message is added successfully": "تم اضافة رسالة عرض بنجاح",
+    "Offer message is deleted successfully": "تم مسح رسالة العرض بنجاح",
+    "Offer message is updated successfully": "تم تحديث رسالة العرض بنجاح"
 }
 
 

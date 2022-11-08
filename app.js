@@ -31,6 +31,7 @@ app.use('/api/v1', require('./routes/attendances'))
 app.use('/api/v1', require('./routes/cancelledAttendances'))
 app.use('/api/v1', require('./routes/cancelledRegistrations'))
 app.use('/api/v1', require('./routes/freezedRegistrations'))
+app.use('/api/v1', require('./routes/offersMessages'))
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))

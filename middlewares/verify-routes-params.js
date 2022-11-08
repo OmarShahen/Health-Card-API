@@ -5,6 +5,7 @@ const StaffModel = require('../models/StaffModel')
 const PackageModel = require('../models/PackageModel')
 const MemberModel = require('../models/MemberModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
+const OfferMessageModel = require('../models/OfferMessageModel')
 
 const verifyClubId = async (request, response, next) => {
 
@@ -180,7 +181,7 @@ const verifyChainOwnerId = async (request, response, next) => {
         if(!utils.isObjectId(ownerId)) {
             return response.status(400).json({
                 message: 'invalid owner Id formate',
-                field: 'owner'
+                field: 'ownerId'
             })
         }
 
@@ -190,6 +191,39 @@ const verifyChainOwnerId = async (request, response, next) => {
             return response.status(404).json({
                 message: 'owner Id does not exist',
                 field: 'ownerId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyOfferMessageId = async (request, response, next) => {
+
+    try {
+
+        const { offerMessageId } = request.params
+
+        if(!utils.isObjectId(offerMessageId)) {
+            return response.status(400).json({
+                message: 'invalid offer message Id formate',
+                field: 'offerMessageId'
+            })
+        }
+
+        const offerMessage = await OfferMessageModel.findById(offerMessageId)
+
+        if(!offerMessage) {
+            return response.status(404).json({
+                message: 'offerMessage Id does not exist',
+                field: 'offerMessage'
             })
         }
 
@@ -214,5 +248,6 @@ module.exports = {
     verifyStaffId, 
     verifyPackageId, 
     verifyMemberId,
-    verifyChainOwnerId
+    verifyChainOwnerId,
+    verifyOfferMessageId
 }

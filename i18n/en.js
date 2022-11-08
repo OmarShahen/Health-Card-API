@@ -99,5 +99,11 @@ module.exports = {
     "Staff is updated successfully": "Staff is updated successfully",
     "Club data updated successfully": "Club data updated successfully",
     "Member has registered packages": "Member has registered packages",
-    "Member is deleted successfully": "Member is deleted successfully"
+    "Member is deleted successfully": "Member is deleted successfully",
+    "Offer message name is required": "Offer message name is required",
+    "Offer message body is required": "Offer message body is required",
+    "Offer message name is already registered": "Offer message name is already registered",
+    "Offer message is added successfully": "Offer message is added successfully",
+    "Offer message is deleted successfully": "Offer message is deleted successfully",
+    "Offer message is updated successfully": "Offer message is updated successfully"
 }
