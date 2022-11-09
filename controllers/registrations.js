@@ -1496,7 +1496,11 @@ const getRegistrationsAndAttendancesByMember = async (request, response) => {
             }
         ])
 
-        registrations.forEach(registration => registration.package = registration.package[0])
+        registrations.forEach(registration => {
+            registration.package = registration.package[0]
+            registration.attendances = registration
+            .attendances.sort((attendance1, attendance2) => attendance2.createdAt - attendance1.createdAt)
+        })
 
         return response.status(200).json({
             accepted: true,
