@@ -29,4 +29,11 @@ router.put(
     (request, response) => offersMessagesController.updateOfferMessage(request, response)
 )
 
+router.post(
+    '/offers-messages/members/:memberId/send',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyMemberId,
+    (request, response) => offersMessagesController.sendOfferMessageToMember(request, response)
+)
+
 module.exports = router

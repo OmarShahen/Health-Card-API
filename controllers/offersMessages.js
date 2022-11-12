@@ -1,7 +1,10 @@
 const OfferMessageModel = require('../models/OfferMessageModel')
 const ClubModel = require('../models/ClubModel')
+const MemberModel = require('../models/MemberModel')
 const validator = require('../validations/offersMessages')
 const translations = require('../i18n/index')
+const { sendOfferMessage } = require('../APIs/whatsapp/send-offer-message')
+const config = require('../config/config')
 
 const getClubOffersMessages = async (request, response) => {
 
@@ -171,7 +174,7 @@ const updateOfferMessage = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             message: translations[lang]['Offer message is updated successfully'],
-            updatedOfferMessage
+            offerMessage: updatedOfferMessage
         })
 
     } catch(error) {
@@ -184,4 +187,78 @@ const updateOfferMessage = async (request, response) => {
     }
 }
 
-module.exports = { getClubOffersMessages, addOfferMessage, deleteOfferMessage, updateOfferMessage }
+const sendOfferMessageToMember = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { memberId } = request.params
+        const { message, languageCode } = request.body
+
+        if(!message) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Message is required'],
+                field: 'message'
+            })
+        }
+
+        if(!languageCode) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Language is required'],
+                field: 'languageCode'
+            })
+        }
+
+        if(!config.WHATSAPP.LANGUAGES.includes(languageCode)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid language code',
+                field: 'languageCode'
+            })
+        }
+
+        const member = await MemberModel.findById(memberId)
+        const club = await ClubModel.findById(member.clubId)
+
+        const memberPhone = member.countryCode + member.phone
+
+        const messageResponse = await sendOfferMessage(
+            memberPhone,
+            languageCode,
+            club.image,
+            club.name,
+            member.name,
+            message
+        )
+
+        if(messageResponse.isSent == false) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['There is a problem in sending offer message'],
+            })
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang]['Offer message is sent successfully'],
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { 
+    getClubOffersMessages, 
+    addOfferMessage, 
+    deleteOfferMessage, 
+    updateOfferMessage,
+    sendOfferMessageToMember
+}

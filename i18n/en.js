@@ -105,5 +105,9 @@ module.exports = {
     "Offer message name is already registered": "Offer message name is already registered",
     "Offer message is added successfully": "Offer message is added successfully",
     "Offer message is deleted successfully": "Offer message is deleted successfully",
-    "Offer message is updated successfully": "Offer message is updated successfully"
+    "Offer message is updated successfully": "Offer message is updated successfully",
+    "Offer message is sent successfully": "Offer message is sent successfully",
+    "There is a problem in sending offer message": "There is a problem in sending offer message",
+    "Message is required": "Message is required",
+    "Language is required": "Language is required"
 }

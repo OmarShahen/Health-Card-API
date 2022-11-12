@@ -103,7 +103,11 @@ module.exports = {
     "Offer message name is already registered": "اسم رسالة العرض مسجل مسبقا",
     "Offer message is added successfully": "تم اضافة رسالة عرض بنجاح",
     "Offer message is deleted successfully": "تم مسح رسالة العرض بنجاح",
-    "Offer message is updated successfully": "تم تحديث رسالة العرض بنجاح"
+    "Offer message is updated successfully": "تم تحديث رسالة العرض بنجاح",
+    "Offer message is sent successfully": "تم ارسال رسالة العرض بنجاح",
+    "There is a problem in sending offer message": "هناك مشكلة في ارسال رسالة العرض",
+    "Message is required": "الرسالة مطلوبة",
+    "Language is required": "اللغة مطلوبة"
 }
 
 
