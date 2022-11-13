@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
+//const Bree = require('bree')
 
 const morgan = require('morgan')
 const db = require('./config/database')
@@ -16,6 +17,9 @@ app.use(morgan('common'))
 app.use(express.json())
 app.use(cors())
 app.use(verifyLanguage)
+
+/*const bree = new Bree({ jobs: [{ name: 'mail-report', interval: 'at 11:24pm' }]})
+bree.start()*/
 
 
 app.use('/api/v1/auth', require('./routes/auth'))
@@ -50,5 +54,4 @@ app.get('/', (request, response) => {
 
 
 http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [GYM-APP]`))
-
 

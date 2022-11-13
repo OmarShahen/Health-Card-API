@@ -64,6 +64,14 @@ const addCancelRegistration = async (request, response) => {
             })
         }
 
+        if(registration.isFreezed) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member registration is freezed'],
+                field: 'registrationId'
+            })
+        }
+
         const package = await PackageModel.findById(registration.packageId)
 
         /** Because daily packages is expired by default */
