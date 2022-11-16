@@ -1,4 +1,3 @@
-const config = require('../config/config')
 const utils = require('../utils/utils')
 const mongoose = require('mongoose')
 const ClubModel = require('../models/ClubModel')
@@ -10,6 +9,7 @@ const MemberModel = require('../models/MemberModel')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
 const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
 const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
+const PackageModel = require('../models/PackageModel')
 const StaffModel = require('../models/StaffModel')
 const clubValidation = require('../validations/clubs')
 const statsValidation = require('../validations/stats')
@@ -577,6 +577,42 @@ const deleteClubAndRelated = async (request, response) => {
     }
 }
 
+const getAllClubData = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        const membersPromise = MemberModel.find({ clubId })
+        const packagesPromise = PackageModel.find({ clubId })
+        const registrationsPromise = RegistrationModel.find({ clubId })
+        const attendancesPromise = AttendanceModel.find({ clubId })
+
+        const [members, packages, registrations, attendances] = await Promise.all([
+            membersPromise,
+            packagesPromise,
+            registrationsPromise,
+            attendancesPromise
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            members,
+            packages,
+            registrations,
+            attendances
+        }) 
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addClub, 
@@ -587,5 +623,6 @@ module.exports = {
     updateClubStatus,
     deleteClub,
     deleteClubAndRelated,
-    getClubMainStatsByDate
+    getClubMainStatsByDate,
+    getAllClubData
 }

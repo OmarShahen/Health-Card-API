@@ -55,6 +55,14 @@ router.get(
     '/clubs/:clubId/stats/main',
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyClubId, 
-    (request, response) => clubsController.getClubMainStatsByDate(request, response))
+    (request, response) => clubsController.getClubMainStatsByDate(request, response)
+)
+
+router.get(
+    '/clubs/:clubId/all',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyClubId,
+    (request, response) => clubsController.getAllClubData(request, response)
+)
 
 module.exports = router
