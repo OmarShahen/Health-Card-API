@@ -1,6 +1,6 @@
 module.exports = {
 
-    WEB_FORGOT_PASSWORD_URL: `http://localhost:3000/reset-password`,
+    WEB_FORGOT_PASSWORD_URL: `https://barbels-f6774.web.app/reset-password`,
     PORT: process.env.PORT,
     DB_URL: process.env.DB_URL,
     EMAIL: {

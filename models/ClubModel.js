@@ -7,7 +7,7 @@ const ClubSchema = new mongoose.Schema({
     description: { type: String, required: true },
     clubCode: { type: String, required: true },
     hasMembership: { type: Boolean, default: false },
-    image: { type: String, required: true },
+    image: { type: String },
     phone: { type: String, required: true },
     countryCode: { type: String, required: true },
     currency: { type: String, required: true },
