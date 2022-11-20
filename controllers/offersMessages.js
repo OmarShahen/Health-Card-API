@@ -222,6 +222,14 @@ const sendOfferMessageToMember = async (request, response) => {
         const member = await MemberModel.findById(memberId)
         const club = await ClubModel.findById(member.clubId)
 
+        if(!club.image) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Club has no image to send offer with'],
+                field: 'clubId'
+            })
+        }
+
         const memberPhone = member.countryCode + member.phone
 
         const messageResponse = await sendOfferMessage(

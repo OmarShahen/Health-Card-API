@@ -2,6 +2,7 @@ const mongoose = require('mongoose')
 
 const ClubSchema = new mongoose.Schema({
 
+    Id: { type: Number, unique: true, required: true },
     ownerId: { type: mongoose.Types.ObjectId, required: true },
     name: { type: String, required: true },
     description: { type: String, required: true },

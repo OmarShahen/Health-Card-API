@@ -72,19 +72,27 @@ const addClub = async (request, response) => {
             })
         }
 
-        const clubsList = await ClubModel
-        .find({ ownerId, name })
+        const clubsListPromise = ClubModel.find({ ownerId, name })
+        const clubsTotalPromise = ClubModel.countDocuments()
+
+        const [clubsList, clubsTotal] = await Promise.all([
+            clubsListPromise,
+            clubsTotalPromise
+        ])
 
         const clubCode = `${name.toUpperCase()}-${clubsList.length + 1}.0`
+        const clubHumanId = clubsTotal + 1
+        const clubCurrency = countriesList[0].currency
 
         const club = {
+            Id: clubHumanId,
             ownerId,
             name,
             description,
             clubCode,
             phone,
             countryCode,
-            currency: countriesList[0].currency,
+            currency: clubCurrency,
             location: { country, city, address },
         }
 
@@ -107,6 +115,41 @@ const addClub = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateClubImage = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { image } = request.body
+
+        const dataValidation = clubValidation.updateClubImage(request.body)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const updatedClub = await ClubModel.findByIdAndUpdate(clubId, { image }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated club image successfully',
+            club: updatedClub,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -624,5 +667,6 @@ module.exports = {
     deleteClub,
     deleteClubAndRelated,
     getClubMainStatsByDate,
-    getAllClubData
+    getAllClubData,
+    updateClubImage
 }

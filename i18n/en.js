@@ -109,5 +109,6 @@ module.exports = {
     "Offer message is sent successfully": "Offer message is sent successfully",
     "There is a problem in sending offer message": "There is a problem in sending offer message",
     "Message is required": "Message is required",
-    "Language is required": "Language is required"
+    "Language is required": "Language is required",
+    "Club has no image to send offer with": "Club has no image to send offer with"
 }

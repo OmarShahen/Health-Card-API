@@ -14,7 +14,6 @@ const translations = require('../i18n/index')
 const prettier = require('../utils/pretty')
 const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
-const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
 
 
 const addMember = async (request, response, next) => {
@@ -100,7 +99,8 @@ const addMember = async (request, response, next) => {
                 })
             }
         } else {
-            membership = Date.now()
+            const clubMembersTotal = await MemberModel.countDocuments({ clubId })
+            membership = clubMembersTotal + 1
         }
 
         let memberData = { clubId, staffId, name, email, phone, countryCode, membership, gender }

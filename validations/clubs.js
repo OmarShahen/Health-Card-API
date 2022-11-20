@@ -56,4 +56,15 @@ const updateClubData = (clubData, lang) => {
 
 }
 
-module.exports = { clubData, updateClubData } 
+const updateClubImage = (clubData) => {
+
+    const { image } = clubData
+
+    if(!image) return { isAccepted: false, message: 'image URL is required', field: 'image' }
+
+    if(typeof image != 'string') return { isAccepted: false, message: 'invalid image URL formate', field: 'image' }
+
+    return { isAccepted: true, message: 'valid data', data: clubData }
+}
+
+module.exports = { clubData, updateClubData, updateClubImage } 

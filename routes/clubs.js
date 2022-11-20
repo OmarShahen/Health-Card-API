@@ -65,4 +65,11 @@ router.get(
     (request, response) => clubsController.getAllClubData(request, response)
 )
 
+router.patch(
+    '/clubs/:clubId/image',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyClubId,
+    (request, response) => clubsController.updateClubImage(request, response)
+)
+
 module.exports = router

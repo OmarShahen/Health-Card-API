@@ -108,6 +108,7 @@ module.exports = {
     "There is a problem in sending offer message": "هناك مشكلة في ارسال رسالة العرض",
     "Message is required": "الرسالة مطلوبة",
     "Language is required": "اللغة مطلوبة",
+    "Club has no image to send offer with": "لا يوجد صورة للنادي لارسال العرض بها"
 }
 
 
