@@ -2,7 +2,7 @@ const validator = require('../utils/utils')
 
 const requestDemo = (requestDemoData) => {
 
-    const { firstName, lastName, email, clubName, countryCode, phone, country } = requestDemoData
+    const { firstName, lastName, email, clubName, phone, country } = requestDemoData
 
     if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
 
@@ -23,10 +23,6 @@ const requestDemo = (requestDemoData) => {
     if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
 
     if(!validator.isPhoneValid(phone)) return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
-
-    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
-
-    if(!validator.isCountryCodeValid(countryCode)) return { isAccepted: false, message: 'Invalid country code', field: 'countryCode' }
 
     if(!country) return { isAccepted: false, message: 'Country name is required', field: 'country' }
 
