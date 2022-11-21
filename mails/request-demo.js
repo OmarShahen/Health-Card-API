@@ -5,7 +5,7 @@ const sendRequestDemo = async (requestDemoData) => {
 
     try {
 
-        const { name, email, clubName, countryCode, phone, country } = requestDemoData
+        const { name, email, clubName, phone, country } = requestDemoData
 
         const mailOptions = {
             from: config.EMAIL.APP_MAIL,
@@ -17,7 +17,7 @@ const sendRequestDemo = async (requestDemoData) => {
                     <strong>Name: </strong><span>${name}</span><br>
                     <strong>Email: </strong><span>${email}</span><br>
                     <strong>Club: </strong><span>${clubName}</span><br>
-                    <strong>Phone: </strong><span>${countryCode + phone}</span><br>
+                    <strong>Phone: </strong><span>${phone}</span><br>
                     <strong>Country: </strong><span>${country}</span><br>
                 </div>
             `,
