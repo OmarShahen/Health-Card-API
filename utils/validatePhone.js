@@ -1,9 +1,9 @@
 
-const isPhoneValid = (phoneNumber) => {
+const isPhoneValid = (phoneNumber, max=null) => {
 
     const numbers = '0123456789'
 
-    if(phoneNumber.length != 10) {
+    if(max && phoneNumber.length != max) {
         return false
     }
 
