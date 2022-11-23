@@ -13,7 +13,15 @@ const MemberSchema = new mongoose.Schema({
     canAuthenticate: { type: Boolean, default: false },
     QRCodeURL: { type: String },
     QRCodeUUID: { type: String },
-    isBlocked: { type: Boolean, default: false }
+    isBlocked: { type: Boolean, default: false },
+    isBlacklist: { type: Boolean, default: false },
+    notes: [
+        {
+            noteMaker: { type: String },
+            note: { type: String },
+            createdAt: { type: Date }
+        }
+    ]
 
 }, { timestamps: true })
 

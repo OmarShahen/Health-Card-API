@@ -1312,6 +1312,121 @@ const insertManyMembers = async (request, response) => {
     }
 }
 
+const addNoteToMember = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { memberId } = request.params
+        const { noteMaker, note } = request.body
+
+        const dataValidation = memberValidation.addNote(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const newNote = { noteMaker, note, createdAt: new Date() }
+
+        const updatedMember = await MemberModel
+        .findByIdAndUpdate(memberId, { $push: { notes: newNote } }, { new: true })
+        
+        return response.status(200).json({
+            accepted: true,
+            message: 'Added note successfully',
+            member: updatedMember
+        })
+         
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const removeNoteFromMember = async (request, response) => {
+
+    try {
+
+        const { memberId, noteId } = request.params
+
+        if(!utils.isObjectId(noteId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid note Id',
+                field: 'noteId'
+            })
+        }
+
+        const member = await MemberModel.findById(memberId)
+
+        const newNotes = member.notes.filter(note => note._id != noteId)
+
+        const updateMember = await MemberModel
+        .updateOne({ _id: memberId }, { notes: newNotes })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Deleted note successfully',
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const memberBlacklistStatus = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { memberId } = request.params
+        const { status } = request.body
+
+        const validStatus = ['ADD', 'REMOVE']
+
+        if(!validStatus.includes(status)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid status formate',
+                field: 'status'
+            })
+        }
+
+        const isBlacklist = status == 'ADD' ? true : false 
+
+        const updatedMember = await MemberModel
+        .findByIdAndUpdate(memberId, { isBlacklist }, { new: true })
+
+        const responseMessage = isBlacklist ? 'Added to blacklist successfully' : 'Removed from blacklist successfully'
+
+        return response.status(200).json({
+            accepted: true,
+            message: responseMessage,
+            member: updatedMember
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addMember, 
@@ -1329,5 +1444,8 @@ module.exports = {
     updateMemberAuthenticationStatus,
     getMembersByOwner,
     getChainOwnerMembersStatsByDate,
-    insertManyMembers
+    insertManyMembers,
+    addNoteToMember,
+    memberBlacklistStatus,
+    removeNoteFromMember
 }

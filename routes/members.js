@@ -106,11 +106,31 @@ router.get(
     (request, response) => membersController.getChainOwnerMembersStatsByDate(request, response)
 )
 
-
 router.post(
     '/members/insert-many', 
     tokenMiddleware.adminPermission,
     (request, response) => membersController.insertManyMembers(request, response)
+)
+
+router.patch(
+    '/members/:memberId/notes',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyMemberId,
+    (request, response) => membersController.addNoteToMember(request, response)
+)
+
+router.patch(
+    '/members/:memberId/blacklist',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyMemberId,
+    (request, response) => membersController.memberBlacklistStatus(request, response)
+)
+
+router.delete(
+    '/members/:memberId/notes/:noteId',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyMemberId,
+    (request, response) => membersController.removeNoteFromMember(request, response)
 )
 
 module.exports = router
