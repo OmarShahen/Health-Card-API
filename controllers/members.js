@@ -770,7 +770,7 @@ const getMemberStatsByDate = async (request, response) => {
             registrations, 
             attendances, 
             attendancesGrowthStats,
-                   attendancesStatsDay,
+            attendancesStatsDay,
             attendancesStatsHour,
             packagesRegistrationsStats
         ] = await Promise.all([
@@ -1320,7 +1320,7 @@ const addNoteToMember = async (request, response) => {
         const { memberId } = request.params
         const { noteMaker, note } = request.body
 
-        const dataValidation = memberValidation.addNote(request.body)
+        const dataValidation = memberValidation.addNote(request.body, lang)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -1336,7 +1336,7 @@ const addNoteToMember = async (request, response) => {
         
         return response.status(200).json({
             accepted: true,
-            message: 'Added note successfully',
+            message: translations[lang]['Added note successfully'],
             member: updatedMember
         })
          
@@ -1354,6 +1354,7 @@ const removeNoteFromMember = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { memberId, noteId } = request.params
 
         if(!utils.isObjectId(noteId)) {
@@ -1373,7 +1374,7 @@ const removeNoteFromMember = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted note successfully',
+            message: translations[lang]['Deleted note successfully'],
         })
 
     } catch(error) {
@@ -1409,7 +1410,10 @@ const memberBlacklistStatus = async (request, response) => {
         const updatedMember = await MemberModel
         .findByIdAndUpdate(memberId, { isBlacklist }, { new: true })
 
-        const responseMessage = isBlacklist ? 'Added to blacklist successfully' : 'Removed from blacklist successfully'
+        const responseMessage = isBlacklist ?
+        translations[lang]['Added to blacklist successfully'] 
+        : 
+        translations[lang]['Removed from blacklist successfully']
 
         return response.status(200).json({
             accepted: true,

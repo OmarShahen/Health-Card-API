@@ -428,9 +428,7 @@ const addNote = (noteData, lang) => {
     
     if(!validator.isNameValid(noteMaker)) return { isAccepted: false, message: 'Invalid note maker name formate', field: 'noteMaker' }
 
-    if(noteMaker.split(' ').length != 2) return { isAccepted: false, message: 'Name must be two words', field: 'name' }
-
-    if(!note) return { isAccepted: false, message: 'note message is required', field: 'note' }
+    if(!note) return { isAccepted: false, message: translations[lang]['Note message is required'], field: 'note' }
 
     return { isAccepted: true, message: 'valid data', data: noteData } 
 

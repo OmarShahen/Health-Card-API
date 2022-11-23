@@ -108,7 +108,12 @@ module.exports = {
     "There is a problem in sending offer message": "هناك مشكلة في ارسال رسالة العرض",
     "Message is required": "الرسالة مطلوبة",
     "Language is required": "اللغة مطلوبة",
-    "Club has no image to send offer with": "لا يوجد صورة للنادي لارسال العرض بها"
+    "Club has no image to send offer with": "لا يوجد صورة للنادي لارسال العرض بها",
+    "Added note successfully": "تم اضافة ملحوظة بنجاح",
+    "Deleted note successfully": "تم ازالة الملحوظة بنجاح",
+    "Added to blacklist successfully": "تم الاضافة الي المحظورين بنجاح",
+    "Removed from blacklist successfully": "تم الازالة من المحظورين بنجاح",
+    "Note message is required": "محتوي الملحوظة مطلوب"
 }
 
 
