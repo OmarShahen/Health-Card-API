@@ -13,7 +13,9 @@ const memberData = (memberData, lang) => {
         countryCode,
         membership, 
         gender,
-        age 
+        age,
+        job,
+        sportType
     } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
@@ -50,6 +52,9 @@ const memberData = (memberData, lang) => {
 
     if(age && (!Number.parseInt(age) || Number.parseInt(age) < 0)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
     
+    if(job && !validator.isNameValid(job)) return { isAccepted: false, message: 'Invalid job formate', field: 'job' }
+
+    if(sportType && !validator.isNameValid(sportType)) return { isAccepted: false, message: 'Invalid sport type formate', field: 'sportType' }
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
 

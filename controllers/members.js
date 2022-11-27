@@ -32,7 +32,20 @@ const addMember = async (request, response, next) => {
             })
         }
 
-        let { clubId, staffId, name, email, phone, countryCode, membership, gender, age } = request.body
+        let { 
+            clubId, 
+            staffId, 
+            name, 
+            email, 
+            phone, 
+            countryCode, 
+            membership, 
+            gender, 
+            age,
+            address,
+            job,
+            sportType
+        } = request.body
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -103,7 +116,21 @@ const addMember = async (request, response, next) => {
             membership = clubMembersTotal + 1
         }
 
-        let memberData = { clubId, staffId, name, email, phone, countryCode, membership, gender }
+        let memberData = { 
+            clubId, 
+            staffId, 
+            name, 
+            email, 
+            phone, 
+            countryCode, 
+            membership, 
+            gender, 
+            address, 
+        }
+
+        
+        memberData.job = job ? job.toLowerCase() : undefined
+        memberData.sportType = sportType ? sportType.toLowerCase() : undefined
 
         if(age) {
             memberData.birthYear = new Date(moment().subtract(age, 'years')).getFullYear()

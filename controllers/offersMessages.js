@@ -6,6 +6,35 @@ const translations = require('../i18n/index')
 const { sendOfferMessage } = require('../APIs/whatsapp/send-offer-message')
 const config = require('../config/config')
 
+
+const sendOfferBulk = async (message, members, club) => {
+
+        const status = []
+
+        for(let i=0;i<members.length;i++) {
+            const member = members[i]
+
+            const phone = member.countryCode + member.phone
+            const languageCode = 'en'
+            const clubImage = club.image
+            const clubName = club.name
+            const memberName = member.name
+
+            const messageResponse = await sendOfferMessage(
+                phone,
+                languageCode,
+                clubImage,
+                clubName,
+                memberName,
+                message
+            )
+
+            status.push({ ...member, sent: messageResponse.isSent })
+        }
+
+        return status
+}
+
 const getClubOffersMessages = async (request, response) => {
 
     try {
@@ -263,10 +292,55 @@ const sendOfferMessageToMember = async (request, response) => {
     }
 }
 
+const sendOfferMessageToMembers = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { members, message } = request.body
+
+        const dataValidation = validator.sendOfferMessageToMembers(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const club = await ClubModel.findById(clubId)
+
+        if(!club.image) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Club has no image to send offer with',
+                field: 'clubId'
+            })
+        }
+        
+        const status = await sendOfferBulk(message, members, club)
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Done sending offers',
+            status
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getClubOffersMessages, 
     addOfferMessage, 
     deleteOfferMessage, 
     updateOfferMessage,
-    sendOfferMessageToMember
+    sendOfferMessageToMember,
+    sendOfferMessageToMembers
 }

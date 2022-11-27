@@ -1492,6 +1492,14 @@ const getRegistrationsAndAttendancesByMember = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'freezeregistrations',
+                    localField: '_id',
+                    foreignField: 'registrationId',
+                    as: 'freezedRegistrations'
+                }
+            },
+            {
                 $sort: { createdAt: -1 }
             }
         ])

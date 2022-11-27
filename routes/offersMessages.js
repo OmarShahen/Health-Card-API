@@ -36,4 +36,11 @@ router.post(
     (request, response) => offersMessagesController.sendOfferMessageToMember(request, response)
 )
 
+router.post(
+    '/offers-messages/clubs/:clubId/members/send',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId,
+    (request, response) => offersMessagesController.sendOfferMessageToMembers(request, response)
+)
+
 module.exports = router

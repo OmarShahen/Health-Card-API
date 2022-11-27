@@ -41,4 +41,33 @@ const updateOfferMessage = (offerMessage, lang) => {
 
 }
 
-module.exports = { addOfferMessage, deleteOfferMessage, updateOfferMessage }
+const sendOfferMessageToMembers = (data) => {
+
+    const { members, message } = data
+
+    if(!message) return { isAccepted: false, message: 'Message is required', field: 'message' }
+    
+    if(!Array.isArray(members)) return { isAccepted: false, message: 'Members must be a list', field: 'members' }
+
+    for(let i=0;i<members.length;i++) {
+
+        const member = members[i]
+
+        if(!member.countryCode) return { isAccepted: false, message: 'Country code in member is missing', field: 'members.countryCode' }
+
+        if(!utils.isCountryCodeValid(member.countryCode)) return { isAccepted: false, message: 'Country code is invalid', field: 'members.countryCode' }
+
+        if(!member.phone) return { isAccepted: false, message: 'Phone in member is missing', field: 'members.phone' }
+
+        if(!utils.isPhoneValid(member.phone)) return { isAccepted: false, message: 'Invalid phone formate', field: 'members.phone' }
+
+        if(!member.name) return { isAccepted: false, message: 'Name in member is missing', field: 'members.name' }
+
+        if(!utils.isNameValid(member.name)) return { isAccepted: false, message: 'Invalid name formate', field: 'members.name' }
+        
+    }
+    
+    return { isAccepted: true, message: 'data is valid', data }
+}
+
+module.exports = { addOfferMessage, deleteOfferMessage, updateOfferMessage, sendOfferMessageToMembers }
