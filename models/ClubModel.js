@@ -19,7 +19,11 @@ const ClubSchema = new mongoose.Schema({
         latitude: { type: Number },
         longitude: { type: Number }
     },
-    isActive: { type: Boolean, default: true }
+    isActive: { type: Boolean, default: true },
+
+    whatsapp: {
+        offersLimit: { type: Number, default: 100 }
+    }
 
 }, { timestamps: true })
 

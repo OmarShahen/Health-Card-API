@@ -3,15 +3,15 @@ const translations = require('../i18n/index')
 
 const addOfferMessage = (offerMessage, lang) => {
 
-    const { clubId, name, message } = offerMessage
-
-    if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
-
-    if(!utils.isObjectId(clubId)) return { isAccepted: false, message: 'invalid club Id formate', field: 'clubId' }
+    const { name, message, languageCode } = offerMessage
 
     if(!name) return { isAccepted: false, message: translations[lang]['Offer message name is required'], field: 'name' }
 
     if(!message) return { isAccepted: false, message: translations[lang]['Offer message body is required'], field: 'message' }
+
+    if(!languageCode) return { isAccepted: false, message: translations[lang]['Language code is required'], field: 'languageCode' }
+
+    if(!utils.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: translations[lang]['Invalid language code'], field: 'languageCode' }
 
     return { isAccepted: true, message: 'data is valid', data: offerMessage }
 
@@ -31,11 +31,15 @@ const deleteOfferMessage = (offerMessage) => {
 
 const updateOfferMessage = (offerMessage, lang) => {
 
-    const { name, message } = offerMessage
+    const { name, message, languageCode } = offerMessage
 
     if(!name) return { isAccepted: false, message: translations[lang]['Offer message name is required'], field: 'name' }
 
     if(!message) return { isAccepted: false, message: translations[lang]['Offer message body is required'], field: 'message' }
+    
+    if(!languageCode) return { isAccepted: false, message: translations[lang]['Language code is required'], field: 'languageCode' }
+
+    if(!utils.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: translations[lang]['Invalid language code'], field: 'languageCode' }
 
     return { isAccepted: true, message: 'data is valid', data: offerMessage }
 
@@ -43,7 +47,12 @@ const updateOfferMessage = (offerMessage, lang) => {
 
 const sendOfferMessageToMembers = (data) => {
 
-    const { members, message } = data
+    const { members, message, languageCode } = data
+
+    if(!languageCode) return { isAccepted: false, message: 'Language code is required', field: 'languageCode' }
+
+    if(!utils.isWhatsappLanguageValid(languageCode)) return { isAccepted: false, message: 'Invalid language code', field: 'languageCode' }
+
 
     if(!message) return { isAccepted: false, message: 'Message is required', field: 'message' }
     

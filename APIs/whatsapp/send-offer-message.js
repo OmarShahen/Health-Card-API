@@ -44,7 +44,7 @@ const sendOfferMessage = async (phone, languageCode, clubImage, clubName, member
                         },
                         {
                             type: "text",
-                            text: message
+                            text: `${message}`
                         }
                     ]
                 }

@@ -39,6 +39,7 @@ app.use('/api/v1', require('./routes/offersMessages'))
 app.use('/api/v1', require('./routes/news-letter'))
 app.use('/api/v1', require('./routes/request-demo'))
 app.use('/api/v1', require('./routes/sports'))
+app.use('/api/v1', require('./routes/payments'))
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))

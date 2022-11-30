@@ -11,8 +11,9 @@ router.get(
 )
 
 router.post(
-    '/offers-messages',
+    '/offers-messages/clubs/:clubId',
     tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId,
     (request, response) =>  offersMessagesController.addOfferMessage(request, response)  
 )
 

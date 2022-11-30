@@ -6,6 +6,7 @@ const PackageModel = require('../models/PackageModel')
 const MemberModel = require('../models/MemberModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const OfferMessageModel = require('../models/OfferMessageModel')
+const PaymentModel = require('../models/paymentModel')
 
 const verifyClubId = async (request, response, next) => {
 
@@ -238,6 +239,41 @@ const verifyOfferMessageId = async (request, response, next) => {
     }
 }
 
+const verifyPaymentId = async (request, response, next) => {
+
+    try {
+
+        const { paymentId } = request.params
+
+        if(!utils.isObjectId(paymentId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid payment Id formate',
+                field: 'paymentId'
+            })
+        }
+
+        const payment = await PaymentModel.findById(paymentId)
+
+        if(!payment) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'payment Id does not exist',
+                field: 'paymentId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 
 
@@ -249,5 +285,6 @@ module.exports = {
     verifyPackageId, 
     verifyMemberId,
     verifyChainOwnerId,
-    verifyOfferMessageId
+    verifyOfferMessageId,
+    verifyPaymentId
 }

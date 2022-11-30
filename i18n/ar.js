@@ -113,7 +113,11 @@ module.exports = {
     "Deleted note successfully": "تم ازالة الملحوظة بنجاح",
     "Added to blacklist successfully": "تم الاضافة الي المحظورين بنجاح",
     "Removed from blacklist successfully": "تم الازالة من المحظورين بنجاح",
-    "Note message is required": "محتوي الملحوظة مطلوب"
+    "Note message is required": "محتوي الملحوظة مطلوب",
+    "Language code is required": "كود اللغة مطلوب",
+    "Invalid language code": "كود اللغة غير صالح",
+    "Number of members is morethan your allowed offers messages": "عدد الاعضاء اكثر من العدد المتاح من رسائل العروض",
+    "Passed your allowed limit": "تم تخطي العدد المتاح من رسائل العروض"
 }
 
 

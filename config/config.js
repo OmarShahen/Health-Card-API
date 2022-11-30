@@ -18,6 +18,7 @@ module.exports = {
         CLUB_ADMIN: 'CLUB-ADMIN',
         OWNER: 'OWNER'
     },
+    CLUB_PAYMENT_TYPES: ['EARN', 'DEDUCT'],
     EXPIRATION_PERIODS: ['day', 'days', 'week', 'weeks', 'month', 'months', 'year'],
     MAX_ATTENDANCE: 1095,
     WEEK_DAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],

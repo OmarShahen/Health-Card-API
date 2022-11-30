@@ -11,7 +11,7 @@ router.post(
 
 router.get(
     '/clubs',
-    tokenMiddleware.adminPermission,
+    tokenMiddleware.adminAndOwnerPermission,
     (request, response) => clubsController.getClubs(request, response)
     )
 

@@ -115,5 +115,9 @@ module.exports = {
     "Deleted note successfully": "Deleted note successfully",
     "Added to blacklist successfully": "Added to blacklist successfully",
     "Removed from blacklist successfully": "Removed from blacklist successfully",
-    "Note message is required": "Note message is required"
+    "Note message is required": "Note message is required",
+    "Language code is required": "Language code is required",
+    "Invalid language code": "Invalid language code",
+    "Number of members is morethan your allowed offers messages": "Number of members is morethan your allowed offers messages",
+    "Passed your allowed limit": "Passed your allowed limit"
 }

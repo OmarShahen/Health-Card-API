@@ -7,7 +7,7 @@ const { sendOfferMessage } = require('../APIs/whatsapp/send-offer-message')
 const config = require('../config/config')
 
 
-const sendOfferBulk = async (message, members, club) => {
+const sendOfferBulk = async (message, members, club, languageCode) => {
 
         const status = []
 
@@ -15,7 +15,6 @@ const sendOfferBulk = async (message, members, club) => {
             const member = members[i]
 
             const phone = member.countryCode + member.phone
-            const languageCode = 'en'
             const clubImage = club.image
             const clubName = club.name
             const memberName = member.name
@@ -76,17 +75,8 @@ const addOfferMessage = async (request, response) => {
             })
         }
 
-        const { clubId, name, message } = request.body
-
-        const club = await ClubModel.findById(clubId)
-
-        if(!club) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'club Id is not registered',
-                field: 'clubId'
-            })
-        }
+        const { clubId } = request.params
+        const { name, message, languageCode } = request.body
 
         const offersMessagesNameList = await OfferMessageModel.find({ clubId, name })
 
@@ -98,7 +88,7 @@ const addOfferMessage = async (request, response) => {
             })
         }
 
-        const newOfferMessageData = { clubId, name, message }
+        const newOfferMessageData = { clubId, name, message, language: languageCode }
 
         const offerMessageObj = new OfferMessageModel(newOfferMessageData)
         const newOfferMessage = await offerMessageObj.save()
@@ -171,7 +161,7 @@ const updateOfferMessage = async (request, response) => {
             })
         }
 
-        const { name, message } = request.body
+        const { name, message, languageCode } = request.body
 
         const offerMessage = await OfferMessageModel.findById(offerMessageId)
 
@@ -198,7 +188,7 @@ const updateOfferMessage = async (request, response) => {
         }
 
         const updatedOfferMessage = await OfferMessageModel
-        .findByIdAndUpdate(offerMessage._id, { name, message }, { new: true })
+        .findByIdAndUpdate(offerMessage._id, { name, message, language: languageCode }, { new: true })
 
         return response.status(200).json({
             accepted: true,
@@ -259,6 +249,14 @@ const sendOfferMessageToMember = async (request, response) => {
             })
         }
 
+        if(club.whatsapp.offersLimit <= 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Passed your allowed limit'],
+                field: 'clubId'
+            })
+        }
+
         const memberPhone = member.countryCode + member.phone
 
         const messageResponse = await sendOfferMessage(
@@ -277,9 +275,13 @@ const sendOfferMessageToMember = async (request, response) => {
             })
         }
 
+        const updateClub = await ClubModel
+        .findByIdAndUpdate(club._id, { 'whatsapp.offersLimit': club.whatsapp.offersLimit - 1 }, { new: true })
+
         return response.status(200).json({
             accepted: true,
             message: translations[lang]['Offer message is sent successfully'],
+            updateClub
         })
 
     } catch(error) {
@@ -296,8 +298,9 @@ const sendOfferMessageToMembers = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { clubId } = request.params
-        const { members, message } = request.body
+        const { members, message, languageCode } = request.body
 
         const dataValidation = validator.sendOfferMessageToMembers(request.body)
         if(!dataValidation.isAccepted) {
@@ -313,16 +316,33 @@ const sendOfferMessageToMembers = async (request, response) => {
         if(!club.image) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Club has no image to send offer with',
+                message: translations[lang]['Club has no image to send offer with'],
+                field: 'clubId'
+            })
+        }
+
+        if(club.whatsapp.offersLimit < members.length) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Number of members is morethan your allowed offers messages'],
                 field: 'clubId'
             })
         }
         
-        const status = await sendOfferBulk(message, members, club)
+        const status = await sendOfferBulk(message, members, club, languageCode)
+
+        const receivedMembers = status.filter(member => member.sent)
+        const NUMBER_OF_RECEIVED_MEMBERS = receivedMembers.length
+        const CLUB_OFFERS_LIMIT = club.whatsapp.offersLimit
+        const NEW_LIMIT = CLUB_OFFERS_LIMIT - NUMBER_OF_RECEIVED_MEMBERS
+
+        const updateClub = await ClubModel
+        .findByIdAndUpdate(club._id, { 'whatsapp.offersLimit': NEW_LIMIT }, { new: true })        
 
         return response.status(200).json({
             accepted: true,
-            message: 'Done sending offers',
+            message: translations[lang]['Offer message is sent successfully'],
+            updateClub,
             status
         })
 
