@@ -55,7 +55,7 @@ const adminLogin = async (request, response) => {
             createdAt: adminsMailList[0].createdAt
         }
 
-        admin.user = 'ADMIN'
+        admin.role = 'APP-ADMIN'
 
         const token = jwt.sign(admin, config.SECRET_KEY, { expiresIn: '30d' })
 

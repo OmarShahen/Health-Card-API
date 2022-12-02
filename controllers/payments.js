@@ -1,6 +1,7 @@
 const PaymentModel = require('../models/paymentModel')
 const validator = require('../validations/payments')
 const config = require('../config/config')
+const utils = require('../utils/utils')
 
 const addPayment = async (request, response) => {
 
@@ -47,15 +48,19 @@ const getPayments = async (request, response) => {
         const { clubId } = request.params
         const { type } = request.query
 
+        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
         let payments = []
 
         if(type == 'EARN' || type == 'DEDUCT') {
+
+            searchQuery.type = type
             payments = await PaymentModel
-            .find({ clubId, type })
+            .find(searchQuery)
             .sort({ createdAt: -1 })
         } else {
             payments = await PaymentModel
-            .find({ clubId }) 
+            .find(searchQuery) 
             .sort({ createdAt: -1 })
         }
 

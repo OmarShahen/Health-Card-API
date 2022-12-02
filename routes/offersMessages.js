@@ -30,6 +30,7 @@ router.put(
     (request, response) => offersMessagesController.updateOfferMessage(request, response)
 )
 
+
 router.post(
     '/offers-messages/members/:memberId/send',
     tokenMiddleware.adminAndManagmentPermission,

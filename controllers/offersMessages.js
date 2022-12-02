@@ -356,11 +356,12 @@ const sendOfferMessageToMembers = async (request, response) => {
     }
 }
 
+
 module.exports = { 
     getClubOffersMessages, 
     addOfferMessage, 
     deleteOfferMessage, 
     updateOfferMessage,
     sendOfferMessageToMember,
-    sendOfferMessageToMembers
+    sendOfferMessageToMembers,
 }

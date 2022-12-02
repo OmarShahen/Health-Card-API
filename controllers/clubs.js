@@ -656,6 +656,40 @@ const getAllClubData = async (request, response) => {
     }
 }
 
+const updateClubWhatsappOffersLimit = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { limit } = request.body
+
+        if(typeof limit != 'number' || limit > 100) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Limit must be a number and lessthan or equal 100',
+                field: 'limit'
+            })
+        }
+
+        const updatedClub = await ClubModel
+        .findByIdAndUpdate(clubId, { 'whatsapp.offersLimit': limit }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated new offers limit',
+            club: updatedClub
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addClub, 
@@ -668,5 +702,6 @@ module.exports = {
     deleteClubAndRelated,
     getClubMainStatsByDate,
     getAllClubData,
-    updateClubImage
+    updateClubImage,
+    updateClubWhatsappOffersLimit
 }

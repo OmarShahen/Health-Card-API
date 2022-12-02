@@ -72,4 +72,11 @@ router.patch(
     (request, response) => clubsController.updateClubImage(request, response)
 )
 
+router.patch(
+    '/clubs/:clubId/whatsapp/offers-limit',
+    tokenMiddleware.adminPermission,
+    verifyIds.verifyClubId,
+    (request, response) => clubsController.updateClubWhatsappOffersLimit(request, response)
+)
+
 module.exports = router
