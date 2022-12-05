@@ -31,4 +31,11 @@ router.put(
     (request, response) => paymentsController.updatePayment(request, response)
 )
 
+router.get(
+    '/payments/clubs/:clubId/stats',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId,
+    (request, response) => paymentsController.getClubPaymentsStats(request, response) 
+)
+
 module.exports = router

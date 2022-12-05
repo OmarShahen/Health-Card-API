@@ -47,4 +47,25 @@ const extractMembers = (registrations) => {
     return members
 }
 
-module.exports = { extractAttendances, extractStaffs, extractMembers }
+const extractMemberNotes = (members) => {
+
+    let notes = []
+
+    for(let i=0;i<members.length;i++) {
+        const member = members[i]
+
+        if(!member.notes) 
+            continue
+
+        for(let j=0;j<member.notes.length;j++) {
+            const note = member.notes[j]
+            const newNote = { ...note._doc, memberId: member._id }
+            notes.push(newNote)
+        }
+        
+    }
+
+    return notes
+}
+
+module.exports = { extractAttendances, extractStaffs, extractMembers, extractMemberNotes }

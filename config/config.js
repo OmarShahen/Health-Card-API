@@ -19,6 +19,7 @@ module.exports = {
         OWNER: 'OWNER'
     },
     CLUB_PAYMENT_TYPES: ['EARN', 'DEDUCT'],
+    CLUB_PAYMENT_CATEGORIES: ['PAYROLL', 'INVENTORY', 'MAINTENANCE', 'BILL'],
     EXPIRATION_PERIODS: ['day', 'days', 'week', 'weeks', 'month', 'months', 'year'],
     MAX_ATTENDANCE: 1095,
     WEEK_DAYS: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],

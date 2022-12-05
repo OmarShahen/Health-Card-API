@@ -17,7 +17,7 @@ const {
     calculateCompletedPackageAttendances,
     calculateGenderPercentages
 } = require('./calculations')
-const { extractAttendances, extractStaffs, extractMembers } = require('./extracts')
+const { extractAttendances, extractStaffs, extractMembers, extractMemberNotes } = require('./extracts')
 const { 
     joinStaffsWithAttendances, 
     joinMembersWithAttendances, 
@@ -40,6 +40,7 @@ const {
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
 const { distinctValues } = require('./distincts')
+const { calculateTotalPaymentsByType, calculateTotalPayments } = require('./payments')
 
 module.exports = {
     isNameValid,
@@ -77,8 +78,11 @@ module.exports = {
     extractAttendances,
     extractStaffs,
     extractMembers,
+    extractMemberNotes,
     statsQueryGenerator,
     growthDatePicker,
     joinPackages,
-    distinctValues
+    distinctValues,
+    calculateTotalPaymentsByType,
+    calculateTotalPayments
 }

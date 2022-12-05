@@ -630,20 +630,26 @@ const getAllClubData = async (request, response) => {
         const packagesPromise = PackageModel.find({ clubId })
         const registrationsPromise = RegistrationModel.find({ clubId })
         const attendancesPromise = AttendanceModel.find({ clubId })
+        const freezedRegistrationsPromise = FreezedRegistrationModel.find({ clubId })
 
-        const [members, packages, registrations, attendances] = await Promise.all([
+        const [members, packages, registrations, attendances, freezedRegistrations] = await Promise.all([
             membersPromise,
             packagesPromise,
             registrationsPromise,
-            attendancesPromise
+            attendancesPromise,
+            freezedRegistrationsPromise
         ])
+
+        const notes = utils.extractMemberNotes(members)
 
         return response.status(200).json({
             accepted: true,
             members,
+            notes,
             packages,
             registrations,
-            attendances
+            attendances,
+            freezedRegistrations
         }) 
 
     } catch(error) {

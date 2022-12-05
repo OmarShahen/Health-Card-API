@@ -1,4 +1,7 @@
+const mongoose = require('mongoose')
 const PaymentModel = require('../models/paymentModel')
+const StaffModel = require('../models/StaffModel')
+const RegistrationModel = require('../models/RegistrationModel')
 const validator = require('../validations/payments')
 const config = require('../config/config')
 const utils = require('../utils/utils')
@@ -18,9 +21,59 @@ const addPayment = async (request, response) => {
         }
 
         const { clubId } = request.params
-        const { type, description, amount, price } = request.body
+        const { type, category, staffId, staffIdPayroll, description, amount, price } = request.body
 
-        const paymentData = { clubId, type, description, amount, price }
+        const staff = await StaffModel.findById(staffId)
+
+        if(!staff) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Staff Id does not exist',
+                field: 'staffId'
+            })
+        }
+
+        if(!staff.isAccountActive) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Staff account is closed',
+                field: 'staffId'
+            })
+        }
+
+        if(category == 'PAYROLL') {
+
+            const staffPayroll = await StaffModel.findById(staffIdPayroll)
+
+            if(!staffPayroll) {
+                return response.status(404).json({
+                    accepted: false,
+                    message: 'Staff Id does not exist',
+                    field: 'staffIdPayroll'
+                })
+            }
+
+            if(!staffPayroll.isAccountActive) {
+                return response.status(404).json({
+                    accepted: false,
+                    message: 'Staff account is closed',
+                    field: 'staffIdPayroll'
+                })
+            }
+        }
+
+
+        const paymentData = { 
+            clubId, 
+            type, 
+            category, 
+            staffId, 
+            staffIdPayroll, 
+            description, 
+            amount, 
+            price, 
+            total: price * amount 
+        }
 
         const paymentObj = new PaymentModel(paymentData)
         const newPayment = await paymentObj.save()
@@ -46,23 +99,42 @@ const getPayments = async (request, response) => {
     try {
 
         const { clubId } = request.params
-        const { type } = request.query
+        const { category } = request.query
 
         const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        let payments = []
-
-        if(type == 'EARN' || type == 'DEDUCT') {
-
-            searchQuery.type = type
-            payments = await PaymentModel
-            .find(searchQuery)
-            .sort({ createdAt: -1 })
-        } else {
-            payments = await PaymentModel
-            .find(searchQuery) 
-            .sort({ createdAt: -1 })
+        if(category) {
+            searchQuery.category = category   
         }
+        
+        const payments = await PaymentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staffPayroll.password': 0
+                }
+            }
+        ])
+
+        payments.forEach(payment => {
+            payment.staff = payment.staff[0]
+        })
 
         return response.status(200).json({
             accepted: true,
@@ -140,4 +212,108 @@ const updatePayment = async (request, response) => {
 
 }
 
-module.exports = { addPayment, getPayments, deletePayment, updatePayment }
+const getClubPaymentsStats = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const payments = await PaymentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                }
+            }
+        ])
+
+        const registrations = await RegistrationModel.find(searchQuery)
+        
+
+        searchQuery.type = 'EARN'
+        const earningsStats = await PaymentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$category',
+                    count: { $sum: '$total' }
+                }
+            },
+            {
+                $sort: {
+                    count: -1
+                }
+            }
+        ])
+
+        searchQuery.type = 'DEDUCT'
+        const deductionsStats = await PaymentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$category',
+                    count: { $sum: '$total' }
+                }
+            },
+            {
+                $sort: {
+                    count: -1
+                }
+            }
+        ])
+
+        payments.forEach(payment => {
+            payment.staff = payment.staff[0]
+        })
+
+
+        const TOTAL_REGISTRATIONS = utils.calculateRegistrationsTotalEarnings(registrations)
+        const TOTAL_EARNINGS = utils.calculateTotalPaymentsByType(payments, 'EARN')
+        const TOTAL_DEDUCTIONS = utils.calculateTotalPaymentsByType(payments, 'DEDUCT')
+        const NET_PROFIT = (TOTAL_REGISTRATIONS + TOTAL_EARNINGS) - TOTAL_DEDUCTIONS
+
+        earningsStats.push({ _id: 'Registrations', count: TOTAL_REGISTRATIONS })
+
+        return response.status(200).json({
+            accepted: true,
+            deductionsStats,
+            earningsStats,
+            netProfit: NET_PROFIT,
+            totalRegistrations: TOTAL_REGISTRATIONS,
+            totalEarnings: TOTAL_EARNINGS,
+            totalDeductions: TOTAL_DEDUCTIONS,
+            payments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { addPayment, getPayments, deletePayment, updatePayment, getClubPaymentsStats }
