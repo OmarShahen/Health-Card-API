@@ -279,12 +279,12 @@ const getClubStatsByDate = async (request, response) => {
         const totalRegistrationsEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
         const totalMembers = members.length
-        const totalEarnings = utils.calculateTotalPaymentsByType(payments, 'EARN') + totalRegistrationsEarnings
-        const totalDeductions = utils.calculateTotalPaymentsByType(payments, 'DEDUCT')
-        const netProfit = totalEarnings - totalDeductions
+        const totalEarnings = totalRegistrationsEarnings
+        //const totalDeductions = utils.calculateTotalPaymentsByType(payments, 'DEDUCT')
+        //const netProfit = totalEarnings - totalDeductions
 
-        const allPayments = [...utils.formateRegistrationsToPayments(registrations), ...payments]
-        const sortedPayments = allPayments.sort((pay1, pay2) => pay2.createdAt - pay1.createdAt)
+        //const allPayments = [...utils.formateRegistrationsToPayments(registrations), ...payments]
+        //const sortedPayments = allPayments.sort((pay1, pay2) => pay2.createdAt - pay1.createdAt)
 
 
         registrationsGrowthStats
@@ -297,9 +297,10 @@ const getClubStatsByDate = async (request, response) => {
             totalAttendances,
             totalMembers,
             totalEarnings,
-            totalDeductions,
-            netProfit,
-            payments: sortedPayments         
+            //totalDeductions,
+            //netProfit,
+            registrations,
+            //payments: sortedPayments         
         })
 
     } catch(error) {
