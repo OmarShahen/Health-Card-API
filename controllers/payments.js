@@ -149,9 +149,9 @@ const addBillPayment = async (request, response) => {
         }
 
         const { clubId } = request.params
-        const { staffId, paid, imageURL } = request.body
+        const { description, staffId, paid, imageURL } = request.body
 
-        const billPayment = { clubId, type: 'DEDUCT', category: 'BILL', staffId, price: paid, total: paid, imageURL }
+        const billPayment = { clubId, description, type: 'DEDUCT', category: 'BILL', staffId, price: paid, total: paid, imageURL }
         
         const paymentObj = new PaymentModel(billPayment)
         const newPayment = await paymentObj.save()
