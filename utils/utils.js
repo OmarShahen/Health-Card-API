@@ -35,7 +35,8 @@ const {
     joinOfflineCancelledAttendancesByOnlineRegistrations,
     joinOfflineFreezedRegistrationsByOnlineMembers,
     joinOfflineFreezedRegistrationsByOnlineRegistrations,
-    joinRegistrationsByPackages
+    joinRegistrationsByPackages,
+    formateRegistrationsToPayments
 } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
@@ -84,5 +85,6 @@ module.exports = {
     joinPackages,
     distinctValues,
     calculateTotalPaymentsByType,
-    calculateTotalPayments
+    calculateTotalPayments,
+    formateRegistrationsToPayments
 }

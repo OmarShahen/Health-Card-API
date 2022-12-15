@@ -9,6 +9,7 @@ const MemberModel = require('../models/MemberModel')
 const CancelledAttendanceModel = require('../models/CancelledAttendanceModel')
 const CancelledRegistrationModel = require('../models/CancelledRegistrationModel')
 const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
+const PaymentModel = require('../models/paymentModel')
 const PackageModel = require('../models/PackageModel')
 const StaffModel = require('../models/StaffModel')
 const clubValidation = require('../validations/clubs')
@@ -251,13 +252,16 @@ const getClubStatsByDate = async (request, response) => {
             }
         ])
 
+        const paymentsPromise = PaymentModel.find(searchQuery)
 
-        const [registrations, attendances, members, registrationsGrowthStats, attendancesStatsHour] = await Promise.all([
+
+        const [registrations, attendances, members, registrationsGrowthStats, attendancesStatsHour, payments] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
             membersPromise,
             registrationsGrowthStatsPromise,
-            attendancesStatsHourPromise
+            attendancesStatsHourPromise,
+            paymentsPromise
         ])
 
         registrations.forEach(registration => {
@@ -272,9 +276,15 @@ const getClubStatsByDate = async (request, response) => {
 
 
         const totalRegistrations = registrations.length
-        const totalEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+        const totalRegistrationsEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
         const totalAttendances = attendances.length
         const totalMembers = members.length
+        const totalEarnings = utils.calculateTotalPaymentsByType(payments, 'EARN') + totalRegistrationsEarnings
+        const totalDeductions = utils.calculateTotalPaymentsByType(payments, 'DEDUCT')
+        const netProfit = totalEarnings - totalDeductions
+
+        const allPayments = [...utils.formateRegistrationsToPayments(registrations), ...payments]
+        const sortedPayments = allPayments.sort((pay1, pay2) => pay2.createdAt - pay1.createdAt)
 
 
         registrationsGrowthStats
@@ -287,7 +297,9 @@ const getClubStatsByDate = async (request, response) => {
             totalAttendances,
             totalMembers,
             totalEarnings,
-            registrations,
+            totalDeductions,
+            netProfit,
+            payments: sortedPayments         
         })
 
     } catch(error) {

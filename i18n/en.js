@@ -119,5 +119,20 @@ module.exports = {
     "Language code is required": "Language code is required",
     "Invalid language code": "Invalid language code",
     "Number of members is morethan your allowed offers messages": "Number of members is morethan your allowed offers messages",
-    "Passed your allowed limit": "Passed your allowed limit"
+    "Passed your allowed limit": "Passed your allowed limit",
+    "Payment type is required": "Payment type is required",
+    "Invalid payment type": "Invalid payment type",
+    "Payment category is required": "Payment category is required",
+    "Invalid category type": "Invalid category type",
+    "Payment description is required": "Payment description is required",
+    "Payment amount is required": "Payment amount is required",
+    "Payment amount is invalid": "Payment amount is invalid",
+    "Payment price is required": "Payment price is required",
+    "Payment price is invalid": "Payment price is invalid",
+    "Only deduct payment is valid in this category": "Only deduct payment is valid in this category",
+    "Amount must be equal to 1 in this category": "Amount must be equal to 1 in this category",
+    "Payment is recorded successfully": "Payment is recorded successfully",
+    "Deleted payment successfully": "Deleted payment successfully",
+    "Updated payment successfully": "Updated payment successfully",
+    "Payroll payment is recorded successfully": "Payroll payment is recorded successfully"
 }

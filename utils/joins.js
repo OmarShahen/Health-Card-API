@@ -300,6 +300,27 @@ const joinRegistrationsByPackages = (registrations, packages) => {
     return registrations
 }
 
+const formateRegistrationsToPayments = (registrations) => {
+
+    let payments = []
+
+    for(let i=0;i<registrations.length;i++) {
+        const registration = registrations[i]
+        const payment = { 
+            type: 'EARN', 
+            category: 'REGISTRATIONS', 
+            price: registration.paid,
+            amount: 1,
+            total: registration.paid,
+            createdAt: registration.createdAt
+        }
+
+        payments.push(payment)
+    }
+
+    return payments
+}
+
 module.exports = { 
     joinStaffsWithAttendances, 
     joinMembersWithAttendances, 
@@ -317,5 +338,6 @@ module.exports = {
     joinOfflineCancelledAttendancesByOnlineRegistrations,
     joinOfflineFreezedRegistrationsByOnlineMembers,
     joinOfflineFreezedRegistrationsByOnlineRegistrations,
-    joinRegistrationsByPackages
+    joinRegistrationsByPackages,
+    formateRegistrationsToPayments
 }

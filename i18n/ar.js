@@ -117,7 +117,22 @@ module.exports = {
     "Language code is required": "كود اللغة مطلوب",
     "Invalid language code": "كود اللغة غير صالح",
     "Number of members is morethan your allowed offers messages": "عدد الاعضاء اكثر من العدد المتاح من رسائل العروض",
-    "Passed your allowed limit": "تم تخطي العدد المتاح من رسائل العروض"
+    "Passed your allowed limit": "تم تخطي العدد المتاح من رسائل العروض",
+    "Payment type is required": "نوع الدفع مطلوب",
+    "Invalid payment type": "نوع الدفع غير صالح",
+    "Payment category is required": "فئة الدفع مطلوبة",
+    "Invalid category type": "الفئة غير صالحة",
+    "Payment description is required": "وصف الدفع مطلوب",
+    "Payment amount is required": "كمية الدفع مطلوبة",
+    "Payment amount is invalid": "كمية الدفع غير صالحة",
+    "Payment price is required": "سعر الدفع مطلوب",
+    "Payment price is invalid": "سعر الدفع غير صالح",
+    "Only deduct payment is valid in this category": "الصرف متاح فقط في هذه الفئة من الدفع",
+    "Amount must be equal to 1 in this category": "الكمية يجب ان تكون 1 في هذه الفئة",
+    "Payment is recorded successfully": "تم تسجيل الدفع بنجاح",
+    "Deleted payment successfully": "تم مسح الدفع بنجاح",
+    "Updated payment successfully": "تم تعديل الدفع بنجاح",
+    "Payroll payment is recorded successfully": "تم تسجيل الراتب بنجاح"
 }
 
 

@@ -8,10 +8,11 @@ const PaymentSchema = new mongoose.Schema({
     staffIdPayroll: { type: mongoose.Types.ObjectId },
     type: { type: String, required: true, enum: ['EARN', 'DEDUCT'] },
     category: { type: String, required: true, enum: config.CLUB_PAYMENT_CATEGORIES },
-    description: { type: String, required: true },
+    description: { type: String },
     amount: { type: Number, required: true, default: 1 },
     price: { type: Number, required: true },
     total: { type: Number, required: true },
+    imageURL: { type: String },
     
 }, { timestamps: true })
 

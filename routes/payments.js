@@ -10,6 +10,20 @@ router.post(
     (request, response) => paymentsController.addPayment(request, response)
 )
 
+router.post(
+    '/payments/clubs/:clubId/payrolls',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId,
+    (request, response) => paymentsController.addPayrollPayment(request, response)
+)
+
+router.post(
+    '/payments/clubs/:clubId/bills',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyClubId,
+    (request, response) => paymentsController.addBillPayment(request, response)
+)
+
 router.get(
     '/payments/clubs/:clubId',
     tokenMiddleware.appUsersPermission,
@@ -36,6 +50,20 @@ router.get(
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyClubId,
     (request, response) => paymentsController.getClubPaymentsStats(request, response) 
+)
+
+router.get(
+    '/payments/clubs/:clubId/categories/:category',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId,
+    (request, response) => paymentsController.getClubCategoryPaymentsStats(request, response)
+)
+
+router.get(
+    '/payments/clubs/:clubId/payrolls',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId,
+    (request, response) => paymentsController.getClubPayrolls(request, response)
 )
 
 module.exports = router
