@@ -158,7 +158,7 @@ const addBillPayment = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Bill payment is recorded succesfully',
+            message: translations[lang]['Bill payment is recorded succesfully'],
             payment: newPayment
         })
 

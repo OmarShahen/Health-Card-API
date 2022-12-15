@@ -134,5 +134,7 @@ module.exports = {
     "Payment is recorded successfully": "Payment is recorded successfully",
     "Deleted payment successfully": "Deleted payment successfully",
     "Updated payment successfully": "Updated payment successfully",
-    "Payroll payment is recorded successfully": "Payroll payment is recorded successfully"
+    "Payroll payment is recorded successfully": "Payroll payment is recorded successfully",
+    "Bill payment is recorded succesfully": "Bill payment is recorded succesfully",
+    "Bill image formate is invalid": "Bill image formate is invalid"
 }

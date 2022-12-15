@@ -41,7 +41,7 @@ const addBillPayment = (paymentData, lang) => {
 
     if(typeof paid != 'number' || paid < 0) return { isAccepted: false, message: translations[lang]['Payment price is invalid'], field: 'paid' }
 
-    if(imageURL && typeof imageURL != 'string') return { isAccepted: false, message: 'Bill image is required', field: 'imageURL' }
+    if(imageURL && typeof imageURL != 'string') return { isAccepted: false, message: translations[lang]['Bill image formate is invalid'], field: 'imageURL' }
 
     return { isAccepted: true, message: 'data is valid', data: paymentData }
 }

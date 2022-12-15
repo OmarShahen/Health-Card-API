@@ -132,7 +132,9 @@ module.exports = {
     "Payment is recorded successfully": "تم تسجيل الدفع بنجاح",
     "Deleted payment successfully": "تم مسح الدفع بنجاح",
     "Updated payment successfully": "تم تعديل الدفع بنجاح",
-    "Payroll payment is recorded successfully": "تم تسجيل الراتب بنجاح"
+    "Payroll payment is recorded successfully": "تم تسجيل الراتب بنجاح",
+    "Bill payment is recorded succesfully": "تم تسجيل الفاتوره بنجاح",
+    "Bill image formate is invalid": "صيغة صورة الفاتورة غير صالحة"
 }
 
 
