@@ -71,6 +71,14 @@ router.get(
 router.patch(
     '/staffs/:staffId/role', 
     verifyIds.verifyStaffId, 
-    (request, response) => staffsController.updateStaffRole(request, response))
+    (request, response) => staffsController.updateStaffRole(request, response)
+)
+
+router.get(
+    '/staffs/:staffId/all-payments',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyStaffId,
+    (request, response) => staffsController.getStaffAllPayments(request, response)
+)
 
 module.exports = router

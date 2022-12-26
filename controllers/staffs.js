@@ -5,6 +5,8 @@ const statsValidation = require('../validations/stats')
 const ClubModel = require('../models/ClubModel')
 const StaffModel = require('../models/StaffModel')
 const RegistrationModel = require('../models/RegistrationModel')
+const PaymentModel = require('../models/paymentModel')
+const InstallmentModel = require('../models/InstallmentModel')
 const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
 const CancelledAttendancesModel = require('../models/CancelledAttendanceModel')
@@ -801,6 +803,53 @@ const updateStaffRole = async (request, response) => {
     }
 }
 
+const getStaffAllPayments = async (request, response) => {
+
+    try {
+
+        const { staffId } = request.params
+
+        const registrationSearchQuery = utils.statsQueryGenerator('staffId', staffId, request.query)
+        registrationSearchQuery.searchQuery.$or = [{ isInstallment: false }, { isInstallment: { $exists: false } }]
+
+        const paymentsSearchQuery = utils.statsQueryGenerator('staffId', staffId, request.query)
+        paymentsSearchQuery.searchQuery.type = 'EARN'
+
+        const installmentsSearchQuery = utils.statsQueryGenerator('staffId', staffId, request.query)
+
+        const registrationsPromise = RegistrationModel.find(registrationSearchQuery.searchQuery)
+        const installmentsPromise = InstallmentModel.find(installmentsSearchQuery.searchQuery)
+        const paymentsPromise = PaymentModel.find(paymentsSearchQuery.searchQuery)
+
+        const [registrations, installments, payments] = await Promise.all([
+            registrationsPromise,
+            installmentsPromise,
+            paymentsPromise
+        ])
+
+        let allPayments = [
+            ...payments, 
+            ...utils.formateRegistrationsToPayments(registrations), 
+            ...utils.formateInstallmentsToPayments(installments)
+        ]
+
+        allPayments = allPayments.sort((pay1, pay2) => pay2.createdAt - pay1.createdAt)
+
+        return response.status(200).json({
+            accepted: true,
+            payments: allPayments
+        })
+        
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addClubAdmin, 
     addStaff, 
@@ -812,5 +861,6 @@ module.exports = {
     deleteStaffAndRelated,
     getStaffStatsByDate,
     getStaffsByOwner,
-    updateStaffRole
+    updateStaffRole,
+    getStaffAllPayments
  }

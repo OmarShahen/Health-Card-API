@@ -15,7 +15,9 @@ const {
     calculateTotalAttendanceByDate, 
     calculatePackagePercentage,
     calculateCompletedPackageAttendances,
-    calculateGenderPercentages
+    calculateGenderPercentages,
+    calculateTotalByKey,
+    calculateAndJoinStaffsPayments
 } = require('./calculations')
 const { extractAttendances, extractStaffs, extractMembers, extractMemberNotes } = require('./extracts')
 const { 
@@ -36,12 +38,14 @@ const {
     joinOfflineFreezedRegistrationsByOnlineMembers,
     joinOfflineFreezedRegistrationsByOnlineRegistrations,
     joinRegistrationsByPackages,
-    formateRegistrationsToPayments
+    formateRegistrationsToPayments,
+    formateInstallmentsToPayments,
+    joinStaffIdsWithStaffObjects
 } = require('./joins')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
-const { distinctValues } = require('./distincts')
-const { calculateTotalPaymentsByType, calculateTotalPayments } = require('./payments')
+const { distinctValues, getUniqueIds, getUniqueSuppliersFromPayments } = require('./distincts')
+const { calculateTotalPaymentsByType, calculateTotalPayments, calculateTotalAmountByType } = require('./payments')
 
 module.exports = {
     isNameValid,
@@ -86,5 +90,12 @@ module.exports = {
     distinctValues,
     calculateTotalPaymentsByType,
     calculateTotalPayments,
-    formateRegistrationsToPayments
+    formateRegistrationsToPayments,
+    calculateTotalByKey,
+    formateInstallmentsToPayments,
+    calculateAndJoinStaffsPayments,
+    getUniqueIds,
+    joinStaffIdsWithStaffObjects,
+    calculateTotalAmountByType,
+    getUniqueSuppliersFromPayments
 }

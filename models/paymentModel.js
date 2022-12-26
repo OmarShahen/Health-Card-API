@@ -13,6 +13,10 @@ const PaymentSchema = new mongoose.Schema({
     price: { type: Number, required: true },
     total: { type: Number, required: true },
     imageURL: { type: String },
+
+    itemId: { type: mongoose.Types.ObjectId },
+
+    supplierId: { type: mongoose.Types.ObjectId }
     
 }, { timestamps: true })
 

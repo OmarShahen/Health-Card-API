@@ -321,6 +321,43 @@ const formateRegistrationsToPayments = (registrations) => {
     return payments
 }
 
+const formateInstallmentsToPayments = (installments) => {
+
+    let payments = []
+
+    for(let i=0;i<installments.length;i++) {
+        const installment = installments[i]
+        const payment = { 
+            type: 'EARN', 
+            category: 'INSTALLMENTS', 
+            price: installment.paid,
+            amount: 1,
+            total: installment.paid,
+            createdAt: installment.createdAt
+        }
+
+        payments.push(payment)
+    }
+
+    return payments
+}
+
+const joinStaffIdsWithStaffObjects = (Ids, documents) => {
+
+    let newDocuments = []
+
+    for(let i=0;i<Ids.length;i++) {
+        for(let j=0;j<documents.length;j++) {
+            if(Ids[i]._id.equals(documents[j]._id)) {
+                newDocuments.push({ ...Ids[i], staff: documents[j] })
+                break
+            }
+        }
+    }
+
+    return newDocuments
+}
+
 module.exports = { 
     joinStaffsWithAttendances, 
     joinMembersWithAttendances, 
@@ -339,5 +376,7 @@ module.exports = {
     joinOfflineFreezedRegistrationsByOnlineMembers,
     joinOfflineFreezedRegistrationsByOnlineRegistrations,
     joinRegistrationsByPackages,
-    formateRegistrationsToPayments
+    formateRegistrationsToPayments,
+    formateInstallmentsToPayments,
+    joinStaffIdsWithStaffObjects
 }

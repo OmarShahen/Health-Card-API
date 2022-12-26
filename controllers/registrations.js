@@ -8,10 +8,12 @@ const AttendanceModel = require('../models/AttendanceModel')
 const CancelledRegistrationsModel = require('../models/CancelledRegistrationModel')
 const FreezeRegistrationModel = require('../models/FreezeRegistrationModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
+const InstallmentModel = require('../models/InstallmentModel')
 const registrationValidation = require('../validations/registrations')
 const statsValidation = require('../validations/stats')
 const utils = require('../utils/utils')
 const translations = require('../i18n/index')
+const PaymentModel = require('../models/paymentModel')
 
 
 const addRegistration = async (request, response) => {
@@ -21,7 +23,6 @@ const addRegistration = async (request, response) => {
         const { lang } = request.query
 
         const dataValidation = registrationValidation.registrationData(request.body)
-
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: false,
@@ -30,7 +31,7 @@ const addRegistration = async (request, response) => {
             })
         }
 
-        const { clubId, memberId, staffId, packageId, paid } = request.body
+        const { clubId, memberId, staffId, packageId, paid, isInstallment } = request.body
 
         const [clubsList, membersList, staffsList, packagesList] = await Promise.all([
             ClubModel.find({ _id: clubId }),
@@ -112,9 +113,15 @@ const addRegistration = async (request, response) => {
         const expiresAt = utils.calculateExpirationDate(registrationDate, package.expiresIn)
 
         let isActive = true
+        let isPaidFull = true
+        let packagePrice = packagesList[0].price
 
         if(package.attendance == 1) {
             isActive = false
+        }
+
+        if(isInstallment == true && packagePrice > paid) {
+            isPaidFull = false
         }
 
         const newRegistrationData = {
@@ -124,8 +131,11 @@ const addRegistration = async (request, response) => {
             packageId,
             expiresAt,
             paid: Number.parseFloat(paid),
+            originalPrice: packagePrice,
             attended: 1,
-            isActive
+            isInstallment,
+            isActive,
+            isPaidFull
         }
 
         const registrationObj = new RegistrationModel(newRegistrationData)
@@ -142,11 +152,29 @@ const addRegistration = async (request, response) => {
         const attendanceObj = new AttendanceModel(newAttendanceData)
         const newAttendance = await attendanceObj.save()
 
+        let newInstallment = {}
+
+        if(newRegistration.isInstallment) {
+
+            const installmentData = {
+               clubId: newRegistration.clubId,
+               staffId: newRegistration.staffId,
+               memberId: newRegistration.memberId,
+               packageId: newRegistration.packageId,
+               registrationId: newRegistration._id,
+               paid: newRegistration.paid 
+            }
+
+            const installmentObj = new InstallmentModel(installmentData)
+            newInstallment = await installmentObj.save()
+        }
+
         return response.status(200).json({
             accepted: true,
             message: 'registered to package successfully',
             registration: newRegistration,
-            attendance: newAttendance
+            attendance: newAttendance,
+            installment: newInstallment
         })
 
     } catch(error) {
@@ -345,6 +373,107 @@ const getClubRegistrations = async (request, response) => {
     }
 }
 
+const getClubRegistrationsWithInstallments = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+        searchQuery.isInstallment = true
+        const currentDate = new Date()
+
+        if(!utils.isObjectId(clubId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid club Id formate',
+                field: 'clubId'
+            })
+        }
+
+        const registrations = await RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ]) 
+
+        registrations.forEach(registration => {6
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+
+            if(registration.expiresAt <= currentDate) {
+                registration.isActive = false
+            }
+        })
+
+        const totalRegistrations = registrations.length
+        const totalPaidRegistrations = registrations.filter(registration => registration.isPaidFull).length
+        const totalUnpaidRegistrations = totalRegistrations - totalPaidRegistrations
+
+        const totalRegistrationsOriginalPrice = utils.calculateTotalByKey(registrations, 'originalPrice')
+        const totalPaidRegistrationsMoney = utils.calculateTotalByKey(registrations, 'paid')
+        const totalUnpaidRegistrationsMoney = totalRegistrationsOriginalPrice - totalPaidRegistrationsMoney
+
+        return response.status(200).json({
+            accepted: true,
+            totalRegistrations,
+            totalPaidRegistrations,
+            totalUnpaidRegistrations,
+            totalRegistrationsOriginalPrice,
+            totalPaidRegistrationsMoney,
+            totalUnpaidRegistrationsMoney,
+            registrations
+        })
+
+    } catch(error) {
+        console.log(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 const getMemberRegistrations = async (request, response) => {
 
     try {
@@ -495,7 +624,6 @@ const updateMemberAttendance = async (request, response) => {
         })
     }
 }
-
 const getClubRegistrationsStatsByDate = async (request, response) => {
 
     try {
@@ -1050,11 +1178,13 @@ const getClubStaffsPayments = async (request, response) => {
         }
 
         const { clubId } = request.params
-        const { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
 
-        const staffPayments = await RegistrationModel.aggregate([
+        const registrationsSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
+        registrationsSearchQuery.searchQuery.$or = [{ isInstallment: false }, { isInstallment: { $exists: false } }]
+
+        const staffRegistrations = await RegistrationModel.aggregate([
             {
-                $match: searchQuery
+                $match: registrationsSearchQuery.searchQuery
             },
             {
                 $group: {
@@ -1071,8 +1201,31 @@ const getClubStaffsPayments = async (request, response) => {
                 }
             },
             {
-                $sort: {
-                    createdAt: -1
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                }
+            }
+        ])
+
+        const installmentsSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
+        const staffInstallments = await InstallmentModel.aggregate([
+            {
+                $match: installmentsSearchQuery.searchQuery
+            },
+            {
+                $group: {
+                    _id: '$staffId',
+                    count: { $sum: '$paid' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'staff'
                 }
             },
             {
@@ -1084,16 +1237,107 @@ const getClubStaffsPayments = async (request, response) => {
             }
         ])
 
-        let totalEarnings = 0
-        staffPayments.forEach(registration => {
+        const paymentsSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
+        paymentsSearchQuery.searchQuery.type = 'EARN'
 
-            registration.staff = registration.staff[0]
-            totalEarnings += registration.count
-        })
+        const staffPayments = await PaymentModel.aggregate([
+            {
+                $match: paymentsSearchQuery.searchQuery
+            },
+            {
+                $group: {
+                    _id: '$staffId',
+                    count: { $sum: '$total' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                }
+            }
+        ])
+
+        const allPayments = [ ...staffRegistrations, ...staffPayments, ...staffInstallments ]
+        const staffsIds = allPayments.map(payment => payment._id)
+
+        let staffAllPayments = utils.calculateAndJoinStaffsPayments(utils.getUniqueIds(staffsIds), allPayments)
+
+        const uniqueStaffs = utils.getUniqueIds(allPayments.map(payment => payment.staff[0]))
+        staffAllPayments = utils.joinStaffIdsWithStaffObjects(staffAllPayments, uniqueStaffs)
 
         return response.status(200).json({
-            totalEarnings,
-            staffPayments,
+            staffPaymentsOther: staffPayments,
+            staffPayments: staffAllPayments,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getClubStaffsRegistrationsPayments = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId } = request.params
+
+        const registrationsSearchQuery = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const staffRegistrations = await RegistrationModel.aggregate([
+            {
+                $match: registrationsSearchQuery.searchQuery
+            },
+            {
+                $group: {
+                    _id: '$staffId',
+                    count: { $sum: '$paid' }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: '_id',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $project: {
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                }
+            }
+        ])
+
+        const TOTAL_EARNINGS = utils.calculateTotalByKey(staffRegistrations, 'count')
+
+        return response.status(200).json({
+            totalEarnings: TOTAL_EARNINGS,
+            staffPayments: staffRegistrations,
         })
 
     } catch(error) {
@@ -1539,11 +1783,13 @@ module.exports = {
     getRegistrationsByOwner,
     getChainOwnerRegistrationsStatsByDate,
     getClubStaffsPayments,
+    getClubStaffsRegistrationsPayments,
     getOwnerClubsPayments,
     getRegistrationsByMember,
     getRegistrationsByStaff,
     getRegistrationsByPackage,
     getChainOwnerStaffsPayments,
-    getRegistrationsAndAttendancesByMember
+    getRegistrationsAndAttendancesByMember,
+    getClubRegistrationsWithInstallments
     
 }

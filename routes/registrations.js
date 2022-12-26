@@ -2,6 +2,7 @@ const router = require('express').Router()
 const verifyIds = require('../middlewares/verify-routes-params')
 const tokenMiddleware = require('../middlewares/verify-permission')
 const registrationsController = require('../controllers/registrations')
+const { response } = require('express')
 
 router.post(
   '/registrations', 
@@ -70,7 +71,7 @@ router.get(
   '/registrations/clubs/:clubId/staffs/payments',
   tokenMiddleware.adminAndManagmentPermission,
   verifyIds.verifyClubId, 
-  (request, response) =>registrationsController.getClubStaffsPayments(request, response)
+  (request, response) =>registrationsController.getClubStaffsRegistrationsPayments(request, response)
   )
 
 router.get(
@@ -89,6 +90,7 @@ router.get(
 router.get(
   '/registrations/staffs/:staffId',
   tokenMiddleware.adminAndManagmentPermission,
+  verifyIds.verifyStaffId,
   (request, response) => registrationsController.getRegistrationsByStaff(request, response)
   )
 
@@ -103,6 +105,13 @@ router.get(
   tokenMiddleware.appUsersPermission,
   verifyIds.verifyMemberId,
   (request, response) => registrationsController.getRegistrationsAndAttendancesByMember(request, response)
+)
+
+router.get(
+  '/registrations/clubs/:clubId/installments',
+  tokenMiddleware.appUsersPermission,
+  verifyIds.verifyClubId,
+  (request, response) => registrationsController.getClubRegistrationsWithInstallments(request, response)
 )
 
 //router.get('/registrations/chain-owners/:ownerId/staffs/payments', (request, response) => registrationsController.getChainOwnerStaffsPayments(request, response))

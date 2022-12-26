@@ -12,6 +12,7 @@ const FreezedRegistrationModel = require('../models/FreezeRegistrationModel')
 const PaymentModel = require('../models/paymentModel')
 const PackageModel = require('../models/PackageModel')
 const StaffModel = require('../models/StaffModel')
+const InstallmentModel = require('../models/InstallmentModel')
 const clubValidation = require('../validations/clubs')
 const statsValidation = require('../validations/stats')
 const translations = require('../i18n/index')
@@ -157,7 +158,7 @@ const updateClubImage = async (request, response) => {
     }
 }
 
-const getClubStatsByDate = async (request, response) => {
+const getClubStatsByDateV2 = async (request, response) => {
 
     try {
 
@@ -176,9 +177,11 @@ const getClubStatsByDate = async (request, response) => {
         const growthUntilDate = utils.growthDatePicker(until, to, specific)
         const growthQuery = utils.statsQueryGenerator('clubId', clubId, { until: growthUntilDate })
 
+        const registrationPromise = utils.statsQueryGenerator('clubId', clubId, request.query)
+
         const registrationsPromise = RegistrationModel.aggregate([
             {
-                $match: searchQuery
+                $match: registrationPromise.searchQuery
             },
             {
                 $lookup: {
@@ -254,14 +257,25 @@ const getClubStatsByDate = async (request, response) => {
 
         const paymentsPromise = PaymentModel.find(searchQuery)
 
+        const installmentsPromise = InstallmentModel.find(searchQuery)
 
-        const [registrations, attendances, members, registrationsGrowthStats, attendancesStatsHour, payments] = await Promise.all([
+
+        const [
+            registrations, 
+            attendances, 
+            members, 
+            registrationsGrowthStats, 
+            attendancesStatsHour, 
+            payments,
+            installments
+        ] = await Promise.all([
             registrationsPromise,
             attendancesPromise,
             membersPromise,
             registrationsGrowthStatsPromise,
             attendancesStatsHourPromise,
-            paymentsPromise
+            paymentsPromise,
+            installmentsPromise
         ])
 
         registrations.forEach(registration => {
@@ -274,18 +288,23 @@ const getClubStatsByDate = async (request, response) => {
         attendancesStatsHour
         .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
 
-
+        const registrationsWithoutInstallments = registrations.filter(registration => !registration.isInstallment)
         const totalRegistrations = registrations.length
-        const totalRegistrationsEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+        const totalRegistrationsEarnings = utils.calculateRegistrationsTotalEarnings(registrationsWithoutInstallments)
         const totalAttendances = attendances.length
         const totalMembers = members.length
-        const totalEarnings = totalRegistrationsEarnings
-        //const totalDeductions = utils.calculateTotalPaymentsByType(payments, 'DEDUCT')
-        //const netProfit = totalEarnings - totalDeductions
+        const totalEarnings = totalRegistrationsEarnings 
+        + utils.calculateTotalPaymentsByType(payments, 'EARN') 
+        + utils.calculateTotalByKey(installments, 'paid')
+        const totalDeductions = utils.calculateTotalPaymentsByType(payments, 'DEDUCT')
+        const netProfit = totalEarnings - totalDeductions
 
-        //const allPayments = [...utils.formateRegistrationsToPayments(registrations), ...payments]
-        //const sortedPayments = allPayments.sort((pay1, pay2) => pay2.createdAt - pay1.createdAt)
-
+        const allPayments = [
+            ...utils.formateRegistrationsToPayments(registrationsWithoutInstallments), 
+            ...utils.formateInstallmentsToPayments(installments), 
+            ...payments
+        ]
+        const sortedPayments = allPayments.sort((pay1, pay2) => pay2.createdAt - pay1.createdAt)
 
         registrationsGrowthStats
         .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
@@ -297,10 +316,159 @@ const getClubStatsByDate = async (request, response) => {
             totalAttendances,
             totalMembers,
             totalEarnings,
-            //totalDeductions,
-            //netProfit,
+            totalDeductions,
+            netProfit,
             registrations,
-            //payments: sortedPayments         
+            payments: sortedPayments         
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getClubStatsByDateV1 = async (request, response) => {
+
+    try {
+
+        const dataValidation = statsValidation.statsDates(request.query)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId } = request.params
+        const { searchQuery, until, specific, to } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const growthUntilDate = utils.growthDatePicker(until, to, specific)
+        const growthQuery = utils.statsQueryGenerator('clubId', clubId, { until: growthUntilDate })
+
+        const registrationPromise = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const registrationsPromise = RegistrationModel.aggregate([
+            {
+                $match: registrationPromise.searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            }
+        ])
+
+        const attendancesPromise = AttendanceModel.find(searchQuery)
+
+        const membersPromise = MemberModel.find(searchQuery)
+
+        const registrationsGrowthStatsPromise = RegistrationModel.aggregate([
+            {
+                $match: growthQuery.searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const attendancesStatsHourPromise = AttendanceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%H', date: '$createdAt' } },
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const [
+            registrations, 
+            attendances, 
+            members, 
+            registrationsGrowthStats, 
+            attendancesStatsHour, 
+        ] = await Promise.all([
+            registrationsPromise,
+            attendancesPromise,
+            membersPromise,
+            registrationsGrowthStatsPromise,
+            attendancesStatsHourPromise,
+        ])
+
+        registrations.forEach(registration => {
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+            registration.package = registration.package[0]
+        })
+
+        attendancesStatsHour.forEach(hour => hour._id = Number.parseInt(hour._id))
+        attendancesStatsHour
+        .sort((hour1, hour2) => Number.parseInt(hour1._id) - Number.parseInt(hour2._id))
+
+        const totalRegistrations = registrations.length
+        const totalRegistrationsEarnings = utils.calculateRegistrationsTotalEarnings(registrations)
+        const totalAttendances = attendances.length
+        const totalMembers = members.length
+        const totalEarnings = totalRegistrationsEarnings
+
+        registrationsGrowthStats
+        .sort((month1, month2) => new Date(month1._id) - new Date(month2._id))
+
+        return response.status(200).json({
+            attendancesStatsHour,
+            registrationsGrowthStats,
+            totalRegistrations,
+            totalAttendances,
+            totalMembers,
+            totalEarnings,
+            registrations,
         })
 
     } catch(error) {
@@ -712,7 +880,7 @@ const updateClubWhatsappOffersLimit = async (request, response) => {
 
 module.exports = { 
     addClub, 
-    getClubStatsByDate, 
+    getClubStatsByDateV1, 
     getClubs, 
     getClubsByOwner, 
     updateClub,

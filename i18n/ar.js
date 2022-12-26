@@ -134,7 +134,35 @@ module.exports = {
     "Updated payment successfully": "تم تعديل الدفع بنجاح",
     "Payroll payment is recorded successfully": "تم تسجيل الراتب بنجاح",
     "Bill payment is recorded succesfully": "تم تسجيل الفاتوره بنجاح",
-    "Bill image formate is invalid": "صيغة صورة الفاتورة غير صالحة"
+    "Bill image formate is invalid": "صيغة صورة الفاتورة غير صالحة",
+
+    "Item name is already registered in the club": "اسم الصنف مسجل في النادي",
+    "Added item successfully": "تم اضافة الصنف بنجاح",
+    "Updated item successfully": "تم تعديل الصنف بنجاح",
+    "There is payments registered with the item": "هناك عمليات مسجلة بهذا الصنف",
+    "Item deleted successfully": "تم مسح الصنف بنجاح",
+    "Price is invalid": "صيغة السعر عير صالحة",
+    "Initial stock is required": "الكمية الاولية مطلوبة",
+    "Initial stock is invalid": "الكمية الاولية غير صالحة",
+    "Supplier phone is registered in the club": "رقم هاتف المورد مسجل في النادي",
+    "Added supplier successfully": "تم اضافة المورد بنجاح",
+    "There is payments registered with the supplier": "هناك عمليات مسجلة بهذا المورد",
+    "Supplier deleted successfully": "تم مسح المورد بنجاح",
+    "Updated supplier successfully": "تم تعديل المورد بنجاح",
+    "Staff is not found": "الموظف غير مسجل",
+    "Item is not found": "الصنف غير موجود",
+    "There is no stock for this item": "لا يوجد وحدات للصنف",
+    "Selled item successfully": "تم بيع الصنف بنجاح",
+    "Supplier is not found": "المورد غير مسجل",
+    "Added items to inventory successfully": "تم اضافة اصناف الي المخزن بنجاح",
+    "Item amount is required": "كمية الصنف مطلوبة",
+    "Item amount must be a number": "كمية الصنف يجب ان تكون رقم",
+    "Item price is required": "سعر الصنف مطلوب",
+    "Item price must be a number": "سعر الصنف يجب ان يكون رقم",
+    "Price must be greater than 0": "السعر يجب ان يكون اكبر من 0",
+    "Amount paid is more than the required": "المبلغ المدفوع اكثر من المطلوب",
+    "Registration is paid full": "تم دفع الاشتراك بلكامل",
+    "Installment is closed for this registration": "الدفع المؤجل مغلق لهذا الاشتراك"
 }
 
 

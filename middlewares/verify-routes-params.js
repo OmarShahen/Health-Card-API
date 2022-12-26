@@ -7,6 +7,9 @@ const MemberModel = require('../models/MemberModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const OfferMessageModel = require('../models/OfferMessageModel')
 const PaymentModel = require('../models/paymentModel')
+const InstallmentModel = require('../models/InstallmentModel')
+const ItemModel = require('../models/ItemModel')
+const SupplierModel = require('../models/SupplierModel')
 
 const verifyClubId = async (request, response, next) => {
 
@@ -274,7 +277,110 @@ const verifyPaymentId = async (request, response, next) => {
     }
 }
 
+const verifyInstallmentId = async (request, response, next) => {
 
+    try {
+
+        const { installmentId } = request.params
+
+        if(!utils.isObjectId(installmentId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid installment Id formate',
+                field: 'installmentId'
+            })
+        }
+
+        const installment = await InstallmentModel.findById(installmentId)
+
+        if(!installment) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'installment Id does not exist',
+                field: 'installmentId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyItemId = async (request, response, next) => {
+
+    try {
+
+        const { itemId } = request.params
+
+        if(!utils.isObjectId(itemId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid item Id formate',
+                field: 'itemId'
+            })
+        }
+
+        const item = await ItemModel.findById(itemId)
+
+        if(!item) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'item Id does not exist',
+                field: 'itemId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifySupplierId = async (request, response, next) => {
+
+    try {
+
+        const { supplierId } = request.params
+
+        if(!utils.isObjectId(supplierId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid supplier Id formate',
+                field: 'supplierId'
+            })
+        }
+
+        const supplier = await SupplierModel.findById(supplierId)
+
+        if(!supplier) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'supplier Id does not exist',
+                field: 'supplierId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 
 
@@ -286,5 +392,8 @@ module.exports = {
     verifyMemberId,
     verifyChainOwnerId,
     verifyOfferMessageId,
-    verifyPaymentId
+    verifyPaymentId,
+    verifyInstallmentId,
+    verifyItemId,
+    verifySupplierId
 }

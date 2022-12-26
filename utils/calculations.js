@@ -106,11 +106,44 @@ const calculateGenderPercentages = members => {
 
 }
 
+const calculateTotalByKey = (registrations, key) => {
+
+    let total = 0 
+    for(let i=0;i<registrations.length;i++) {
+        total += registrations[i][key]
+    }
+
+    return total
+}
+
+const calculateAndJoinStaffsPayments = (staffsIds, payments) => {
+
+    const total = []
+
+    for(let i=0;i<staffsIds.length;i++) {
+        const staff = staffsIds[i]
+        let staffTotal = 0
+
+        for(let j=0;j<payments.length;j++) {
+            const payment = payments[j]
+
+            if(staff._id.equals(payment._id)) {
+                staffTotal += payment.count
+            }
+        }
+
+        total.push({ _id: staff._id, count: staffTotal })
+    }
+
+    return total
+}
 
 module.exports = { 
     calculateRegistrationsTotalEarnings, 
     calculateTotalAttendanceByDate, 
     calculatePackagePercentage,
     calculateCompletedPackageAttendances,
-    calculateGenderPercentages
+    calculateGenderPercentages,
+    calculateTotalByKey,
+    calculateAndJoinStaffsPayments
 }

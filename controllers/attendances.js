@@ -131,8 +131,12 @@ const addAttendance = async (request, response) => {
         const attendanceObj = new AttendanceModel(newAttendanceData)
         const newAttendance = await attendanceObj.save()
 
+        const remainigPaymentAmount = registration.originalPrice ? 
+        registration.originalPrice - registration.paid : 0
+
         return response.status(200).json({
             accepted: true,
+            remainigPaymentAmount,
             message: 'updated attendance successfully',
             attendance: newAttendance,
             registration: updatedRegistration
@@ -284,8 +288,12 @@ const addAttendanceByMember = async (request, response) => {
             attendanceObj.save()
         ])
 
+        const remainigPaymentAmount = memberRegistration.originalPrice ? 
+        memberRegistration.originalPrice - memberRegistration.paid : 0
+
         return response.status(200).json({
             accepted: true,
+            remainigPaymentAmount,
             remainingAttendance: REMAINING_ATTENDANCE,
             note: translations[lang][registrationExpirationNote],
             message: translations[lang]['Confirmed attendance successfully'],
