@@ -1335,6 +1335,8 @@ const getClubStaffsRegistrationsPayments = async (request, response) => {
 
         const TOTAL_EARNINGS = utils.calculateTotalByKey(staffRegistrations, 'count')
 
+        staffRegistrations.forEach(registration => registration.staff = registration.staff[0])
+
         return response.status(200).json({
             totalEarnings: TOTAL_EARNINGS,
             staffPayments: staffRegistrations,
