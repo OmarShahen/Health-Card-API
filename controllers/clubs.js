@@ -890,5 +890,6 @@ module.exports = {
     getClubMainStatsByDate,
     getAllClubData,
     updateClubImage,
-    updateClubWhatsappOffersLimit
+    updateClubWhatsappOffersLimit,
+    getClubStatsByDateV2
 }

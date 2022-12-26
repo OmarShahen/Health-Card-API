@@ -19,7 +19,15 @@ router.get(
     '/v1/clubs/:clubId/stats',
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyClubId, 
-    (request, response) => clubsController.getClubStatsByDateV1(request, response))
+    (request, response) => clubsController.getClubStatsByDateV1(request, response)
+)
+
+router.get(
+    '/v2/clubs/:clubId/stats',
+    tokenMiddleware.adminAndManagmentPermission,
+    verifyIds.verifyClubId, 
+    (request, response) => clubsController.getClubStatsByDateV2(request, response)
+)
 
 router.get(
     '/v1/clubs/chain-owners/:ownerId',

@@ -1,8 +1,8 @@
 const RegistrationModel = require('../models/RegistrationModel')
 const InstallmentModel = require('../models/InstallmentModel')
 const installmentsValidation = require('../validations/installments')
-const mongoose = require('mongoose')
 const StaffModel = require('../models/StaffModel')
+const translations = require('../i18n/index')
 
 const addInstallment = async (request, response) => {
 
