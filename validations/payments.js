@@ -46,6 +46,21 @@ const addBillPayment = (paymentData, lang) => {
     return { isAccepted: true, message: 'data is valid', data: paymentData }
 }
 
+const addMaintenancePayment = (paymentData, lang) => {
+
+    const { staffId, description, paid } = paymentData
+
+    if(!utils.isObjectId(staffId)) return { isAccepted: false, message: 'Invalid staff Id', field: 'staffId' }
+    
+    if(!description) return { isAccepted: false, message: translations[lang]['Payment description is required'], field: 'description' } 
+
+    if(!paid) return { isAccepted: false, message: translations[lang]['Payment price is required'], field: 'paid' }
+
+    if(typeof paid != 'number' || paid < 0) return { isAccepted: false, message: translations[lang]['Payment price is invalid'], field: 'paid' }
+
+    return { isAccepted: true, message: 'data is valid', data: paymentData }
+}
+
 const addPayrollPayment = (paymentData, lang) => {
 
     const { staffId, staffIdPayroll, paid } = paymentData
@@ -78,4 +93,4 @@ const updatePayment = (paymentData, lang) => {
     return { isAccepted: true, message: 'data is valid', data: paymentData }
 }
 
-module.exports = { addPayment, updatePayment, addPayrollPayment, addBillPayment }
+module.exports = { addPayment, updatePayment, addPayrollPayment, addBillPayment, addMaintenancePayment }

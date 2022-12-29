@@ -10,7 +10,7 @@ const addItem = async (request, response) => {
 
         const { clubId } = request.params
         const { lang } = request.query
-        const { name, price, initialStock } = request.body
+        const { name, price, initialStock, barcode } = request.body
 
         const dataValidation = itemValidator.addItem(request.body, lang)
 
@@ -32,7 +32,20 @@ const addItem = async (request, response) => {
             })
         }
 
-        const itemData = { clubId, name, price, initialStock, inStock: initialStock }
+        if(barcode) {
+
+            const itemBarcodeList = await ItemModel.find({ clubId, barcode })
+            if(itemBarcodeList.length != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: translations[lang]['Item barcode is already registered in the club'],
+                    field: 'barcode'
+                })
+            }
+        }
+
+        const itemInitialStock = initialStock || 0
+        const itemData = { clubId, name, price, initialStock: itemInitialStock, inStock: itemInitialStock, barcode }
 
         const itemObj = new ItemModel(itemData)
         const newItem = await itemObj.save()
@@ -84,7 +97,7 @@ const updateItem = async (request, response) => {
 
         const { itemId, clubId } = request.params
         const { lang } = request.query
-        const { name, price } = request.body
+        const { name, price, barcode } = request.body
 
         const dataValidation = itemValidator.updateItem(request.body, lang)
 
@@ -110,13 +123,25 @@ const updateItem = async (request, response) => {
             }
         }
 
+        if(barcode && barcode != item.barcode) {
+
+            const itemsList = await ItemModel.find({ clubId, barcode })
+            if(itemsList.length != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: translations[lang]['Item barcode is already registered in the club'],
+                    field: 'barcode'
+                })
+            }
+        }
+
 
         const updatedItem = await ItemModel
-        .findByIdAndUpdate(itemId, { name, price }, { new: true })
+        .findByIdAndUpdate(itemId, { name, price, barcode }, { new: true })
 
         return response.status(200).json({
             accepted: true,
-            message: translations[lang]['Updated item succesfully'],
+            message: translations[lang]['Updated item successfully'],
             item: updatedItem
         })
 

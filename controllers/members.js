@@ -1458,6 +1458,71 @@ const memberBlacklistStatus = async (request, response) => {
     }
 }
 
+const exportClubMembersThirdParty = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        const { members, staffId } = request.body
+
+        if(!staffId || !utils.isObjectId(staffId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Valid staff Id is required',
+                field: 'staffId'
+            })
+        }
+
+        const staff = await StaffModel.findById(staffId)
+
+        if(!staff) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Staff Id is not registered',
+                field: 'staffId'
+            })
+        }
+
+        let validMembers = []
+        let inValidMembers = []
+
+
+        members.forEach(member => {
+            const dataValidation = memberValidation.importMembersData(member)
+
+            if(dataValidation.isAccepted) {
+                validMembers.push(dataValidation.data)
+            } else {
+                inValidMembers.push(dataValidation.data)
+            }    
+        })
+
+        let readyMembers = []
+
+        for(let i=validMembers.length-1;i>=0;i--) {
+            const memberList = await MemberModel.find({ clubId, phone: String(validMembers[i].phone) })
+            if(memberList.length == 0) {
+                readyMembers.push({ ...validMembers[i], clubId, staffId, countryCode: '20' })
+            }
+        }
+        
+        const newMembers = await MemberModel.insertMany(readyMembers)
+
+        return response.status(200).json({
+            accepted: true,
+            message: `Added ${newMembers.length} member to the club successfully!`
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addMember, 
@@ -1478,5 +1543,6 @@ module.exports = {
     insertManyMembers,
     addNoteToMember,
     memberBlacklistStatus,
-    removeNoteFromMember
+    removeNoteFromMember,
+    exportClubMembersThirdParty
 }

@@ -165,5 +165,9 @@ module.exports = {
     "Price must be greater than 0": "Price must be greater than 0",
     "Amount paid is more than the required": "Amount paid is more than the required",
     "Registration is paid full": "Registration is paid full",
-    "Installment is closed for this registration": "Installment is closed for this registration"
+    "Installment is closed for this registration": "Installment is closed for this registration",
+    "Maintenance payment is recorded succesfully": "Maintenance payment is recorded succesfully",
+    "Barcode is required": "Barcode is required",
+    "Barcode is invalid": "Barcode is invalid",
+    "Item barcode is already registered in the club": "Item barcode is already registered in the club"
 }

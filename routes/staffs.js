@@ -7,53 +7,53 @@ router.post(
     '/staffs/club-admin',
     tokenMiddleware.adminAndOwnerPermission,
     (request, response) => staffsController.addClubAdmin(request, response)
-    )
+)
 
 router.post(
     '/staffs/staff',
     tokenMiddleware.adminAndManagmentPermission,
     (request, response) => staffsController.addStaff(request, response)
-    )
+)
 
 router.get(
     '/staffs/clubs/:clubId/roles/staff',
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyClubId, 
     (request, response) => staffsController.getStaffs(request, response)
-    )
+)
 
 router.get(
     '/staffs/clubs/:clubId/roles/club-admin',
     tokenMiddleware.adminAndOwnerPermission,
     verifyIds.verifyClubId, (request, response) => staffsController.getClubAdmins(request, response)
-    )
+)
 
 router.put(
     '/staffs/:staffId',
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyStaffId, (request, response) => staffsController.updateStaff(request, response)
-    )
+)
 
 router.delete(
     '/staffs/:staffId',
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyStaffId, 
     (request, response) => staffsController.deleteStaff(request, response)
-    )
+)
 
 router.patch(
     '/staffs/:staffId',
     tokenMiddleware.adminAndManagmentPermission,
     verifyIds.verifyStaffId, 
     (request, response) => staffsController.updateStaffStatus(request, response)
-    )
+)
 
 router.delete(
     '/staffs/:staffId/wild',
     tokenMiddleware.adminPermission,
     verifyIds.verifyStaffId, 
     (request, response) => staffsController.deleteStaffAndRelated(request, response)
-    )
+)
 
 /*router.get(
     '/staffs/:staffId/stats', 

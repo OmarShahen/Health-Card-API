@@ -133,4 +133,10 @@ router.delete(
     (request, response) => membersController.removeNoteFromMember(request, response)
 )
 
+router.post(
+    '/members/clubs/:clubId/import',
+    verifyIds.verifyClubId,
+    (request, response) => membersController.exportClubMembersThirdParty(request, response)
+)
+
 module.exports = router

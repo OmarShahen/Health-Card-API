@@ -162,9 +162,9 @@ module.exports = {
     "Price must be greater than 0": "السعر يجب ان يكون اكبر من 0",
     "Amount paid is more than the required": "المبلغ المدفوع اكثر من المطلوب",
     "Registration is paid full": "تم دفع الاشتراك بلكامل",
-    "Installment is closed for this registration": "الدفع المؤجل مغلق لهذا الاشتراك"
+    "Installment is closed for this registration": "الدفع المؤجل مغلق لهذا الاشتراك",
+    "Maintenance payment is recorded succesfully": "تم تسجيل مبلغ الصيانة بنجاح",
+    "Barcode is required": "الباركود مطلوب",
+    "Barcode is invalid": "الباركود غير صالح",
+    "Item barcode is already registered in the club": "باركود الصنف مسجل في النادي"
 }
-
-
-
-

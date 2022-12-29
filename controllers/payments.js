@@ -172,6 +172,46 @@ const addBillPayment = async (request, response) => {
     }
 }
 
+const addMaintenancePayment = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+
+        const dataValidation = validator.addMaintenancePayment(request.body, lang)
+
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId } = request.params
+        const { description, staffId, paid } = request.body
+
+        const billPayment = { clubId, description, type: 'DEDUCT', category: 'MAINTENANCE', staffId, price: paid, total: paid }
+        
+        const paymentObj = new PaymentModel(billPayment)
+        const newPayment = await paymentObj.save()
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang]['Maintenance payment is recorded succesfully'],
+            payment: newPayment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error
+        })
+    }
+}
+
 const getClubPayrolls = async (request, response) => {
 
     try {
@@ -600,5 +640,6 @@ module.exports = {
     getClubCategoryPaymentsStats,
     addPayrollPayment,
     getClubPayrolls,
-    addBillPayment
+    addBillPayment,
+    addMaintenancePayment
 }
