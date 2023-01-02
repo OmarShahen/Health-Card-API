@@ -317,6 +317,64 @@ const addCustomRegistration = async (request, response) => {
     }
 }
 
+const deleteRegistration = async (request, response) => {
+
+    try {
+
+        const { registrationId } = request.params
+
+        const deletedRegistration = await RegistrationModel.findByIdAndDelete(registrationId)
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Deleted registration successfully',
+            registration: deletedRegistration
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateRegistrationAttendance = async (request, response) => {
+
+    try {
+
+        const { registrationId } = request.params
+        const { attendance } = request.body
+
+        if(typeof attendance != 'number') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Attendance must be a number',
+                field: 'attendance'
+            })
+        }
+
+        const registration = await RegistrationModel
+        .findByIdAndUpdate(registrationId, { attended: attendance }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated attendance successfully',
+            registration
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const checkAddRegistrationData = async (request, response) => {
 
     try {
@@ -1902,8 +1960,6 @@ const getRegistrationsAndAttendancesByMember = async (request, response) => {
 
 
 
-
-
 module.exports = { 
     addRegistration, 
     addCustomRegistration,
@@ -1923,6 +1979,7 @@ module.exports = {
     getRegistrationsByPackage,
     getChainOwnerStaffsPayments,
     getRegistrationsAndAttendancesByMember,
-    getClubRegistrationsWithInstallments
-    
+    getClubRegistrationsWithInstallments,
+    deleteRegistration,
+    updateRegistrationAttendance
 }

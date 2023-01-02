@@ -30,7 +30,14 @@ router.patch(
   verifyIds.verifyRegistrationId,
   verifyIds.verifyStaffId,
   (request, response) => registrationsController.updateMemberAttendance(request, response)
-  )
+)
+
+router.patch(
+  '/v1/registrations/:registrationId/attendance',
+  tokenMiddleware.adminPermission,
+  verifyIds.verifyRegistrationId,
+  (request, response) => registrationsController.updateRegistrationAttendance(request, response)
+)
 
 router.get(
   '/v1/registrations/clubs/:clubId',
@@ -130,5 +137,12 @@ router.get(
 )
 
 //router.get('/registrations/chain-owners/:ownerId/staffs/payments', (request, response) => registrationsController.getChainOwnerStaffsPayments(request, response))
+
+router.delete(
+  '/v1/registrations/:registrationId',
+  tokenMiddleware.adminPermission,
+  verifyIds.verifyRegistrationId,
+  (request, response) => registrationsController.deleteRegistration(request, response)
+)
 
 module.exports = router
