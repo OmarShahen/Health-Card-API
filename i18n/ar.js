@@ -58,7 +58,7 @@ module.exports = {
     "Package is deleted successfully": "تم حذف العرض بنجاح",
     "Package status is updated successfully": "تم تحديث حالة العرض بنجاح",
     "Wrong password": "كلمة المرور خاطة",
-    "Member has no active registration": "لا يوجد اي تسجيل نشط للعضو",
+    "Member has no active registration": "لا يوجد اشتراك نشط للعضو",
     "This was the last attendance for the member in his registration": "هذه كانت اخر مره حضور في اشتراك العضو",
     "Confirmed attendance successfully": "تم تاكيد الحضور بنجاح",
     "Email is required": "البريد مطلوب",
@@ -166,5 +166,9 @@ module.exports = {
     "Maintenance payment is recorded succesfully": "تم تسجيل مبلغ الصيانة بنجاح",
     "Barcode is required": "الباركود مطلوب",
     "Barcode is invalid": "الباركود غير صالح",
-    "Item barcode is already registered in the club": "باركود الصنف مسجل في النادي"
+    "Item barcode is already registered in the club": "باركود الصنف مسجل في النادي",
+    "Card barcode is already registered in the club": "باركود الكارت مسجل مسبقا في النادي",
+    "Updated member card barcode successfully": "تم تحديث باركود الكارت بنجاح",
+    "Card barcode is required": "باركود الكارت مطلوب",
+    "There is no member associated with this card barcode": "لا يوجد عضو مسجل بباركود الكارت"
 }

@@ -126,6 +126,13 @@ router.patch(
     (request, response) => membersController.memberBlacklistStatus(request, response)
 )
 
+router.patch(
+    '/members/:memberId/cards-barcodes',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyMemberId,
+    (request, response) => membersController.updateMemberCardBarcode(request, response)
+)
+
 router.delete(
     '/members/:memberId/notes/:noteId',
     tokenMiddleware.appUsersPermission,

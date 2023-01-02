@@ -22,16 +22,6 @@ const addMember = async (request, response, next) => {
 
         const { lang } = request.query
 
-        const dataValidation = memberValidation.memberData(request.body, lang)
-
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: false,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
         let { 
             clubId, 
             staffId, 
@@ -39,13 +29,23 @@ const addMember = async (request, response, next) => {
             email, 
             phone, 
             countryCode, 
-            membership, 
+            membership,
+            cardBarcode,
             gender, 
             age,
             address,
             job,
             sportType
         } = request.body
+
+        const dataValidation = memberValidation.memberData(request.body, lang)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: false,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
 
         const clubPromise = ClubModel.findById(clubId)
         const staffPromise = StaffModel.findById(staffId)
@@ -93,6 +93,18 @@ const addMember = async (request, response, next) => {
             })
         }
 
+        if(cardBarcode) {
+            const clubCardBarcodesList = await MemberModel.find({ clubId, cardBarcode })
+            if(clubCardBarcodesList.length != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: translations[lang]['Card barcode is already registered in the club'],
+                    field: 'cardBarcode'
+                })
+            }
+        }
+
+
         if(club.hasMembership) {
 
             if(!membership || typeof membership != 'number') {
@@ -124,6 +136,7 @@ const addMember = async (request, response, next) => {
             phone, 
             countryCode, 
             membership, 
+            cardBarcode,
             gender, 
             address, 
         }
@@ -459,6 +472,63 @@ const updateMember = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateMemberCardBarcode = async (request, response) => {
+
+    try {
+
+        const { memberId } = request.params
+        const { lang } = request.query
+        const { cardBarcode } = request.body
+
+        const dataValidation = memberValidation.updateMemberCardBarcode(request.body, lang)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const member = await MemberModel.findById(memberId)
+
+        if(member.cardBarcode == cardBarcode) {
+            return response.status(200).json({
+                accepted: true,
+                message: translations[lang]['Updated member card barcode successfully'],
+                member: member
+            })
+        }
+
+        const clubCardsBarcodes = await MemberModel.find({ clubId: member.clubId, cardBarcode })
+        if(clubCardsBarcodes.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Card barcode is already registered in the club'],
+                field: 'cardBarcode'
+            })
+        }
+
+
+        const updatedMember = await MemberModel
+        .findByIdAndUpdate(memberId, { cardBarcode }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[lang]['Updated member card barcode successfully'],
+            member: updatedMember
+        })
+
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
@@ -1530,6 +1600,7 @@ module.exports = {
     searchMembersByPhone, 
     deleteMember, 
     updateMember,
+    updateMemberCardBarcode,
     updateMemberStatus,
     deleteMemberAndRelated,
     getMembers,

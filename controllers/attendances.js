@@ -278,7 +278,139 @@ const addAttendanceByMember = async (request, response) => {
             packageId: memberRegistration.packageId,
             staffId: memberRegistration.staffId,
             memberId: memberRegistration.memberId,
-            registrationId: memberRegistration._id
+            registrationId: memberRegistration._id,
+            confirmationMethod: 'MESSAGE'
+        }
+
+        const attendanceObj = new AttendanceModel(newAttendanceData)
+
+        const [updatedRegistration, newAttendance] = await Promise.all([
+            updatedRegistrationPromise,
+            attendanceObj.save()
+        ])
+
+        const remainigPaymentAmount = memberRegistration.originalPrice ? 
+        memberRegistration.originalPrice - memberRegistration.paid : 0
+
+        return response.status(200).json({
+            accepted: true,
+            remainigPaymentAmount,
+            remainingAttendance: REMAINING_ATTENDANCE,
+            note: translations[lang][registrationExpirationNote],
+            message: translations[lang]['Confirmed attendance successfully'],
+            registration: updatedRegistration,
+            attendance: newAttendance
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const addAttendanceByMemberCardBarcode = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+        const { clubId, cardBarcode } = request.params
+
+
+        const memberList = await MemberModel.find({ clubId, cardBarcode })
+
+        if(memberList.length == 0) {
+            return response.status(404).json({
+                accepted: false,
+                message: translations[lang]['There is no member associated with this card barcode'],
+                field: 'cardBarcode'
+            })
+        }
+
+        const member = memberList[0]
+
+        if(member.isBlocked) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member is blocked'],
+                field: 'memberId'
+            })
+        }
+
+        const memberRegistrationList = await RegistrationModel
+        .find({ memberId: member._id, isActive: true })
+
+        if(memberRegistrationList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member has no active registration']
+            })
+        }
+
+        const memberRegistration = memberRegistrationList[0]
+
+        if(memberRegistration.isFreezed) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member registration is freezed']
+            })
+        }
+
+
+        const currentDate = new Date()
+        if(memberRegistration.expiresAt < currentDate && memberRegistration.isActive) {
+            
+            const updatedRegistration = await RegistrationModel
+            .findByIdAndUpdate(memberRegistration._id, { isActive: false }, { new: true })
+
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member registration has passed expiration date'],
+                field: 'registrationId'
+            })
+
+        } else if(memberRegistration.expiresAt < currentDate && !memberRegistration.isActive) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Member registration has passed expiration date'],
+                field: 'registrationId'
+            })
+        }
+
+        const registrationPackage = await PackageModel.find({ _id: memberRegistration.packageId })
+
+        const MEMBER_CURRENT_ATTENDANCE = memberRegistration.attended
+        const PACKAGE_ATTENDANCE = registrationPackage[0].attendance
+        const NEW_ATTENDANCE = MEMBER_CURRENT_ATTENDANCE + 1
+        const REMAINING_ATTENDANCE = PACKAGE_ATTENDANCE - NEW_ATTENDANCE
+
+        let registrationExpirationNote
+        let updatedRegistrationPromise
+
+        if(PACKAGE_ATTENDANCE == NEW_ATTENDANCE) {
+            
+            registrationExpirationNote = 'This was the last attendance for the member in his registration'
+
+            updatedRegistrationPromise = RegistrationModel
+            .findByIdAndUpdate(memberRegistration._id, { attended: NEW_ATTENDANCE, isActive: false }, { new: true })
+        
+        } else {
+
+            updatedRegistrationPromise = RegistrationModel
+            .findByIdAndUpdate(memberRegistration._id, { attended: NEW_ATTENDANCE }, { new: true })
+ 
+        }
+
+        const newAttendanceData = {
+            clubId: memberRegistration.clubId,
+            packageId: memberRegistration.packageId,
+            staffId: memberRegistration.staffId,
+            memberId: memberRegistration.memberId,
+            registrationId: memberRegistration._id,
+            confirmationMethod: 'CARD'
         }
 
         const attendanceObj = new AttendanceModel(newAttendanceData)
@@ -918,5 +1050,6 @@ module.exports = {
     getClubAttendances,
     getAttendancesByOwner,
     getChainOwnerAttendancesStatsByDate,
-    addAttendanceByMember
+    addAttendanceByMember,
+    addAttendanceByMemberCardBarcode
 }

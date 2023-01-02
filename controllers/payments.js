@@ -514,6 +514,9 @@ const getClubCategoryPaymentsStats = async (request, response) => {
         let { clubId, category } = request.params
         category = category.toUpperCase()
 
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+        searchQuery.category = category
+
         if(!config.CLUB_PAYMENT_CATEGORIES.includes(category)) {
             return response.status(400).json({
                 accepted: false,
@@ -524,11 +527,7 @@ const getClubCategoryPaymentsStats = async (request, response) => {
 
         const categoryPayments = await PaymentModel.aggregate([
             {
-                $match: {
-                    clubId: mongoose.Types.ObjectId(clubId),
-                    category,
-                    
-                },
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -550,14 +549,11 @@ const getClubCategoryPaymentsStats = async (request, response) => {
             }
         ])
 
+        searchQuery.type = 'DEDUCT'
 
         const deductionsStats = await PaymentModel.aggregate([
             {
-                $match: { 
-                    clubId: mongoose.Types.ObjectId(clubId),
-                    category,
-                    type: 'DEDUCT'
-                }
+                $match: searchQuery
             },
             {
                 $group: {
@@ -570,13 +566,10 @@ const getClubCategoryPaymentsStats = async (request, response) => {
         let earningsStats
 
         if(category == 'INVENTORY') {
+            searchQuery.type = 'EARN'
             earningsStats = await PaymentModel.aggregate([
                 {
-                    $match: { 
-                        clubId: mongoose.Types.ObjectId(clubId),
-                        category,
-                        type: 'EARN'
-                    }
+                    $match: searchQuery
                 },
                 {
                     $group: {

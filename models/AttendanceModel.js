@@ -7,6 +7,7 @@ const AttendanceSchema = new mongoose.Schema({
     packageId: { type: mongoose.Types.ObjectId, required: true },
     staffId: { type: mongoose.Types.ObjectId, required: true },
     memberId: { type: mongoose.Types.ObjectId, required: true },
+    confirmationMethod: { type: String, default: 'MANUAL', enum: ['MANUAL', 'CARD', 'MESSAGE'] }
 
 }, { timestamps: true })
 

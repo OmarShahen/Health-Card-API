@@ -12,6 +12,7 @@ const memberData = (memberData, lang) => {
         phone, 
         countryCode,
         membership, 
+        cardBarcode,
         gender,
         age,
         job,
@@ -47,6 +48,8 @@ const memberData = (memberData, lang) => {
     if(membership && typeof membership != 'number') {
         return { isAccepted: false, message: translations[lang]['Membership must be a number'], field: 'membership' }
     }   
+
+    if(cardBarcode && typeof cardBarcode != 'string') return { isAccepted: false, message: 'Card Barcode must be string', field: 'cardBarcode' } 
 
     if(!['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
@@ -388,6 +391,18 @@ const updateMemberData = (memberData, lang) => {
 
 }
 
+const updateMemberCardBarcode = (memberData, lang) => {
+
+    const { cardBarcode } = memberData
+
+    if(!cardBarcode) return { isAccepted: false, message: translations[lang]['Card barcode is required'], field: 'cardBarcode' }
+
+    if(typeof cardBarcode != 'string') return { isAccepted: false, message: 'Card barcode must be string', field: 'cardBarcode' }
+
+    return { isAccepted: true, message: 'data is valid', data: memberData }
+
+}
+
 const updateMemberQRcodeVerificationData = (memberData) => {
 
     const { QRCodeURL, QRCodeUUID } = memberData
@@ -474,6 +489,7 @@ module.exports = {
     offlineUpdateMemberData, 
     memberDataCheck, 
     updateMemberData, 
+    updateMemberCardBarcode,
     updateMemberQRcodeVerificationData, 
     updateMemberAuthenticationStatusData,
     addNote,

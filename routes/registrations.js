@@ -8,7 +8,13 @@ router.post(
   '/v1/registrations', 
   tokenMiddleware.appUsersPermission, 
   (request, response) => registrationsController.addRegistration(request, response)
-  )
+)
+
+router.post(
+  '/v1/registrations/custom', 
+  tokenMiddleware.appUsersPermission, 
+  (request, response) => registrationsController.addCustomRegistration(request, response)
+)
 
 router.get(
   '/v1/registrations/clubs/:clubId/members/:memberId', 

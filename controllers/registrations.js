@@ -187,6 +187,136 @@ const addRegistration = async (request, response) => {
     }
 }
 
+const addCustomRegistration = async (request, response) => {
+
+    try {
+
+        const { lang } = request.query
+
+        const dataValidation = registrationValidation.customRegistrationData(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: false,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clubId, memberId, staffId, packageId, paid, registrationDate } = request.body
+
+        const [clubsList, membersList, staffsList, packagesList] = await Promise.all([
+            ClubModel.find({ _id: clubId }),
+            MemberModel.find({ _id: memberId, clubId }),
+            StaffModel.find({ _id: staffId, clubId }),
+            PackageModel.find({ _id: packageId, clubId, isActive: true })
+        ])
+
+        if(clubsList.length == 0) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'club Id does not exist',
+                field: 'clubId'
+            })
+        }
+
+        if(membersList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'member Id does not exist',
+                field: 'memberId'
+            })
+        }
+
+        if(membersList[0].isBlocked == true) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['member is blocked'],
+                field: 'memberId'
+            })
+        }
+
+        if(staffsList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'staff Id does not exist',
+                field: 'staffId'
+            })
+        }
+
+        if(staffsList[0].isAccountActive == false) {
+            return response.status(401).json({
+                accepted: false,
+                message: 'staff account is not active',
+                field: 'staffId'
+            })
+        }
+
+        if(packagesList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['package Id does not exist'],
+                field: 'packageId'
+            })
+        }
+
+        const memberPackage = packagesList[0]
+        if(!memberPackage.isOpen) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[lang]['Package is closed'],
+                field: 'packageId'
+            })
+        }
+
+
+        const package = packagesList[0]
+        const memberRegistrationDate = new Date(registrationDate)
+        const expiresAt = utils.calculateExpirationDate(memberRegistrationDate, package.expiresIn)
+
+        let isActive = true
+        let isPaidFull = true
+        const packagePrice = package.price
+        const todayDate = new Date()
+
+        if(package.attendance == 1 || expiresAt < todayDate) {
+            isActive = false
+        }
+
+
+        const newRegistrationData = {
+            clubId,
+            memberId,
+            staffId,
+            packageId,
+            expiresAt,
+            paid: Number.parseFloat(paid),
+            originalPrice: packagePrice,
+            attended: 0,
+            isInstallment: false,
+            isActive,
+            isPaidFull,
+            createdAt: new Date(registrationDate)
+        }
+
+        const registrationObj = new RegistrationModel(newRegistrationData)
+        const newRegistration = await registrationObj.save()
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Registered to package successfully',
+            registration: newRegistration
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const checkAddRegistrationData = async (request, response) => {
 
     try {
@@ -1776,6 +1906,7 @@ const getRegistrationsAndAttendancesByMember = async (request, response) => {
 
 module.exports = { 
     addRegistration, 
+    addCustomRegistration,
     getMemberRegistrations, 
     updateMemberAttendance, 
     getClubRegistrations,

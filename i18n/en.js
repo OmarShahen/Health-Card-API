@@ -169,5 +169,9 @@ module.exports = {
     "Maintenance payment is recorded succesfully": "Maintenance payment is recorded succesfully",
     "Barcode is required": "Barcode is required",
     "Barcode is invalid": "Barcode is invalid",
-    "Item barcode is already registered in the club": "Item barcode is already registered in the club"
+    "Item barcode is already registered in the club": "Item barcode is already registered in the club",
+    "Card barcode is registered in the club already": "Card barcode is already registered in the club",
+    "Updated member card barcode successfully": "Updated member card barcode successfully",
+    "Card barcode is required": "Card barcode is required",
+    "There is no member associated with this card barcode": "There is no member associated with this card barcode"
 }

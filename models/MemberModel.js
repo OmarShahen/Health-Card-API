@@ -8,6 +8,7 @@ const MemberSchema = new mongoose.Schema({
     phone: { type: String, required: true, },
     countryCode: { type: String, required: true },
     membership: { type: Number },
+    cardBarcode: { type: String },
     gender: { type: String, required: true, enum: ['male', 'female']},
     birthYear: { type: String },
     address: { type: String },
