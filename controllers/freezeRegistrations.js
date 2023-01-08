@@ -5,10 +5,13 @@ const FreezeRegistrationModel = require('../models/FreezeRegistrationModel')
 const ChainOwnerModel = require('../models/ChainOwnerModel')
 const freezeRegistrationValidation = require('../validations/freezeRegistration')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 const addFreezeRegistration = async (request, response) => {
 
     try {
+
+        const { lang } = request.query
 
         const dataValidation = freezeRegistrationValidation.freezeData(request.body)
 
@@ -83,6 +86,7 @@ const addFreezeRegistration = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
+            message: translations[lang]['Registration is freezed successfully'],
             freezedRegistration: newFreezedRegistration,
             registration: updatedRegistration
         })
@@ -197,6 +201,8 @@ const reactivateRegistration = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
+
         const dataValidation = freezeRegistrationValidation.reactivateRegistrationData(request.body)
 
         if(!dataValidation.isAccepted) {
@@ -281,6 +287,7 @@ const reactivateRegistration = async (request, response) => {
 
             return response.status(200).json({
                 accepted: true,
+                message: translations[lang]['Activated registration successfully'],
                 freezedRegistration: updateFreezedRegistration,
                 registration: updateRegistration
             })

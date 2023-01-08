@@ -173,5 +173,7 @@ module.exports = {
     "Card barcode is registered in the club already": "Card barcode is already registered in the club",
     "Updated member card barcode successfully": "Updated member card barcode successfully",
     "Card barcode is required": "Card barcode is required",
-    "There is no member associated with this card barcode": "There is no member associated with this card barcode"
+    "There is no member associated with this card barcode": "There is no member associated with this card barcode",
+    "Activated registration successfully": "Activated registration successfully",
+    "Registration is freezed successfully": "Registration is freezed successfully"
 }

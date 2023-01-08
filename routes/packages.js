@@ -5,7 +5,7 @@ const packagesController = require('../controllers/packages')
 
 router.post(
     '/packages', 
-    tokenMiddleware.adminAndManagmentPermission,
+    tokenMiddleware.appUsersPermission,
     (request, response) => packagesController.addPackage(request, response)
 )
 
