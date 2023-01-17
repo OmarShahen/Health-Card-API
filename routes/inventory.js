@@ -7,14 +7,14 @@ router.post(
     '/inventory/clubs/:clubId/receive', 
     tokenMiddleware.appUsersPermission, 
     verifyIds.verifyClubId,
-    (request, response) => inventoryController.receiveItem(request, response)
+    (request, response) => inventoryController.receiveItems(request, response)
 )
 
 router.post(
     '/inventory/clubs/:clubId/deduct', 
     tokenMiddleware.appUsersPermission, 
     verifyIds.verifyClubId,
-    (request, response) => inventoryController.deductItem(request, response)
+    (request, response) => inventoryController.deductItems(request, response)
 )
 
 router.get(
@@ -22,6 +22,27 @@ router.get(
     tokenMiddleware.appUsersPermission, 
     verifyIds.verifyClubId,
     (request, response) => inventoryController.getClubInventoryStats(request, response)
+)
+
+router.get(
+    '/inventory/clubs/:clubId',
+    tokenMiddleware.appUsersPermission, 
+    verifyIds.verifyClubId,
+    (request, response) => inventoryController.getInventoryPayments(request, response)
+)
+
+router.delete(
+    '/inventory/payments/:paymentId/type/earn',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyPaymentId,
+    (request, response) => inventoryController.deleteDeductItemPayment(request, response)
+)
+
+router.delete(
+    '/inventory/payments/:paymentId/type/deduct',
+    tokenMiddleware.appUsersPermission,
+    verifyIds.verifyPaymentId,
+    (request, response) => inventoryController.deleteReceiveItemPayment(request, response)
 )
 
 

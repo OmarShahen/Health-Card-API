@@ -137,7 +137,7 @@ const addAttendance = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             remainigPaymentAmount,
-            message: 'updated attendance successfully',
+            message: translations[lang]['Updated attendance successfully'],
             attendance: newAttendance,
             registration: updatedRegistration
         })

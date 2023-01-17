@@ -5,14 +5,137 @@ const inventoryValidator = require('../validations/inventory')
 const StaffModel = require('../models/StaffModel')
 const utils = require('../utils/utils')
 const translations = require('../i18n/index')
+const mongoose = require('mongoose')
 
-const receiveItem = async (request, response) => {
+const recordReceivePaymentsAndUpdateItems = async (itemsData) => {
+
+    const { clubId, supplierId, staffId, items } = itemsData
+
+    let inventoryItems = []
+    let payments = []
+
+    for(let i=0;i<items.length;i++) {
+        const receivedItem = items[i]
+        const item = await ItemModel.findById(receivedItem.itemId)
+
+        const ITEM_NEW_AMOUNT = item.inStock + receivedItem.amount
+
+        const paymentData = {
+            type: 'DEDUCT',
+            category: 'INVENTORY',
+            clubId,
+            supplierId,
+            staffId,
+            itemId: item._id,
+            amount: receivedItem.amount,
+            price: receivedItem.price,
+            total: receivedItem.amount * receivedItem.price
+        }
+
+        const updatedItemPromise = ItemModel
+        .findByIdAndUpdate(item._id, { inStock: ITEM_NEW_AMOUNT }, { new: true })
+
+
+        const paymentObj = new PaymentModel(paymentData)
+        const newPaymentPromise = paymentObj.save()
+
+        let [updatedItem, newPayment] = await Promise.all([
+            updatedItemPromise,
+            newPaymentPromise
+        ])
+
+        newPayment = { ...newPayment._doc, item: updatedItem._doc }
+        payments.push(newPayment)
+        inventoryItems.push(updatedItem)
+
+    }
+
+    return { inventoryItems, payments }
+}
+
+const recordSelledPaymentsAndUpdateItems = async (itemsData) => {
+
+    const { clubId, staffId, items } = itemsData
+
+    let inventoryItems = []
+    let payments = []
+
+    for(let i=0;i<items.length;i++) {
+        const selledItem = items[i]
+        const item = await ItemModel.findById(selledItem.itemId)
+
+        const ITEM_NEW_AMOUNT = item.inStock - selledItem.amount
+
+        const paymentData = {
+            type: 'EARN',
+            category: 'INVENTORY',
+            clubId,
+            staffId,
+            itemId: item._id,
+            amount: selledItem.amount,
+            price: selledItem.price,
+            total: selledItem.amount * selledItem.price
+        }
+
+        const updatedItemPromise = ItemModel
+        .findByIdAndUpdate(item._id, { inStock: ITEM_NEW_AMOUNT }, { new: true })
+
+
+        const paymentObj = new PaymentModel(paymentData)
+        const newPaymentPromise = paymentObj.save()
+
+        let [updatedItem, newPayment] = await Promise.all([
+            updatedItemPromise,
+            newPaymentPromise
+        ])
+
+        newPayment = { ...newPayment._doc, item: updatedItem._doc }
+        payments.push(newPayment)
+        inventoryItems.push(updatedItem)
+
+    }
+
+    return { inventoryItems, payments }
+}
+
+const checkItemsInStock = (items, targetItems) => {
+
+    for(let i=0;i<items.length;i++) {
+        const item = items[i]
+        const targetItem = targetItems[i]
+        if(item.inStock < targetItem.amount) {
+            return false
+        }
+    }
+
+    return true
+}  
+
+const subtractEarnWithDeduct = (payments) => {
+
+    let total = 0
+
+    for(let i=0;i<payments.length;i++) {
+        const payment = payments[i]
+
+        if(payment.type == 'EARN') {
+            total -= payment.amount
+        } else if(payment.type == 'DEDUCT') {
+            total += payment.amount
+        }
+    }
+
+    return total
+
+}
+
+const receiveItems = async (request, response) => {
 
     try {
 
         const { clubId } = request.params
         const { lang } = request.query
-        const { itemId, supplierId, staffId, amount, price } = request.body
+        const { supplierId, staffId, items } = request.body
 
         const dataValidation = inventoryValidator.receiveItem(request.body, lang)
 
@@ -21,15 +144,6 @@ const receiveItem = async (request, response) => {
                 accepted: dataValidation.isAccepted,
                 message: dataValidation.message,
                 field: dataValidation.field
-            })
-        }
-
-        const item = await ItemModel.findById(itemId)
-        if(!item) {
-            return response.status(404).json({
-                accepted: false,
-                message: translations[lang]['Item is not found'],
-                field: 'itemId'
             })
         }
 
@@ -51,36 +165,25 @@ const receiveItem = async (request, response) => {
             })
         }
 
-        const ITEM_NEW_AMOUNT = item.inStock + amount
-        const TOTAL_PAYMENT = amount * price
+        const itemsIdsList = items.map(item => item.itemId)
+        const itemsList = await ItemModel.find({ _id: { $in: itemsIdsList }})
 
-        const paymentData = { 
-            clubId, 
-            staffId,
-            type: 'DEDUCT', 
-            category: 'INVENTORY',
-            itemId,
-            supplierId,
-            amount,
-            price,
-            total: TOTAL_PAYMENT
+        if(itemsIdsList.length != itemsList.length) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Item Id does not exist',
+                field: 'items'
+            })
         }
 
-        const paymentObj = new PaymentModel(paymentData)
-
-        const updatedItemPromise = ItemModel
-        .findByIdAndUpdate(itemId, { inStock: ITEM_NEW_AMOUNT }, { new: true })
-
-        const [newPayment, updatedItem] = await Promise.all([
-            paymentObj.save(),
-            updatedItemPromise
-        ])
+        request.body.clubId = clubId
+        const { inventoryItems, payments } = await recordReceivePaymentsAndUpdateItems(request.body)
 
         return response.status(200).json({
             accepted: true,
-            message: translations[lang]['Added Items to inventory successfully'],
-            payment: newPayment,
-            item: updatedItem
+            message: 'Payment is recorded successfully',
+            items: inventoryItems,
+            payments
         })
 
     } catch(error) {
@@ -93,13 +196,13 @@ const receiveItem = async (request, response) => {
     }
 }
 
-const deductItem = async (request, response) => {
+const deductItems = async (request, response) => {
 
     try {
 
         const { clubId } = request.params
         const { lang } = request.query
-        const { itemId, staffId, amount, price } = request.body
+        const { staffId, items } = request.body
 
         const dataValidation = inventoryValidator.deductItem(request.body, lang)
 
@@ -120,53 +223,35 @@ const deductItem = async (request, response) => {
             })
         }
 
-        const item = await ItemModel.findById(itemId)
-        if(!item) {
-            return response.status(404).json({
-                accepted: false,
-                message: translations[lang]['Item is not found'],
-                field: 'itemId'
-            })
-        }
+        const itemsIdsList = items.map(item => item.itemId)
+        const itemsList = await ItemModel.find({ _id: { $in: itemsIdsList }})
 
-        if(item.inStock == 0) {
+        if(itemsIdsList.length != itemsList.length) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['There is no stock for this item'],
-                field: 'itemId'
+                message: 'Item Id does not exist',
+                field: 'items'
+            })
+        }
+
+        const isItemsInstock = checkItemsInStock(itemsList, items)
+        if(!isItemsInstock) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'There is no stock for an item',
+                field: 'items'
             })
         }
 
 
-        const ITEM_NEW_AMOUNT = item.inStock - amount
-        const TOTAL_PAYMENT = amount * price
-
-        const paymentData = { 
-            clubId, 
-            staffId,
-            type: 'EARN', 
-            category: 'INVENTORY',
-            itemId,
-            amount,
-            price,
-            total: TOTAL_PAYMENT
-        }
-
-        const paymentObj = new PaymentModel(paymentData)
-
-        const updatedItemPromise = ItemModel
-        .findByIdAndUpdate(itemId, { inStock: ITEM_NEW_AMOUNT }, { new: true })
-
-        const [newPayment, updatedItem] = await Promise.all([
-            paymentObj.save(),
-            updatedItemPromise
-        ])
+        request.body.clubId = clubId
+        const { inventoryItems, payments } = await recordSelledPaymentsAndUpdateItems(request.body)
 
         return response.status(200).json({
             accepted: true,
-            message: translations[lang]['Selled Item successfully'],
-            payment: newPayment,
-            item: updatedItem
+            message: 'Payment is recorded successfully',
+            items: inventoryItems,
+            payments
         })
 
     } catch(error) {
@@ -326,4 +411,149 @@ const getClubInventoryStats = async (request, response) => {
     }
 }
 
-module.exports = { receiveItem, deductItem, getClubInventoryStats }
+const getInventoryPayments = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        const payments = await PaymentModel.aggregate([
+            {
+                $match: {
+                    clubId: mongoose.Types.ObjectId(clubId),
+                    category: 'INVENTORY'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'items',
+                    localField: 'itemId',
+                    foreignField: '_id',
+                    as: 'item'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        payments.forEach(payment => payment.item = payment.item[0])
+
+        return response.status(200).json({
+            accepted: true,
+            payments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteDeductItemPayment = async (request, response) => {
+
+    try {
+
+        const { paymentId } = request.params
+
+        const payment = await PaymentModel.findById(paymentId)
+
+        if(payment.category != 'INVENTORY' || payment.type != 'EARN') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Payment must be from inventory with type EARN',
+                field: 'paymentId'
+            })
+        }
+
+        const item = await ItemModel.findById(payment.itemId)
+
+        const ITEM_NEW_AMOUNT = item.inStock + payment.amount
+    
+        const updateItemPromise = ItemModel.findByIdAndUpdate(item._id, { inStock: ITEM_NEW_AMOUNT }, { new: true })
+        const deletePaymentPromise = PaymentModel.findByIdAndDelete(paymentId)
+
+        const [updatedItem, deletePayment] = await Promise.all([
+            updateItemPromise,
+            deletePaymentPromise
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Deleted payment successfully',
+            item: updatedItem,
+            payment: deletePayment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteReceiveItemPayment = async (request, response) => {
+
+    try {
+
+        const { paymentId } = request.params
+
+        const payment = await PaymentModel.findById(paymentId)
+
+        if(payment.category != 'INVENTORY' || payment.type != 'DEDUCT') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Payment must be from inventory with type DEDUCT',
+                field: 'paymentId'
+            })
+        }
+
+        const clubId = payment.clubId
+        const itemId = payment.itemId
+
+        const oldPayments = await PaymentModel
+        .find({ itemId, category: 'INVENTORY', createdAt: { $lte: payment.createdAt } })
+
+        const item = await ItemModel.findById(itemId)
+
+        console.log(oldPayments.length)
+
+        const earnPayments = oldPayments.filter(payment => payment.type == 'EARN')
+        const deductPayments = oldPayments.filter(payment => payment.type == 'DEDUCT')
+
+        console.log(subtractEarnWithDeduct([...earnPayments, ...deductPayments]) + item.initialStock)
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Deleted payment successfully',
+            payment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { 
+    receiveItems, 
+    deductItems, 
+    getClubInventoryStats,
+    getInventoryPayments,
+    deleteDeductItemPayment,
+    deleteReceiveItemPayment
+}

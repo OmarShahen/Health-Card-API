@@ -46,6 +46,7 @@ const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
 const { distinctValues, getUniqueIds, getUniqueSuppliersFromPayments } = require('./distincts')
 const { calculateTotalPaymentsByType, calculateTotalPayments, calculateTotalAmountByType } = require('./payments')
+const { isListUnique } = require('./unique')
 
 module.exports = {
     isNameValid,
@@ -97,5 +98,6 @@ module.exports = {
     getUniqueIds,
     joinStaffIdsWithStaffObjects,
     calculateTotalAmountByType,
-    getUniqueSuppliersFromPayments
+    getUniqueSuppliersFromPayments,
+    isListUnique
 }

@@ -175,5 +175,6 @@ module.exports = {
     "Card barcode is required": "Card barcode is required",
     "There is no member associated with this card barcode": "There is no member associated with this card barcode",
     "Activated registration successfully": "Activated registration successfully",
-    "Registration is freezed successfully": "Registration is freezed successfully"
+    "Registration is freezed successfully": "Registration is freezed successfully",
+    "Updated attendance successfully": "Updated attendance successfully"
 }

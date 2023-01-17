@@ -11,7 +11,7 @@ module.exports = {
     SALT_ROUNDS: Number.parseInt(process.env.SALT_ROUNDS),
     SECRET_KEY: process.env.SECRET_KEY,
     ADMIN_ROLES: ['SUPER'],
-    COUNTRY_CODES: ['20'],
+    COUNTRY_CODES: ['20', '218'],
     APP_ROLES: ['APP-ADMIN', 'STAFF', 'CLUB-ADMIN', 'OWNER'],
     ROLES:{
         STAFF: 'STAFF',

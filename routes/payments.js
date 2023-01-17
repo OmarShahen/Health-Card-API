@@ -19,7 +19,7 @@ router.post(
 
 router.post(
     '/payments/clubs/:clubId/maintenance',
-    tokenMiddleware.adminAndManagmentPermission,
+    tokenMiddleware.appUsersPermission,
     verifyIds.verifyClubId,
     (request, response) => paymentsController.addMaintenancePayment(request, response)
 )
