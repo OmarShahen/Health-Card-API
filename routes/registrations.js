@@ -67,6 +67,13 @@ router.get(
   )
 
 router.get(
+  '/v2/registrations/clubs/:clubId/data-joined',
+  tokenMiddleware.appUsersPermission,
+  verifyIds.verifyClubId, 
+  (request, response) => registrationsController.getClubRegistrationsDataJoinedV2(request, response)
+)
+
+router.get(
   '/v1/registrations/chain-owners/:ownerId',
   tokenMiddleware.adminAndOwnerPermission,
   verifyIds.verifyChainOwnerId, 

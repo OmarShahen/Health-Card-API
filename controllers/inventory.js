@@ -111,9 +111,7 @@ const checkItemsInStock = (items, targetItems) => {
     return true
 }  
 
-const subtractEarnWithDeduct = (payments) => {
-
-    let total = 0
+const subtractEarnWithDeduct = (payments, total=0) => {
 
     for(let i=0;i<payments.length;i++) {
         const payment = payments[i]
@@ -456,6 +454,52 @@ const getInventoryPayments = async (request, response) => {
     }
 }
 
+const getInventoryPaymentsByStaff = async (request, response) => {
+
+    try {
+
+        const { clubId, staffId } = request.params
+
+        const payments = await PaymentModel.aggregate([
+            {
+                $match: {
+                    clubId: mongoose.Types.ObjectId(clubId),
+                    staffId: mongoose.Types.ObjectId(staffId),
+                    category: 'INVENTORY'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'items',
+                    localField: 'itemId',
+                    foreignField: '_id',
+                    as: 'item'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        payments.forEach(payment => payment.item = payment.item[0])
+
+        return response.status(200).json({
+            accepted: true,
+            payments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deleteDeductItemPayment = async (request, response) => {
 
     try {
@@ -517,26 +561,54 @@ const deleteReceiveItemPayment = async (request, response) => {
             })
         }
 
-        const clubId = payment.clubId
         const itemId = payment.itemId
 
-        const oldPayments = await PaymentModel
-        .find({ itemId, category: 'INVENTORY', createdAt: { $lte: payment.createdAt } })
+        const oldPaymentsPromise = PaymentModel
+        .find({ itemId, category: 'INVENTORY', createdAt: { $lt: payment.createdAt } })
 
-        const item = await ItemModel.findById(itemId)
+        const itemPromise = ItemModel.findById(itemId)
 
-        console.log(oldPayments.length)
+        const [item, oldPayments] = await Promise.all([
+            itemPromise,
+            oldPaymentsPromise
+        ])
 
-        const earnPayments = oldPayments.filter(payment => payment.type == 'EARN')
-        const deductPayments = oldPayments.filter(payment => payment.type == 'DEDUCT')
+        const oldEarnPayments = oldPayments.filter(payment => payment.type == 'EARN')
+        const oldDeductPayments = oldPayments.filter(payment => payment.type == 'DEDUCT')
 
-        console.log(subtractEarnWithDeduct([...earnPayments, ...deductPayments]) + item.initialStock)
+        const beforePaymentItemAmount = subtractEarnWithDeduct([...oldEarnPayments, ...oldDeductPayments]) + item.initialStock
 
+        const newPayments = await PaymentModel
+        .find({ itemId, category: 'INVENTORY', createdAt: { $gt: payment.createdAt } })
+
+        const newEarnPayments = newPayments.filter(payment => payment.type == 'EARN')
+        const newDeductPayments = newPayments.filter(payment => payment.type == 'DEDUCT')
+
+        const afterPaymentItemAmount = subtractEarnWithDeduct([...newEarnPayments, ...newDeductPayments], beforePaymentItemAmount) 
+
+        if(afterPaymentItemAmount < 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Cannot delete due to other payments depending on it',
+                field: 'paymentId'
+            })
+        }
+
+        const NEW_ITEM_INSTOCK = item.inStock - payment.amount
+
+        const updatedItemPromise = ItemModel.findByIdAndUpdate(item._id, { inStock: NEW_ITEM_INSTOCK }, { new: true })
+        const deletedPaymentPromise = PaymentModel.findByIdAndDelete(paymentId)
+
+        const [updatedItem, deletedPayment] = await Promise.all([
+            updatedItemPromise,
+            deletedPaymentPromise
+        ])
 
         return response.status(200).json({
             accepted: true,
             message: 'Deleted payment successfully',
-            payment
+            item: updatedItem,
+            payment: deletedPayment
         })
 
     } catch(error) {
@@ -554,6 +626,7 @@ module.exports = {
     deductItems, 
     getClubInventoryStats,
     getInventoryPayments,
+    getInventoryPaymentsByStaff,
     deleteDeductItemPayment,
     deleteReceiveItemPayment
 }

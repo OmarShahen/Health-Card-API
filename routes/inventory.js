@@ -25,6 +25,14 @@ router.get(
 )
 
 router.get(
+    '/inventory/clubs/:clubId/staffs/:staffId',
+    tokenMiddleware.appUsersPermission, 
+    verifyIds.verifyClubId,
+    verifyIds.verifyStaffId,
+    (request, response) => inventoryController.getInventoryPaymentsByStaff(request, response)
+)
+
+router.get(
     '/inventory/clubs/:clubId',
     tokenMiddleware.appUsersPermission, 
     verifyIds.verifyClubId,

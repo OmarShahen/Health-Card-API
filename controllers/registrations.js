@@ -1062,6 +1062,81 @@ const getClubRegistrationsDataJoined = async (request, response) => {
     }
 }
 
+const getClubRegistrationsDataJoinedV2 = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+        let { searchQuery } = utils.statsQueryGenerator('clubId', clubId, request.query)
+
+        const registrations  = await RegistrationModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'members',
+                    localField: 'memberId',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'staffs',
+                    localField: 'staffId',
+                    foreignField: '_id',
+                    as: 'staff'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'packages',
+                    localField: 'packageId',
+                    foreignField: '_id',
+                    as: 'package'
+                }
+            },
+            {
+                $project: {
+                    'member.canAuthenticate': 0,
+                    'member.QRCodeURL': 0,
+                    'member.updatedAt': 0,
+                    'member.__v': 0,
+                    'staff.password': 0,
+                    'staff.updatedAt': 0,
+                    'staff.__v': 0,
+                    'package.updatedAt': 0,
+                    'package.__v': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1,
+                    active: 1
+                }
+            }
+        ])
+
+        registrations.forEach(registration => {
+            registration.package = registration.package[0]
+            registration.staff = registration.staff[0]
+            registration.member = registration.member[0]
+        })
+
+        return response.status(200).json({
+            registrations
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getRegistrationsByOwner = async (request, response) => {
 
     try {
@@ -1969,6 +2044,7 @@ module.exports = {
     getClubRegistrationsStatsByDate,
     checkAddRegistrationData,
     getClubRegistrationsDataJoined,
+    getClubRegistrationsDataJoinedV2,
     getRegistrationsByOwner,
     getChainOwnerRegistrationsStatsByDate,
     getClubStaffsPayments,

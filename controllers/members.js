@@ -406,7 +406,7 @@ const updateMember = async (request, response) => {
             })
         }
 
-        const { name, email, phone, countryCode, membership, age, gender } = request.body
+        const { name, email, phone, countryCode, age, gender } = request.body
 
         const member = await MemberModel.findById(memberId)
 
@@ -419,19 +419,6 @@ const updateMember = async (request, response) => {
                 return response.status(400).json({
                     message: translations[lang]['Email is already registered'],
                     field: 'email'
-                })
-            }
-        }
-
-        if(member.membership != membership) {
-
-            const membershipsList = await MemberModel
-            .find({ clubId: member.clubId, membership })
-
-            if(membershipsList.length != 0) {
-                return response.status(400).json({
-                    message: translations[lang]['Membership is already registered in the club'],
-                    field: 'membership'
                 })
             }
         }
@@ -449,7 +436,7 @@ const updateMember = async (request, response) => {
             }
         }
 
-        let memberData = { name, countryCode, phone, membership, gender, birthYear: new Date(moment().subtract(age, 'years')).getFullYear() }
+        let memberData = { name, countryCode, phone, gender, birthYear: new Date(moment().subtract(age, 'years')).getFullYear() }
 
         if(email) memberData = { ...memberData, email }
 

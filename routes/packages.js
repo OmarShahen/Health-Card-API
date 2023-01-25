@@ -18,21 +18,21 @@ router.get(
 
 router.put(
     '/packages/:packageId',
-    tokenMiddleware.adminAndManagmentPermission,
+    tokenMiddleware.appUsersPermission,
     verifyIds.verifyPackageId, 
     (request, response) => packagesController.updatePackage(request, response)
     )
 
 router.delete(
     '/packages/:packageId', 
-    tokenMiddleware.adminAndManagmentPermission,
+    tokenMiddleware.appUsersPermission,
     verifyIds.verifyPackageId, 
     (request, response) => packagesController.deletePackage(request, response)
     )
 
 router.patch(
     '/packages/:packageId', 
-    tokenMiddleware.adminAndManagmentPermission,
+    tokenMiddleware.appUsersPermission,
     verifyIds.verifyPackageId, 
     (request, response) => packagesController.updatePackageStatus(request, response)
     )
