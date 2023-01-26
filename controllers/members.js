@@ -1540,9 +1540,9 @@ const exportClubMembersThirdParty = async (request, response) => {
             })
         }
 
-        const staff = await StaffModel.findById(staffId)
+        const staff = await StaffModel.find({ _id: staffId, clubId })
 
-        if(!staff) {
+        if(staff.length == 0) {
             return response.status(400).json({
                 accepted: false,
                 message: 'Staff Id is not registered',

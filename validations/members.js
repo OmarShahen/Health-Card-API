@@ -456,21 +456,9 @@ const addNote = (noteData, lang) => {
 
 const importMembersData = (memberData) => {
 
-    let { name, phone, gender } = memberData
+    let { name, phone } = memberData
     
     if(!name) return { isAccepted: false, message: 'name is required', field: 'name' }
-
-    const splitName = name.split(' ')
-
-    let newName 
-
-    if(splitName.length == 1) {
-        newName = `${name} v`
-    } else if(splitName.length > 2) {
-        newName = `${splitName[0]} ${splitName[1]}`
-    } else {
-        newName = name
-    }
 
     if(!phone) return { isAccepted: false, message: 'phone is required', field: 'phone' }
 
@@ -478,9 +466,7 @@ const importMembersData = (memberData) => {
 
     if(String(phone).length != 10) return { isAccepted: false, message: 'phone digits must be 10' }
 
-    if(gender && !['male', 'female'].includes(gender)) return { isAccepted: false, message: 'invalid gender', field: 'gender' }
-
-    return { isAccepted: true, message: 'data is valid', data: { name: newName, phone, gender } }
+    return { isAccepted: true, message: 'data is valid', data: memberData }
 }
 
 module.exports = { 

@@ -9,7 +9,7 @@ const MemberSchema = new mongoose.Schema({
     countryCode: { type: String, required: true },
     membership: { type: Number },
     cardBarcode: { type: String },
-    gender: { type: String, required: true, enum: ['male', 'female']},
+    gender: { type: String },
     birthYear: { type: String },
     weight: { type: Number },
     address: { type: String },
