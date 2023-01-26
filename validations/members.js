@@ -15,8 +15,9 @@ const memberData = (memberData, lang) => {
         cardBarcode,
         gender,
         age,
+        weight,
         job,
-        sportType
+        sportType,
     } = memberData
 
     if(!clubId) return { isAccepted: false, message: 'club Id is required', field: 'clubId' }
@@ -55,6 +56,8 @@ const memberData = (memberData, lang) => {
 
     if(age && (!Number.parseInt(age) || Number.parseInt(age) < 0)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
     
+    if(weight && typeof weight != 'number') return { isAccepted: false, message: translations[lang]['Invalid weight'], field: 'weight' }
+
     if(job && !validator.isNameValid(job)) return { isAccepted: false, message: 'Invalid job formate', field: 'job' }
 
     if(sportType && !validator.isNameValid(sportType)) return { isAccepted: false, message: 'Invalid sport type formate', field: 'sportType' }
@@ -358,8 +361,7 @@ const memberDataCheck = (memberData, lang) => {
 
 const updateMemberData = (memberData, lang) => {
 
-    const { name, email, phone, countryCode, membership, gender, age } = memberData
-
+    const { name, email, phone, countryCode, weight, gender, age } = memberData
 
     if(!name) return { isAccepted: false, message: translations[lang]['Name is required'], field: 'name' }
 
@@ -382,6 +384,8 @@ const updateMemberData = (memberData, lang) => {
     if(gender && !['male', 'female'].includes(gender)) return { isAccepted: false, message: translations[lang]['Invalid gender'], field: 'gender' }
 
     if(age && (!Number.parseInt(age) || Number.parseInt(age) < 0)) return { isAccepted: false, message: translations[lang]['Invalid age'], field: 'age' }
+
+    if(weight && typeof weight != 'number') return { isAccepted: false, message: translations[lang]['Invalid weight'], field: 'weight' }
 
     return { isAccepted: true, message: 'data is valid', data: memberData }
 

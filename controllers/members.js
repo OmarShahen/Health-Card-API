@@ -33,6 +33,7 @@ const addMember = async (request, response, next) => {
             cardBarcode,
             gender, 
             age,
+            weight,
             address,
             job,
             sportType
@@ -137,7 +138,8 @@ const addMember = async (request, response, next) => {
             countryCode, 
             membership, 
             cardBarcode,
-            gender, 
+            gender,
+            weight,
             address, 
         }
 
@@ -406,7 +408,7 @@ const updateMember = async (request, response) => {
             })
         }
 
-        const { name, email, phone, countryCode, age, gender } = request.body
+        const { name, email, phone, countryCode, age, gender, weight, address } = request.body
 
         const member = await MemberModel.findById(memberId)
 
@@ -436,7 +438,15 @@ const updateMember = async (request, response) => {
             }
         }
 
-        let memberData = { name, countryCode, phone, gender, birthYear: new Date(moment().subtract(age, 'years')).getFullYear() }
+        let memberData = { 
+            name, 
+            countryCode, 
+            phone, 
+            gender, 
+            birthYear: new Date(moment().subtract(age, 'years')).getFullYear(),
+            weight,
+            address
+        }
 
         if(email) memberData = { ...memberData, email }
 

@@ -173,5 +173,6 @@ module.exports = {
     "There is no member associated with this card barcode": "لا يوجد عضو مسجل بباركود الكارت",
     "Activated registration successfully": "تم تفعيل الاشتراك بنجاح",
     "Registration is freezed successfully": "تم تجميد الاشتراك بنجاح",
-    "Updated attendance successfully": "تم تاكيد الحضور بنجاح"
+    "Updated attendance successfully": "تم تاكيد الحضور بنجاح",
+    "Invalid weight": "الوزن غير صالح"
 }

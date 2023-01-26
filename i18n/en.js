@@ -176,5 +176,6 @@ module.exports = {
     "There is no member associated with this card barcode": "There is no member associated with this card barcode",
     "Activated registration successfully": "Activated registration successfully",
     "Registration is freezed successfully": "Registration is freezed successfully",
-    "Updated attendance successfully": "Updated attendance successfully"
+    "Updated attendance successfully": "Updated attendance successfully",
+    "Invalid weight": "Invalid weight"
 }

@@ -11,6 +11,7 @@ const MemberSchema = new mongoose.Schema({
     cardBarcode: { type: String },
     gender: { type: String, required: true, enum: ['male', 'female']},
     birthYear: { type: String },
+    weight: { type: Number },
     address: { type: String },
     job: { type: String },
     sportType: { type: String },
