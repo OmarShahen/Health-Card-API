@@ -1587,6 +1587,29 @@ const exportClubMembersThirdParty = async (request, response) => {
     }
 }
 
+const deleteClubMembers = async (request, response) => {
+
+    try {
+
+        const { clubId } = request.params
+
+        const deletedMembers = await MemberModel.deleteMany({ clubId })
+
+        return response.status(200).json({
+            accepted: true,
+            deletedMembers
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addMember, 
@@ -1609,5 +1632,6 @@ module.exports = {
     addNoteToMember,
     memberBlacklistStatus,
     removeNoteFromMember,
-    exportClubMembersThirdParty
+    exportClubMembersThirdParty,
+    deleteClubMembers
 }

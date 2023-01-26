@@ -146,4 +146,10 @@ router.post(
     (request, response) => membersController.exportClubMembersThirdParty(request, response)
 )
 
+router.delete(
+    '/members/clubs/:clubId',
+    verifyIds.verifyClubId,
+    (request, response) => membersController.deleteClubMembers(request, response)
+)
+
 module.exports = router
