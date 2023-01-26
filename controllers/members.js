@@ -1567,10 +1567,7 @@ const exportClubMembersThirdParty = async (request, response) => {
         let readyMembers = []
 
         for(let i=validMembers.length-1;i>=0;i--) {
-            const memberList = await MemberModel.find({ clubId, phone: String(validMembers[i].phone) })
-            if(memberList.length == 0) {
-                readyMembers.push({ ...validMembers[i], clubId, staffId, countryCode: '20' })
-            }
+            readyMembers.push({ ...validMembers[i], clubId, staffId, countryCode: '20' })
         }
         
         const newMembers = await MemberModel.insertMany(readyMembers)
