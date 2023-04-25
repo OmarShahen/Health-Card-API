@@ -3,6 +3,8 @@ module.exports = {
     WEB_FORGOT_PASSWORD_URL: `https://barbels-f6774.web.app/reset-password`,
     PORT: process.env.PORT,
     DB_URL: process.env.DB_URL,
+    GENDER: ['MALE', 'FEMALE'],
+    BLOOD_GROUPS: ['A', 'B', 'O', 'AB', 'A-', 'A+', 'B-', 'B+', 'O+', 'O-', 'AB+', 'AB-'],
     EMAIL: {
         APP_MAIL: 'barbellseg@gmail.com',
         APP_MAIL_PASSWORD: process.env.APP_MAIL_PASSWORD,
@@ -32,5 +34,12 @@ module.exports = {
         MEMBER_QR_CODE_VERIFICATION_TEMPLATE: 'member_identity_verification_qr_code',
         MEMBER_QR_CODE_RESET_TEMPLATE: 'reset_member_qr_code',
         OFFER_MESSAGE_TEMPLATE: 'offers'
-    }
+    },
+    RATES: ['LIKE', 'DISLIKE', 'LOVE'],
+    DOSGAE_TYPES: [
+        'tablet', 'capsule', 'powder', 'lotion', 'gargle', 'drops', 'ointment', 'cream',
+        'injections', 'suppository', 'transdermal patch', 'inhaler', 'pessary', 'enema'
+    ],
+    TIME_UNIT: ['day', 'week', 'month'],
+    APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING']
 }

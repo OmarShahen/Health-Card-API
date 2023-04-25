@@ -5,3 +5,7 @@ test.js
 offline-data.json
 test-data
 excel-node
+doctor
+health-card
+.vscode
+clinic-web

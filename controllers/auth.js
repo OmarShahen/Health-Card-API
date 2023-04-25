@@ -1,89 +1,81 @@
 const config = require('../config/config')
 const authValidation = require('../validations/auth')
 const utils = require('../utils/utils')
-const AdminModel = require('../models/AdminModel')
-const ClubModel = require('../models/ClubModel')
-const MemberModel = require('../models/MemberModel')
-const StaffModel = require('../models/StaffModel')
-const ChainOwnerModel = require('../models/ChainOwnerModel')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
-const whatsappRequest = require('../APIs/whatsapp/send-verification-code')
 const translations = require('../i18n/index')
 const mails = require('../mails/reset-password')
+const UserModel = require('../models/UserModel')
 
-const adminLogin = async (request, response) => {
+const doctorSignup = async (request, response) => {
 
     try {
 
-        const dataValidation = authValidation.adminLogin(request.body)
-
+        const dataValidation = authValidation.doctorSignup(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
+                accepted: dataValidation.isAccepted,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
         }
 
-        const { email, password } = request.body
+        const { firstName, lastName, email, countryCode, phone, password, gender, speciality } = request.body
 
-        const adminsMailList = await AdminModel.find({ email })
-
-        if(adminsMailList.length == 0) {
-
-            return response.status(401).json({
-                message: 'email does not exist',
+        const emailList = await UserModel.find({ role: 'DOCTOR', email })
+        if(emailList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Email is already registered',
                 field: 'email'
             })
         }
 
-
-        if(!bcrypt.compareSync(password, adminsMailList[0].password)) {
-
-            return response.status(401).json({
-                message: 'wrong password',
-                field: 'password'
+        const phoneList = await UserModel.find({ role: 'DOCTOR', countryCode, phone })
+        if(phoneList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Phone is already registered',
+                field: 'phone'
             })
-        }
+        }   
 
-        const admin  = {
-            _id: adminsMailList[0]._id,
-            email: adminsMailList[0].email,
-            phone: adminsMailList[0].phone,
-            countryCode: adminsMailList[0].countryCode,
-            role: adminsMailList[0].role,
-            createdAt: adminsMailList[0].createdAt
-        }
+        const doctorPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
+        const doctorData = { ...request.body, role: 'DOCTOR', password: doctorPassword }
 
-        admin.role = 'APP-ADMIN'
+        const doctorObj = new UserModel(doctorData)
+        const newDoctor = await doctorObj.save()
 
-        const token = jwt.sign(admin, config.SECRET_KEY, { expiresIn: '30d' })
+        newDoctor.password = undefined
+        const token = jwt.sign({ user: newDoctor }, config.SECRET_KEY, { expiresIn: '30d' })
 
         return response.status(200).json({
-            admin: admin,
-            token
+            accepted: true,
+            message: 'Account created successfully!',
+            user: newDoctor,
+            accessToken: token
         })
 
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: error.message
         })
     }
 }
 
-const staffLogin = async (request, response) => {
+
+const doctorLogin = async (request, response) => {
 
     try {
 
-        const { lang } = request.query
-
-        const dataValidation = authValidation.staffLogin(request.body, lang)
+        const dataValidation = authValidation.doctorLogin(request.body)
 
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
-                accepted: false,
+                accepted: dataValidation.isAccepted,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
@@ -91,39 +83,34 @@ const staffLogin = async (request, response) => {
 
         const { phone, countryCode, password } = request.body
 
-        const staffList = await StaffModel
-        .find({ phone, countryCode, isAccountActive: true })
+        const userList = await UserModel.find({ phone, countryCode })
 
-        if(staffList.length == 0) {
+        if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Phone number is not registered'],
+                message: 'Phone number is not registered',
                 field: 'phone'
             })
         }
 
-        if(!bcrypt.compareSync(password, staffList[0].password)) {
+        const user = userList[0]
+
+        if(!bcrypt.compareSync(password, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Incorrect password'],
+                message: 'Incorrect password',
                 field: 'password'
             })
         }
 
+        user.password = undefined
 
-        const token = jwt.sign(staffList[0]._doc, config.SECRET_KEY, { expiresIn: '30d' })
-
-        staffList[0].password = null
-
-        let staff = staffList[0]
-
-        const staffClub = await ClubModel.findById(staff.clubId)
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
 
         return response.status(200).json({
             accepted: true,
             token: token,
-            staff: staff,
-            club: staffClub
+            user,
         })
 
     } catch(error) {
@@ -493,12 +480,6 @@ const sendChainOwnerResetPasswordMail = async (request, response) => {
 
 
 module.exports = {
-    adminLogin,
-    staffLogin,
-    clubAdminLogin,
-    chainOwnerLogin,
-    sendStaffResetPasswordMail,
-    verifyToken,
-    resetPassword,
-    sendChainOwnerResetPasswordMail,
+    doctorSignup,
+    doctorLogin
 }

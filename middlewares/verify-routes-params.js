@@ -1,268 +1,31 @@
 const utils = require('../utils/utils')
-const ClubModel = require('../models/ClubModel')
-const RegistrationModel = require('../models/RegistrationModel')
-const StaffModel = require('../models/StaffModel')
-const PackageModel = require('../models/PackageModel')
-const MemberModel = require('../models/MemberModel')
-const ChainOwnerModel = require('../models/ChainOwnerModel')
-const OfferMessageModel = require('../models/OfferMessageModel')
-const PaymentModel = require('../models/paymentModel')
-const InstallmentModel = require('../models/InstallmentModel')
-const ItemModel = require('../models/ItemModel')
-const SupplierModel = require('../models/SupplierModel')
+const ClinicModel = require('../models/ClinicModel')
+const PatientModel = require('../models/PatientModel')
+const UserModel = require('../models/UserModel')
+const PrescriptionModel = require('../models/PrescriptionModel')
+const AppointmentModel = require('../models/AppointmentModel')
+const EncounterModel = require('../models/EncounterModel')
 
-const verifyClubId = async (request, response, next) => {
+const verifyClinicId = async (request, response, next) => {
 
     try {
 
-        const { clubId } = request.params
+        const { clinicId } = request.params
 
-        if(!utils.isObjectId(clubId)) {
-            return response.status(400).json({
-                message: 'invalid club Id formate',
-                field: 'clubId'
-            })
-        }
-
-        const clubList = await ClubModel.find({ _id: clubId })
-
-        if(clubList.length == 0) {
-            return response.status(404).json({
-                message: 'club Id does not exist',
-                field: 'clubId'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyRegistrationId = async (request, response, next) => {
-
-    try {
-
-        const { registrationId } = request.params
-
-        if(!utils.isObjectId(registrationId)) {
-            return response.status(400).json({
-                message: 'invalid registration Id formate',
-                field: 'registrationId'
-            })
-        }
-
-        const registrationList = await RegistrationModel.find({ _id: registrationId })
-
-        if(registrationList.length == 0) {
-            return response.status(404).json({
-                message: 'registration Id does not exist',
-                field: 'registrationId'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyStaffId = async (request, response, next) => {
-
-    try {
-
-        const { staffId } = request.params
-
-        if(!utils.isObjectId(staffId)) {
-            return response.status(400).json({
-                message: 'invalid staff Id formate',
-                field: 'staffId'
-            })
-        }
-
-        const staffList = await StaffModel.find({ _id: staffId })
-
-        if(staffList.length == 0) {
-            return response.status(404).json({
-                message: 'staff Id does not exist',
-                field: 'staffId'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyPackageId = async (request, response, next) => {
-
-    try {
-
-        const { packageId } = request.params
-
-        if(!utils.isObjectId(packageId)) {
-            return response.status(400).json({
-                message: 'invalid package Id formate',
-                field: 'packageId'
-            })
-        }
-
-        const packageList = await PackageModel.find({ _id: packageId })
-
-        if(packageList.length == 0) {
-            return response.status(404).json({
-                message: 'package Id does not exist',
-                field: 'packageId'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyMemberId = async (request, response, next) => {
-
-    try {
-
-        const { memberId } = request.params
-
-        if(!utils.isObjectId(memberId)) {
-            return response.status(400).json({
-                message: 'invalid member Id formate',
-                field: 'memberId'
-            })
-        }
-
-        const memberList = await MemberModel.find({ _id: memberId })
-
-        if(memberList.length == 0) {
-            return response.status(404).json({
-                message: 'member Id does not exist',
-                field: 'memberId'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyChainOwnerId = async (request, response, next) => {
-
-    try {
-
-        const { ownerId } = request.params
-
-        if(!utils.isObjectId(ownerId)) {
-            return response.status(400).json({
-                message: 'invalid owner Id formate',
-                field: 'ownerId'
-            })
-        }
-
-        const owner = await ChainOwnerModel.findById(ownerId)
-
-        if(!owner) {
-            return response.status(404).json({
-                message: 'owner Id does not exist',
-                field: 'ownerId'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyOfferMessageId = async (request, response, next) => {
-
-    try {
-
-        const { offerMessageId } = request.params
-
-        if(!utils.isObjectId(offerMessageId)) {
-            return response.status(400).json({
-                message: 'invalid offer message Id formate',
-                field: 'offerMessageId'
-            })
-        }
-
-        const offerMessage = await OfferMessageModel.findById(offerMessageId)
-
-        if(!offerMessage) {
-            return response.status(404).json({
-                message: 'offerMessage Id does not exist',
-                field: 'offerMessage'
-            })
-        }
-
-        return next()
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyPaymentId = async (request, response, next) => {
-
-    try {
-
-        const { paymentId } = request.params
-
-        if(!utils.isObjectId(paymentId)) {
+        if(!utils.isObjectId(clinicId)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invalid payment Id formate',
-                field: 'paymentId'
+                message: 'invalid clinic Id formate',
+                field: 'clinicId'
             })
         }
 
-        const payment = await PaymentModel.findById(paymentId)
-
-        if(!payment) {
+        const clinic = await ClinicModel.findById(clinicId)
+        if(!clinic) {
             return response.status(404).json({
                 accepted: false,
-                message: 'payment Id does not exist',
-                field: 'paymentId'
+                message: 'clinic Id does not exist',
+                field: 'clinicId'
             })
         }
 
@@ -277,27 +40,26 @@ const verifyPaymentId = async (request, response, next) => {
     }
 }
 
-const verifyInstallmentId = async (request, response, next) => {
+const verifyPatientId = async (request, response, next) => {
 
     try {
 
-        const { installmentId } = request.params
+        const { patientId } = request.params
 
-        if(!utils.isObjectId(installmentId)) {
+        if(!utils.isObjectId(patientId)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invalid installment Id formate',
-                field: 'installmentId'
+                message: 'invalid patient Id formate',
+                field: 'patientId'
             })
         }
 
-        const installment = await InstallmentModel.findById(installmentId)
-
-        if(!installment) {
+        const patient = await PatientModel.findById(patientId)
+        if(!patient) {
             return response.status(404).json({
                 accepted: false,
-                message: 'installment Id does not exist',
-                field: 'installmentId'
+                message: 'patient Id does not exist',
+                field: 'patientId'
             })
         }
 
@@ -312,27 +74,26 @@ const verifyInstallmentId = async (request, response, next) => {
     }
 }
 
-const verifyItemId = async (request, response, next) => {
+const verifyUserId = async (request, response, next) => {
 
     try {
 
-        const { itemId } = request.params
+        const { userId } = request.params
 
-        if(!utils.isObjectId(itemId)) {
+        if(!utils.isObjectId(userId)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invalid item Id formate',
-                field: 'itemId'
+                message: 'invalid user Id formate',
+                field: 'userId'
             })
         }
 
-        const item = await ItemModel.findById(itemId)
-
-        if(!item) {
+        const user = await UserModel.findById(userId)
+        if(!user) {
             return response.status(404).json({
                 accepted: false,
-                message: 'item Id does not exist',
-                field: 'itemId'
+                message: 'user Id does not exist',
+                field: 'userId'
             })
         }
 
@@ -347,27 +108,26 @@ const verifyItemId = async (request, response, next) => {
     }
 }
 
-const verifySupplierId = async (request, response, next) => {
+const verifyDoctorId = async (request, response, next) => {
 
     try {
 
-        const { supplierId } = request.params
+        const { doctorId } = request.params
 
-        if(!utils.isObjectId(supplierId)) {
+        if(!utils.isObjectId(doctorId)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invalid supplier Id formate',
-                field: 'supplierId'
+                message: 'invalid doctor Id formate',
+                field: 'doctorId'
             })
         }
 
-        const supplier = await SupplierModel.findById(supplierId)
-
-        if(!supplier) {
+        const doctor = await UserModel.findById(doctorId)
+        if(!doctor || doctor.role != 'DOCTOR') {
             return response.status(404).json({
                 accepted: false,
-                message: 'supplier Id does not exist',
-                field: 'supplierId'
+                message: 'doctor Id does not exist',
+                field: 'doctorId'
             })
         }
 
@@ -382,18 +142,143 @@ const verifySupplierId = async (request, response, next) => {
     }
 }
 
+const verifyPrescriptionId = async (request, response, next) => {
+
+    try {
+
+        const { prescriptionId } = request.params
+
+        if(!utils.isObjectId(prescriptionId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid prescription Id formate',
+                field: 'prescriptionId'
+            })
+        }
+
+        const prescription = await PrescriptionModel.findById(prescriptionId)
+        if(!prescription) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'prescription Id does not exist',
+                field: 'prescriptionId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyCardUUID = async (request, response, next) => {
+
+    try {
+
+        const { cardUUID } = request.params
+
+        if(!utils.isUUIDValid(cardUUID)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid card UUID formate',
+                field: 'cardUUID'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyAppointmentId = async (request, response, next) => {
+
+    try {
+
+        const { appointmentId } = request.params
+
+        if(!utils.isObjectId(appointmentId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid appointment Id formate',
+                field: 'appointmentId'
+            })
+        }
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+        if(!appointment) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'appointment Id does not exist',
+                field: 'appointmentId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyEncounterId = async (request, response, next) => {
+
+    try {
+
+        const { encounterId } = request.params
+
+        if(!utils.isObjectId(encounterId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid encounter Id formate',
+                field: 'encounterId'
+            })
+        }
+
+        const encounter = await EncounterModel.findById(encounterId)
+        if(!encounter) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'encounter Id does not exist',
+                field: 'encounterId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 
 module.exports = { 
-    verifyClubId, 
-    verifyRegistrationId, 
-    verifyStaffId, 
-    verifyPackageId, 
-    verifyMemberId,
-    verifyChainOwnerId,
-    verifyOfferMessageId,
-    verifyPaymentId,
-    verifyInstallmentId,
-    verifyItemId,
-    verifySupplierId
+    verifyClinicId, 
+    verifyPatientId,
+    verifyUserId,
+    verifyDoctorId,
+    verifyPrescriptionId,
+    verifyCardUUID,
+    verifyAppointmentId,
+    verifyEncounterId
 }
