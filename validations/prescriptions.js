@@ -66,4 +66,27 @@ const addPrescription = (prescriptionData) => {
 
 }
 
-module.exports = { addPrescription } 
+const addPrescriptionByPatientCardId = (prescriptionData) => {
+
+    const { doctorId, note, medicines } = prescriptionData
+
+    if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
+
+    if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor Id formate', field: 'doctorId' }
+
+    if(note && typeof note != 'string') return { isAccepted: false, message: 'note must be a string', field: 'note' }
+
+    if(!Array.isArray(medicines) || medicines.length == 0) return { isAccepted: false, message: 'Medicines must be a list', field: 'medicines' }
+
+    for(let i=0;i<medicines.length;i++) {
+        const dataValidation = medicineValidation(medicines[i])
+        if(!dataValidation.isAccepted) return dataValidation
+    }
+
+
+    return { isAccepted: true, message: 'data is valid', data: prescriptionData }
+
+}
+
+
+module.exports = { addPrescription, addPrescriptionByPatientCardId } 

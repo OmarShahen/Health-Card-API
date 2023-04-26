@@ -71,6 +71,61 @@ const addPrescription = async (request, response) => {
     }
 }
 
+const addPrescriptionByPatientCardId = async (request, response) => {
+
+    try {
+
+        const dataValidation = prescriptionValidation.addPrescriptionByPatientCardId(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { cardId } = request.params
+        const { doctorId } = request.body
+
+        const doctor = await UserModel.findById(doctorId)
+        if(!doctor || doctor.role != 'DOCTOR') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Doctor Id does not exist',
+                field: 'doctorId'
+            })
+        }
+
+        const patientList = await PatientModel.find({ cardId })
+        if(patientList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Patient card Id does not exists',
+                field: 'cardId'
+            })
+        }
+
+        const patient = patientList[0]
+        const prescriptionData = { ...request.body, patientId: patient._id }
+
+        const prescriptionObj = new PrescriptionModel(prescriptionData)
+        const newPrescription = await prescriptionObj.save()
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Prescription is recorded successfully',
+            prescription: newPrescription
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 const getDoctorPrescriptions = async (request, response) => {
 
     try {
@@ -343,7 +398,8 @@ const getPatientDrugs = async (request, response) => {
 
 
 module.exports = { 
-    addPrescription, 
+    addPrescription,
+    addPrescriptionByPatientCardId,
     getDoctorPrescriptions, 
     getPatientPrescriptions, 
     getPrescription, 

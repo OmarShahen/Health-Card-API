@@ -5,6 +5,8 @@ const { verifyDoctorId, verifyPrescriptionId, verifyCardUUID, verifyPatientId } 
 
 router.post('/v1/prescriptions', (request, response) => prescriptionsController.addPrescription(request, response))
 
+router.post('/v1/prescriptions/cardsId/:cardId', (request, response) => prescriptionsController.addPrescriptionByPatientCardId(request, response))
+
 router.get('/v1/prescriptions/doctors/:doctorId', verifyDoctorId, (request, response) => prescriptionsController.getDoctorPrescriptions(request, response))
 
 router.get('/v1/prescriptions/patients/:patientId', verifyPatientId, (request, response) => prescriptionsController.getPatientPrescriptions(request, response))

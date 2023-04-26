@@ -18,7 +18,7 @@ const addEncounter = async (request, response) => {
             })
         }
 
-        const { doctorId, patientId, symptoms, diagnosis, notes, labTests, labAnalysis, medicines } = request.body
+        const { doctorId, patientId, symptoms, diagnosis, notes, medicines } = request.body
 
         const doctorPromise = UserModel.findById(doctorId)
         const patientPromise = PatientModel.findById(patientId)
@@ -58,6 +58,76 @@ const addEncounter = async (request, response) => {
 
         if(medicines && medicines.length != 0) {
             let prescriptionData = { doctorId, patientId, medicines }
+            const prescriptionObj = new PrescriptionModel(prescriptionData)
+            newPrescription = await prescriptionObj.save()
+        }
+
+        const encounterObj = new EncounterModel(encounterData)
+        const newEncounter = await encounterObj.save()
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Encounter added successfully!',
+            encounter: newEncounter,
+            prescription: newPrescription,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const addEncounterByPatientCardId = async (request, response) => {
+
+    try {
+
+        const dataValidation = encounterValidation.addEncounterByPatientCardId(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { cardId } = request.params
+        const { doctorId, medicines } = request.body
+
+        const doctorPromise = UserModel.findById(doctorId)
+        const patientPromise = PatientModel.find({ cardId })
+
+        const [doctor, patientList] = await Promise.all([
+            doctorPromise,
+            patientPromise
+        ])
+
+        if(!doctor || doctor.role != 'DOCTOR') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Doctor Id does not exist',
+                field: 'doctorId'
+            })
+        }
+
+        if(patientList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Patient card Id does not exists',
+                field: 'cardId'
+            })
+        }
+
+        const patient = patientList[0]
+        let encounterData = { ...request.body, patientId: patient._id }
+        let newPrescription
+
+        if(medicines && medicines.length != 0) {
+            let prescriptionData = { doctorId, patientId: patient._id, medicines }
             const prescriptionObj = new PrescriptionModel(prescriptionData)
             newPrescription = await prescriptionObj.save()
         }
@@ -226,4 +296,10 @@ const getDoctorEncounters = async (request, response) => {
     }
 }
 
-module.exports = { addEncounter, deleteEncounter, getPatientEncounters, getDoctorEncounters }
+module.exports = { 
+    addEncounter, 
+    deleteEncounter, 
+    getPatientEncounters, 
+    getDoctorEncounters,
+    addEncounterByPatientCardId
+}

@@ -11,4 +11,6 @@ router.get('/v1/encounters/doctors/:userId', verifyUserId, (request, response) =
 
 router.delete('/v1/encounters/:encounterId', verifyEncounterId, (request, response) => encountersController.deleteEncounter(request, response))
 
+router.post('/v1/encounters/cardsId/:cardId', (request, response) => encountersController.addEncounterByPatientCardId(request, response))
+
 module.exports = router

@@ -81,15 +81,15 @@ const doctorLogin = async (request, response) => {
             })
         }
 
-        const { phone, countryCode, password } = request.body
+        const { email, password } = request.body
 
-        const userList = await UserModel.find({ phone, countryCode })
+        const userList = await UserModel.find({ email })
 
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Phone number is not registered',
-                field: 'phone'
+                message: 'Email is not registered',
+                field: 'email'
             })
         }
 

@@ -45,16 +45,12 @@ const doctorSignup = (doctorData) => {
 
 const doctorLogin = (doctorData) => {
 
-    const { countryCode, phone, password } = doctorData
+    const { email, password } = doctorData
 
-    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
+    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
 
-    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Invalid country code', field: 'countryCode' }
-
-    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
+    if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Invalid email formate', field: 'email' } 
     
-    if(typeof phone != 'number') return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
-
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
 
     return { isAccepted: true, message: 'data is valid', data: doctorData }

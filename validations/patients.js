@@ -60,7 +60,7 @@ const addPatient = (patientData) => {
 
     if(gender && !config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
 
-    if(dateOfBirth && !utils.isDateValid(dateOfBirth)) return { isAccepted: false, message: 'Invalid date', field: 'dateOfBirth' }
+    if(dateOfBirth && !utils.isBirthYearValid(dateOfBirth)) return { isAccepted: false, message: 'Invalid date', field: 'dateOfBirth' }
 
     if(bloodGroup && !config.BLOOD_GROUPS.includes(bloodGroup)) return { isAccepted: false, message: 'Invalid blood group', field: 'bloodGroup' }
 

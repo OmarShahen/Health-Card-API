@@ -187,6 +187,7 @@ const getPatientByCardUUID = async (request, response) => {
     }
 }
 
+
 const addDoctorToPatient = async (request, response) => {
 
     try {
