@@ -33,4 +33,10 @@ router.get(
     (request, response) => prescriptionsController.getPatientDrugs(request, response)
 )
 
+router.put(
+    '/v1/prescriptions/:prescriptionId',
+    verifyPrescriptionId,
+    (request, response) => prescriptionsController.updatePrescription(request, response) 
+)
+
 module.exports = router

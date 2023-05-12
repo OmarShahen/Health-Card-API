@@ -2,6 +2,8 @@ const AppointmentModel = require('../models/AppointmentModel')
 const UserModel = require('../models/UserModel')
 const appointmentValidation = require('../validations/appointments')
 const mongoose = require('mongoose')
+const utils = require('../utils/utils')
+
 
 const addAppointment = async (request, response) => {
 
@@ -70,11 +72,12 @@ const getAppointmentsByDoctorId = async (request, response) => {
 
         const { userId } = request.params
 
+        const { searchQuery } = utils
+        .statsQueryGenerator('doctorId', userId, request.query, 'reservationTime')
+
         const appointments = await AppointmentModel.aggregate([
             {
-                $match: {
-                    doctorId: mongoose.Types.ObjectId(userId)
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {

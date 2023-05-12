@@ -156,4 +156,56 @@ const addDoctorToPatient = (patientData) => {
 
 }
 
-module.exports = { addPatient, addDoctorToPatient }
+const addEmergencyContactToPatient = (contactData) => {
+
+    const { name, countryCode, phone, relation } = contactData
+
+    if(!name) return { isAccepted: false, message: 'contact name is required', field: 'name' }
+
+    if(typeof name != 'string') return { isAccepted: false, message: 'contact name is required', field: 'name' }
+
+    if(!relation) return { isAccepted: false, message: 'contact relation is required', field: 'relation' }
+
+    if(typeof relation != 'string') return { isAccepted: false, message: 'contact relation is required', field: 'relation' }
+
+    if(!countryCode) return { isAccepted: false, message: 'contact country code is required', field: 'countryCode' }
+
+    if(typeof countryCode != 'number') return { isAccepted: false, message: 'contact country code is required', field: 'countryCode' }
+
+    if(!phone) return { isAccepted: false, message: 'contact phone is required', field: 'phone' }
+
+    if(typeof phone != 'number') return { isAccepted: false, message: 'contact phone is required', field: 'phone' }
+
+    return { isAccepted: true, message: 'data is valid', data: contactData }
+}
+
+const updateEmergencyContactOfPatient = (contactData) => {
+
+    const { name, countryCode, phone, relation } = contactData
+
+    if(!name) return { isAccepted: false, message: 'contact name is required', field: 'name' }
+
+    if(typeof name != 'string') return { isAccepted: false, message: 'contact name is required', field: 'name' }
+
+    if(!relation) return { isAccepted: false, message: 'contact relation is required', field: 'relation' }
+
+    if(typeof relation != 'string') return { isAccepted: false, message: 'contact relation is required', field: 'relation' }
+
+    if(!countryCode) return { isAccepted: false, message: 'contact country code is required', field: 'countryCode' }
+
+    if(typeof countryCode != 'number') return { isAccepted: false, message: 'contact country code is required', field: 'countryCode' }
+
+    if(!phone) return { isAccepted: false, message: 'contact phone is required', field: 'phone' }
+
+    if(typeof phone != 'number') return { isAccepted: false, message: 'contact phone is required', field: 'phone' }
+
+    return { isAccepted: true, message: 'data is valid', data: contactData }
+}
+
+
+module.exports = { 
+    addPatient, 
+    addDoctorToPatient, 
+    addEmergencyContactToPatient, 
+    updateEmergencyContactOfPatient 
+}

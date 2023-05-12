@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
-const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
+
+const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery, dateField='createdAt') => {
 
     const { from, to, until, specific } = datesQuery
-
         
         let searchQuery = {}
 
@@ -21,7 +21,7 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
             toDate = new Date(until)
 
             const dateQuery = { $lte: toDate }
-            searchQuery = { ...searchQuery, createdAt: dateQuery }
+            searchQuery[dateField] = dateQuery
 
 
         } else if(from && to) {
@@ -30,7 +30,7 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
             toDate = new Date(to)
 
             const dateQuery = { $gte: fromDate, $lte: toDate }
-            searchQuery = { ...searchQuery, createdAt: dateQuery }
+            searchQuery[dateField] = dateQuery
 
         } else if(specific) {
 
@@ -39,7 +39,7 @@ const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery) => {
             fromDate = new Date(specific)
 
             const dateQuery = { $gte: fromDate, $lte: toDate }
-            searchQuery = { ...searchQuery, createdAt: dateQuery }
+            searchQuery[dateField] = dateQuery
         }
 
         return { searchQuery, fromDate, toDate }

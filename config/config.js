@@ -38,7 +38,8 @@ module.exports = {
     RATES: ['LIKE', 'DISLIKE', 'LOVE'],
     DOSGAE_TYPES: [
         'tablet', 'capsule', 'powder', 'lotion', 'gargle', 'drops', 'ointment', 'cream',
-        'injections', 'suppository', 'transdermal patch', 'inhaler', 'pessary', 'enema'
+        'injections', 'suppository', 'transdermal patch', 'inhaler', 'pessary', 'enema',
+        'sachet'
     ],
     TIME_UNIT: ['day', 'week', 'month'],
     APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING']

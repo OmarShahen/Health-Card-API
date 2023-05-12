@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const config = require('../config/config')
-const { HealthHistorySchema } = require('../models/HealthHistoryModel')
+const { HealthHistorySchema } = require('./HealthHistoryModel')
+const { EmergencyContactSchema } = require('./EmergencyContactModel')
 
 const PatientSchema = new mongoose.Schema({
 
@@ -14,7 +15,7 @@ const PatientSchema = new mongoose.Schema({
     gender: { type: String, enum: config.GENDER },
     dateOfBirth: { type: Date },
     bloodGroup: { type: String, enum: config.BLOOD_GROUPS },
-    emergencyContacts: [],
+    emergencyContacts: [EmergencyContactSchema],
     healthHistory: HealthHistorySchema,
     doctors: []
 

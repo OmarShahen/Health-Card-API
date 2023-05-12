@@ -4,6 +4,7 @@ const ClinicModel = require('../models/ClinicModel')
 const EncounterModel = require('../models/EncounterModel')
 const patientValidation = require('../validations/patients')
 const mongoose = require('mongoose')
+const utils = require('../utils/utils')
 
 
 const addPatient = async (request, response) => {
@@ -187,7 +188,6 @@ const getPatientByCardUUID = async (request, response) => {
     }
 }
 
-
 const addDoctorToPatient = async (request, response) => {
 
     try {
@@ -255,6 +255,7 @@ const addDoctorToPatient = async (request, response) => {
         })
     }
 }
+
 const getPatientsByDoctorId = async (request, response) => {
 
     try {
@@ -263,7 +264,7 @@ const getPatientsByDoctorId = async (request, response) => {
 
         const patients = await PatientModel
         .find({ 'doctors.doctorId': userId })
-        .sort({ createdAt: -1 })
+        .sort({ 'doctors.createdAt': -1 })
 
         return response.status(200).json({
             accepted: true,
@@ -309,15 +310,249 @@ const getPatientDoctors = async (request, response) => {
     }
 }
 
+const addEmergencyContactToPatient = async (request, response) => {
+
+    try {
+
+        const { patientId } = request.params
+
+        const dataValidation = patientValidation.addEmergencyContactToPatient(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const patient = await PatientModel.findById(patientId)
+        const { emergencyContacts, phone, countryCode } = patient
+
+        const newContactPhone = `${request.body.countryCode}${request.body.phone}`
+        const patientPhone = `${countryCode}${phone}`
+        
+        if(patientPhone == newContactPhone) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'contact phone is the same as patient phone',
+                field: 'phone'
+            })
+        }
+
+        const samePhones = emergencyContacts.filter(contact => {
+            const registeredPhone = `${contact.countryCode}${contact.phone}`            
+            if(newContactPhone == registeredPhone)
+                return true
+            return false
+        })
+
+        if(samePhones.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'contact phone is already registered',
+                field: 'phone'
+            })
+        }
+
+        const contactData = {
+            name: request.body.name,
+            relation: request.body.relation,
+            countryCode: request.body.countryCode,
+            phone: request.body.phone
+        }
+
+        const updatedPatient = await PatientModel
+        .findByIdAndUpdate(patientId, { $push: { emergencyContacts: contactData } }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'added emergency contact successfully!',
+            patient: updatedPatient
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteEmergencyContactOfPatient = async (request, response) => {
+
+    try {
+
+        const { patientId, countryCode, phone } = request.params
+
+        const patient = await PatientModel.findById(patientId)
+
+        const { emergencyContacts } = patient
+        const targetContact = `${countryCode}${phone}`
+
+        const updatedContactList = emergencyContacts.filter(contact => {
+            const contactPhone = `${contact.countryCode}${contact.phone}`
+            if(contactPhone == targetContact)
+                return false
+            return true 
+        })
+
+        const updatedPatient = await PatientModel
+        .findByIdAndUpdate(patientId, { emergencyContacts: updatedContactList }, { new:true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'deleted emergency contact successfully!',
+            patient: updatedPatient
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateEmergencyContactOfPatient = async (request, response) => {
+
+    try {
+
+        const { patientId, contactId } = request.params
+
+        const dataValidation = patientValidation.updateEmergencyContactOfPatient(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const patient = await PatientModel.findById(patientId)
+        const { emergencyContacts } = patient
+
+        const targetContactList = emergencyContacts.filter(contact => contact._id.equals(contactId))
+        if(targetContactList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'emergency contact does not exists',
+                field: 'contactId'
+            })
+        }
+
+        const { name, countryCode, phone, relation } = request.body
+
+        const newPhone = `${countryCode}${phone}`
+        const patientPhone = `${patient.countryCode}${patient.phone}`
+        const withOutTargetContactList = emergencyContacts.map(contact => !contact._id.equals(contactId))
+        const patientContacts = withOutTargetContactList.map(contact => `${contact.countryCode}${contact.phone}`)
+
+        if(newPhone == patientPhone) {
+            return response.status(200).json({
+                accepted: false,
+                message: 'contact phone is the same as patient phone',
+                field: 'phone'
+            })
+        }
+
+        if(patientContacts.includes(newPhone)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'contact phone is already registered in patient contacts',
+                field: 'phone'
+            })
+        }
+
+        const newEmergencyContacts = emergencyContacts.map(contact => {
+            if(contact._id.equals(contactId)) {
+                return {
+                    name,
+                    countryCode,
+                    phone,
+                    relation
+                }
+            }
+
+            return contact
+        })
+
+        const updatedPatient = await PatientModel
+        .findByIdAndUpdate(patientId, { emergencyContacts: newEmergencyContacts }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated patient contact successfully',
+            patient: updatedPatient
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteDoctorFromPatient = async (request, response) => {
+
+    try {
+
+        const { patientId, doctorId } = request.params
+
+        const patient = await PatientModel
+        .findById(patientId)
+        .select({ doctors: 1 })
+
+        const { doctors } = patient
+
+        const targetDoctorList = doctors.filter(doctor => doctor.doctorId == doctorId)
+        if(targetDoctorList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'doctor is not registered with the patient',
+                field: 'doctorId'
+            })
+        }
+
+        const updatedDoctorList = doctors.filter(doctor => doctor.doctorId != doctorId)
+
+        const updatedPatient = await PatientModel
+        .findByIdAndUpdate(patientId, { doctors: updatedDoctorList }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'removed patient successfully!',
+            patient: updatedPatient
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 
 module.exports = { 
-    addPatient, 
+    addPatient,
+    addEmergencyContactToPatient,
     getClinicPatients, 
     getPatientInfo, 
     getPatient, 
     getPatientByCardUUID, 
     addDoctorToPatient,
     getPatientsByDoctorId,
-    getPatientDoctors
+    getPatientDoctors,
+    deleteEmergencyContactOfPatient,
+    updateEmergencyContactOfPatient,
+    deleteDoctorFromPatient
 }

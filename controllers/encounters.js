@@ -4,6 +4,8 @@ const PrescriptionModel = require('../models/PrescriptionModel')
 const UserModel = require('../models/UserModel')
 const PatientModel = require('../models/PatientModel')
 const mongoose = require('mongoose')
+const utils = require('../utils/utils')
+
 
 const addEncounter = async (request, response) => {
 
@@ -123,6 +125,16 @@ const addEncounterByPatientCardId = async (request, response) => {
         }
 
         const patient = patientList[0]
+        const patientDoctorsIds = patient.doctors.map(doctor => doctor.doctorId)
+
+        if(!patientDoctorsIds.includes(doctorId)) {
+            return response.status(401).json({
+                accepted: false,
+                message: 'patient card ID is not registered with doctor',
+                field: 'doctorId'
+            })
+        }
+
         let encounterData = { ...request.body, patientId: patient._id }
         let newPrescription
 
@@ -182,9 +194,11 @@ const getPatientEncounters = async (request, response) => {
 
         const { patientId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+
         const encounters = await EncounterModel.aggregate([
             {
-                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -242,9 +256,11 @@ const getDoctorEncounters = async (request, response) => {
 
         const { userId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('doctorId', userId, request.query)
+
         const encounters = await EncounterModel.aggregate([
             {
-                $match: { doctorId: mongoose.Types.ObjectId(userId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -296,10 +312,106 @@ const getDoctorEncounters = async (request, response) => {
     }
 }
 
+const getEncounter = async (request, response) => {
+
+    try {
+
+        const { encounterId } = request.params
+
+        const encounter = await EncounterModel.aggregate([
+            {
+                $match: {
+                    _id: mongoose.Types.ObjectId(encounterId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0,
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0,
+                    'patient.doctors': 0
+                }
+            }
+        ])
+
+        encounter.forEach(encounter => {
+            encounter.patient = encounter.patient[0]
+            encounter.doctor = encounter.doctor[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            encounter: encounter[0]
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateEncounter = async (request, response) => {
+
+    try {
+
+        const { encounterId } = request.params
+
+        const dataValidation = encounterValidation.updateEncounter(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { symptoms, diagnosis, notes } = request.body
+
+        const updatedEncounter = await EncounterModel
+        .findByIdAndUpdate(encounterId, { symptoms, diagnosis, notes }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated encounter successfully!',
+            encounter: updatedEncounter
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addEncounter, 
     deleteEncounter, 
     getPatientEncounters, 
     getDoctorEncounters,
-    addEncounterByPatientCardId
+    getEncounter,
+    addEncounterByPatientCardId,
+    updateEncounter
 }

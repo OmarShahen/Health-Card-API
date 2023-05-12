@@ -122,4 +122,25 @@ const addEncounterByPatientCardId = (encounterData) => {
 
 }
 
-module.exports = { addEncounter, addEncounterByPatientCardId }
+const updateEncounter = (encounterData) => {
+
+    const { symptoms, diagnosis, notes } = encounterData
+
+
+    if(!Array.isArray(symptoms)) return { isAccepted: false, message: 'Symptoms must be a list', field: 'symptoms' }
+
+    if(symptoms.length == 0) return { isAccepted: false, message: 'Symptoms is required', field: 'symptoms' }
+
+    if(!Array.isArray(diagnosis)) return { isAccepted: false, message: 'Diagnosis must be a list', field: 'diagnosis' }
+
+    if(diagnosis.length == 0) return { isAccepted: false, message: 'Diagnosis must be a list', field: 'diagnosis' }
+
+    if(notes && !Array.isArray(notes)) return { isAccepted: false, message: 'Notes is required', field: 'notes' }
+
+
+    return { isAccepted: true, message: 'data is valid', data: encounterData }
+
+}
+
+
+module.exports = { addEncounter, addEncounterByPatientCardId, updateEncounter }

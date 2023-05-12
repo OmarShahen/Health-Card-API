@@ -4,6 +4,8 @@ const PatientModel = require('../models/PatientModel')
 const UserModel = require('../models/UserModel')
 const prescriptionValidation = require('../validations/prescriptions')
 const config = require('../config/config')
+const utils = require('../utils/utils')
+
 
 const formatPrescriptionsDrugs = (prescriptions) => {
     let drugs = []
@@ -17,7 +19,6 @@ const formatPrescriptionsDrugs = (prescriptions) => {
 
     return drugs
 }
-
 
 const addPrescription = async (request, response) => {
 
@@ -126,15 +127,18 @@ const addPrescriptionByPatientCardId = async (request, response) => {
         })
     }
 }
+
 const getDoctorPrescriptions = async (request, response) => {
 
     try {
 
         const { doctorId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('doctorId', doctorId, request.query)
+
         const prescriptions = await PrescriptionModel.aggregate([
             {
-                $match: { doctorId: mongoose.Types.ObjectId(doctorId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -193,9 +197,11 @@ const getPatientPrescriptions = async (request, response) => {
 
         const { patientId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+
         const prescriptions = await PrescriptionModel.aggregate([
             {
-                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -278,15 +284,82 @@ const getPrescription = async (request, response) => {
 
         const { prescriptionId } = request.params
 
-        const prescription = await PrescriptionModel.findById(prescriptionId)
-        const doctor = await UserModel
-        .findById(prescription.doctorId)
-        .select({ password: 0 })
+        const prescription = await PrescriptionModel.aggregate([
+            {
+                $match: {
+                    _id: mongoose.Types.ObjectId(prescriptionId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0,
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0,
+                    'patient.doctors': 0
+                }
+            }
+        ])
+
+        prescription.forEach(prescription => {
+            prescription.patient = prescription.patient[0]
+            prescription.doctor = prescription.doctor[0]
+        })
 
         return response.status(200).json({
             accepted: true,
-            prescription,
-            doctor
+            prescription: prescription[0]
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updatePrescription = async (request, response) => {
+
+    try {
+
+        const { prescriptionId } = request.params
+
+        const dataValidation = prescriptionValidation.updatePrescription(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { medicines } = request.body
+
+        const updatedPrescription = await PrescriptionModel
+        .findByIdAndUpdate(prescriptionId, { medicines }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated prescription successfully!',
+            prescription: updatedPrescription
         })
 
     } catch(error) {
@@ -362,9 +435,11 @@ const getPatientDrugs = async (request, response) => {
 
         const { patientId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+
         const prescriptions = await PrescriptionModel.aggregate([
             {
-                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+                $match: searchQuery
             },
             {
                 $sort: {
@@ -406,5 +481,6 @@ module.exports = {
     ratePrescription, 
     getPatientLastPrescriptionByCardUUID,
     deletePrescription,
-    getPatientDrugs
+    getPatientDrugs,
+    updatePrescription
 }

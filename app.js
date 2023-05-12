@@ -26,6 +26,7 @@ app.use('/api', require('./routes/clinics'))
 app.use('/api', require('./routes/encounters'))
 app.use('/api', require('./routes/prescriptions'))
 app.use('/api', require('./routes/appointments'))
+app.use('/api', require('./routes/users'))
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))
