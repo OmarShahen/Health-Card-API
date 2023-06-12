@@ -3,6 +3,9 @@ const EncounterModel = require('../models/EncounterModel')
 const PrescriptionModel = require('../models/PrescriptionModel')
 const UserModel = require('../models/UserModel')
 const PatientModel = require('../models/PatientModel')
+const CounterModel = require('../models/CounterModel')
+const DoctorPatientAccessModel = require('../models/ClinicPatientModel')
+const ClinicModel = require('../models/ClinicModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
 
@@ -46,20 +49,40 @@ const addEncounter = async (request, response) => {
             })
         }
 
+        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ doctorId, patientId })
+
+        if(doctorPatientAccessList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'no access to this patient',
+                field: 'patientId'
+            })
+        }
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'encounter' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
         let encounterData = {
+            encounterId: counter.value,
             doctorId,
             patientId,
             symptoms,
             diagnosis,
             notes,
-            labTests,
-            labAnalysis
         }
 
         let newPrescription
 
         if(medicines && medicines.length != 0) {
-            let prescriptionData = { doctorId, patientId, medicines }
+            const counter = await CounterModel.findOneAndUpdate(
+                { name: 'prescription' },
+                { $inc: { value: 1 } },
+                { new: true, upsert: true }
+            )
+            let prescriptionData = { prescriptionId: counter.value, doctorId, patientId, medicines }
             const prescriptionObj = new PrescriptionModel(prescriptionData)
             newPrescription = await prescriptionObj.save()
         }
@@ -98,14 +121,16 @@ const addEncounterByPatientCardId = async (request, response) => {
         }
 
         const { cardId } = request.params
-        const { doctorId, medicines } = request.body
+        const { doctorId, clinicId, symptoms, diagnosis, registrationDate, notes, medicines } = request.body
 
         const doctorPromise = UserModel.findById(doctorId)
         const patientPromise = PatientModel.find({ cardId })
+        const clinicPromise = ClinicModel.findById(clinicId)
 
-        const [doctor, patientList] = await Promise.all([
+        const [doctor, patientList, clinic] = await Promise.all([
             doctorPromise,
-            patientPromise
+            patientPromise,
+            clinicPromise
         ])
 
         if(!doctor || doctor.role != 'DOCTOR') {
@@ -124,25 +149,61 @@ const addEncounterByPatientCardId = async (request, response) => {
             })
         }
 
-        const patient = patientList[0]
-        const patientDoctorsIds = patient.doctors.map(doctor => doctor.doctorId)
-
-        if(!patientDoctorsIds.includes(doctorId)) {
-            return response.status(401).json({
+        if(!clinic) {
+            return response.status(400).json({
                 accepted: false,
-                message: 'patient card ID is not registered with doctor',
-                field: 'doctorId'
+                message: 'Clinic Id does not exists',
+                field: 'clinicId'
             })
         }
 
-        let encounterData = { ...request.body, patientId: patient._id }
+        const patient = patientList[0]
+        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ doctorId, patientId: patient._id })
+
+        if(doctorPatientAccessList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'doctor does not have access to the patient',
+                field: 'patientId'
+            })
+        }
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'encounter' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
+        let encounterData = {
+            encounterId: counter.value,
+            clinicId,
+            patientId: patient._id,
+            doctorId,
+            symptoms,
+            diagnosis,
+            notes,
+            createdAt: registrationDate
+        }
+
         let newPrescription
 
         if(medicines && medicines.length != 0) {
-            let prescriptionData = { doctorId, patientId: patient._id, medicines }
+            const counter = await CounterModel.findOneAndUpdate(
+                { name: 'prescription' },
+                { $inc: { value: 1 } },
+                { new: true, upsert: true }
+            )
+            let prescriptionData = { 
+                prescriptionId: counter.value,
+                clinicId,
+                doctorId, 
+                patientId: patient._id, 
+                medicines 
+            }
             const prescriptionObj = new PrescriptionModel(prescriptionData)
             newPrescription = await prescriptionObj.save()
         }
+
 
         const encounterObj = new EncounterModel(encounterData)
         const newEncounter = await encounterObj.save()
@@ -217,6 +278,14 @@ const getPatientEncounters = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
                 $sort: {
                     createdAt: -1
                 }
@@ -233,6 +302,7 @@ const getPatientEncounters = async (request, response) => {
         encounters.forEach(encounter => {
             encounter.doctor = encounter.doctor[0]
             encounter.patient = encounter.patient[0]
+            encounter.clinic = encounter.clinic[0]
         })
 
         return response.status(200).json({
@@ -272,6 +342,14 @@ const getDoctorEncounters = async (request, response) => {
             },
             {
                 $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
                     from: 'users',
                     localField: 'doctorId',
                     foreignField: '_id',
@@ -295,6 +373,7 @@ const getDoctorEncounters = async (request, response) => {
         encounters.forEach(encounter => {
             encounter.patient = encounter.patient[0]
             encounter.doctor = encounter.doctor[0]
+            encounter.clinic = encounter.clinic[0]
         })
 
         return response.status(200).json({

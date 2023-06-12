@@ -1,6 +1,8 @@
 const AppointmentModel = require('../models/AppointmentModel')
 const UserModel = require('../models/UserModel')
 const appointmentValidation = require('../validations/appointments')
+const VisitReasonModel = require('../models/VisitReasonModel')
+const ClinicModel = require('../models/ClinicModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
 
@@ -18,7 +20,16 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        const { doctorId, reservationTime } = request.body
+        const { 
+            clinicId,
+            doctorId, 
+            visitReasonId, 
+            patientName, 
+            patientCountryCode, 
+            patientPhone, 
+            status, 
+            reservationTime 
+        } = request.body
 
         const todayDate = new Date() 
         if(todayDate > new Date(reservationTime)) {
@@ -29,7 +40,32 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        const doctor = await UserModel.findById(doctorId)
+        const clinicPromise = ClinicModel.findById(clinicId)
+        const visitReasonPromise = VisitReasonModel.findById(visitReasonId)
+        const doctorPromise = UserModel.findById(doctorId)
+
+        const [clinic, visitReason, doctor] = await Promise.all([
+            clinicPromise,
+            visitReasonPromise,
+            doctorPromise
+        ])
+
+        if(!clinic) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic Id is not registered',
+                field: 'clinicId'
+            })
+        }
+
+        if(!visitReason) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'visit reason Id is not registered',
+                field: 'visitReasonId'
+            })
+        }
+
         if(!doctor) {
             return response.status(400).json({
                 accepted: false,
@@ -47,7 +83,17 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        const appointmentObj = new AppointmentModel(request.body)
+        const appointmentData = { 
+            clinicId,
+            doctorId, 
+            visitReasonId, 
+            patientName,
+            patientCountryCode,
+            patientPhone,
+            status,
+            reservationTime
+        }
+        const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()
 
         return response.status(200).json({
@@ -88,6 +134,22 @@ const getAppointmentsByDoctorId = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'visitreasons',
+                    localField: 'visitReasonId',
+                    foreignField: '_id',
+                    as: 'visitReason'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
                 $project: {
                     'doctor.password': 0
                 }
@@ -101,6 +163,83 @@ const getAppointmentsByDoctorId = async (request, response) => {
 
         appointments.forEach(appointment => {
             appointment.doctor = appointment.doctor[0]
+            appointment.clinic = appointment.clinic[0]
+            appointment.visitReason = appointment.visitReason[0]
+            const todayDate = new Date()
+
+            if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
+                appointment.status = 'EXPIRED'
+            }
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getAppointmentsByClinicId = async (request, response) => {
+
+    try {
+
+        const { clinicId } = request.params
+
+        const { searchQuery } = utils
+        .statsQueryGenerator('clinicId', clinicId, request.query, 'reservationTime')
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'visitreasons',
+                    localField: 'visitReasonId',
+                    foreignField: '_id',
+                    as: 'visitReason'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.doctor = appointment.doctor[0]
+            appointment.clinic = appointment.clinic[0]
+            appointment.visitReason = appointment.visitReason[0]
             const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
@@ -193,4 +332,4 @@ const deleteAppointment = async (request, response) => {
     }
 }
 
-module.exports = { addAppointment, getAppointmentsByDoctorId, updateAppointmentStatus, deleteAppointment }
+module.exports = { addAppointment, getAppointmentsByDoctorId, getAppointmentsByClinicId, updateAppointmentStatus, deleteAppointment }

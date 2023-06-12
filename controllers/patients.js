@@ -1,10 +1,13 @@
 const PatientModel = require('../models/PatientModel')
 const UserModel = require('../models/UserModel')
-const ClinicModel = require('../models/ClinicModel')
+const CounterModel = require('../models/CounterModel')
 const EncounterModel = require('../models/EncounterModel')
 const patientValidation = require('../validations/patients')
+const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
+const ClinicPatientModel = require('../models/ClinicPatientModel')
 const mongoose = require('mongoose')
-const utils = require('../utils/utils')
+const ClinicDoctorModel = require('../models/ClinicDoctorModel')
+const ClinicModel = require('../models/ClinicModel')
 
 
 const addPatient = async (request, response) => {
@@ -20,7 +23,7 @@ const addPatient = async (request, response) => {
             })
         }
 
-        const { cardId, doctorId, countryCode, phone } = request.body
+        const { cardId, clinicId, doctorId, countryCode, phone } = request.body
 
         const card = await PatientModel.find({ cardId })
         if(card.length != 0) {
@@ -29,6 +32,28 @@ const addPatient = async (request, response) => {
                 message: 'card Id is already used',
                 field: 'cardId'
             })
+        }
+
+        if(clinicId) {
+            const clinic = await ClinicModel.findById(clinicId)
+            if(!clinic) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'clinic Id is not registered',
+                    field: 'clinicId'
+                })
+            }
+        }
+
+        if(doctorId) {
+            const doctor = await UserModel.findById(doctorId)
+            if(!doctor) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'doctor Id is not registered',
+                    field: 'doctorId'
+                })
+            }
         }
 
 
@@ -43,42 +68,41 @@ const addPatient = async (request, response) => {
 
         const patientData = { ...request.body }
 
-        if(doctorId) {
-            patientData.doctors = [{ doctorId, createdAt: new Date(), updatedAt: new Date() }]
-        }
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'patient' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
 
+        patientData.patientId = counter.value
         const patientObj = new PatientModel(patientData)
         const newPatient = await patientObj.save()
+
+        let newClinicPatient
+        let newClinicPatientDoctor
+
+        if(clinicId && doctorId) {
+
+            const clinicPatientDoctorData = { patientId: newPatient._id, clinicId, doctorId }
+            const clinicPatientDoctorObj = new ClinicPatientDoctorModel(clinicPatientDoctorData)
+            newClinicPatientDoctor = await clinicPatientDoctorObj.save()
+
+            const clinicPatientData = { patientId: newPatient._id, clinicId }
+            const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
+            newClinicPatient = await clinicPatientObj.save()
+
+        } else if(clinicId) {
+            const clinicPatientData = { patientId: newPatient._id, clinicId }
+            const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
+            newClinicPatient = await clinicPatientObj.save()
+        }
 
         return response.status(200).json({
             accepted: true,
             message: 'Added patient successfully!',
-            patient: newPatient
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const getClinicPatients = async (request, response) => {
-
-    try {
-
-        const { clinicId } = request.params
-
-        const patients = await PatientModel
-        .find({ clinicId })
-        .sort({ createdAt: -1 })
-
-        return response.status(200).json({
-            accepted: true,
-            patients
+            patient: newPatient,
+            clinicPatient: newClinicPatient,
+            clinicPatientDoctor: newClinicPatientDoctor
         })
 
     } catch(error) {
@@ -256,15 +280,40 @@ const addDoctorToPatient = async (request, response) => {
     }
 }
 
-const getPatientsByDoctorId = async (request, response) => {
+const getPatientsByClinicId = async (request, response) => {
 
     try {
 
-        const { userId } = request.params
+        const { clinicId } = request.params
 
-        const patients = await PatientModel
-        .find({ 'doctors.doctorId': userId })
-        .sort({ 'doctors.createdAt': -1 })
+        const patients = await ClinicPatientModel.aggregate([
+            {
+                $match: { clinicId: mongoose.Types.ObjectId(clinicId) }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    patient: 1,
+                    createdAt: 1
+                }
+            }
+        ])
+
+        patients.forEach(patient => {
+            patient.patient = patient.patient[0]
+            patient.patient.emergencyContacts = undefined
+            patient.patient.healthHistory = undefined
+        })
 
         return response.status(200).json({
             accepted: true,
@@ -281,19 +330,105 @@ const getPatientsByDoctorId = async (request, response) => {
     }
 }
 
-const getPatientDoctors = async (request, response) => {
+const getPatientsByDoctorId = async (request, response) => {
+
+    try {
+
+        const { doctorId } = request.params
+
+        const patients = await ClinicPatientDoctorModel.aggregate([
+            {
+                $match: {
+                    doctorId: mongoose.Types.ObjectId(doctorId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0
+                }
+            }
+        ])
+
+        patients.forEach(patient => {
+            patient.patient = patient.patient[0]
+            patient.clinic = patient.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            patients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getDoctorsByPatientId = async (request, response) => {
 
     try {
 
         const { patientId } = request.params
 
-        const patient = await PatientModel.findById(patientId)
+        const doctors = await ClinicPatientDoctorModel.aggregate([
+            {
+                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $project: {
+                    'doctor.password': 0
+                }
+            }
+        ])
 
-        const doctorsId = patient.doctors.map(doctor => doctor.doctorId)
-
-        const doctors = await UserModel
-        .find({ _id: { $in: doctorsId }})
-        .select({ password: 0 })
+        doctors.forEach(doctor => {
+            doctor.doctor = doctor.doctor[0]
+            doctor.clinic = doctor.clinic[0]
+        })
 
         return response.status(200).json({
             accepted: true,
@@ -309,7 +444,6 @@ const getPatientDoctors = async (request, response) => {
         })
     }
 }
-
 const addEmergencyContactToPatient = async (request, response) => {
 
     try {
@@ -545,13 +679,13 @@ const deleteDoctorFromPatient = async (request, response) => {
 module.exports = { 
     addPatient,
     addEmergencyContactToPatient,
-    getClinicPatients, 
     getPatientInfo, 
     getPatient, 
     getPatientByCardUUID, 
     addDoctorToPatient,
+    getPatientsByClinicId,
     getPatientsByDoctorId,
-    getPatientDoctors,
+    getDoctorsByPatientId,
     deleteEmergencyContactOfPatient,
     updateEmergencyContactOfPatient,
     deleteDoctorFromPatient

@@ -28,15 +28,13 @@ const validateEmergencyContact = (emergencyContacts, patientPhone) => {
 
 const addPatient = (patientData) => {
 
-    const { cardId, cardUUID, doctorId, firstName, lastName, email, countryCode, phone, gender, dateOfBirth, bloodGroup, weight, emergencyContacts, healthHistory } = patientData
+    const { clinicId, cardId, doctorId, firstName, lastName, socialStatus, email, countryCode, city, phone, gender, dateOfBirth, bloodGroup, weight, emergencyContacts, healthHistory } = patientData
+
+    if(clinicId && !utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id format', field: 'clinicId' }
 
     if(!cardId) return { isAccepted: false, message: 'card Id is required', field: 'cardId'}
 
     if(typeof cardId != 'number') return { isAccepted: false, message: 'card Id formate is invalid', field: 'cardId' } 
-
-    //if(!cardUUID) return { isAccepted: false, message: 'card UUID is required', field: 'cardUUID'}
-
-    //if(!utils.isUUIDValid(cardUUID)) return { isAccepted: false, message: 'card UUID formate is invalid', field: 'cardUUID' } 
 
     if(doctorId && !utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Doctor Id is invalid', field: 'doctorId' }
 
@@ -48,6 +46,8 @@ const addPatient = (patientData) => {
 
     if(!utils.isNameValid(lastName)) return { isAccepted: false, message: 'Invalid name formate', field: 'lastName' }
 
+    if(socialStatus && typeof socialStatus != 'string') return { isAccepted: false, message: 'Invalid social status value', field: 'socialStatus' }
+
     if(email && !utils.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
 
     if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
@@ -56,6 +56,8 @@ const addPatient = (patientData) => {
 
     if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
     
+    if(city && typeof city != 'string') return { isAccepted: false, message: 'Invalid city', field: 'city' }
+
     if(typeof phone != 'number') return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
 
     if(gender && !config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
@@ -94,14 +96,14 @@ const addPatient = (patientData) => {
     if(healthHistory?.isHospitalConfined && typeof healthHistory.isHospitalConfined != 'boolean')
         return { isAccepted: false, message: 'Invalid value for hospital confined', field: 'healthHistory.isHospitalConfined' }
 
-    //if(healthHistory && !Array.isArray(healthHistory.hospitalConfinedReason))
-      //  return { isAccepted: false, message: 'Invalid value for hospital confined reason', field: 'healthHistory.isHospitalConfined' }
+    if(healthHistory?.hospitalConfinedReason && !Array.isArray(healthHistory.hospitalConfinedReason))
+      return { isAccepted: false, message: 'Invalid value for hospital confined reason', field: 'healthHistory.isHospitalConfined' }
 
     if(healthHistory?.isSurgicalOperations && typeof healthHistory.isSurgicalOperations != 'boolean')
         return { isAccepted: false, message: 'Invalid value for surgical operation', field: 'healthHistory.isSurgicalOperations' }
     
-    //if(healthHistory && !Array.isArray(healthHistory.surgicalOperationsReason))
-      //  return { isAccepted: false, message: 'Invalid value for surgical operation reason', field: 'healthHistory.isHospitalConfined' }
+    if(healthHistory?.surgicalOperationsReason && !Array.isArray(healthHistory.surgicalOperationsReason))
+        return { isAccepted: false, message: 'Invalid value for surgical operation reason', field: 'healthHistory.isHospitalConfined' }
 
     if(healthHistory?.isAllergic && typeof healthHistory.isAllergic != 'boolean')
         return { isAccepted: false, message: 'Invalid value for allergic', field: 'healthHistory.isAllergic' }

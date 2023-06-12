@@ -27,6 +27,18 @@ app.use('/api', require('./routes/encounters'))
 app.use('/api', require('./routes/prescriptions'))
 app.use('/api', require('./routes/appointments'))
 app.use('/api', require('./routes/users'))
+app.use('/api', require('./routes/clinics-patients'))
+app.use('/api', require('./routes/visit-reasons'))
+app.use('/api', require('./routes/specialities'))
+app.use('/api', require('./routes/clinics-owners'))
+app.use('/api', require('./routes/clinics-doctors'))
+app.use('/api', require('./routes/doctors'))
+app.use('/api', require('./routes/clinics-patients-doctors'))
+app.use('/api', require('./routes/clinics-requests'))
+app.use('/api', require('./routes/services'))
+app.use('/api', require('./routes/invoices'))
+app.use('/api', require('./routes/invoices-services'))
+
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))
@@ -41,5 +53,5 @@ app.get('/', (request, response) => {
 })
 
 
-http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [GYM-APP]`))
+http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
 

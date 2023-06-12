@@ -42,5 +42,7 @@ module.exports = {
         'sachet'
     ],
     TIME_UNIT: ['day', 'week', 'month'],
-    APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING']
+    APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING'],
+    INVOICE_STATUS: ['DRAFT', 'PENDING', 'PAID', 'PARTIALLY_PAID', 'OVER_DUE', 'VOID', 'REFUNDED'],
+    PAYMENT_METHOD: ['CASH', 'CHECK', 'CREDIT_OR_DEBIT', 'ONLINE', 'MOBILE']
 }

@@ -2,7 +2,10 @@ const mongoose = require('mongoose')
 const PrescriptionModel = require('../models/PrescriptionModel')
 const PatientModel = require('../models/PatientModel')
 const UserModel = require('../models/UserModel')
+const DoctorPatientAccessModel = require('../models/ClinicPatientModel')
+const CounterModel = require('../models/CounterModel')
 const prescriptionValidation = require('../validations/prescriptions')
+const ClinicModel = require('../models/ClinicModel')
 const config = require('../config/config')
 const utils = require('../utils/utils')
 
@@ -33,9 +36,16 @@ const addPrescription = async (request, response) => {
             })
         }
 
-        const { doctorId, patientId } = request.body
+        const { doctorId, patientId, medicines } = request.body
 
-        const doctor = await UserModel.findById(doctorId)
+        const doctorPromise = UserModel.findById(doctorId)
+        const patientPromise = PatientModel.findById(patientId)
+
+        const [doctor, patient] = await Promise.all([
+            doctorPromise,
+            patientPromise
+        ])
+
         if(!doctor || doctor.role != 'DOCTOR') {
             return response.status(400).json({
                 accepted: false,
@@ -44,7 +54,6 @@ const addPrescription = async (request, response) => {
             })
         }
 
-        const patient = await PatientModel.findById(patientId)
         if(!patient) {
             return response.status(400).json({
                 accepted: false,
@@ -53,7 +62,23 @@ const addPrescription = async (request, response) => {
             })
         }
 
-        const prescriptionObj = new PrescriptionModel(request.body)
+        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ patientId, doctorId })
+        
+        if(doctorPatientAccessList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'doctor has no access to this patient',
+                field: 'patientId'
+            })
+        }
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'prescription' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+        const prescriptionData = { prescriptionId: counter.value, doctorId, patientId, medicines }
+        const prescriptionObj = new PrescriptionModel(prescriptionData)
         const newPrescription = await prescriptionObj.save()
 
         return response.status(200).json({
@@ -86,18 +111,20 @@ const addPrescriptionByPatientCardId = async (request, response) => {
         }
 
         const { cardId } = request.params
-        const { doctorId } = request.body
+        const { doctorId, clinicId, medicines, registrationDate, notes } = request.body
 
-        const doctor = await UserModel.findById(doctorId)
-        if(!doctor || doctor.role != 'DOCTOR') {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Doctor Id does not exist',
-                field: 'doctorId'
-            })
-        }
 
-        const patientList = await PatientModel.find({ cardId })
+        const patientListPromise = PatientModel.find({ cardId })
+        const doctorPromise = UserModel.findById(doctorId)
+        const clinicPromise = ClinicModel.findById(clinicId)
+
+
+        const [doctor, patientList, clinic] = await Promise.all([
+            doctorPromise,
+            patientListPromise,
+            clinicPromise
+        ])
+
         if(patientList.length == 0) {
             return response.status(400).json({
                 accepted: false,
@@ -106,8 +133,48 @@ const addPrescriptionByPatientCardId = async (request, response) => {
             })
         }
 
+        if(!doctor || doctor.role != 'DOCTOR') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Doctor Id does not exist',
+                field: 'doctorId'
+            })
+        }
+
+        if(!clinic) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Clinic Id does not exist',
+                field: 'clinicId'
+            })
+        }
+
         const patient = patientList[0]
-        const prescriptionData = { ...request.body, patientId: patient._id }
+        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ doctorId, patientId: patient._id })
+
+        if(doctorPatientAccessList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'doctor does not have access to the patient',
+                field: 'patientId'
+            })
+        }
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'prescription' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+        
+        const prescriptionData = {
+            prescriptionId: counter.value,
+            clinicId,
+            patientId: patient._id,
+            doctorId,
+            medicines,
+            notes,
+            createdAt: registrationDate
+        }
 
         const prescriptionObj = new PrescriptionModel(prescriptionData)
         const newPrescription = await prescriptionObj.save()
@@ -157,6 +224,14 @@ const getDoctorPrescriptions = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
                 $sort: {
                     createdAt: -1
                 }
@@ -174,6 +249,7 @@ const getDoctorPrescriptions = async (request, response) => {
         prescriptions.forEach(prescription => {
             prescription.patient = prescription.patient[0]
             prescription.doctor = prescription.doctor[0]
+            prescription.clinic = prescription.clinic[0]
         })
 
         return response.status(200).json({
@@ -213,6 +289,14 @@ const getPatientPrescriptions = async (request, response) => {
             },
             {
                 $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
                     from: 'patients',
                     localField: 'patientId',
                     foreignField: '_id',
@@ -237,6 +321,7 @@ const getPatientPrescriptions = async (request, response) => {
         prescriptions.forEach(prescription => {
             prescription.doctor = prescription.doctor[0]
             prescription.patient = prescription.patient[0]
+            prescription.clinic = prescription.clinic[0]
         })
 
         return response.status(200).json({

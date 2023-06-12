@@ -5,6 +5,17 @@ const UserModel = require('../models/UserModel')
 const PrescriptionModel = require('../models/PrescriptionModel')
 const AppointmentModel = require('../models/AppointmentModel')
 const EncounterModel = require('../models/EncounterModel')
+const ClinicPatientModel = require('../models/ClinicPatientModel')
+const VisitReasonModel = require('../models/VisitReasonModel')
+const SpecialityModel = require('../models/SpecialityModel')
+const ClinicOwnerModel = require('../models/ClinicOwnerModel')
+const ClinicDoctorModel = require('../models/ClinicDoctorModel')
+const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
+const ClinicRequestModel = require('../models/ClinicRequestModel')
+const ServiceModel = require('../models/ServiceModel')
+const InvoiceModel = require('../models/InvoiceModel')
+const InvoiceServiceModel = require('../models/InvoiceServiceModel')
+
 
 const verifyClinicId = async (request, response, next) => {
 
@@ -271,6 +282,346 @@ const verifyEncounterId = async (request, response, next) => {
     }
 }
 
+const verifyClinicPatientId = async (request, response, next) => {
+
+    try {
+
+        const { clinicPatientId } = request.params
+
+        if(!utils.isObjectId(clinicPatientId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid clinic patient Id formate',
+                field: 'clinicPatientId'
+            })
+        }
+
+        const clinicPatient = await ClinicPatientModel.findById(clinicPatientId)
+        if(!clinicPatient) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'clinic patient Id does not exist',
+                field: 'clinicPatientId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyVisitReasonId = async (request, response, next) => {
+
+    try {
+
+        const { visitReasonId } = request.params
+
+        if(!utils.isObjectId(visitReasonId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid visit reason Id formate',
+                field: 'visitReasonId'
+            })
+        }
+
+        const visitReason = await VisitReasonModel.findById(visitReasonId)
+        if(!visitReason) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'visit reason Id does not exist',
+                field: 'visitReasonId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifySpecialityId = async (request, response, next) => {
+
+    try {
+
+        const { specialityId } = request.params
+
+        if(!utils.isObjectId(specialityId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid speciality Id formate',
+                field: 'specialityId'
+            })
+        }
+
+        const speciality = await SpecialityModel.findById(specialityId)
+        if(!speciality) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'speciality Id does not exist',
+                field: 'specialityId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyClinicOwnerId = async (request, response, next) => {
+
+    try {
+
+        const { clinicOwnerId } = request.params
+
+        if(!utils.isObjectId(clinicOwnerId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid clinic owner Id formate',
+                field: 'clinicOwnerId'
+            })
+        }
+
+        const clinicOwner = await ClinicOwnerModel.findById(clinicOwnerId)
+        if(!clinicOwner) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'clinic owner Id does not exist',
+                field: 'clinicOwnerId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyClinicDoctorId = async (request, response, next) => {
+
+    try {
+
+        const { clinicDoctorId } = request.params
+
+        if(!utils.isObjectId(clinicDoctorId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid clinic doctor Id formate',
+                field: 'clinicDoctorId'
+            })
+        }
+
+        const clinicDoctor = await ClinicDoctorModel.findById(clinicDoctorId)
+        if(!clinicDoctor) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'clinic doctor Id does not exist',
+                field: 'clinicDoctorId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyClinicPatientDoctorId = async (request, response, next) => {
+
+    try {
+
+        const { clinicPatientDoctorId } = request.params
+
+        if(!utils.isObjectId(clinicPatientDoctorId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid clinic patient doctor Id formate',
+                field: 'clinicPatientDoctorId'
+            })
+        }
+
+        const clinicPatientDoctor = await ClinicPatientDoctorModel.findById(clinicPatientDoctorId)
+        if(!clinicPatientDoctor) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'clinic patient doctor Id does not exist',
+                field: 'clinicPatientDoctorId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyClinicRequestId = async (request, response, next) => {
+
+    try {
+
+        const { clinicRequestId } = request.params
+
+        if(!utils.isObjectId(clinicRequestId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid clinic request Id formate',
+                field: 'clinicRequestId'
+            })
+        }
+
+        const clinicRequest = await ClinicRequestModel.findById(clinicRequestId)
+        if(!clinicRequest) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'clinic request Id does not exist',
+                field: 'clinicRequestId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyServiceId = async (request, response, next) => {
+
+    try {
+
+        const { serviceId } = request.params
+
+        if(!utils.isObjectId(serviceId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid service Id formate',
+                field: 'serviceId'
+            })
+        }
+
+        const service = await ServiceModel.findById(serviceId)
+        if(!service) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'service Id does not exist',
+                field: 'serviceId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyInvoiceId = async (request, response, next) => {
+
+    try {
+
+        const { invoiceId } = request.params
+
+        if(!utils.isObjectId(invoiceId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid invoice Id formate',
+                field: 'invoiceId'
+            })
+        }
+
+        const invoice = await InvoiceModel.findById(invoiceId)
+        if(!invoice) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'invoice Id does not exist',
+                field: 'invoiceId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyInvoiceServiceId = async (request, response, next) => {
+
+    try {
+
+        const { invoiceServiceId } = request.params
+
+        if(!utils.isObjectId(invoiceServiceId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid invoice service Id format',
+                field: 'invoiceServiceId'
+            })
+        }
+
+        const invoiceService = await InvoiceServiceModel.findById(invoiceServiceId)
+        if(!invoiceService) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'invoice service Id does not exist',
+                field: 'invoiceServiceId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     verifyClinicId, 
@@ -280,5 +631,15 @@ module.exports = {
     verifyPrescriptionId,
     verifyCardUUID,
     verifyAppointmentId,
-    verifyEncounterId
+    verifyEncounterId,
+    verifyClinicPatientId,
+    verifyVisitReasonId,
+    verifySpecialityId,
+    verifyClinicOwnerId,
+    verifyClinicDoctorId,
+    verifyClinicPatientDoctorId,
+    verifyClinicRequestId,
+    verifyServiceId,
+    verifyInvoiceId,
+    verifyInvoiceServiceId
 }

@@ -41,12 +41,16 @@ const medicineValidation  = (medicine) => {
 
 const addEncounter = (encounterData) => {
 
-    const { doctorId, patientId, symptoms, diagnosis, notes, labTests, labAnalysis, medicines } = encounterData
+    const { doctorId, clinicId, patientId, symptoms, diagnosis, notes, labTests, labAnalysis, medicines } = encounterData
 
 
     if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
 
     if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor Id formate', field: 'doctorId' }
+
+    if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
+
+    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id formate', field: 'clinicId' }
 
     if(!patientId) return { isAccepted: false, message: 'Patient Id is required', field: 'patientId' }
 
@@ -87,12 +91,16 @@ const addEncounter = (encounterData) => {
 
 const addEncounterByPatientCardId = (encounterData) => {
 
-    const { doctorId, symptoms, diagnosis, notes, medicines } = encounterData
+    const { doctorId, clinicId, symptoms, diagnosis, notes, medicines, registrationDate } = encounterData
 
 
     if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
 
     if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor Id formate', field: 'doctorId' }
+
+    if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
+
+    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id formate', field: 'clinicId' }
 
     if(!Array.isArray(symptoms)) return { isAccepted: false, message: 'Symptoms must be a list', field: 'symptoms' }
 
@@ -105,6 +113,8 @@ const addEncounterByPatientCardId = (encounterData) => {
     if(notes && !Array.isArray(notes)) return { isAccepted: false, message: 'Notes is required', field: 'notes' }
 
     if(notes && notes.length == 0) return { isAccepted: false, message: 'Notes must be a list', field: 'notes' }    
+
+    if(registrationDate && !utils.isDateTimeValid(registrationDate)) return { isAccepted: false, message: 'registration date is invalid', field: 'registrationDate' }
 
     if(medicines) {
 

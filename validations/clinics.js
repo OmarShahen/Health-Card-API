@@ -1,5 +1,16 @@
 const utils = require('../utils/utils')
 
+const checkSpecialities = (specialities) => {
+
+    for(let i=0;i<specialities.length;i++) {
+        if(!utils.isObjectId(specialities[i])) {
+            return false
+        }
+    }
+
+    return true
+}
+
 const addClinic = (clinicData) => {
 
     const { name, ownerId, speciality, countryCode, phone, city, country, address, longitude, latitude } = clinicData
@@ -15,6 +26,8 @@ const addClinic = (clinicData) => {
     if(!speciality) return { isAccepted: false, message: 'Speciality is required', field: 'speciality' }
 
     if(!Array.isArray(speciality)) return { isAccepted: false, message: 'Speciality must be a list', field: 'speciality' }    
+
+    if(!checkSpecialities(speciality)) return { isAccepted: false, message: 'Speciality values is invalid', field: 'speciality' }
 
     if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
 

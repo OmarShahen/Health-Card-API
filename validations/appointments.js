@@ -4,11 +4,19 @@ const moment = require('moment')
 
 const addAppointment = (appointmentData) => {
 
-    const { doctorId, patientName, patientPhone, patientCountryCode, status, reservationTime } = appointmentData
+    const { clinicId, doctorId, visitReasonId, patientName, patientPhone, patientCountryCode, status, reservationTime } = appointmentData
+
+    if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
+
+    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'invalid clinic Id format', field: 'clinicId' }
 
     if(!doctorId) return { isAccepted: false, message: 'doctor Id is required', field: 'doctorId' }
 
     if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'invalid doctor Id format', field: 'doctorId' }
+
+    if(!visitReasonId) return { isAccepted: false, message: 'visit reason Id is required', field: 'visitReasonId' }
+
+    if(!utils.isObjectId(visitReasonId)) return { isAccepted: false, message: 'invalid visit reason Id format', field: 'visitReasonId' }
 
     if(!patientName) return { isAccepted: false, message: 'patient name is required', field: 'patientName' }
 
@@ -28,7 +36,7 @@ const addAppointment = (appointmentData) => {
 
     if(!reservationTime) return { isAccepted: false, message: 'reservation time is required', field: 'reservationTime' }
 
-    if(!moment(reservationTime, "YYYY-MM-DDTHH:mm", true).isValid()) return { isAccepted: false, message: 'invalid date format', field: 'reservationTime' }
+    if(!utils.isDateTimeValid(reservationTime)) return { isAccepted: false, message: 'invalid date format', field: 'reservationTime' }
 
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }

@@ -1,0 +1,9 @@
+"use strict";
+
+var generateVerificationCode = function generateVerificationCode() {
+  return Math.floor(100000 + Math.random() * 900000);
+};
+
+module.exports = {
+  generateVerificationCode: generateVerificationCode
+};

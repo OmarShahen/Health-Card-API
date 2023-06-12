@@ -3,8 +3,9 @@ const config = require('../config/config')
 
 const AppointmentSchema = new mongoose.Schema({
 
+    clinicId: { type: mongoose.Types.ObjectId, required: true },
     doctorId: { type: mongoose.Types.ObjectId, required: true },
-    patientId: { type: mongoose.Types.ObjectId },
+    visitReasonId: { type: mongoose.Types.ObjectId, required: true },
     patientName: { type: String, required: true },
     patientPhone: { type: Number, required: true },
     patientCountryCode: { type: Number, required: true },

@@ -2,9 +2,9 @@ const mongoose = require('mongoose')
 
 const ClinicSchema = new mongoose.Schema({
 
+    clinicId: { type: Number, required: true, unique: true },
     name: { type: String, required: true },
     speciality: [],
-    owners: [],
     city: { type: String, required: true },
     country: { type: String, required: true },
     countryCode: { type: String, required: true },
