@@ -12,18 +12,22 @@ var AppointmentModel = require('../models/AppointmentModel');
 
 var UserModel = require('../models/UserModel');
 
-var appointmentValidation = require('../validations/appointments');
+var ServiceModel = require('../models/ServiceModel');
 
-var VisitReasonModel = require('../models/VisitReasonModel');
+var appointmentValidation = require('../validations/appointments');
 
 var ClinicModel = require('../models/ClinicModel');
 
-var mongoose = require('mongoose');
-
 var utils = require('../utils/utils');
 
+var _require = require('../mails/appointment'),
+    sendAppointmentEmail = _require.sendAppointmentEmail;
+
+var _require2 = require('date-fns'),
+    format = _require2.format;
+
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, _request$body, clinicId, doctorId, visitReasonId, patientName, patientCountryCode, patientPhone, status, reservationTime, todayDate, clinicPromise, visitReasonPromise, doctorPromise, _ref, _ref2, clinic, visitReason, doctor, appointment, appointmentData, appointmentObj, newAppointment;
+  var dataValidation, _request$body, clinicId, doctorId, serviceId, patientName, patientCountryCode, patientPhone, status, reservationTime, isSendMail, todayDate, clinicPromise, serviceListPromise, doctorPromise, _ref, _ref2, clinic, serviceList, doctor, appointment, appointmentData, appointmentObj, newAppointment, mailData, mailStatus;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -44,7 +48,7 @@ var addAppointment = function addAppointment(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId, visitReasonId = _request$body.visitReasonId, patientName = _request$body.patientName, patientCountryCode = _request$body.patientCountryCode, patientPhone = _request$body.patientPhone, status = _request$body.status, reservationTime = _request$body.reservationTime;
+          _request$body = request.body, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId, serviceId = _request$body.serviceId, patientName = _request$body.patientName, patientCountryCode = _request$body.patientCountryCode, patientPhone = _request$body.patientPhone, status = _request$body.status, reservationTime = _request$body.reservationTime, isSendMail = _request$body.isSendMail;
           todayDate = new Date();
 
           if (!(todayDate > new Date(reservationTime))) {
@@ -60,16 +64,19 @@ var addAppointment = function addAppointment(request, response) {
 
         case 8:
           clinicPromise = ClinicModel.findById(clinicId);
-          visitReasonPromise = VisitReasonModel.findById(visitReasonId);
+          serviceListPromise = ServiceModel.find({
+            _id: serviceId,
+            clinicId: clinicId
+          });
           doctorPromise = UserModel.findById(doctorId);
           _context.next = 13;
-          return regeneratorRuntime.awrap(Promise.all([clinicPromise, visitReasonPromise, doctorPromise]));
+          return regeneratorRuntime.awrap(Promise.all([clinicPromise, serviceListPromise, doctorPromise]));
 
         case 13:
           _ref = _context.sent;
           _ref2 = _slicedToArray(_ref, 3);
           clinic = _ref2[0];
-          visitReason = _ref2[1];
+          serviceList = _ref2[1];
           doctor = _ref2[2];
 
           if (clinic) {
@@ -84,15 +91,15 @@ var addAppointment = function addAppointment(request, response) {
           }));
 
         case 20:
-          if (visitReason) {
+          if (!(serviceList.length == 0)) {
             _context.next = 22;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'visit reason Id is not registered',
-            field: 'visitReasonId'
+            message: 'service Id is not registered',
+            field: 'serviceId'
           }));
 
         case 22:
@@ -132,7 +139,7 @@ var addAppointment = function addAppointment(request, response) {
           appointmentData = {
             clinicId: clinicId,
             doctorId: doctorId,
-            visitReasonId: visitReasonId,
+            serviceId: serviceId,
             patientName: patientName,
             patientCountryCode: patientCountryCode,
             patientPhone: patientPhone,
@@ -145,14 +152,37 @@ var addAppointment = function addAppointment(request, response) {
 
         case 33:
           newAppointment = _context.sent;
+          mailData = {
+            receiverEmail: doctor.email,
+            appointmentData: {
+              clinicName: clinic.name,
+              clinicCity: utils.capitalizeFirstLetter(clinic.city),
+              serviceName: serviceList[0].name,
+              appointmentDate: format(new Date(newAppointment.reservationTime), 'EEEE, MMMM d, yyyy h:mm a')
+            }
+          };
+
+          if (!isSendMail) {
+            _context.next = 39;
+            break;
+          }
+
+          _context.next = 38;
+          return regeneratorRuntime.awrap(sendAppointmentEmail(mailData));
+
+        case 38:
+          mailStatus = _context.sent;
+
+        case 39:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Registered appointment successfully!',
-            appointment: newAppointment
+            appointment: newAppointment,
+            mailStatus: mailStatus
           }));
 
-        case 37:
-          _context.prev = 37;
+        case 42:
+          _context.prev = 42;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -161,12 +191,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 41:
+        case 46:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 37]]);
+  }, null, null, [[0, 42]]);
 };
 
 var getAppointmentsByDoctorId = function getAppointmentsByDoctorId(request, response) {
@@ -191,10 +221,10 @@ var getAppointmentsByDoctorId = function getAppointmentsByDoctorId(request, resp
             }
           }, {
             $lookup: {
-              from: 'visitreasons',
-              localField: 'visitReasonId',
+              from: 'services',
+              localField: 'serviceId',
               foreignField: '_id',
-              as: 'visitReason'
+              as: 'service'
             }
           }, {
             $lookup: {
@@ -218,7 +248,7 @@ var getAppointmentsByDoctorId = function getAppointmentsByDoctorId(request, resp
           appointments.forEach(function (appointment) {
             appointment.doctor = appointment.doctor[0];
             appointment.clinic = appointment.clinic[0];
-            appointment.visitReason = appointment.visitReason[0];
+            appointment.service = appointment.service[0];
             var todayDate = new Date();
 
             if (todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
@@ -270,10 +300,10 @@ var getAppointmentsByClinicId = function getAppointmentsByClinicId(request, resp
             }
           }, {
             $lookup: {
-              from: 'visitreasons',
-              localField: 'visitReasonId',
+              from: 'services',
+              localField: 'serviceId',
               foreignField: '_id',
-              as: 'visitReason'
+              as: 'service'
             }
           }, {
             $lookup: {
@@ -297,7 +327,7 @@ var getAppointmentsByClinicId = function getAppointmentsByClinicId(request, resp
           appointments.forEach(function (appointment) {
             appointment.doctor = appointment.doctor[0];
             appointment.clinic = appointment.clinic[0];
-            appointment.visitReason = appointment.visitReason[0];
+            appointment.service = appointment.service[0];
             var todayDate = new Date();
 
             if (todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
@@ -355,10 +385,23 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
 
         case 8:
           appointment = _context4.sent;
+
+          if (!(appointment.status == status)) {
+            _context4.next = 11;
+            break;
+          }
+
+          return _context4.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'appointment is already in this state',
+            field: 'status'
+          }));
+
+        case 11:
           todayDate = new Date();
 
           if (!(appointment.reservationTime < todayDate)) {
-            _context4.next = 12;
+            _context4.next = 14;
             break;
           }
 
@@ -368,24 +411,24 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
             field: 'reservationDate'
           }));
 
-        case 12:
-          _context4.next = 14;
+        case 14:
+          _context4.next = 16;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
             status: status
           }, {
             "new": true
           }));
 
-        case 14:
+        case 16:
           updatedAppointment = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated appointment status successfully',
+            message: 'Updated appointment status successfully!',
             appointment: updatedAppointment
           }));
 
-        case 18:
-          _context4.prev = 18;
+        case 20:
+          _context4.prev = 20;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -394,12 +437,12 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
             error: _context4.t0.message
           }));
 
-        case 22:
+        case 24:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 18]]);
+  }, null, null, [[0, 20]]);
 };
 
 var deleteAppointment = function deleteAppointment(request, response) {

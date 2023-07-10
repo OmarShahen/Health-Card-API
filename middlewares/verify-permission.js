@@ -1,5 +1,7 @@
 const config = require('../config/config')
 const jwt = require('jsonwebtoken')
+const utils = require('../utils/utils')
+
 
 const verifyToken = (request, response, next) => {
 
@@ -8,6 +10,7 @@ const verifyToken = (request, response, next) => {
         if(!request.headers['x-access-token']) {
             
             return response.status(401).json({
+                accepted: false,
                 message: 'unauthorized to access resources',
                 field: 'x-access-token'
             })
@@ -19,6 +22,7 @@ const verifyToken = (request, response, next) => {
 
             if(error) {
                 return response.status(401).json({
+                    accepted: false,
                     message: 'invalid token',
                     field: 'token'
                 })
@@ -39,24 +43,25 @@ const verifyToken = (request, response, next) => {
     }
 }
 
-const adminPermission = (request, response, next) => {
+const staffPermission = (request, response, next) => {
 
     try {
 
-        const validRoles = ['APP-ADMIN']
+        const authorizedRoles = ['STAFF']
 
         verifyToken(request, response, () => {
 
-            const { role } = request.user
+            const { roles } = request.user
 
-            if(validRoles.includes(role)) {
+            if(utils.isRolesValid(roles, authorizedRoles)) {
 
                 next()
 
             } else {
 
                 return response.status(403).json({
-                    message: 'unauthorized',
+                    accepted: false,
+                    message: 'unauthorized user type to access this resources',
                     field: 'token'
                 })
             }
@@ -72,24 +77,25 @@ const adminPermission = (request, response, next) => {
     }
 }
 
-const adminAndClubAdminPermission = (request, response, next) => {
+const doctorPermission = (request, response, next) => {
 
     try {
 
-        const validRoles = ['APP-ADMIN', 'CLUB-ADMIN']
+        const authorizedRoles = ['DOCTOR']
 
         verifyToken(request, response, () => {
 
-            const { role } = request.user
+            const { roles } = request.user
 
-            if(validRoles.includes(role)) {
+            if(utils.isRolesValid(roles, authorizedRoles)) {
 
                 next()
 
             } else {
 
                 return response.status(403).json({
-                    message: 'unauthorized',
+                    accepted: false,
+                    message: 'unauthorized user type to access this resources',
                     field: 'token'
                 })
             }
@@ -105,21 +111,25 @@ const adminAndClubAdminPermission = (request, response, next) => {
     }
 }
 
-const adminAndManagmentPermission = (request, response, next) => {
+const ownerPermission = (request, response, next) => {
 
     try {
 
-        const validRoles = ['APP-ADMIN', 'CLUB-ADMIN', 'OWNER']
+        const authorizedRoles = ['OWNER']
 
         verifyToken(request, response, () => {
 
-            const { role } = request.user
+            const { roles } = request.user
 
-            if(validRoles.includes(role)) {
+            if(utils.isRolesValid(roles, authorizedRoles)) {
+
                 next()
+
             } else {
+
                 return response.status(403).json({
-                    message: 'unauthorized',
+                    accepted: false,
+                    message: 'unauthorized user type to access this resources',
                     field: 'token'
                 })
             }
@@ -135,24 +145,25 @@ const adminAndManagmentPermission = (request, response, next) => {
     }
 }
 
-const adminAndStaffPermission = (request, response, next) => {
+const allPermission = (request, response, next) => {
 
     try {
 
-        const validRoles = ['APP-ADMIN', 'STAFF']
+        const authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR']
 
         verifyToken(request, response, () => {
 
-            const { role } = request.user
+            const { roles } = request.user
 
-            if(validRoles.includes(role)) {
+            if(utils.isRolesValid(roles, authorizedRoles)) {
 
                 next()
 
             } else {
 
                 return response.status(403).json({
-                    message: 'unauthorized',
+                    accepted: false,
+                    message: 'unauthorized user type to access this resources',
                     field: 'token'
                 })
             }
@@ -168,57 +179,25 @@ const adminAndStaffPermission = (request, response, next) => {
     }
 }
 
-const adminAndOwnerPermission = (request, response, next) => {
+const doctorAndOwnerPermission = (request, response, next) => {
 
     try {
 
-        const validRoles = ['APP-ADMIN', 'OWNER']
+        const authorizedRoles = ['OWNER', 'DOCTOR']
 
         verifyToken(request, response, () => {
 
-            const { role } = request.user
+            const { roles } = request.user
 
-            if(validRoles.includes(role)) {
+            if(utils.isRolesValid(roles, authorizedRoles)) {
 
                 next()
 
             } else {
 
                 return response.status(403).json({
-                    message: 'unauthorized',
-                    field: 'token'
-                })
-            }
-            
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const appUsersPermission = (request, response, next) => {
-
-    try {
-
-        const validRoles = ['APP-ADMIN', 'STAFF', 'CLUB-ADMIN', 'OWNER']
-
-        verifyToken(request, response, () => {
-
-            const { role } = request.user
-
-            if(validRoles.includes(role)) {
-
-                next()
-
-            } else {
-
-                return response.status(403).json({
-                    message: 'unauthorized',
+                    accepted: false,
+                    message: 'unauthorized user type to access this resources',
                     field: 'token'
                 })
             }
@@ -236,10 +215,9 @@ const appUsersPermission = (request, response, next) => {
 
 module.exports = { 
     verifyToken,
-    adminAndOwnerPermission,
-    adminPermission, 
-    adminAndClubAdminPermission, 
-    adminAndStaffPermission, 
-    appUsersPermission,
-    adminAndManagmentPermission
+    staffPermission,
+    doctorPermission,
+    ownerPermission,
+    allPermission,
+    doctorAndOwnerPermission
 }

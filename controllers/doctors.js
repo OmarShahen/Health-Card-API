@@ -24,15 +24,13 @@ const getClinicDoctors = async (request, response) => {
             },
             {
                 $project: {
-                    doctor: 1,
-                    createdAt: 1
+                    'doctor.password': 0
                 }
             }
         ])
 
         doctors.forEach(doctor => {
             doctor.doctor = doctor.doctor[0]
-            doctor.doctor.password = undefined
         })
 
         return response.status(200).json({

@@ -8,6 +8,8 @@ const ClinicPatientModel = require('../models/ClinicPatientModel')
 const mongoose = require('mongoose')
 const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicModel = require('../models/ClinicModel')
+const utils = require('../utils/utils')
+const CardModel = require('../models/CardModel')
 
 
 const addPatient = async (request, response) => {
@@ -23,7 +25,7 @@ const addPatient = async (request, response) => {
             })
         }
 
-        const { cardId, clinicId, doctorId, countryCode, phone } = request.body
+        const { cardId, cvc, clinicId, doctorId, countryCode, phone } = request.body
 
         const card = await PatientModel.find({ cardId })
         if(card.length != 0) {
@@ -97,10 +99,15 @@ const addPatient = async (request, response) => {
             newClinicPatient = await clinicPatientObj.save()
         }
 
+        const cardData = { cardId, cvc }
+        const cardObj = new CardModel(cardData)
+        const newCard = await cardObj.save()
+
         return response.status(200).json({
             accepted: true,
             message: 'Added patient successfully!',
             patient: newPatient,
+            card: newCard,
             clinicPatient: newClinicPatient,
             clinicPatientDoctor: newClinicPatientDoctor
         })
@@ -188,18 +195,44 @@ const getPatient = async (request, response) => {
     }
 }
 
-const getPatientByCardUUID = async (request, response) => {
+const getPatientByCardId = async (request, response) => {
 
     try {
 
-        const { cardUUID } = request.params
+        const { cardId } = request.params
 
-        const patientList = await PatientModel.find({ cardUUID })
-        const patient = patientList[0]
+        if(isNaN(Number.parseInt(cardId))) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid card ID format',
+                field: 'cardId'
+            })
+        }
+
+        const cardList = await CardModel.find({ cardId })
+        if(cardList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'card ID is not registered',
+                field: 'cardId'
+            })
+        }
+
+        const card = cardList[0]
+        if(!card.isActive) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Card is deactivated',
+                field: 'cardId'
+            })
+        }
+
+        const patientList = await PatientModel.find({ cardId })
+        const patient = patientList[0] || null
 
         return response.status(200).json({
             accepted: true,
-            patient
+            patient: patient
         })
 
     } catch(error) {
@@ -286,9 +319,11 @@ const getPatientsByClinicId = async (request, response) => {
 
         const { clinicId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('clinicId', clinicId, request.query)
+
         const patients = await ClinicPatientModel.aggregate([
             {
-                $match: { clinicId: mongoose.Types.ObjectId(clinicId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -334,13 +369,13 @@ const getPatientsByDoctorId = async (request, response) => {
 
     try {
 
-        const { doctorId } = request.params
+        const { userId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('doctorId', userId, request.query)
 
         const patients = await ClinicPatientDoctorModel.aggregate([
             {
-                $match: {
-                    doctorId: mongoose.Types.ObjectId(doctorId)
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -395,40 +430,37 @@ const getDoctorsByPatientId = async (request, response) => {
 
         const { patientId } = request.params
 
-        const doctors = await ClinicPatientDoctorModel.aggregate([
+        const doctorsList = await ClinicPatientDoctorModel.find({ patientId })
+
+        const doctorsIdsList = doctorsList.map(doctor => doctor.doctorId)
+        const doctorsIdsSet = new Set(doctorsIdsList)
+        const doctorsIds = [...doctorsIdsSet]
+
+        const doctors = await UserModel.aggregate([
             {
-                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+                $match: { _id: { $in: doctorsIds } }
             },
             {
                 $lookup: {
-                    from: 'users',
-                    localField: 'doctorId',
+                    from: 'specialities',
+                    localField: 'speciality',
                     foreignField: '_id',
-                    as: 'doctor'
+                    as: 'specialities'
                 }
             },
             {
-                $lookup: {
-                    from: 'clinics',
-                    localField: 'clinicId',
-                    foreignField: '_id',
-                    as: 'clinic'
+                $sort: {
+                    createdAt: -1
                 }
-            },
-            {
-                $sort: { createdAt: -1 }
             },
             {
                 $project: {
-                    'doctor.password': 0
+                    password: 0,
+                    resetPassword: 0,
+                    deleteAccount: 0
                 }
             }
         ])
-
-        doctors.forEach(doctor => {
-            doctor.doctor = doctor.doctor[0]
-            doctor.clinic = doctor.clinic[0]
-        })
 
         return response.status(200).json({
             accepted: true,
@@ -444,6 +476,7 @@ const getDoctorsByPatientId = async (request, response) => {
         })
     }
 }
+
 const addEmergencyContactToPatient = async (request, response) => {
 
     try {
@@ -681,7 +714,7 @@ module.exports = {
     addEmergencyContactToPatient,
     getPatientInfo, 
     getPatient, 
-    getPatientByCardUUID, 
+    getPatientByCardId, 
     addDoctorToPatient,
     getPatientsByClinicId,
     getPatientsByDoctorId,

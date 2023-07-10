@@ -18,11 +18,15 @@ const addClinicPatient = (clinicPatientData) => {
 
 const addClinicPatientByCardId = (clinicPatientData) => {
 
-    const { cardId, clinicId, doctorId } = clinicPatientData
+    const { cardId, cvc, clinicId, doctorId } = clinicPatientData
 
     if(!cardId) return { isAccepted: false, message: 'card Id is required', field: 'cardId' }
 
     if(typeof cardId != 'number') return { isAccepted: false, message: 'card Id format is invalid', field: 'cardId' }
+
+    if(!cvc) return { isAccepted: false, message: 'card cvc is required', field: 'cvc' }
+
+    if(typeof cvc != 'number') return { isAccepted: false, message: 'card cvc format is invalid', field: 'cvc' }
 
     if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
 

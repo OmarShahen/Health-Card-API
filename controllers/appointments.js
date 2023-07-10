@@ -1,11 +1,11 @@
 const AppointmentModel = require('../models/AppointmentModel')
 const UserModel = require('../models/UserModel')
+const ServiceModel = require('../models/ServiceModel')
 const appointmentValidation = require('../validations/appointments')
-const VisitReasonModel = require('../models/VisitReasonModel')
 const ClinicModel = require('../models/ClinicModel')
-const mongoose = require('mongoose')
 const utils = require('../utils/utils')
-
+const { sendAppointmentEmail } = require('../mails/appointment')
+const { format } = require('date-fns')
 
 const addAppointment = async (request, response) => {
 
@@ -23,12 +23,13 @@ const addAppointment = async (request, response) => {
         const { 
             clinicId,
             doctorId, 
-            visitReasonId, 
+            serviceId, 
             patientName, 
             patientCountryCode, 
             patientPhone, 
             status, 
-            reservationTime 
+            reservationTime,
+            isSendMail
         } = request.body
 
         const todayDate = new Date() 
@@ -41,12 +42,12 @@ const addAppointment = async (request, response) => {
         }
 
         const clinicPromise = ClinicModel.findById(clinicId)
-        const visitReasonPromise = VisitReasonModel.findById(visitReasonId)
+        const serviceListPromise = ServiceModel.find({ _id: serviceId, clinicId })
         const doctorPromise = UserModel.findById(doctorId)
 
-        const [clinic, visitReason, doctor] = await Promise.all([
+        const [clinic, serviceList, doctor] = await Promise.all([
             clinicPromise,
-            visitReasonPromise,
+            serviceListPromise,
             doctorPromise
         ])
 
@@ -58,11 +59,11 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        if(!visitReason) {
+        if(serviceList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'visit reason Id is not registered',
-                field: 'visitReasonId'
+                message: 'service Id is not registered',
+                field: 'serviceId'
             })
         }
 
@@ -86,20 +87,40 @@ const addAppointment = async (request, response) => {
         const appointmentData = { 
             clinicId,
             doctorId, 
-            visitReasonId, 
+            serviceId, 
             patientName,
             patientCountryCode,
             patientPhone,
             status,
             reservationTime
         }
+
+
         const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()
+
+        const mailData = {
+            receiverEmail: doctor.email,
+            appointmentData: {
+                clinicName: clinic.name,
+                clinicCity: utils.capitalizeFirstLetter(clinic.city),
+                serviceName: serviceList[0].name,
+                appointmentDate: format(new Date(newAppointment.reservationTime), 'EEEE, MMMM d, yyyy h:mm a')
+            }
+
+        }
+
+        let mailStatus
+
+        if(isSendMail) {
+            mailStatus = await sendAppointmentEmail(mailData)
+        }
 
         return response.status(200).json({
             accepted: true,
             message: 'Registered appointment successfully!',
-            appointment: newAppointment
+            appointment: newAppointment,
+            mailStatus
         })
 
     } catch(error) {
@@ -135,10 +156,10 @@ const getAppointmentsByDoctorId = async (request, response) => {
             },
             {
                 $lookup: {
-                    from: 'visitreasons',
-                    localField: 'visitReasonId',
+                    from: 'services',
+                    localField: 'serviceId',
                     foreignField: '_id',
-                    as: 'visitReason'
+                    as: 'service'
                 }
             },
             {
@@ -164,7 +185,7 @@ const getAppointmentsByDoctorId = async (request, response) => {
         appointments.forEach(appointment => {
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
-            appointment.visitReason = appointment.visitReason[0]
+            appointment.service = appointment.service[0]
             const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
@@ -210,10 +231,10 @@ const getAppointmentsByClinicId = async (request, response) => {
             },
             {
                 $lookup: {
-                    from: 'visitreasons',
-                    localField: 'visitReasonId',
+                    from: 'services',
+                    localField: 'serviceId',
                     foreignField: '_id',
-                    as: 'visitReason'
+                    as: 'service'
                 }
             },
             {
@@ -239,7 +260,7 @@ const getAppointmentsByClinicId = async (request, response) => {
         appointments.forEach(appointment => {
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
-            appointment.visitReason = appointment.visitReason[0]
+            appointment.service = appointment.service[0]
             const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
@@ -280,6 +301,14 @@ const updateAppointmentStatus = async (request, response) => {
 
         const appointment = await AppointmentModel.findById(appointmentId)
 
+        if(appointment.status == status) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'appointment is already in this state',
+                field: 'status'
+            })
+        }
+
         const todayDate = new Date()
         if(appointment.reservationTime < todayDate) {
             return response.status(400).json({
@@ -294,7 +323,7 @@ const updateAppointmentStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated appointment status successfully',
+            message: 'Updated appointment status successfully!',
             appointment: updatedAppointment
         })
 

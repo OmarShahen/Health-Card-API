@@ -1,7 +1,9 @@
 const ServiceModel = require('../models/ServiceModel')
 const serviceValidation = require('../validations/services')
+const AppointmentModel = require('../models/AppointmentModel')
 const ClinicModel = require('../models/ClinicModel')
 const UserModel = require('../models/UserModel')
+const InvoiceServiceModel = require('../models/InvoiceServiceModel')
 const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const mongoose = require('mongoose')
 
@@ -46,6 +48,11 @@ const getServicesByClinicId = async (request, response) => {
                     as: 'clinic'
                 }
             },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
         ])
 
         services.forEach(service => service.clinic = service.clinic[0])
@@ -166,6 +173,26 @@ const deleteService = async (request, response) => {
     try {
 
         const { serviceId } = request.params
+
+        const invoiceList = await InvoiceServiceModel.find({ serviceId })
+
+        if(invoiceList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'the service is already registered with invoices',
+                field: 'serviceId'
+            })
+        }
+
+        const appointmentsList = await AppointmentModel.find({ serviceId })
+
+        if(appointmentsList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'the service is already registered with appointments',
+                field: 'serviceId'
+            })
+        }
         
         const deletedService = await ServiceModel.findByIdAndDelete(serviceId)
 

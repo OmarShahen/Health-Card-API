@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const PrescriptionModel = require('../models/PrescriptionModel')
 const PatientModel = require('../models/PatientModel')
 const UserModel = require('../models/UserModel')
-const DoctorPatientAccessModel = require('../models/ClinicPatientModel')
+const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const CounterModel = require('../models/CounterModel')
 const prescriptionValidation = require('../validations/prescriptions')
 const ClinicModel = require('../models/ClinicModel')
@@ -133,7 +133,7 @@ const addPrescriptionByPatientCardId = async (request, response) => {
             })
         }
 
-        if(!doctor || doctor.role != 'DOCTOR') {
+        if(!doctor || !doctor.roles.includes('DOCTOR')) {
             return response.status(400).json({
                 accepted: false,
                 message: 'Doctor Id does not exist',
@@ -150,7 +150,7 @@ const addPrescriptionByPatientCardId = async (request, response) => {
         }
 
         const patient = patientList[0]
-        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ doctorId, patientId: patient._id })
+        const doctorPatientAccessList = await ClinicPatientDoctorModel.find({ doctorId, patientId: patient._id, clinicId: clinic._id })
 
         if(doctorPatientAccessList.length == 0) {
             return response.status(400).json({
@@ -161,7 +161,7 @@ const addPrescriptionByPatientCardId = async (request, response) => {
         }
 
         const counter = await CounterModel.findOneAndUpdate(
-            { name: 'prescription' },
+            { name: `${clinic._id}-prescription` },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
@@ -200,6 +200,9 @@ const getDoctorPrescriptions = async (request, response) => {
     try {
 
         const { doctorId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
 
         const { searchQuery } = utils.statsQueryGenerator('doctorId', doctorId, request.query)
 
@@ -229,6 +232,104 @@ const getDoctorPrescriptions = async (request, response) => {
                     localField: 'clinicId',
                     foreignField: '_id',
                     as: 'clinic'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'patient.firstName': { $regex: query, $options: 'i' } },
+                        { 'patient.lastName': { $regex: query, $options: 'i' } },
+                        { 'patient.phone': { $regex: query, $options: 'i' } },
+                        { 'patient.cardId': { $regex: query, $options: 'i' } },
+                    ]
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0,
+                    'patient.doctors': 0,
+                    'doctor.password': 0
+                }
+            }
+        ])
+
+        prescriptions.forEach(prescription => {
+            prescription.patient = prescription.patient[0]
+            prescription.doctor = prescription.doctor[0]
+            prescription.clinic = prescription.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            prescriptions
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getClinicPrescriptions = async (request, response) => {
+
+    try {
+
+        const { clinicId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
+
+        const { searchQuery } = utils.statsQueryGenerator('clinicId', clinicId, request.query)
+
+        const prescriptions = await PrescriptionModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'patient.firstName': { $regex: query, $options: 'i' } },
+                        { 'patient.lastName': { $regex: query, $options: 'i' } },
+                        { 'patient.phone': { $regex: query, $options: 'i' } },
+                        { 'patient.cardId': { $regex: query, $options: 'i' } },
+                        { 'doctor.firstName': { $regex: query, $options: 'i' } },
+                        { 'doctor.lastName': { $regex: query, $options: 'i' } },
+                        { 'doctor.email': { $regex: query, $options: 'i' } },
+                    ]
                 }
             },
             {
@@ -272,6 +373,9 @@ const getPatientPrescriptions = async (request, response) => {
     try {
 
         const { patientId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
 
         const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
 
@@ -436,10 +540,12 @@ const updatePrescription = async (request, response) => {
             })
         }
 
-        const { medicines } = request.body
+        const { medicines, notes } = request.body
+
+        const updateData = { medicines, notes }
 
         const updatedPrescription = await PrescriptionModel
-        .findByIdAndUpdate(prescriptionId, { medicines }, { new: true })
+        .findByIdAndUpdate(prescriptionId, updateData, { new: true })
 
         return response.status(200).json({
             accepted: true,
@@ -519,6 +625,9 @@ const getPatientDrugs = async (request, response) => {
     try {
 
         const { patientId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
 
         const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
 
@@ -561,6 +670,7 @@ module.exports = {
     addPrescription,
     addPrescriptionByPatientCardId,
     getDoctorPrescriptions, 
+    getClinicPrescriptions,
     getPatientPrescriptions, 
     getPrescription, 
     ratePrescription, 

@@ -7,8 +7,6 @@ const UserSchema = new mongoose.Schema({
     userId: { type: Number, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    title: { type: String },
-    description: { type: String },
     email: { type: String, required: true },
     countryCode: { type: Number },
     phone: { type: Number },
@@ -16,8 +14,17 @@ const UserSchema = new mongoose.Schema({
     gender: { type: String, required: true, enum: config.GENDER },
     dateOfBirth: { type: Date, required: true },
     speciality: [],
-    role: { type: String, required: true, enum: ['DOCTOR', 'STAFF'] },
-    isVerified: { type: Boolean, required: true, default: false }
+    roles: [],
+    isVerified: { type: Boolean, required: true, default: false },
+    lastLoginDate: { type: Date },
+    resetPassword: {
+        verificationCode: { type: Number },
+        expirationDate: { type: Date }
+    },
+    deleteAccount: {
+        verificationCode: { type: Number },
+        expirationDate: { type: Date }
+    }
 
 }, { timestamps: true })
 

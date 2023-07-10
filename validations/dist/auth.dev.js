@@ -4,8 +4,6 @@ var validator = require('../utils/utils');
 
 var config = require('../config/config');
 
-var translations = require('../i18n/index');
-
 var checkSpeciality = function checkSpeciality(specialities) {
   for (var i = 0; i < specialities.length; i++) {
     if (!validator.isObjectId(specialities[i])) {
@@ -16,14 +14,38 @@ var checkSpeciality = function checkSpeciality(specialities) {
   return true;
 };
 
-var doctorSignup = function doctorSignup(doctorData) {
-  var clinicId = doctorData.clinicId,
-      firstName = doctorData.firstName,
+var checkRoles = function checkRoles(roles) {
+  for (var i = 0; i < roles.length; i++) {
+    var isValid = false;
+
+    for (var j = 0; j < config.ROLES.length; j++) {
+      if (roles[i] == config.ROLES[j]) {
+        isValid = true;
+        break;
+      }
+    }
+
+    if (!isValid) {
+      return {
+        isAccepted: false,
+        message: 'roles format is invalid',
+        field: 'roles'
+      };
+    }
+  }
+
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: roles
+  };
+};
+
+var signup = function signup(doctorData) {
+  var firstName = doctorData.firstName,
       lastName = doctorData.lastName,
       email = doctorData.email,
-      countryCode = doctorData.countryCode,
-      phone = doctorData.phone,
-      role = doctorData.role,
+      roles = doctorData.roles,
       gender = doctorData.gender,
       dateOfBirth = doctorData.dateOfBirth,
       password = doctorData.password,
@@ -58,37 +80,18 @@ var doctorSignup = function doctorSignup(doctorData) {
     message: 'Email formate is invalid',
     field: 'email'
   };
-  /*if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
-    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Invalid country code', field: 'countryCode' }
-    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
-  
-  if(typeof phone != 'number') return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
-  */
-
-  if (!role) return {
+  if (!roles) return {
     isAccepted: false,
-    message: 'Role is required',
-    field: 'role'
+    message: 'Roles is required',
+    field: 'roles'
   };
-  if (!['DOCTOR', 'STAFF'].includes(role)) return {
+  if (!Array.isArray(roles)) return {
     isAccepted: false,
-    message: 'role format is invalid',
-    field: 'role'
+    message: 'Roles must be a list',
+    field: 'roles'
   };
-
-  if (role == 'STAFF') {
-    if (!clinicId) return {
-      isAccepted: false,
-      message: 'Clinic Id is required',
-      field: 'clinicId'
-    };
-    if (!validator.isObjectId(clinicId)) return {
-      isAccepted: false,
-      message: 'Clinic Id is invalid',
-      field: 'clinicId'
-    };
-  }
-
+  var rolesValidation = checkRoles(roles);
+  if (!rolesValidation.isAccepted) return rolesValidation;
   if (!password) return {
     isAccepted: false,
     message: 'Password is required',
@@ -115,7 +118,7 @@ var doctorSignup = function doctorSignup(doctorData) {
     field: 'dateOfBirth'
   };
 
-  if (role == 'DOCTOR') {
+  if (roles.includes('DOCTOR')) {
     if (!speciality) return {
       isAccepted: false,
       message: 'Speciality is required',
@@ -140,7 +143,7 @@ var doctorSignup = function doctorSignup(doctorData) {
   };
 };
 
-var doctorLogin = function doctorLogin(doctorData) {
+var login = function login(doctorData) {
   var email = doctorData.email,
       password = doctorData.password;
   if (!email) return {
@@ -165,11 +168,119 @@ var doctorLogin = function doctorLogin(doctorData) {
   };
 };
 
+var forgotPassword = function forgotPassword(emailData) {
+  var email = emailData.email;
+  if (!email) return {
+    isAccepted: false,
+    message: 'Email is required',
+    field: 'email'
+  };
+  if (!validator.isEmailValid(email)) return {
+    isAccepted: false,
+    message: 'Invalid email format',
+    field: 'email'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: emailData
+  };
+};
+
+var resetPassword = function resetPassword(resetData) {
+  var email = resetData.email,
+      verificationCode = resetData.verificationCode,
+      password = resetData.password;
+  if (!email) return {
+    isAccepted: false,
+    message: 'Email is required',
+    field: 'email'
+  };
+  if (!validator.isEmailValid(email)) return {
+    isAccepted: false,
+    message: 'Invalid email format',
+    field: 'email'
+  };
+  if (!verificationCode) return {
+    isAccepted: false,
+    message: 'Verification code is required',
+    field: 'verificationCode'
+  };
+  if (typeof verificationCode != 'number') return {
+    isAccepted: false,
+    message: 'Invalid verification code format',
+    field: 'verificationCode'
+  };
+  if (!password) return {
+    isAccepted: false,
+    message: 'Password is required',
+    field: 'password'
+  };
+  if (typeof password != 'string') return {
+    isAccepted: false,
+    message: 'Invalid password format',
+    field: 'password'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: resetData
+  };
+};
+
+var verifyResetPasswordVerificationCode = function verifyResetPasswordVerificationCode(resetData) {
+  var email = resetData.email,
+      verificationCode = resetData.verificationCode;
+  if (!email) return {
+    isAccepted: false,
+    message: 'Email is required',
+    field: 'email'
+  };
+  if (!validator.isEmailValid(email)) return {
+    isAccepted: false,
+    message: 'Invalid email format',
+    field: 'email'
+  };
+  if (!verificationCode) return {
+    isAccepted: false,
+    message: 'Verification code is required',
+    field: 'verificationCode'
+  };
+  if (typeof verificationCode != 'number') return {
+    isAccepted: false,
+    message: 'Invalid verification code format',
+    field: 'verificationCode'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: resetData
+  };
+};
+
+var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificationCode(verificationData) {
+  var verificationCode = verificationData.verificationCode;
+  console.log(verificationData);
+  if (!verificationCode) return {
+    isAccepted: false,
+    message: 'Verification code is required',
+    field: 'verificationCode'
+  };
+  if (typeof verificationCode != 'number') return {
+    isAccepted: false,
+    message: 'Invalid verification code format',
+    field: 'verificationCode'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: verificationData
+  };
+};
+
 var verifyPersonalInfo = function verifyPersonalInfo(verifyData) {
   var firstName = verifyData.firstName,
-      lastName = verifyData.lastName,
-      gender = verifyData.gender,
-      dateOfBirth = verifyData.dateOfBirth;
+      lastName = verifyData.lastName;
   if (!firstName) return {
     isAccepted: false,
     message: 'First name is required',
@@ -190,6 +301,16 @@ var verifyPersonalInfo = function verifyPersonalInfo(verifyData) {
     message: 'Invalid name formate',
     field: 'lastName'
   };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: verifyData
+  };
+};
+
+var verifyDemographicInfo = function verifyDemographicInfo(verifyData) {
+  var gender = verifyData.gender,
+      dateOfBirth = verifyData.dateOfBirth;
   if (!gender) return {
     isAccepted: false,
     message: 'Gender is required',
@@ -218,29 +339,7 @@ var verifyPersonalInfo = function verifyPersonalInfo(verifyData) {
 };
 
 var verifySpecialityInfo = function verifySpecialityInfo(verifyData) {
-  var title = verifyData.title,
-      description = verifyData.description,
-      speciality = verifyData.speciality;
-  if (!title) return {
-    isAccepted: false,
-    message: 'Title is required',
-    field: 'title'
-  };
-  if (!validator.isNameValid(title)) return {
-    isAccepted: false,
-    message: 'Invalid title format',
-    field: 'title'
-  };
-  if (!description) return {
-    isAccepted: false,
-    message: 'Description is required',
-    field: 'description'
-  };
-  if (typeof description != 'string') return {
-    isAccepted: false,
-    message: 'Invalid description format',
-    field: 'description'
-  };
+  var speciality = verifyData.speciality;
   if (!speciality) return {
     isAccepted: false,
     message: 'Speciality is required',
@@ -299,9 +398,14 @@ var addUserEmailVerificationCode = function addUserEmailVerificationCode(userVer
 };
 
 module.exports = {
-  doctorSignup: doctorSignup,
-  doctorLogin: doctorLogin,
+  signup: signup,
+  login: login,
   verifyPersonalInfo: verifyPersonalInfo,
+  verifyDemographicInfo: verifyDemographicInfo,
   verifySpecialityInfo: verifySpecialityInfo,
-  addUserEmailVerificationCode: addUserEmailVerificationCode
+  addUserEmailVerificationCode: addUserEmailVerificationCode,
+  forgotPassword: forgotPassword,
+  resetPassword: resetPassword,
+  verifyResetPasswordVerificationCode: verifyResetPasswordVerificationCode,
+  verifyDeleteAccountVerificationCode: verifyDeleteAccountVerificationCode
 };

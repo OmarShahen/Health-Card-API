@@ -9,7 +9,7 @@ var moment = require('moment');
 var addAppointment = function addAppointment(appointmentData) {
   var clinicId = appointmentData.clinicId,
       doctorId = appointmentData.doctorId,
-      visitReasonId = appointmentData.visitReasonId,
+      serviceId = appointmentData.serviceId,
       patientName = appointmentData.patientName,
       patientPhone = appointmentData.patientPhone,
       patientCountryCode = appointmentData.patientCountryCode,
@@ -35,15 +35,15 @@ var addAppointment = function addAppointment(appointmentData) {
     message: 'invalid doctor Id format',
     field: 'doctorId'
   };
-  if (!visitReasonId) return {
+  if (!serviceId) return {
     isAccepted: false,
-    message: 'visit reason Id is required',
-    field: 'visitReasonId'
+    message: 'service Id is required',
+    field: 'serviceId'
   };
-  if (!utils.isObjectId(visitReasonId)) return {
+  if (!utils.isObjectId(serviceId)) return {
     isAccepted: false,
-    message: 'invalid visit reason Id format',
-    field: 'visitReasonId'
+    message: 'invalid service Id format',
+    field: 'serviceId'
   };
   if (!patientName) return {
     isAccepted: false,

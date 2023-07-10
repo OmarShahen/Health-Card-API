@@ -1,7 +1,10 @@
 const config = require('../config/config')
 const UserModel = require('../models/UserModel')
+const ClinicModel = require('../models/ClinicModel')
+const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const userValidation = require('../validations/users')
 const bcrypt = require('bcrypt')
+const mongoose = require('mongoose')
 const SpecialityModel = require('../models/SpecialityModel')
 
 
@@ -116,7 +119,7 @@ const updateUserSpeciality = async (request, response) => {
             })
         }
 
-        const { title, description, speciality } = request.body
+        const { speciality } = request.body
 
         const specialities = await SpecialityModel.find({ _id: { $in: speciality }})
 
@@ -128,7 +131,9 @@ const updateUserSpeciality = async (request, response) => {
             })
         }
 
-        const newUserData = { title, description, speciality }
+        const newUserData = { 
+            speciality: specialities.map(special => special._id) 
+        }
 
         const updatedUser = await UserModel
         .findByIdAndUpdate(userId, newUserData, { new: true })
@@ -313,12 +318,22 @@ const deleteUser = async (request, response) => {
 
         const { userId } = request.params
 
-        const user = await UserModel.findByIdAndDelete(userId)
+        const user = await UserModel.findById(userId)
+
+        if(user.roles.includes('DOCTOR') || user.roles.includes('OWNER')) {
+            return response.status(400).json({
+                accepted: false,
+                message: `This user type cannot be deleted`,
+                field: 'userId'
+            })
+        }
+
+        const deleteUser = await UserModel.findByIdAndDelete(userId)
 
         return response.status(200).json({
             accepted: true,
             message: 'user deleted successfully!',
-            user
+            user: deleteUser
         })
 
     } catch(error) {
@@ -331,6 +346,127 @@ const deleteUser = async (request, response) => {
     }
 }
 
+const registerStaffToClinic = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const dataValidation = userValidation.registerStaffToClinic(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }   
+
+        const { clinicId } = request.body
+
+        const clinicList = await ClinicModel.find({ clinicId })
+        if(clinicList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'No clinic is registered with that ID',
+                field: 'clinicId'
+            })
+        }
+
+        const user = await UserModel.findById(userId)
+
+        if(!user.roles.includes('STAFF')) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid user role type to perform this operation',
+                field: 'userId'
+            })
+        }
+
+        if(user.clinicId) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'user is already registered with a clinic',
+                field: 'userId'
+            })
+        }
+
+
+        const clinic = clinicList[0]
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { clinicId: clinic._id }, { new: true }) 
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Registered with a clinic successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getUserMode = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const user = await UserModel.findById(userId)
+
+        if(!user.roles.includes('OWNER')) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'user must be owner',
+                field: 'userId'
+            })            
+        }
+
+        const testClinicsOwned = await ClinicOwnerModel.aggregate([
+            {
+                $match: { ownerId: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $match: { 'clinic.mode': 'TEST' }
+            }
+        ])
+
+        let mode = 'PRODUCTION'
+
+        if(testClinicsOwned.length > 0) {
+            mode = 'TEST'
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            mode
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 module.exports = { 
     getUser,
@@ -340,5 +476,7 @@ module.exports = {
     updateUserEmail, 
     updateUserPassword,
     verifyAndUpdateUserPassword,
-    deleteUser
+    deleteUser,
+    registerStaffToClinic,
+    getUserMode
 }

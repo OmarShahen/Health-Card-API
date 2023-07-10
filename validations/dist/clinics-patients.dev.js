@@ -34,6 +34,7 @@ var addClinicPatient = function addClinicPatient(clinicPatientData) {
 
 var addClinicPatientByCardId = function addClinicPatientByCardId(clinicPatientData) {
   var cardId = clinicPatientData.cardId,
+      cvc = clinicPatientData.cvc,
       clinicId = clinicPatientData.clinicId,
       doctorId = clinicPatientData.doctorId;
   if (!cardId) return {
@@ -45,6 +46,16 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(clinicPatientDa
     isAccepted: false,
     message: 'card Id format is invalid',
     field: 'cardId'
+  };
+  if (!cvc) return {
+    isAccepted: false,
+    message: 'card cvc is required',
+    field: 'cvc'
+  };
+  if (typeof cvc != 'number') return {
+    isAccepted: false,
+    message: 'card cvc format is invalid',
+    field: 'cvc'
   };
   if (!clinicId) return {
     isAccepted: false,

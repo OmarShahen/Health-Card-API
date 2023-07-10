@@ -1,6 +1,5 @@
 const validator = require('../utils/utils')
 const config = require('../config/config')
-const translations = require('../i18n/index')
 
 const checkSpeciality = (specialities) => {
     for(let i=0;i<specialities.length;i++) {
@@ -12,9 +11,27 @@ const checkSpeciality = (specialities) => {
     return true
 }
 
-const doctorSignup = (doctorData) => {
+const checkRoles = (roles) => {
+    for(let i=0;i<roles.length;i++) {
+        let isValid = false
+        for(let j=0;j<config.ROLES.length;j++) {
+            if(roles[i] == config.ROLES[j]) {
+                isValid = true
+                break
+            }
+        }
 
-    const { clinicId, firstName, lastName, email, countryCode, phone, role, gender, dateOfBirth, password, speciality } = doctorData
+        if(!isValid) {
+            return { isAccepted: false, message: 'roles format is invalid', field: 'roles' }
+        }
+    }
+
+    return { isAccepted: true, message: 'data is valid', data: roles }
+}
+
+const signup = (doctorData) => {
+
+    const { firstName, lastName, email, roles, gender, dateOfBirth, password, speciality } = doctorData
 
 
     if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
@@ -29,25 +46,12 @@ const doctorSignup = (doctorData) => {
 
     if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
 
-    /*if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
+    if(!roles) return { isAccepted: false, message: 'Roles is required', field: 'roles' }
 
-    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Invalid country code', field: 'countryCode' }
+    if(!Array.isArray(roles)) return { isAccepted: false, message: 'Roles must be a list', field: 'roles' }
 
-    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
-    
-    if(typeof phone != 'number') return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
-    */
-    if(!role) return { isAccepted: false, message: 'Role is required', field: 'role' }
-
-    if(!['DOCTOR', 'STAFF'].includes(role)) return { isAccepted: false, message: 'role format is invalid', field: 'role' }
-
-    if(role == 'STAFF') {
-
-        if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
-
-        if(!validator.isObjectId(clinicId)) return { isAccepted: false, message: 'Clinic Id is invalid', field: 'clinicId' }
-
-    } 
+    const rolesValidation = checkRoles(roles)
+    if(!rolesValidation.isAccepted) return rolesValidation
 
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
 
@@ -59,20 +63,21 @@ const doctorSignup = (doctorData) => {
 
     if(!validator.isDateValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
 
-    if(role == 'DOCTOR') {
+    if(roles.includes('DOCTOR')) {
         
         if(!speciality) return { isAccepted: false, message: 'Speciality is required', field: 'speciality' }
 
         if(!Array.isArray(speciality)) return { isAccepted: false, message: 'Speciality must be a list', field: 'speciality' }    
 
         if(speciality.length == 0) return { isAccepted: false, message: 'Speciality must be atleast one', field: 'speciality' }
+
     }
 
     return { isAccepted: true, message: 'data is valid', data: doctorData }
 
 }
 
-const doctorLogin = (doctorData) => {
+const login = (doctorData) => {
 
     const { email, password } = doctorData
 
@@ -86,9 +91,74 @@ const doctorLogin = (doctorData) => {
 
 }
 
+const forgotPassword = (emailData) => {
+
+    const { email } = emailData
+
+    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
+
+    if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Invalid email format', field: 'email' } 
+    
+    return { isAccepted: true, message: 'data is valid', data: emailData }
+
+}
+
+const resetPassword = (resetData) => {
+
+    const { email, verificationCode, password } = resetData
+
+    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
+
+    if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Invalid email format', field: 'email' } 
+    
+    if(!verificationCode) return { isAccepted: false, message: 'Verification code is required', field: 'verificationCode' }
+
+    if(typeof verificationCode != 'number') return { isAccepted: false, message: 'Invalid verification code format', field: 'verificationCode' } 
+    
+    if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
+
+    if(typeof password != 'string') return { isAccepted: false, message: 'Invalid password format', field: 'password' } 
+    
+
+    return { isAccepted: true, message: 'data is valid', data: resetData }
+
+}
+
+const verifyResetPasswordVerificationCode = (resetData) => {
+
+    const { email, verificationCode } = resetData
+
+    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
+
+    if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Invalid email format', field: 'email' } 
+    
+    if(!verificationCode) return { isAccepted: false, message: 'Verification code is required', field: 'verificationCode' }
+
+    if(typeof verificationCode != 'number') return { isAccepted: false, message: 'Invalid verification code format', field: 'verificationCode' } 
+
+
+    return { isAccepted: true, message: 'data is valid', data: resetData }
+
+}
+
+const verifyDeleteAccountVerificationCode = (verificationData) => {
+
+    const { verificationCode } = verificationData
+
+    console.log(verificationData)
+    
+    if(!verificationCode) return { isAccepted: false, message: 'Verification code is required', field: 'verificationCode' }
+
+    if(typeof verificationCode != 'number') return { isAccepted: false, message: 'Invalid verification code format', field: 'verificationCode' } 
+
+
+    return { isAccepted: true, message: 'data is valid', data: verificationData }
+
+}
+
 const verifyPersonalInfo = (verifyData) => {
 
-    const { firstName, lastName, gender, dateOfBirth } = verifyData
+    const { firstName, lastName } = verifyData
 
 
     if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
@@ -98,6 +168,15 @@ const verifyPersonalInfo = (verifyData) => {
     if(!lastName) return { isAccepted: false, message: 'Last name is required', field: 'lastName' }
 
     if(!validator.isNameValid(lastName)) return { isAccepted: false, message: 'Invalid name formate', field: 'lastName' }
+
+
+    return { isAccepted: true, message: 'data is valid', data: verifyData }
+
+}
+
+const verifyDemographicInfo = (verifyData) => {
+
+    const { gender, dateOfBirth } = verifyData
 
     if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
 
@@ -114,15 +193,7 @@ const verifyPersonalInfo = (verifyData) => {
 
 const verifySpecialityInfo = (verifyData) => {
 
-    const { title, description, speciality } = verifyData
-
-    if(!title) return { isAccepted: false, message: 'Title is required', field: 'title' }
-
-    if(!validator.isNameValid(title)) return { isAccepted: false, message: 'Invalid title format', field: 'title' }
-
-    if(!description) return { isAccepted: false, message: 'Description is required', field: 'description' }
-
-    if(typeof description != 'string') return { isAccepted: false, message: 'Invalid description format', field: 'description' }
+    const { speciality } = verifyData
 
     if(!speciality) return { isAccepted: false, message: 'Speciality is required', field: 'speciality' }
 
@@ -154,9 +225,14 @@ const addUserEmailVerificationCode = (userVerificationData) => {
 }
 
 module.exports = { 
-    doctorSignup, 
-    doctorLogin, 
+    signup, 
+    login, 
     verifyPersonalInfo, 
+    verifyDemographicInfo,
     verifySpecialityInfo,
-    addUserEmailVerificationCode
+    addUserEmailVerificationCode,
+    forgotPassword,
+    resetPassword,
+    verifyResetPasswordVerificationCode,
+    verifyDeleteAccountVerificationCode
 } 

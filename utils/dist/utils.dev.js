@@ -53,7 +53,17 @@ var _require15 = require('./distincts'),
 var _require16 = require('./unique'),
     isListUnique = _require16.isListUnique;
 
+var _require17 = require('./calculateServicesTotalCost'),
+    calculateServicesTotalCost = _require17.calculateServicesTotalCost;
+
+var _require18 = require('./roles'),
+    isRolesValid = _require18.isRolesValid;
+
+var _require19 = require('./formatString'),
+    capitalizeFirstLetter = _require19.capitalizeFirstLetter;
+
 module.exports = {
+  isRolesValid: isRolesValid,
   isNameValid: isNameValid,
   isEmailValid: isEmailValid,
   cleanObject: cleanObject,
@@ -74,5 +84,7 @@ module.exports = {
   distinctValues: distinctValues,
   getUniqueIds: getUniqueIds,
   getUniqueSuppliersFromPayments: getUniqueSuppliersFromPayments,
-  isListUnique: isListUnique
+  isListUnique: isListUnique,
+  calculateServicesTotalCost: calculateServicesTotalCost,
+  capitalizeFirstLetter: capitalizeFirstLetter
 };

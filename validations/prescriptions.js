@@ -98,9 +98,9 @@ const addPrescriptionByPatientCardId = (prescriptionData) => {
 
 const updatePrescription = (prescriptionData) => {
 
-    const { note, medicines } = prescriptionData
+    const { notes, medicines } = prescriptionData
 
-    if(note && typeof note != 'string') return { isAccepted: false, message: 'note must be a string', field: 'note' }
+    if(notes && !Array.isArray(notes)) return { isAccepted: false, message: 'notes must be a list', field: 'notes' }
 
     if(!Array.isArray(medicines) || medicines.length == 0) return { isAccepted: false, message: 'Medicines must be a list', field: 'medicines' }
 

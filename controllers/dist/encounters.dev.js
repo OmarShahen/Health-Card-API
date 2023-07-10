@@ -20,7 +20,7 @@ var PatientModel = require('../models/PatientModel');
 
 var CounterModel = require('../models/CounterModel');
 
-var DoctorPatientAccessModel = require('../models/ClinicPatientModel');
+var ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel');
 
 var ClinicModel = require('../models/ClinicModel');
 
@@ -62,7 +62,7 @@ var addEncounter = function addEncounter(request, response) {
           doctor = _ref2[0];
           patient = _ref2[1];
 
-          if (!(!doctor || doctor.role != 'DOCTOR')) {
+          if (!(!doctor || !doctor.roles.includes('DOCTOR'))) {
             _context.next = 15;
             break;
           }
@@ -233,7 +233,7 @@ var addEncounterByPatientCardId = function addEncounterByPatientCardId(request, 
           patientList = _ref4[1];
           clinic = _ref4[2];
 
-          if (!(!doctor || doctor.role != 'DOCTOR')) {
+          if (!(!doctor || !doctor.roles.includes('DOCTOR'))) {
             _context2.next = 18;
             break;
           }
@@ -271,9 +271,10 @@ var addEncounterByPatientCardId = function addEncounterByPatientCardId(request, 
         case 22:
           patient = patientList[0];
           _context2.next = 25;
-          return regeneratorRuntime.awrap(DoctorPatientAccessModel.find({
+          return regeneratorRuntime.awrap(ClinicPatientDoctorModel.find({
             doctorId: doctorId,
-            patientId: patient._id
+            patientId: patient._id,
+            clinicId: clinic._id
           }));
 
         case 25:
@@ -419,7 +420,7 @@ var deleteEncounter = function deleteEncounter(request, response) {
 };
 
 var getPatientEncounters = function getPatientEncounters(request, response) {
-  var patientId, _utils$statsQueryGene, searchQuery, encounters;
+  var patientId, query, _utils$statsQueryGene, searchQuery, encounters;
 
   return regeneratorRuntime.async(function getPatientEncounters$(_context4) {
     while (1) {
@@ -427,8 +428,10 @@ var getPatientEncounters = function getPatientEncounters(request, response) {
         case 0:
           _context4.prev = 0;
           patientId = request.params.patientId;
+          query = request.query.query;
+          query = query ? query : '';
           _utils$statsQueryGene = utils.statsQueryGenerator('patientId', patientId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
-          _context4.next = 5;
+          _context4.next = 7;
           return regeneratorRuntime.awrap(EncounterModel.aggregate([{
             $match: searchQuery
           }, {
@@ -453,6 +456,25 @@ var getPatientEncounters = function getPatientEncounters(request, response) {
               as: 'clinic'
             }
           }, {
+            $match: {
+              $or: [{
+                'doctor.firstName': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }, {
+                'doctor.lastName': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }, {
+                'doctor.email': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }]
+            }
+          }, {
             $sort: {
               createdAt: -1
             }
@@ -464,7 +486,7 @@ var getPatientEncounters = function getPatientEncounters(request, response) {
             }
           }]));
 
-        case 5:
+        case 7:
           encounters = _context4.sent;
           encounters.forEach(function (encounter) {
             encounter.doctor = encounter.doctor[0];
@@ -476,8 +498,8 @@ var getPatientEncounters = function getPatientEncounters(request, response) {
             encounters: encounters
           }));
 
-        case 10:
-          _context4.prev = 10;
+        case 12:
+          _context4.prev = 12;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -486,16 +508,16 @@ var getPatientEncounters = function getPatientEncounters(request, response) {
             error: _context4.t0.message
           }));
 
-        case 14:
+        case 16:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 10]]);
+  }, null, null, [[0, 12]]);
 };
 
 var getDoctorEncounters = function getDoctorEncounters(request, response) {
-  var userId, _utils$statsQueryGene2, searchQuery, encounters;
+  var userId, query, _utils$statsQueryGene2, searchQuery, encounters;
 
   return regeneratorRuntime.async(function getDoctorEncounters$(_context5) {
     while (1) {
@@ -503,8 +525,10 @@ var getDoctorEncounters = function getDoctorEncounters(request, response) {
         case 0:
           _context5.prev = 0;
           userId = request.params.userId;
+          query = request.query.query;
+          query = query ? query : '';
           _utils$statsQueryGene2 = utils.statsQueryGenerator('doctorId', userId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
-          _context5.next = 5;
+          _context5.next = 7;
           return regeneratorRuntime.awrap(EncounterModel.aggregate([{
             $match: searchQuery
           }, {
@@ -529,6 +553,30 @@ var getDoctorEncounters = function getDoctorEncounters(request, response) {
               as: 'doctor'
             }
           }, {
+            $match: {
+              $or: [{
+                'patient.firstName': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }, {
+                'patient.lastName': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }, {
+                'patient.phone': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }, {
+                'patient.cardId': {
+                  $regex: query,
+                  $options: 'i'
+                }
+              }]
+            }
+          }, {
             $sort: {
               createdAt: -1
             }
@@ -540,7 +588,7 @@ var getDoctorEncounters = function getDoctorEncounters(request, response) {
             }
           }]));
 
-        case 5:
+        case 7:
           encounters = _context5.sent;
           encounters.forEach(function (encounter) {
             encounter.patient = encounter.patient[0];
@@ -552,8 +600,8 @@ var getDoctorEncounters = function getDoctorEncounters(request, response) {
             encounters: encounters
           }));
 
-        case 10:
-          _context5.prev = 10;
+        case 12:
+          _context5.prev = 12;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -562,12 +610,12 @@ var getDoctorEncounters = function getDoctorEncounters(request, response) {
             error: _context5.t0.message
           }));
 
-        case 14:
+        case 16:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 10]]);
+  }, null, null, [[0, 12]]);
 };
 
 var getEncounter = function getEncounter(request, response) {

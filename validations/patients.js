@@ -28,13 +28,17 @@ const validateEmergencyContact = (emergencyContacts, patientPhone) => {
 
 const addPatient = (patientData) => {
 
-    const { clinicId, cardId, doctorId, firstName, lastName, socialStatus, email, countryCode, city, phone, gender, dateOfBirth, bloodGroup, weight, emergencyContacts, healthHistory } = patientData
+    const { clinicId, cvc, cardId, doctorId, firstName, lastName, socialStatus, email, countryCode, city, phone, gender, dateOfBirth, bloodGroup, weight, emergencyContacts, healthHistory } = patientData
 
     if(clinicId && !utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id format', field: 'clinicId' }
 
     if(!cardId) return { isAccepted: false, message: 'card Id is required', field: 'cardId'}
 
-    if(typeof cardId != 'number') return { isAccepted: false, message: 'card Id formate is invalid', field: 'cardId' } 
+    if(typeof cardId != 'number') return { isAccepted: false, message: 'card Id format is invalid', field: 'cardId' } 
+
+    if(!cvc) return { isAccepted: false, message: 'card cvc is required', field: 'cvc'}
+
+    if(typeof cvc != 'number') return { isAccepted: false, message: 'card cvc format is invalid', field: 'cvc' } 
 
     if(doctorId && !utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Doctor Id is invalid', field: 'doctorId' }
 

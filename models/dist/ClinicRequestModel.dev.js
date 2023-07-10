@@ -16,6 +16,10 @@ var ClinicRequestSchema = new mongoose.Schema({
     required: true,
     "default": 'PENDING',
     "enum": ['PENDING', 'ACCEPTED', 'REJECTED']
+  },
+  role: {
+    type: String,
+    required: true
   }
 }, {
   timestamps: true

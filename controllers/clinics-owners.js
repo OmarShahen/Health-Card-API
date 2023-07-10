@@ -1,4 +1,5 @@
 const ClinicOwnerModel = require('../models/ClinicOwnerModel')
+const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const UserModel = require('../models/UserModel')
 const ClinicModel = require('../models/ClinicModel')
 const clinicOwnerValidation = require('../validations/clinics-owners')
@@ -86,6 +87,9 @@ const getClinicsByOwnerId = async (request, response) => {
                     foreignField: '_id',
                     as: 'clinic'
                 }
+            },
+            {
+                $sort: { createdAt: -1 }
             }
         ])
 
@@ -114,10 +118,15 @@ const deleteClinicOwner = async (request, response) => {
 
         const deletedClinicOwner = await ClinicOwnerModel.findByIdAndDelete(clinicOwnerId)
 
+        const { ownerId, clinicId } = deletedClinicOwner
+
+        const deletedClinicDoctor = await ClinicDoctorModel.deleteOne({ doctorId: ownerId, clinicId })
+
         return response.status(200).json({
             accepted: true,
             message: 'deleted clinic owner successfully!',
-            clinicOwner: deletedClinicOwner
+            clinicOwner: deletedClinicOwner,
+            clinicDoctor: deletedClinicDoctor
         })
 
     } catch(error) {

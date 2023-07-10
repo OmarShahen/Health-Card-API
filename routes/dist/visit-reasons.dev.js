@@ -4,10 +4,10 @@ var router = require('express').Router();
 
 var visitReasonsController = require('../controllers/visit-reasons');
 
-var tokenMiddleware = require('../middlewares/verify-permission');
-
 var _require = require('../middlewares/verify-routes-params'),
     verifyVisitReasonId = _require.verifyVisitReasonId;
+
+var authorization = require('../middlewares/verify-permission');
 
 router.get('/v1/visit-reasons', function (request, response) {
   return visitReasonsController.getVisitReasons(request, response);

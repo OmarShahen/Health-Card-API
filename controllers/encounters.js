@@ -4,7 +4,7 @@ const PrescriptionModel = require('../models/PrescriptionModel')
 const UserModel = require('../models/UserModel')
 const PatientModel = require('../models/PatientModel')
 const CounterModel = require('../models/CounterModel')
-const DoctorPatientAccessModel = require('../models/ClinicPatientModel')
+const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const ClinicModel = require('../models/ClinicModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
@@ -33,7 +33,7 @@ const addEncounter = async (request, response) => {
             patientPromise
         ])
 
-        if(!doctor || doctor.role != 'DOCTOR') {
+        if(!doctor || !doctor.roles.includes('DOCTOR')) {
             return response.status(400).json({
                 accepted: false,
                 message: 'Doctor Id does not exist',
@@ -133,7 +133,7 @@ const addEncounterByPatientCardId = async (request, response) => {
             clinicPromise
         ])
 
-        if(!doctor || doctor.role != 'DOCTOR') {
+        if(!doctor || !doctor.roles.includes('DOCTOR')) {
             return response.status(400).json({
                 accepted: false,
                 message: 'Doctor Id does not exist',
@@ -158,7 +158,7 @@ const addEncounterByPatientCardId = async (request, response) => {
         }
 
         const patient = patientList[0]
-        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ doctorId, patientId: patient._id })
+        const doctorPatientAccessList = await ClinicPatientDoctorModel.find({ doctorId, patientId: patient._id, clinicId: clinic._id })
 
         if(doctorPatientAccessList.length == 0) {
             return response.status(400).json({
@@ -254,6 +254,9 @@ const getPatientEncounters = async (request, response) => {
     try {
 
         const { patientId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
 
         const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
 
@@ -283,6 +286,15 @@ const getPatientEncounters = async (request, response) => {
                     localField: 'clinicId',
                     foreignField: '_id',
                     as: 'clinic'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'doctor.firstName': { $regex: query, $options: 'i' } },
+                        { 'doctor.lastName': { $regex: query, $options: 'i' } },
+                        { 'doctor.email': { $regex: query, $options: 'i' } },
+                    ]
                 }
             },
             {
@@ -325,6 +337,9 @@ const getDoctorEncounters = async (request, response) => {
     try {
 
         const { userId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
 
         const { searchQuery } = utils.statsQueryGenerator('doctorId', userId, request.query)
 
@@ -354,6 +369,16 @@ const getDoctorEncounters = async (request, response) => {
                     localField: 'doctorId',
                     foreignField: '_id',
                     as: 'doctor'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'patient.firstName': { $regex: query, $options: 'i' } },
+                        { 'patient.lastName': { $regex: query, $options: 'i' } },
+                        { 'patient.phone': { $regex: query, $options: 'i' } },
+                        { 'patient.cardId': { $regex: query, $options: 'i' } },
+                    ]
                 }
             },
             {

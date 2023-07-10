@@ -21,12 +21,6 @@ var UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  title: {
-    type: String
-  },
-  description: {
-    type: String
-  },
   email: {
     type: String,
     required: true
@@ -51,15 +45,30 @@ var UserSchema = new mongoose.Schema({
     required: true
   },
   speciality: [],
-  role: {
-    type: String,
-    required: true,
-    "enum": ['DOCTOR', 'STAFF']
-  },
+  roles: [],
   isVerified: {
     type: Boolean,
     required: true,
     "default": false
+  },
+  lastLoginDate: {
+    type: Date
+  },
+  resetPassword: {
+    verificationCode: {
+      type: Number
+    },
+    expirationDate: {
+      type: Date
+    }
+  },
+  deleteAccount: {
+    verificationCode: {
+      type: Number
+    },
+    expirationDate: {
+      type: Date
+    }
   }
 }, {
   timestamps: true

@@ -15,6 +15,7 @@ const ClinicRequestModel = require('../models/ClinicRequestModel')
 const ServiceModel = require('../models/ServiceModel')
 const InvoiceModel = require('../models/InvoiceModel')
 const InvoiceServiceModel = require('../models/InvoiceServiceModel')
+const CardModel = require('../models/CardModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -134,7 +135,7 @@ const verifyDoctorId = async (request, response, next) => {
         }
 
         const doctor = await UserModel.findById(doctorId)
-        if(!doctor || doctor.role != 'DOCTOR') {
+        if(!doctor || !doctor.roles.includes('DOCTOR')) {
             return response.status(404).json({
                 accepted: false,
                 message: 'doctor Id does not exist',
@@ -187,17 +188,18 @@ const verifyPrescriptionId = async (request, response, next) => {
     }
 }
 
-const verifyCardUUID = async (request, response, next) => {
+const verifyCardId = async (request, response, next) => {
 
     try {
 
-        const { cardUUID } = request.params
+        const { cardId } = request.params
 
-        if(!utils.isUUIDValid(cardUUID)) {
+        const cardsList = await CardModel.find({ cardId })
+        if(cardsList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invalid card UUID formate',
-                field: 'cardUUID'
+                message: 'card Id does not exist',
+                field: 'cardId'
             })
         }
 
@@ -509,6 +511,10 @@ const verifyClinicRequestId = async (request, response, next) => {
             })
         }
 
+        // for the check clinic mode middleware
+        
+        request.body.clinicId = clinicRequest.clinicId
+
         return next()
 
     } catch(error) {
@@ -629,7 +635,6 @@ module.exports = {
     verifyUserId,
     verifyDoctorId,
     verifyPrescriptionId,
-    verifyCardUUID,
     verifyAppointmentId,
     verifyEncounterId,
     verifyClinicPatientId,
@@ -641,5 +646,6 @@ module.exports = {
     verifyClinicRequestId,
     verifyServiceId,
     verifyInvoiceId,
-    verifyInvoiceServiceId
+    verifyInvoiceServiceId,
+    verifyCardId
 }

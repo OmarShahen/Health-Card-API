@@ -9,14 +9,34 @@ router.post('/v1/auth/login', (request, response) => authController.userLogin(re
 
 router.post('/v1/auth/verify/personal-info', (request, response) => authController.verifyPersonalInfo(request, response))
 
+router.post('/v1/auth/verify/demographic-info', (request, response) => authController.verifyDemographicInfo(request, response))
+
 router.post('/v1/auth/verify/speciality-info', (request, response) => authController.verifySpecialityInfo(request, response))
 
 router.post('/v1/auth/verify/emails/:email', (request, response) => authController.verifyEmail(request, response))
+
+router.post('/v1/auth/verify/reset-password/verifications-codes', (request, response) => authController.verifyResetPasswordVerificationCode(request, response))
 
 router.post(
     '/v1/auth/verify/users/:userId/verification-codes/:verificationCode', 
     verifyUserId,
     (request, response) => authController.verifyEmailVerificationCode(request, response)
+)
+
+router.post('/v1/auth/forgot-password', (request, response) => authController.forgotPassword(request, response))
+
+router.post('/v1/auth/reset-password', (request, response) => authController.resetPassword(request, response))
+
+router.post(
+    '/v1/auth/users/:userId/delete-account', 
+    verifyUserId,
+    (request, response) => authController.sendUserDeleteAccountVerificationCode(request, response)
+)
+
+router.delete(
+    '/v1/auth/users/:userId/verification-code/:verificationCode',
+    verifyUserId,
+    (request, response) => authController.verifyDeleteAccountVerificationCode(request, response)
 )
 
 router.patch(

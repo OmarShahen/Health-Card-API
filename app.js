@@ -38,7 +38,8 @@ app.use('/api', require('./routes/clinics-requests'))
 app.use('/api', require('./routes/services'))
 app.use('/api', require('./routes/invoices'))
 app.use('/api', require('./routes/invoices-services'))
-
+app.use('/api', require('./routes/staffs'))
+app.use('/api', require('./routes/cards'))
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))

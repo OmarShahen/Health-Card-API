@@ -4,7 +4,7 @@ const moment = require('moment')
 
 const addAppointment = (appointmentData) => {
 
-    const { clinicId, doctorId, visitReasonId, patientName, patientPhone, patientCountryCode, status, reservationTime } = appointmentData
+    const { clinicId, doctorId, serviceId, patientName, patientPhone, patientCountryCode, status, reservationTime } = appointmentData
 
     if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
 
@@ -14,9 +14,9 @@ const addAppointment = (appointmentData) => {
 
     if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'invalid doctor Id format', field: 'doctorId' }
 
-    if(!visitReasonId) return { isAccepted: false, message: 'visit reason Id is required', field: 'visitReasonId' }
+    if(!serviceId) return { isAccepted: false, message: 'service Id is required', field: 'serviceId' }
 
-    if(!utils.isObjectId(visitReasonId)) return { isAccepted: false, message: 'invalid visit reason Id format', field: 'visitReasonId' }
+    if(!utils.isObjectId(serviceId)) return { isAccepted: false, message: 'invalid service Id format', field: 'serviceId' }
 
     if(!patientName) return { isAccepted: false, message: 'patient name is required', field: 'patientName' }
 

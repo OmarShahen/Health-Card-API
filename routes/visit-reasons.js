@@ -1,7 +1,8 @@
 const router = require('express').Router()
 const visitReasonsController = require('../controllers/visit-reasons')
-const tokenMiddleware = require('../middlewares/verify-permission')
 const { verifyVisitReasonId } = require('../middlewares/verify-routes-params')
+const authorization = require('../middlewares/verify-permission')
+
 
 router.get('/v1/visit-reasons', (request, response) => visitReasonsController.getVisitReasons(request, response))
 

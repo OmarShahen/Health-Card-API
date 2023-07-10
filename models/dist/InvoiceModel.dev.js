@@ -23,6 +23,10 @@ var InvoiceSchema = new mongoose.Schema({
     required: true,
     "default": 0
   },
+  paid: {
+    type: Number,
+    "default": 0
+  },
   status: {
     type: String,
     required: true,
@@ -31,6 +35,13 @@ var InvoiceSchema = new mongoose.Schema({
   paymentMethod: {
     type: String,
     "enum": config.PAYMENT_METHOD
+  },
+  invoiceDate: {
+    type: Date,
+    "default": new Date()
+  },
+  dueDate: {
+    type: Date
   }
 }, {
   timestamps: true

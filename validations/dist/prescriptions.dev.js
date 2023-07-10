@@ -201,12 +201,12 @@ var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(pre
 };
 
 var updatePrescription = function updatePrescription(prescriptionData) {
-  var note = prescriptionData.note,
+  var notes = prescriptionData.notes,
       medicines = prescriptionData.medicines;
-  if (note && typeof note != 'string') return {
+  if (notes && !Array.isArray(notes)) return {
     isAccepted: false,
-    message: 'note must be a string',
-    field: 'note'
+    message: 'notes must be a list',
+    field: 'notes'
   };
   if (!Array.isArray(medicines) || medicines.length == 0) return {
     isAccepted: false,

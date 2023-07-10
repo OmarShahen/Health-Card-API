@@ -2,11 +2,18 @@
 
 var mongoose = require('mongoose');
 
+var config = require('../config/config');
+
 var ClinicSchema = new mongoose.Schema({
   clinicId: {
     type: Number,
     required: true,
     unique: true
+  },
+  mode: {
+    type: String,
+    required: true,
+    "enum": config.CLINIC_MODES
   },
   name: {
     type: String,
@@ -20,24 +27,6 @@ var ClinicSchema = new mongoose.Schema({
   country: {
     type: String,
     required: true
-  },
-  countryCode: {
-    type: String,
-    required: true
-  },
-  phone: {
-    type: Number,
-    required: true
-  },
-  address: {
-    type: String,
-    required: true
-  },
-  longitude: {
-    type: Number
-  },
-  latitude: {
-    type: Number
   }
 }, {
   timestamps: true

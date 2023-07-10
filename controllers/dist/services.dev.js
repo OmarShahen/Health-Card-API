@@ -4,9 +4,13 @@ var ServiceModel = require('../models/ServiceModel');
 
 var serviceValidation = require('../validations/services');
 
+var AppointmentModel = require('../models/AppointmentModel');
+
 var ClinicModel = require('../models/ClinicModel');
 
 var UserModel = require('../models/UserModel');
+
+var InvoiceServiceModel = require('../models/InvoiceServiceModel');
 
 var ClinicOwnerModel = require('../models/ClinicOwnerModel');
 
@@ -68,6 +72,10 @@ var getServicesByClinicId = function getServicesByClinicId(request, response) {
               localField: 'clinicId',
               foreignField: '_id',
               as: 'clinic'
+            }
+          }, {
+            $sort: {
+              createdAt: -1
             }
           }]));
 
@@ -258,7 +266,7 @@ var addService = function addService(request, response) {
 };
 
 var deleteService = function deleteService(request, response) {
-  var serviceId, deletedService;
+  var serviceId, invoiceList, appointmentsList, deletedService;
   return regeneratorRuntime.async(function deleteService$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
@@ -266,9 +274,49 @@ var deleteService = function deleteService(request, response) {
           _context5.prev = 0;
           serviceId = request.params.serviceId;
           _context5.next = 4;
-          return regeneratorRuntime.awrap(ServiceModel.findByIdAndDelete(serviceId));
+          return regeneratorRuntime.awrap(InvoiceServiceModel.find({
+            serviceId: serviceId
+          }));
 
         case 4:
+          invoiceList = _context5.sent;
+
+          if (!(invoiceList.length != 0)) {
+            _context5.next = 7;
+            break;
+          }
+
+          return _context5.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'the service is already registered with invoices',
+            field: 'serviceId'
+          }));
+
+        case 7:
+          _context5.next = 9;
+          return regeneratorRuntime.awrap(AppointmentModel.find({
+            serviceId: serviceId
+          }));
+
+        case 9:
+          appointmentsList = _context5.sent;
+
+          if (!(appointmentsList.length != 0)) {
+            _context5.next = 12;
+            break;
+          }
+
+          return _context5.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'the service is already registered with appointments',
+            field: 'serviceId'
+          }));
+
+        case 12:
+          _context5.next = 14;
+          return regeneratorRuntime.awrap(ServiceModel.findByIdAndDelete(serviceId));
+
+        case 14:
           deletedService = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
@@ -276,8 +324,8 @@ var deleteService = function deleteService(request, response) {
             service: deletedService
           }));
 
-        case 8:
-          _context5.prev = 8;
+        case 18:
+          _context5.prev = 18;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -286,12 +334,12 @@ var deleteService = function deleteService(request, response) {
             error: _context5.t0.message
           }));
 
-        case 12:
+        case 22:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 18]]);
 };
 
 var updateService = function updateService(request, response) {

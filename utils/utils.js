@@ -14,8 +14,12 @@ const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
 const { distinctValues, getUniqueIds, getUniqueSuppliersFromPayments } = require('./distincts')
 const { isListUnique } = require('./unique')
+const { calculateServicesTotalCost } = require('./calculateServicesTotalCost')
+const { isRolesValid } = require('./roles')
+const { capitalizeFirstLetter } = require('./formatString')
 
 module.exports = {
+    isRolesValid,
     isNameValid,
     isEmailValid,
     cleanObject,
@@ -36,5 +40,7 @@ module.exports = {
     distinctValues,
     getUniqueIds,
     getUniqueSuppliersFromPayments,
-    isListUnique
+    isListUnique,
+    calculateServicesTotalCost,
+    capitalizeFirstLetter
 }

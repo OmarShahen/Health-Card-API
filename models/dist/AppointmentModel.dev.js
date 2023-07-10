@@ -13,7 +13,7 @@ var AppointmentSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
-  visitReasonId: {
+  serviceId: {
     type: mongoose.Types.ObjectId,
     required: true
   },

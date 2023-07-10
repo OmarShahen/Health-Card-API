@@ -4,7 +4,7 @@ const PatientModel = require('../models/PatientModel')
 const ClinicModel = require('../models/ClinicModel')
 const UserModel = require('../models/UserModel')
 const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
-
+const CardModel = require('../models/CardModel')
 
 const getClinicsPatientsDoctors = async (request, response) => {
 
@@ -126,7 +126,25 @@ const addClinicPatientDoctorByCardId = async (request, response) => {
             })
         }
 
-        const { cardId, clinicId, doctorId } = request.body
+        const { cardId, cvc, clinicId, doctorId } = request.body
+
+        const cardList = await CardModel.find({ cardId, cvc })
+        if(cardList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid card credentials',
+                field: 'cardId'
+            })
+        }
+
+        const card = cardList[0]
+        if(!card.isActive) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'card is deactivated',
+                field: 'cardId'
+            })
+        }
 
         const patientListPromise = PatientModel.find({ cardId })
         const clinicPromise = ClinicModel.findById(clinicId)
@@ -137,7 +155,7 @@ const addClinicPatientDoctorByCardId = async (request, response) => {
         if(patientList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'patient Id does not exists',
+                message: 'no patient is registered with the card',
                 field: 'patientId'
             })
         }
@@ -160,7 +178,6 @@ const addClinicPatientDoctorByCardId = async (request, response) => {
 
         const patient = patientList[0]
         const patientId = patient._id
-
 
         const registeredClinicPatientDoctorList = await ClinicPatientDoctorModel.find({ patientId, clinicId, doctorId })
         if(registeredClinicPatientDoctorList.length != 0) {

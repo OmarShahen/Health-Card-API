@@ -1,5 +1,13 @@
 "use strict";
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
@@ -34,8 +42,12 @@ var ClinicDoctorModel = require('../models/ClinicDoctorModel');
 
 var ClinicModel = require('../models/ClinicModel');
 
+var utils = require('../utils/utils');
+
+var CardModel = require('../models/CardModel');
+
 var addPatient = function addPatient(request, response) {
-  var dataValidation, _request$body, cardId, clinicId, doctorId, countryCode, phone, card, clinic, doctor, phoneList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctor, clinicPatientDoctorData, clinicPatientDoctorObj, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj;
+  var dataValidation, _request$body, cardId, cvc, clinicId, doctorId, countryCode, phone, card, clinic, doctor, phoneList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctor, clinicPatientDoctorData, clinicPatientDoctorObj, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, cardData, cardObj, newCard;
 
   return regeneratorRuntime.async(function addPatient$(_context) {
     while (1) {
@@ -56,7 +68,7 @@ var addPatient = function addPatient(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, cardId = _request$body.cardId, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId, countryCode = _request$body.countryCode, phone = _request$body.phone;
+          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId, countryCode = _request$body.countryCode, phone = _request$body.phone;
           _context.next = 7;
           return regeneratorRuntime.awrap(PatientModel.find({
             cardId: cardId
@@ -214,16 +226,27 @@ var addPatient = function addPatient(request, response) {
           newClinicPatient = _context.sent;
 
         case 55:
+          cardData = {
+            cardId: cardId,
+            cvc: cvc
+          };
+          cardObj = new CardModel(cardData);
+          _context.next = 59;
+          return regeneratorRuntime.awrap(cardObj.save());
+
+        case 59:
+          newCard = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Added patient successfully!',
             patient: newPatient,
+            card: newCard,
             clinicPatient: newClinicPatient,
             clinicPatientDoctor: newClinicPatientDoctor
           }));
 
-        case 58:
-          _context.prev = 58;
+        case 63:
+          _context.prev = 63;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -232,12 +255,12 @@ var addPatient = function addPatient(request, response) {
             error: _context.t0.message
           }));
 
-        case 62:
+        case 67:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 58]]);
+  }, null, null, [[0, 63]]);
 };
 
 var getPatientInfo = function getPatientInfo(request, response) {
@@ -337,29 +360,76 @@ var getPatient = function getPatient(request, response) {
   }, null, null, [[0, 8]]);
 };
 
-var getPatientByCardUUID = function getPatientByCardUUID(request, response) {
-  var cardUUID, patientList, patient;
-  return regeneratorRuntime.async(function getPatientByCardUUID$(_context4) {
+var getPatientByCardId = function getPatientByCardId(request, response) {
+  var cardId, cardList, card, patientList, patient;
+  return regeneratorRuntime.async(function getPatientByCardId$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          cardUUID = request.params.cardUUID;
-          _context4.next = 4;
-          return regeneratorRuntime.awrap(PatientModel.find({
-            cardUUID: cardUUID
+          cardId = request.params.cardId;
+
+          if (!isNaN(Number.parseInt(cardId))) {
+            _context4.next = 4;
+            break;
+          }
+
+          return _context4.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'invalid card ID format',
+            field: 'cardId'
           }));
 
         case 4:
+          _context4.next = 6;
+          return regeneratorRuntime.awrap(CardModel.find({
+            cardId: cardId
+          }));
+
+        case 6:
+          cardList = _context4.sent;
+
+          if (!(cardList.length == 0)) {
+            _context4.next = 9;
+            break;
+          }
+
+          return _context4.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'card ID is not registered',
+            field: 'cardId'
+          }));
+
+        case 9:
+          card = cardList[0];
+
+          if (card.isActive) {
+            _context4.next = 12;
+            break;
+          }
+
+          return _context4.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Card is deactivated',
+            field: 'cardId'
+          }));
+
+        case 12:
+          _context4.next = 14;
+          return regeneratorRuntime.awrap(PatientModel.find({
+            cardId: cardId
+          }));
+
+        case 14:
           patientList = _context4.sent;
-          patient = patientList[0];
+          patient = patientList[0] || null;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
             patient: patient
           }));
 
-        case 9:
-          _context4.prev = 9;
+        case 19:
+          _context4.prev = 19;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -368,12 +438,12 @@ var getPatientByCardUUID = function getPatientByCardUUID(request, response) {
             error: _context4.t0.message
           }));
 
-        case 13:
+        case 23:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 19]]);
 };
 
 var addDoctorToPatient = function addDoctorToPatient(request, response) {
@@ -496,18 +566,18 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
 };
 
 var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
-  var clinicId, patients;
+  var clinicId, _utils$statsQueryGene, searchQuery, patients;
+
   return regeneratorRuntime.async(function getPatientsByClinicId$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
           clinicId = request.params.clinicId;
-          _context6.next = 4;
+          _utils$statsQueryGene = utils.statsQueryGenerator('clinicId', clinicId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
+          _context6.next = 5;
           return regeneratorRuntime.awrap(ClinicPatientModel.aggregate([{
-            $match: {
-              clinicId: mongoose.Types.ObjectId(clinicId)
-            }
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'patients',
@@ -526,7 +596,7 @@ var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
             }
           }]));
 
-        case 4:
+        case 5:
           patients = _context6.sent;
           patients.forEach(function (patient) {
             patient.patient = patient.patient[0];
@@ -538,8 +608,8 @@ var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
             patients: patients
           }));
 
-        case 9:
-          _context6.prev = 9;
+        case 10:
+          _context6.prev = 10;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -548,27 +618,27 @@ var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
             error: _context6.t0.message
           }));
 
-        case 13:
+        case 14:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 10]]);
 };
 
 var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
-  var doctorId, patients;
+  var userId, _utils$statsQueryGene2, searchQuery, patients;
+
   return regeneratorRuntime.async(function getPatientsByDoctorId$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
-          doctorId = request.params.doctorId;
-          _context7.next = 4;
+          userId = request.params.userId;
+          _utils$statsQueryGene2 = utils.statsQueryGenerator('doctorId', userId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
+          _context7.next = 5;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.aggregate([{
-            $match: {
-              doctorId: mongoose.Types.ObjectId(doctorId)
-            }
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'patients',
@@ -594,7 +664,7 @@ var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
             }
           }]));
 
-        case 4:
+        case 5:
           patients = _context7.sent;
           patients.forEach(function (patient) {
             patient.patient = patient.patient[0];
@@ -605,8 +675,8 @@ var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
             patients: patients
           }));
 
-        case 9:
-          _context7.prev = 9;
+        case 10:
+          _context7.prev = 10;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -615,16 +685,16 @@ var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
             error: _context7.t0.message
           }));
 
-        case 13:
+        case 14:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 10]]);
 };
 
 var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
-  var patientId, doctors;
+  var patientId, doctorsList, doctorsIdsList, doctorsIdsSet, doctorsIds, doctors;
   return regeneratorRuntime.async(function getDoctorsByPatientId$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
@@ -632,23 +702,30 @@ var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
           _context8.prev = 0;
           patientId = request.params.patientId;
           _context8.next = 4;
-          return regeneratorRuntime.awrap(ClinicPatientDoctorModel.aggregate([{
+          return regeneratorRuntime.awrap(ClinicPatientDoctorModel.find({
+            patientId: patientId
+          }));
+
+        case 4:
+          doctorsList = _context8.sent;
+          doctorsIdsList = doctorsList.map(function (doctor) {
+            return doctor.doctorId;
+          });
+          doctorsIdsSet = new Set(doctorsIdsList);
+          doctorsIds = _toConsumableArray(doctorsIdsSet);
+          _context8.next = 10;
+          return regeneratorRuntime.awrap(UserModel.aggregate([{
             $match: {
-              patientId: mongoose.Types.ObjectId(patientId)
+              _id: {
+                $in: doctorsIds
+              }
             }
           }, {
             $lookup: {
-              from: 'users',
-              localField: 'doctorId',
+              from: 'specialities',
+              localField: 'speciality',
               foreignField: '_id',
-              as: 'doctor'
-            }
-          }, {
-            $lookup: {
-              from: 'clinics',
-              localField: 'clinicId',
-              foreignField: '_id',
-              as: 'clinic'
+              as: 'specialities'
             }
           }, {
             $sort: {
@@ -656,23 +733,21 @@ var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
             }
           }, {
             $project: {
-              'doctor.password': 0
+              password: 0,
+              resetPassword: 0,
+              deleteAccount: 0
             }
           }]));
 
-        case 4:
+        case 10:
           doctors = _context8.sent;
-          doctors.forEach(function (doctor) {
-            doctor.doctor = doctor.doctor[0];
-            doctor.clinic = doctor.clinic[0];
-          });
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
             doctors: doctors
           }));
 
-        case 9:
-          _context8.prev = 9;
+        case 14:
+          _context8.prev = 14;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -681,12 +756,12 @@ var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
             error: _context8.t0.message
           }));
 
-        case 13:
+        case 18:
         case "end":
           return _context8.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 14]]);
 };
 
 var addEmergencyContactToPatient = function addEmergencyContactToPatient(request, response) {
@@ -1043,7 +1118,7 @@ module.exports = {
   addEmergencyContactToPatient: addEmergencyContactToPatient,
   getPatientInfo: getPatientInfo,
   getPatient: getPatient,
-  getPatientByCardUUID: getPatientByCardUUID,
+  getPatientByCardId: getPatientByCardId,
   addDoctorToPatient: addDoctorToPatient,
   getPatientsByClinicId: getPatientsByClinicId,
   getPatientsByDoctorId: getPatientsByDoctorId,

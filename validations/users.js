@@ -38,16 +38,7 @@ const updateUser = (userData) => {
 
 const updateUserSpeciality = (userData) => {
 
-    const { title, description, speciality } = userData
-
-
-    if(!title) return { isAccepted: false, message: 'Title is required', field: 'title' }
-
-    if(typeof title != 'string') return { isAccepted: false, message: 'Invalid title format', field: 'title' }
-
-    if(!description) return { isAccepted: false, message: 'Description is required', field: 'description' }
-
-    if(typeof description != 'string') return { isAccepted: false, message: 'Invalid description format', field: 'description' }
+    const { speciality } = userData
 
     if(!speciality) return { isAccepted: false, message: 'Speciality is required', field: 'speciality' }
 
@@ -98,11 +89,24 @@ const verifyAndUpdateUserPassword = (userData) => {
     return { isAccepted: true, message: 'data is valid', data: userData }
 }
 
+const registerStaffToClinic = (clinicData) => {
+
+    const { clinicId } = clinicData
+
+    if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
+
+    if(typeof clinicId != 'number') return { isAccepted: false, message: 'clinic Id format is invalid', field: 'clinicId' }
+
+
+    return { isAccepted: true, message: 'data is valid', data: clinicData }
+}
+
 
 module.exports = { 
     updateUser, 
     updateUserEmail, 
     updateUserPassword, 
     verifyAndUpdateUserPassword,
-    updateUserSpeciality
+    updateUserSpeciality,
+    registerStaffToClinic
 }

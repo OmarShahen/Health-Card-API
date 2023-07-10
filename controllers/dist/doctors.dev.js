@@ -30,8 +30,7 @@ var getClinicDoctors = function getClinicDoctors(request, response) {
             }
           }, {
             $project: {
-              doctor: 1,
-              createdAt: 1
+              'doctor.password': 0
             }
           }]));
 
@@ -39,7 +38,6 @@ var getClinicDoctors = function getClinicDoctors(request, response) {
           doctors = _context.sent;
           doctors.forEach(function (doctor) {
             doctor.doctor = doctor.doctor[0];
-            doctor.doctor.password = undefined;
           });
           return _context.abrupt("return", response.status(200).json({
             accepted: true,

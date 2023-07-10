@@ -34,6 +34,8 @@ var InvoiceModel = require('../models/InvoiceModel');
 
 var InvoiceServiceModel = require('../models/InvoiceServiceModel');
 
+var CardModel = require('../models/CardModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -235,7 +237,7 @@ var verifyDoctorId = function verifyDoctorId(request, response, next) {
         case 6:
           doctor = _context4.sent;
 
-          if (!(!doctor || doctor.role != 'DOCTOR')) {
+          if (!(!doctor || !doctor.roles.includes('DOCTOR'))) {
             _context4.next = 9;
             break;
           }
@@ -324,31 +326,38 @@ var verifyPrescriptionId = function verifyPrescriptionId(request, response, next
   }, null, null, [[0, 12]]);
 };
 
-var verifyCardUUID = function verifyCardUUID(request, response, next) {
-  var cardUUID;
-  return regeneratorRuntime.async(function verifyCardUUID$(_context6) {
+var verifyCardId = function verifyCardId(request, response, next) {
+  var cardId, cardsList;
+  return regeneratorRuntime.async(function verifyCardId$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          cardUUID = request.params.cardUUID;
+          cardId = request.params.cardId;
+          _context6.next = 4;
+          return regeneratorRuntime.awrap(CardModel.find({
+            cardId: cardId
+          }));
 
-          if (utils.isUUIDValid(cardUUID)) {
-            _context6.next = 4;
+        case 4:
+          cardsList = _context6.sent;
+
+          if (!(cardsList.length == 0)) {
+            _context6.next = 7;
             break;
           }
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid card UUID formate',
-            field: 'cardUUID'
+            message: 'card Id does not exist',
+            field: 'cardId'
           }));
 
-        case 4:
+        case 7:
           return _context6.abrupt("return", next());
 
-        case 7:
-          _context6.prev = 7;
+        case 10:
+          _context6.prev = 10;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -356,12 +365,12 @@ var verifyCardUUID = function verifyCardUUID(request, response, next) {
             error: _context6.t0.message
           }));
 
-        case 11:
+        case 14:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 7]]);
+  }, null, null, [[0, 10]]);
 };
 
 var verifyAppointmentId = function verifyAppointmentId(request, response, next) {
@@ -869,10 +878,12 @@ var verifyClinicRequestId = function verifyClinicRequestId(request, response, ne
           }));
 
         case 9:
+          // for the check clinic mode middleware
+          request.body.clinicId = clinicRequest.clinicId;
           return _context15.abrupt("return", next());
 
-        case 12:
-          _context15.prev = 12;
+        case 13:
+          _context15.prev = 13;
           _context15.t0 = _context15["catch"](0);
           console.error(_context15.t0);
           return _context15.abrupt("return", response.status(500).json({
@@ -880,12 +891,12 @@ var verifyClinicRequestId = function verifyClinicRequestId(request, response, ne
             error: _context15.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context15.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
 var verifyServiceId = function verifyServiceId(request, response, next) {
@@ -1068,7 +1079,6 @@ module.exports = {
   verifyUserId: verifyUserId,
   verifyDoctorId: verifyDoctorId,
   verifyPrescriptionId: verifyPrescriptionId,
-  verifyCardUUID: verifyCardUUID,
   verifyAppointmentId: verifyAppointmentId,
   verifyEncounterId: verifyEncounterId,
   verifyClinicPatientId: verifyClinicPatientId,
@@ -1080,5 +1090,6 @@ module.exports = {
   verifyClinicRequestId: verifyClinicRequestId,
   verifyServiceId: verifyServiceId,
   verifyInvoiceId: verifyInvoiceId,
-  verifyInvoiceServiceId: verifyInvoiceServiceId
+  verifyInvoiceServiceId: verifyInvoiceServiceId,
+  verifyCardId: verifyCardId
 };
