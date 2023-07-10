@@ -11,7 +11,7 @@ router.get(
 
 router.post(
     '/v1/specialities', 
-    authorization.allPermission,
+    //authorization.allPermission,
     (request, response) => specialitiesController.addSpeciality(request, response)
 )
 
