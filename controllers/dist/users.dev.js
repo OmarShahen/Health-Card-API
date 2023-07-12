@@ -16,8 +16,10 @@ var mongoose = require('mongoose');
 
 var SpecialityModel = require('../models/SpecialityModel');
 
+var jwt = require('jsonwebtoken');
+
 var getUser = function getUser(request, response) {
-  var userId, user;
+  var userId, user, token;
   return regeneratorRuntime.async(function getUser$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
@@ -31,13 +33,17 @@ var getUser = function getUser(request, response) {
 
         case 4:
           user = _context.sent;
+          token = jwt.sign(user._doc, config.SECRET_KEY, {
+            expiresIn: '30d'
+          });
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            user: user
+            user: user,
+            token: token
           }));
 
-        case 8:
-          _context.prev = 8;
+        case 9:
+          _context.prev = 9;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -46,12 +52,12 @@ var getUser = function getUser(request, response) {
             error: _context.t0.message
           }));
 
-        case 12:
+        case 13:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 9]]);
 };
 
 var getUserSpeciality = function getUserSpeciality(request, response) {

@@ -283,6 +283,62 @@ const getAppointmentsByClinicId = async (request, response) => {
     }
 }
 
+const getAppointmentsByClinicIdAndStatus = async (request, response) => {
+
+    try {
+
+        const { clinicId, status } = request.params
+
+        let { searchQuery } = utils
+        .statsQueryGenerator('clinicId', clinicId, request.query, 'reservationTime')
+
+        searchQuery.status = status
+
+        const appointments = await AppointmentModel.find(searchQuery)
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+        
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getAppointmentsByDoctorIdAndStatus = async (request, response) => {
+
+    try {
+
+        const { userId, status } = request.params
+
+        let { searchQuery } = utils
+        .statsQueryGenerator('doctorId', userId, request.query, 'reservationTime')
+
+        searchQuery.status = status
+
+        const appointments = await AppointmentModel.find(searchQuery)
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+        
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const updateAppointmentStatus = async (request, response) => {
 
     try {
@@ -361,4 +417,12 @@ const deleteAppointment = async (request, response) => {
     }
 }
 
-module.exports = { addAppointment, getAppointmentsByDoctorId, getAppointmentsByClinicId, updateAppointmentStatus, deleteAppointment }
+module.exports = { 
+    addAppointment, 
+    getAppointmentsByDoctorId, 
+    getAppointmentsByClinicId,
+    getAppointmentsByClinicIdAndStatus,
+    getAppointmentsByDoctorIdAndStatus,
+    updateAppointmentStatus, 
+    deleteAppointment 
+}

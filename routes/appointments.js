@@ -25,6 +25,20 @@ router.get(
     (request, response) => appointmentsController.getAppointmentsByClinicId(request, response)
 )
 
+router.get(
+    '/v1/appointments/clinics/:clinicId/status/:status',
+    authorization.allPermission,
+    verifyClinicId,
+    (request, response) => appointmentsController.getAppointmentsByClinicIdAndStatus(request, response)
+)
+
+router.get(
+    '/v1/appointments/doctors/:userId/status/:status',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => appointmentsController.getAppointmentsByDoctorIdAndStatus(request, response)
+)
+
 router.patch(
     '/v1/appointments/:appointmentId/status', 
     authorization.staffPermission,

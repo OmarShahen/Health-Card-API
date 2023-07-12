@@ -357,41 +357,119 @@ var getAppointmentsByClinicId = function getAppointmentsByClinicId(request, resp
   }, null, null, [[0, 10]]);
 };
 
-var updateAppointmentStatus = function updateAppointmentStatus(request, response) {
-  var appointmentId, status, dataValidation, appointment, todayDate, updatedAppointment;
-  return regeneratorRuntime.async(function updateAppointmentStatus$(_context4) {
+var getAppointmentsByClinicIdAndStatus = function getAppointmentsByClinicIdAndStatus(request, response) {
+  var _request$params, clinicId, status, _utils$statsQueryGene3, searchQuery, appointments;
+
+  return regeneratorRuntime.async(function getAppointmentsByClinicIdAndStatus$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
+          _request$params = request.params, clinicId = _request$params.clinicId, status = _request$params.status;
+          _utils$statsQueryGene3 = utils.statsQueryGenerator('clinicId', clinicId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene3.searchQuery;
+          searchQuery.status = status;
+          _context4.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.find(searchQuery));
+
+        case 6:
+          appointments = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            appointments: appointments
+          }));
+
+        case 10:
+          _context4.prev = 10;
+          _context4.t0 = _context4["catch"](0);
+          console.error(_context4.t0);
+          return _context4.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context4.t0.message
+          }));
+
+        case 14:
+        case "end":
+          return _context4.stop();
+      }
+    }
+  }, null, null, [[0, 10]]);
+};
+
+var getAppointmentsByDoctorIdAndStatus = function getAppointmentsByDoctorIdAndStatus(request, response) {
+  var _request$params2, userId, status, _utils$statsQueryGene4, searchQuery, appointments;
+
+  return regeneratorRuntime.async(function getAppointmentsByDoctorIdAndStatus$(_context5) {
+    while (1) {
+      switch (_context5.prev = _context5.next) {
+        case 0:
+          _context5.prev = 0;
+          _request$params2 = request.params, userId = _request$params2.userId, status = _request$params2.status;
+          _utils$statsQueryGene4 = utils.statsQueryGenerator('doctorId', userId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene4.searchQuery;
+          searchQuery.status = status;
+          _context5.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.find(searchQuery));
+
+        case 6:
+          appointments = _context5.sent;
+          return _context5.abrupt("return", response.status(200).json({
+            accepted: true,
+            appointments: appointments
+          }));
+
+        case 10:
+          _context5.prev = 10;
+          _context5.t0 = _context5["catch"](0);
+          console.error(_context5.t0);
+          return _context5.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context5.t0.message
+          }));
+
+        case 14:
+        case "end":
+          return _context5.stop();
+      }
+    }
+  }, null, null, [[0, 10]]);
+};
+
+var updateAppointmentStatus = function updateAppointmentStatus(request, response) {
+  var appointmentId, status, dataValidation, appointment, todayDate, updatedAppointment;
+  return regeneratorRuntime.async(function updateAppointmentStatus$(_context6) {
+    while (1) {
+      switch (_context6.prev = _context6.next) {
+        case 0:
+          _context6.prev = 0;
           appointmentId = request.params.appointmentId;
           status = request.body.status;
           dataValidation = appointmentValidation.updateAppointmentStatus(request.body);
 
           if (dataValidation.isAccepted) {
-            _context4.next = 6;
+            _context6.next = 6;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
           }));
 
         case 6:
-          _context4.next = 8;
+          _context6.next = 8;
           return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 8:
-          appointment = _context4.sent;
+          appointment = _context6.sent;
 
           if (!(appointment.status == status)) {
-            _context4.next = 11;
+            _context6.next = 11;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'appointment is already in this state',
             field: 'status'
@@ -401,18 +479,18 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
           todayDate = new Date();
 
           if (!(appointment.reservationTime < todayDate)) {
-            _context4.next = 14;
+            _context6.next = 14;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Appointment date has passed',
             field: 'reservationDate'
           }));
 
         case 14:
-          _context4.next = 16;
+          _context6.next = 16;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
             status: status
           }, {
@@ -420,26 +498,26 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
           }));
 
         case 16:
-          updatedAppointment = _context4.sent;
-          return _context4.abrupt("return", response.status(200).json({
+          updatedAppointment = _context6.sent;
+          return _context6.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Updated appointment status successfully!',
             appointment: updatedAppointment
           }));
 
         case 20:
-          _context4.prev = 20;
-          _context4.t0 = _context4["catch"](0);
-          console.error(_context4.t0);
-          return _context4.abrupt("return", response.status(500).json({
+          _context6.prev = 20;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context4.t0.message
+            error: _context6.t0.message
           }));
 
         case 24:
         case "end":
-          return _context4.stop();
+          return _context6.stop();
       }
     }
   }, null, null, [[0, 20]]);
@@ -447,36 +525,36 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
 
 var deleteAppointment = function deleteAppointment(request, response) {
   var appointmentId, deletedAppointment;
-  return regeneratorRuntime.async(function deleteAppointment$(_context5) {
+  return regeneratorRuntime.async(function deleteAppointment$(_context7) {
     while (1) {
-      switch (_context5.prev = _context5.next) {
+      switch (_context7.prev = _context7.next) {
         case 0:
-          _context5.prev = 0;
+          _context7.prev = 0;
           appointmentId = request.params.appointmentId;
-          _context5.next = 4;
+          _context7.next = 4;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndDelete(appointmentId));
 
         case 4:
-          deletedAppointment = _context5.sent;
-          return _context5.abrupt("return", response.status(200).json({
+          deletedAppointment = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'deleted appointment successfully',
             appointment: deletedAppointment
           }));
 
         case 8:
-          _context5.prev = 8;
-          _context5.t0 = _context5["catch"](0);
-          console.error(_context5.t0);
-          return _context5.abrupt("return", response.status(500).json({
+          _context7.prev = 8;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context5.t0.message
+            error: _context7.t0.message
           }));
 
         case 12:
         case "end":
-          return _context5.stop();
+          return _context7.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -486,6 +564,8 @@ module.exports = {
   addAppointment: addAppointment,
   getAppointmentsByDoctorId: getAppointmentsByDoctorId,
   getAppointmentsByClinicId: getAppointmentsByClinicId,
+  getAppointmentsByClinicIdAndStatus: getAppointmentsByClinicIdAndStatus,
+  getAppointmentsByDoctorIdAndStatus: getAppointmentsByDoctorIdAndStatus,
   updateAppointmentStatus: updateAppointmentStatus,
   deleteAppointment: deleteAppointment
 };

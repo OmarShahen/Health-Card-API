@@ -12,7 +12,7 @@ var authorization = require('../middlewares/verify-permission');
 router.get('/v1/specialities', function (request, response) {
   return specialitiesController.getSpecialities(request, response);
 });
-router.post('/v1/specialities', //authorization.allPermission,
+router.post('/v1/specialities', //4authorization.allPermission,
 function (request, response) {
   return specialitiesController.addSpeciality(request, response);
 });

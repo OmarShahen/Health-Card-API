@@ -6,7 +6,7 @@ const userValidation = require('../validations/users')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const SpecialityModel = require('../models/SpecialityModel')
-
+const jwt = require('jsonwebtoken')
 
 const getUser = async (request, response) => {
 
@@ -18,9 +18,12 @@ const getUser = async (request, response) => {
         .findById(userId)
         .select({ password: 0 })
 
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+
         return response.status(200).json({
             accepted: true,
-            user
+            user,
+            token: token
         })
 
     } catch(error) {

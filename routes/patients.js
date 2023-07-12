@@ -13,7 +13,7 @@ router.post(
 
 router.post(
     '/v1/patients/:patientId/emergency-contacts',
-    authorization.staffPermission,
+    authorization.allPermission,
     verifyPatientId, 
     (request, response) => patientsController.addEmergencyContactToPatient(request, response)
 )

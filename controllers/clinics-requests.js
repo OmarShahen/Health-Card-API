@@ -528,17 +528,22 @@ const getStaffsClinicsRequestsByOwnerId = async (request, response) => {
     try {
 
         const { userId } = request.params
+        const { status } = request.query
 
         const ownerClinics = await ClinicOwnerModel.find({ ownerId: userId })
 
         const clinics = ownerClinics.map(clinic => clinic.clinicId)
 
+        let query = { clinicId: { $in: clinics }, role: 'STAFF' }
+
+        if(status) {
+            query.status = status
+        }
+
+
         const clinicRequestList = await ClinicRequestModel.aggregate([
             {
-                $match: {
-                    clinicId: { $in: clinics },
-                    role: 'STAFF'
-                }
+                $match: query
             },
             {
                 $lookup: {

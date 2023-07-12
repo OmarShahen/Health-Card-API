@@ -23,6 +23,12 @@ router.get('/v1/appointments/doctors/:userId', authorization.doctorPermission, v
 router.get('/v1/appointments/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return appointmentsController.getAppointmentsByClinicId(request, response);
 });
+router.get('/v1/appointments/clinics/:clinicId/status/:status', authorization.allPermission, verifyClinicId, function (request, response) {
+  return appointmentsController.getAppointmentsByClinicIdAndStatus(request, response);
+});
+router.get('/v1/appointments/doctors/:userId/status/:status', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getAppointmentsByDoctorIdAndStatus(request, response);
+});
 router.patch('/v1/appointments/:appointmentId/status', authorization.staffPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentStatus(request, response);
 });

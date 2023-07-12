@@ -835,31 +835,38 @@ var getClinicsRequestsByClinicId = function getClinicsRequestsByClinicId(request
 };
 
 var getStaffsClinicsRequestsByOwnerId = function getStaffsClinicsRequestsByOwnerId(request, response) {
-  var userId, ownerClinics, clinics, clinicRequestList;
+  var userId, status, ownerClinics, clinics, query, clinicRequestList;
   return regeneratorRuntime.async(function getStaffsClinicsRequestsByOwnerId$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
         case 0:
           _context8.prev = 0;
           userId = request.params.userId;
-          _context8.next = 4;
+          status = request.query.status;
+          _context8.next = 5;
           return regeneratorRuntime.awrap(ClinicOwnerModel.find({
             ownerId: userId
           }));
 
-        case 4:
+        case 5:
           ownerClinics = _context8.sent;
           clinics = ownerClinics.map(function (clinic) {
             return clinic.clinicId;
           });
-          _context8.next = 8;
+          query = {
+            clinicId: {
+              $in: clinics
+            },
+            role: 'STAFF'
+          };
+
+          if (status) {
+            query.status = status;
+          }
+
+          _context8.next = 11;
           return regeneratorRuntime.awrap(ClinicRequestModel.aggregate([{
-            $match: {
-              clinicId: {
-                $in: clinics
-              },
-              role: 'STAFF'
-            }
+            $match: query
           }, {
             $lookup: {
               from: 'users',
@@ -884,7 +891,7 @@ var getStaffsClinicsRequestsByOwnerId = function getStaffsClinicsRequestsByOwner
             }
           }]));
 
-        case 8:
+        case 11:
           clinicRequestList = _context8.sent;
           clinicRequestList.forEach(function (clinicRequest) {
             clinicRequest.user = clinicRequest.user[0];
@@ -895,8 +902,8 @@ var getStaffsClinicsRequestsByOwnerId = function getStaffsClinicsRequestsByOwner
             clinicsRequests: clinicRequestList
           }));
 
-        case 13:
-          _context8.prev = 13;
+        case 16:
+          _context8.prev = 16;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -905,12 +912,12 @@ var getStaffsClinicsRequestsByOwnerId = function getStaffsClinicsRequestsByOwner
             error: _context8.t0.message
           }));
 
-        case 17:
+        case 20:
         case "end":
           return _context8.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 16]]);
 };
 
 var getDoctorsClinicsRequestsByOwnerId = function getDoctorsClinicsRequestsByOwnerId(request, response) {
