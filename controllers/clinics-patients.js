@@ -27,6 +27,31 @@ const getClinicsPatients = async (request, response) => {
     }
 }
 
+const getClinicPatientsByClinicId = async (request, response) => {
+
+    try {
+
+        const { clinicId } = request.params
+
+        const clinicsPatients = await ClinicPatientModel
+        .find({ clinicId })
+        .sort({ createdAt: -1 })
+
+        return response.status(200).json({
+            accepted: true,
+            clinicsPatients: clinicsPatients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const addClinicPatient = async (request, response) => {
 
     try {
@@ -204,4 +229,10 @@ const addClinicPatientByCardId = async (request, response) => {
     }
 }
 
-module.exports = { getClinicsPatients, addClinicPatient, deleteClinicPatient, addClinicPatientByCardId }
+module.exports = { 
+    getClinicsPatients,
+    getClinicPatientsByClinicId,
+    addClinicPatient, 
+    deleteClinicPatient, 
+    addClinicPatientByCardId 
+}

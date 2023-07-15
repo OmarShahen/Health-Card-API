@@ -110,6 +110,46 @@ const getClinicsByOwnerId = async (request, response) => {
     }
 }
 
+const getClinicsByOwnerIdWhichIsCreatedByOwner = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const clinics = await ClinicOwnerModel.aggregate([
+            {
+                $match: { ownerId: mongoose.Types.ObjectId(userId), isCreator: true }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+
+        clinics.forEach(clinic => clinic.clinic = clinic.clinic[0])
+
+        return response.status(200).json({
+            accepted: false,
+            clinics
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deleteClinicOwner = async (request, response) => {
 
     try {
@@ -139,4 +179,9 @@ const deleteClinicOwner = async (request, response) => {
     }
 }
 
-module.exports = { addClinicOwner, deleteClinicOwner, getClinicsByOwnerId }
+module.exports = { 
+    addClinicOwner, 
+    deleteClinicOwner, 
+    getClinicsByOwnerId, 
+    getClinicsByOwnerIdWhichIsCreatedByOwner 
+}

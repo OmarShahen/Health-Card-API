@@ -60,7 +60,8 @@ var _require18 = require('./roles'),
     isRolesValid = _require18.isRolesValid;
 
 var _require19 = require('./formatString'),
-    capitalizeFirstLetter = _require19.capitalizeFirstLetter;
+    capitalizeFirstLetter = _require19.capitalizeFirstLetter,
+    concatenateHmacString = _require19.concatenateHmacString;
 
 module.exports = {
   isRolesValid: isRolesValid,
@@ -86,5 +87,6 @@ module.exports = {
   getUniqueSuppliersFromPayments: getUniqueSuppliersFromPayments,
   isListUnique: isListUnique,
   calculateServicesTotalCost: calculateServicesTotalCost,
-  capitalizeFirstLetter: capitalizeFirstLetter
+  capitalizeFirstLetter: capitalizeFirstLetter,
+  concatenateHmacString: concatenateHmacString
 };

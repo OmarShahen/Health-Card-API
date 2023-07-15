@@ -146,11 +146,12 @@ var addAppointment = function addAppointment(request, response) {
             status: status,
             reservationTime: reservationTime
           };
+          console.log(reservationTime);
           appointmentObj = new AppointmentModel(appointmentData);
-          _context.next = 33;
+          _context.next = 34;
           return regeneratorRuntime.awrap(appointmentObj.save());
 
-        case 33:
+        case 34:
           newAppointment = _context.sent;
           mailData = {
             receiverEmail: doctor.email,
@@ -163,17 +164,17 @@ var addAppointment = function addAppointment(request, response) {
           };
 
           if (!isSendMail) {
-            _context.next = 39;
+            _context.next = 40;
             break;
           }
 
-          _context.next = 38;
+          _context.next = 39;
           return regeneratorRuntime.awrap(sendAppointmentEmail(mailData));
 
-        case 38:
+        case 39:
           mailStatus = _context.sent;
 
-        case 39:
+        case 40:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Registered appointment successfully!',
@@ -181,8 +182,8 @@ var addAppointment = function addAppointment(request, response) {
             mailStatus: mailStatus
           }));
 
-        case 42:
-          _context.prev = 42;
+        case 43:
+          _context.prev = 43;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -191,12 +192,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 46:
+        case 47:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 42]]);
+  }, null, null, [[0, 43]]);
 };
 
 var getAppointmentsByDoctorId = function getAppointmentsByDoctorId(request, response) {

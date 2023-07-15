@@ -187,37 +187,45 @@ var getClinicsByOwnerId = function getClinicsByOwnerId(request, response) {
   }, null, null, [[0, 9]]);
 };
 
-var deleteClinicOwner = function deleteClinicOwner(request, response) {
-  var clinicOwnerId, deletedClinicOwner, ownerId, clinicId, deletedClinicDoctor;
-  return regeneratorRuntime.async(function deleteClinicOwner$(_context3) {
+var getClinicsByOwnerIdWhichIsCreatedByOwner = function getClinicsByOwnerIdWhichIsCreatedByOwner(request, response) {
+  var userId, clinics;
+  return regeneratorRuntime.async(function getClinicsByOwnerIdWhichIsCreatedByOwner$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          clinicOwnerId = request.params.clinicOwnerId;
+          userId = request.params.userId;
           _context3.next = 4;
-          return regeneratorRuntime.awrap(ClinicOwnerModel.findByIdAndDelete(clinicOwnerId));
+          return regeneratorRuntime.awrap(ClinicOwnerModel.aggregate([{
+            $match: {
+              ownerId: mongoose.Types.ObjectId(userId),
+              isCreator: true
+            }
+          }, {
+            $lookup: {
+              from: 'clinics',
+              localField: 'clinicId',
+              foreignField: '_id',
+              as: 'clinic'
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }]));
 
         case 4:
-          deletedClinicOwner = _context3.sent;
-          ownerId = deletedClinicOwner.ownerId, clinicId = deletedClinicOwner.clinicId;
-          _context3.next = 8;
-          return regeneratorRuntime.awrap(ClinicDoctorModel.deleteOne({
-            doctorId: ownerId,
-            clinicId: clinicId
-          }));
-
-        case 8:
-          deletedClinicDoctor = _context3.sent;
+          clinics = _context3.sent;
+          clinics.forEach(function (clinic) {
+            return clinic.clinic = clinic.clinic[0];
+          });
           return _context3.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'deleted clinic owner successfully!',
-            clinicOwner: deletedClinicOwner,
-            clinicDoctor: deletedClinicDoctor
+            accepted: false,
+            clinics: clinics
           }));
 
-        case 12:
-          _context3.prev = 12;
+        case 9:
+          _context3.prev = 9;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -226,9 +234,56 @@ var deleteClinicOwner = function deleteClinicOwner(request, response) {
             error: _context3.t0.message
           }));
 
-        case 16:
+        case 13:
         case "end":
           return _context3.stop();
+      }
+    }
+  }, null, null, [[0, 9]]);
+};
+
+var deleteClinicOwner = function deleteClinicOwner(request, response) {
+  var clinicOwnerId, deletedClinicOwner, ownerId, clinicId, deletedClinicDoctor;
+  return regeneratorRuntime.async(function deleteClinicOwner$(_context4) {
+    while (1) {
+      switch (_context4.prev = _context4.next) {
+        case 0:
+          _context4.prev = 0;
+          clinicOwnerId = request.params.clinicOwnerId;
+          _context4.next = 4;
+          return regeneratorRuntime.awrap(ClinicOwnerModel.findByIdAndDelete(clinicOwnerId));
+
+        case 4:
+          deletedClinicOwner = _context4.sent;
+          ownerId = deletedClinicOwner.ownerId, clinicId = deletedClinicOwner.clinicId;
+          _context4.next = 8;
+          return regeneratorRuntime.awrap(ClinicDoctorModel.deleteOne({
+            doctorId: ownerId,
+            clinicId: clinicId
+          }));
+
+        case 8:
+          deletedClinicDoctor = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'deleted clinic owner successfully!',
+            clinicOwner: deletedClinicOwner,
+            clinicDoctor: deletedClinicDoctor
+          }));
+
+        case 12:
+          _context4.prev = 12;
+          _context4.t0 = _context4["catch"](0);
+          console.error(_context4.t0);
+          return _context4.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context4.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context4.stop();
       }
     }
   }, null, null, [[0, 12]]);
@@ -237,5 +292,6 @@ var deleteClinicOwner = function deleteClinicOwner(request, response) {
 module.exports = {
   addClinicOwner: addClinicOwner,
   deleteClinicOwner: deleteClinicOwner,
-  getClinicsByOwnerId: getClinicsByOwnerId
+  getClinicsByOwnerId: getClinicsByOwnerId,
+  getClinicsByOwnerIdWhichIsCreatedByOwner: getClinicsByOwnerIdWhichIsCreatedByOwner
 };

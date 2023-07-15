@@ -129,7 +129,8 @@ var addClinic = function addClinic(request, response) {
           _context2.next = 17;
           return regeneratorRuntime.awrap(ClinicOwnerModel.aggregate([{
             $match: {
-              ownerId: mongoose.Types.ObjectId(ownerId)
+              ownerId: mongoose.Types.ObjectId(ownerId),
+              isCreator: true
             }
           }, {
             $lookup: {
@@ -195,7 +196,8 @@ var addClinic = function addClinic(request, response) {
           newClinic = _context2.sent;
           clinicOwnerData = {
             ownerId: ownerId,
-            clinicId: newClinic._id
+            clinicId: newClinic._id,
+            isCreator: true
           };
           clinicOwnerObj = new ClinicOwnerModel(clinicOwnerData);
           _context2.next = 35;
@@ -238,7 +240,7 @@ var addClinic = function addClinic(request, response) {
 
         case 46:
           if (!(mode == 'TEST')) {
-            _context2.next = 56;
+            _context2.next = 57;
             break;
           }
 
@@ -252,17 +254,18 @@ var addClinic = function addClinic(request, response) {
 
         case 52:
           if (!owner.roles.includes('DOCTOR')) {
-            _context2.next = 56;
+            _context2.next = 57;
             break;
           }
 
+          console.log('here');
           testPatients.forEach(function (patient) {
             return patient.doctorId = owner._id;
           });
-          _context2.next = 56;
+          _context2.next = 57;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.insertMany(testPatients));
 
-        case 56:
+        case 57:
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Added clinic successfully!',
@@ -271,8 +274,8 @@ var addClinic = function addClinic(request, response) {
             clinicOwner: newClinicOwner
           }));
 
-        case 59:
-          _context2.prev = 59;
+        case 60:
+          _context2.prev = 60;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -281,12 +284,12 @@ var addClinic = function addClinic(request, response) {
             error: _context2.t0.message
           }));
 
-        case 63:
+        case 64:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 59]]);
+  }, null, null, [[0, 60]]);
 };
 
 var updateClinic = function updateClinic(request, response) {

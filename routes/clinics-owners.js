@@ -16,6 +16,13 @@ router.get(
     (request, response) => clinicsOwnersController.getClinicsByOwnerId(request, response)
 )
 
+router.get(
+    '/v1/clinics-owners/owners/:userId/owner-created',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => clinicsOwnersController.getClinicsByOwnerIdWhichIsCreatedByOwner(request, response)
+)
+
 router.delete(
     '/v1/clinics-owners/:clinicOwnerId',
     authorization.allPermission,

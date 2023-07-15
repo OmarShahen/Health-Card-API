@@ -68,7 +68,7 @@ const addClinic = async (request, response) => {
 
         const ownerClinics = await ClinicOwnerModel.aggregate([
             {
-                $match: { ownerId: mongoose.Types.ObjectId(ownerId) }
+                $match: { ownerId: mongoose.Types.ObjectId(ownerId), isCreator: true }
             },
             {
                 $lookup: {
@@ -115,7 +115,7 @@ const addClinic = async (request, response) => {
         const clinicObj = new ClinicModel(clinicData)
         const newClinic = await clinicObj.save()
 
-        const clinicOwnerData = { ownerId, clinicId: newClinic._id }
+        const clinicOwnerData = { ownerId, clinicId: newClinic._id, isCreator: true }
         const clinicOwnerObj = new ClinicOwnerModel(clinicOwnerData)
         const newClinicOwner = await clinicOwnerObj.save()
 
@@ -135,6 +135,7 @@ const addClinic = async (request, response) => {
             await ClinicPatientModel.insertMany(testPatients)
 
             if(owner.roles.includes('DOCTOR')) {
+                console.log('here')
                 testPatients.forEach(patient => patient.doctorId = owner._id)
                 await ClinicPatientDoctorModel.insertMany(testPatients)
             }

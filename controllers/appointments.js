@@ -95,6 +95,7 @@ const addAppointment = async (request, response) => {
             reservationTime
         }
 
+        console.log(reservationTime)
 
         const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()

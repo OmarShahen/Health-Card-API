@@ -10,6 +10,10 @@ var ClinicOwnerSchema = new mongoose.Schema({
   ownerId: {
     type: mongoose.Types.ObjectId,
     required: true
+  },
+  isCreator: {
+    type: Boolean,
+    "default": false
   }
 }, {
   timestamps: true

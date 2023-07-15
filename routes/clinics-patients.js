@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const clinicsPatientsController = require('../controllers/clinics-patients')
-const { verifyClinicPatientId } = require('../middlewares/verify-routes-params')
+const { verifyClinicPatientId, verifyClinicId } = require('../middlewares/verify-routes-params')
 const { verifyClinicPatients } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
@@ -8,6 +8,13 @@ router.get(
     '/v1/clinics-patients',
     authorization.allPermission,
     (request, response) => clinicsPatientsController.getClinicsPatients(request, response)
+)
+
+router.get(
+    '/v1/clinics-patients/clinics/:clinicId',
+    authorization.allPermission,
+    verifyClinicId,
+    (request, response) => clinicsPatientsController.getClinicPatientsByClinicId(request, response)
 )
 
 router.post(

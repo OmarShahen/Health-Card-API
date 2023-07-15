@@ -16,7 +16,7 @@ const { distinctValues, getUniqueIds, getUniqueSuppliersFromPayments } = require
 const { isListUnique } = require('./unique')
 const { calculateServicesTotalCost } = require('./calculateServicesTotalCost')
 const { isRolesValid } = require('./roles')
-const { capitalizeFirstLetter } = require('./formatString')
+const { capitalizeFirstLetter, concatenateHmacString } = require('./formatString')
 
 module.exports = {
     isRolesValid,
@@ -42,5 +42,6 @@ module.exports = {
     getUniqueSuppliersFromPayments,
     isListUnique,
     calculateServicesTotalCost,
-    capitalizeFirstLetter
+    capitalizeFirstLetter,
+    concatenateHmacString
 }

@@ -5,7 +5,16 @@ const isDateValid = (date) => {
 }
 
 const isDateTimeValid = (dateTime) => {
-    return moment(dateTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()
+
+    const timestamp = Date.parse(dateTime);
+
+    if (isNaN(timestamp)) {
+        return false
+    }
+
+    return true
+
+    //return moment(dateTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()
 }
 
 const isBirthYearValid = (date) => {
