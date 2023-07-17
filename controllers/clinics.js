@@ -106,7 +106,7 @@ const addClinic = async (request, response) => {
             clinicId: counter.value,
             mode,
             ownerId,
-            speciality,
+            speciality: specialitiesList.map(special => special._id),
             name,
             city,
             country,
