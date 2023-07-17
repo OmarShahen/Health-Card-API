@@ -48,6 +48,7 @@ app.use('/api', require('./routes/invoices-services'));
 app.use('/api', require('./routes/staffs'));
 app.use('/api', require('./routes/cards'));
 app.use('/api', require('./routes/payments'));
+app.use('/api', require('./routes/subscriptions'));
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
 })["catch"](function (error) {

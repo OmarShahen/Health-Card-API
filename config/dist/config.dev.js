@@ -3,8 +3,8 @@
 module.exports = {
   WEB_FORGOT_PASSWORD_URL: "https://barbels-f6774.web.app/reset-password",
   PORT: process.env.PORT,
-  DB_URL: process.env.PROD_DB_URL,
-  //DB_URL: process.env.DB_URL,
+  //DB_URL: process.env.PROD_DB_URL,
+  DB_URL: process.env.DB_URL,
   PAYMOB_HMAC: process.env.PAYMOB_HMAC,
   GENDER: ['MALE', 'FEMALE'],
   BLOOD_GROUPS: ['A', 'B', 'O', 'AB', 'A-', 'A+', 'B-', 'B+', 'O+', 'O-', 'AB+', 'AB-'],

@@ -9,6 +9,7 @@ const ClinicSchema = new mongoose.Schema({
     speciality: [],
     city: { type: String, required: true },
     country: { type: String, required: true },
+    activeUntilDate: { type: Date }
 
 }, { timestamps: true })
 

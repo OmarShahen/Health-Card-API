@@ -16,6 +16,7 @@ const ServiceModel = require('../models/ServiceModel')
 const InvoiceModel = require('../models/InvoiceModel')
 const InvoiceServiceModel = require('../models/InvoiceServiceModel')
 const CardModel = require('../models/CardModel')
+const SubscriptionModel = require('../models/SubscriptionModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -177,6 +178,8 @@ const verifyPrescriptionId = async (request, response, next) => {
             })
         }
 
+        request.doctorId = prescription.doctorId
+
         return next()
 
     } catch(error) {
@@ -271,6 +274,8 @@ const verifyEncounterId = async (request, response, next) => {
                 field: 'encounterId'
             })
         }
+
+        request.doctorId = encounter.doctorId
 
         return next()
 
@@ -628,6 +633,41 @@ const verifyInvoiceServiceId = async (request, response, next) => {
     }
 }
 
+const verifySubscriptionId = async (request, response, next) => {
+
+    try {
+
+        const { subscriptionId } = request.params
+
+        if(!utils.isObjectId(subscriptionId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid subscription Id format',
+                field: 'subscriptionId'
+            })
+        }
+
+        const subscription = await SubscriptionModel.findById(subscriptionId)
+        if(!subscription) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'subscription Id does not exist',
+                field: 'subscriptionId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
 
 module.exports = { 
     verifyClinicId, 
@@ -647,5 +687,6 @@ module.exports = {
     verifyServiceId,
     verifyInvoiceId,
     verifyInvoiceServiceId,
-    verifyCardId
+    verifyCardId,
+    verifySubscriptionId
 }

@@ -4,8 +4,10 @@ const PrescriptionModel = require('../models/PrescriptionModel')
 const InvoiceModel = require('../models/InvoiceModel')
 const AppointmentModel = require('../models/AppointmentModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
+const ClinicPatientDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicRequestModel = require('../models/ClinicRequestModel')
 const ServiceModel = require('../models/ServiceModel')
+const UserModel = require('../models/UserModel')
 const utils = require('../utils/utils')
 const config = require('../config/config')
 
@@ -43,6 +45,16 @@ const verifyClinicEncounters = async (request, response, next) => {
                     field: 'mode'
                 })
             }
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
         }
 
         return next()
@@ -92,6 +104,16 @@ const verifyClinicPrescriptions = async (request, response, next) => {
             }
         }
 
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
         return next()
 
     } catch(error) {
@@ -137,6 +159,16 @@ const verifyClinicInvoices = async (request, response, next) => {
                     field: 'mode'
                 })
             }
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
         }
 
         return next()
@@ -186,6 +218,16 @@ const verifyClinicAppointments = async (request, response, next) => {
             }
         }
 
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
         return next()
 
     } catch(error) {
@@ -231,6 +273,16 @@ const verifyClinicServices = async (request, response, next) => {
                     field: 'mode'
                 })
             }
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
         }
 
         return next()
@@ -288,6 +340,98 @@ const verifyClinicPatients = async (request, response, next) => {
             }
         }
 
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyClinicPatientsDoctors = async (request, response, next) => {
+
+    try {
+
+        const { clinicId, doctorId } = request.body
+
+        if(!utils.isObjectId(clinicId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Clinic Id does not exist',
+                field: 'clinicId'
+            })
+        }
+
+        if(!utils.isObjectId(doctorId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Doctor Id does not exist',
+                field: 'doctorId'
+            })
+        }
+
+        const clinic = await ClinicModel.findById(clinicId)
+        const doctor = await UserModel.findById(doctorId)
+
+        if(!clinic) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Clinic Id does not exist',
+                field: 'clinicId'
+            })
+        }
+
+        if(!doctor) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Doctor Id does not exist',
+                field: 'doctorId'
+            })
+        }
+
+        if(clinic.mode == 'TEST') {
+            const patients = await ClinicPatientDoctorModel.find({ clinicId, doctorId })
+            if(patients.length >= config.TEST_MODE_LIMIT) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'passed testing mode limit in patients',
+                    field: 'mode'
+                })
+            }
+
+            if(![18101851, 18101852, 18101853].includes(cardId)) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'patient card ID is not included in testing mode',
+                    field: 'mode'
+                })
+            }
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
         return next()
 
     } catch(error) {
@@ -333,6 +477,16 @@ const verifyClinicStaffRequest = async (request, response, next) => {
                     field: 'mode'
                 })
             }
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
         }
 
         return next()
@@ -382,6 +536,16 @@ const verifyClinicAddDoctorRequest = async (request, response, next) => {
             }
         }
 
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
         return next()
 
     } catch(error) {
@@ -429,6 +593,16 @@ const verifyClinicAddOwnerRequest = async (request, response, next) => {
             }
         }
 
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
         return next()
 
     } catch(error) {
@@ -448,6 +622,7 @@ module.exports = {
     verifyClinicAppointments,
     verifyClinicServices,
     verifyClinicPatients,
+    verifyClinicPatientsDoctors,
     verifyClinicStaffRequest,
     verifyClinicAddDoctorRequest,
     verifyClinicAddDoctorRequest,

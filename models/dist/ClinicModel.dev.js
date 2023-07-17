@@ -27,6 +27,9 @@ var ClinicSchema = new mongoose.Schema({
   country: {
     type: String,
     required: true
+  },
+  activeUntilDate: {
+    type: Date
   }
 }, {
   timestamps: true

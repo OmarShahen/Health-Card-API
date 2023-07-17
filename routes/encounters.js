@@ -1,13 +1,21 @@
 const router = require('express').Router()
 const encountersController = require('../controllers/encounters')
 const { verifyPatientId, verifyUserId, verifyEncounterId } = require('../middlewares/verify-routes-params')
+const { verifyClinicEncounters } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
-
+const actionAccess = require('../middlewares/verify-action-access')
 
 router.post(
     '/v1/encounters', 
     authorization.allPermission,
     (request, response) => encountersController.addEncounter(request, response)
+)
+
+router.post(
+    '/v1/encounters/cardsId/:cardId', 
+    authorization.allPermission,
+    verifyClinicEncounters,
+    (request, response) => encountersController.addEncounterByPatientCardId(request, response)
 )
 
 router.get(
@@ -34,20 +42,17 @@ router.get(
 router.delete(
     '/v1/encounters/:encounterId', 
     authorization.allPermission,
-    verifyEncounterId, 
+    verifyEncounterId,
+    actionAccess.verifyDoctorActionAccess,
     (request, response) => encountersController.deleteEncounter(request, response)
 )
 
-router.post(
-    '/v1/encounters/cardsId/:cardId', 
-    authorization.allPermission,
-    (request, response) => encountersController.addEncounterByPatientCardId(request, response)
-)
 
 router.put(
     '/v1/encounters/:encounterId',
     authorization.allPermission,
     verifyEncounterId,
+    actionAccess.verifyDoctorActionAccess,
     (request, response) => encountersController.updateEncounter(request, response)
 )
 

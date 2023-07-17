@@ -3,6 +3,7 @@ const prescriptionsController = require('../controllers/prescriptions')
 const { verifyDoctorId, verifyPrescriptionId, verifyCardUUID, verifyPatientId, verifyClinicId } = require('../middlewares/verify-routes-params')
 const { verifyClinicPrescriptions } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
+const actionAccess = require('../middlewares/verify-action-access')
 
 
 router.post(
@@ -64,6 +65,7 @@ router.delete(
     '/v1/prescriptions/:prescriptionId',
     authorization.allPermission,
     verifyPrescriptionId,
+    actionAccess.verifyDoctorActionAccess,
     (request, response) => prescriptionsController.deletePrescription(request, response)
 )
 
@@ -78,6 +80,7 @@ router.put(
     '/v1/prescriptions/:prescriptionId',
     authorization.allPermission,
     verifyPrescriptionId,
+    actionAccess.verifyDoctorActionAccess,
     (request, response) => prescriptionsController.updatePrescription(request, response) 
 )
 
