@@ -4,7 +4,7 @@ const { MedicineSchema } = require('./MedicineModel')
 
 const PrescriptionSchema = new mongoose.Schema({
 
-    prescriptionId: { type: Number, required: true, unique: true },
+    prescriptionId: { type: Number, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
     doctorId: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },

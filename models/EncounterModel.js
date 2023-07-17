@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 
 const EncounterSchema = new mongoose.Schema({
 
-    encounterId: { type: Number, required: true, unique: true },
+    encounterId: { type: Number, required: true },
     doctorId: { type: mongoose.Types.ObjectId, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },

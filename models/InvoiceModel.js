@@ -3,7 +3,7 @@ const config = require('../config/config')
 
 const InvoiceSchema = new mongoose.Schema({
 
-    invoiceId: { type: Number, required: true, unique: true },
+    invoiceId: { type: Number, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },
     totalCost: { type: Number, required: true, default: 0 },
