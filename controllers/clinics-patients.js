@@ -2,9 +2,8 @@ const ClinicPatientModel = require('../models/ClinicPatientModel')
 const clinicPatientValidation = require('../validations/clinics-patients')
 const PatientModel = require('../models/PatientModel')
 const ClinicModel = require('../models/ClinicModel')
-const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
-const UserModel = require('../models/UserModel')
 const CardModel = require('../models/CardModel')
+const translations = require('../i18n/index')
 
 const getClinicsPatients = async (request, response) => {
 
@@ -122,6 +121,7 @@ const deleteClinicPatient = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { clinicPatientId } = request.params
 
         const deletedClinicPatient = await ClinicPatientModel
@@ -129,7 +129,7 @@ const deleteClinicPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'deleted clinic patient access successfully!',
+            message: translations[lang]['Deleted clinic patient access successfully!'],
             clinicPatient: deletedClinicPatient
         })
 
@@ -162,7 +162,7 @@ const addClinicPatientByCardId = async (request, response) => {
         if(cardList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Invalid card credentials',
+                message: translations[request.query.lang]['Invalid card credentials'],
                 field: 'cardId'
             })
         }
@@ -171,7 +171,7 @@ const addClinicPatientByCardId = async (request, response) => {
         if(!card.isActive) {
             return response.status(400).json({
                 accepted: false,
-                message: 'card is deactivated',
+                message: translations[request.query.lang]['Card is deactivated'],
                 field: 'cardId'
             })
         }
@@ -184,7 +184,7 @@ const addClinicPatientByCardId = async (request, response) => {
         if(patientList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'no patient is registered with the card',
+                message: translations[request.query.lang]['No patient is registered with the card'],
                 field: 'cardId'
             })
         }
@@ -204,7 +204,7 @@ const addClinicPatientByCardId = async (request, response) => {
         if(registeredClinicPatientList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'patient already registered with clinic',
+                message: translations[request.query.lang]['Patient is already registered with clinic'],
                 field: 'clinicId'
             })
         }
@@ -215,7 +215,7 @@ const addClinicPatientByCardId = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'registered patient to clinic successfully!',
+            message: translations[request.query.lang]['Registered patient to clinic successfully!'],
             clinicPatient: newClinicPatient,
         })
 

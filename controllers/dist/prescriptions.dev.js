@@ -34,6 +34,8 @@ var config = require('../config/config');
 
 var utils = require('../utils/utils');
 
+var translations = require('../i18n/index');
+
 var formatPrescriptionsDrugs = function formatPrescriptionsDrugs(prescriptions) {
   var drugs = [];
 
@@ -226,7 +228,7 @@ var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(req
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Patient card Id does not exists',
+            message: translations[request.query.lang]['Patient card Id does not exists'],
             field: 'cardId'
           }));
 
@@ -273,7 +275,7 @@ var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(req
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'doctor does not have access to the patient',
+            message: translations[request.query.lang]['Doctor does not have access to the patient'],
             field: 'patientId'
           }));
 
@@ -309,7 +311,7 @@ var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(req
           newPrescription = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Prescription is recorded successfully',
+            message: translations[request.query.lang]['Prescription is added successfully!'],
             prescription: newPrescription
           }));
 
@@ -646,7 +648,7 @@ var deletePrescription = function deletePrescription(request, response) {
           deletedPrescription = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'prescription deleted successfully',
+            message: translations[request.query.lang]['Prescription deleted successfully!'],
             prescription: deletedPrescription
           }));
 
@@ -770,7 +772,7 @@ var updatePrescription = function updatePrescription(request, response) {
           updatedPrescription = _context8.sent;
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated prescription successfully!',
+            message: translations[request.query.lang]['Updated prescription successfully!'],
             prescription: updatedPrescription
           }));
 

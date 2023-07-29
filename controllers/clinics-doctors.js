@@ -5,7 +5,7 @@ const UserModel = require('../models/UserModel')
 const ClinicModel = require('../models/ClinicModel')
 const clinicDoctorValidation = require('../validations/clinics-doctors')
 const mongoose = require('mongoose')
-
+const translations = require('../i18n/index')
 
 const getClinicsDoctors = async (request, response) => {
 
@@ -178,6 +178,7 @@ const addClinicDoctor = async (request, response) => {
             })
         }
 
+        const { lang } = request.query
         const { doctorId, clinicId } = request.body
 
         const doctorPromise = UserModel.findById(doctorId)
@@ -205,7 +206,7 @@ const addClinicDoctor = async (request, response) => {
         if(registeredClinicDoctorList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'doctor already registered with clinic',
+                message: translations[lang]['Doctor is already registered with a clinic'],
                 field: 'clinicId'
             })
         }
@@ -217,7 +218,7 @@ const addClinicDoctor = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'registered doctor to clinic successfully!',
+            message: translations[lang]['Registered doctor to clinic successfully!'],
             clinicDoctor: newClinicDoctor
         })
 
@@ -235,6 +236,7 @@ const deleteClinicDoctor = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { clinicDoctorId } = request.params
 
         const deletedClinicDoctor = await ClinicDoctorModel
@@ -246,7 +248,7 @@ const deleteClinicDoctor = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'deleted clinic doctor access successfully!',
+            message: translations[lang]['Deleted clinic doctor access successfully!'],
             clinicDoctor: deletedClinicDoctor,
             clinicRequest: deletedClinicRequest
         })

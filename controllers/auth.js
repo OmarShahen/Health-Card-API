@@ -13,6 +13,7 @@ const utils = require('../utils/utils')
 const { sendVerificationCode } = require('../mails/verification-code')
 const { sendForgotPasswordVerificationCode } = require('../mails/forgot-password')
 const { sendDeleteAccountCode } = require('../mails/delete-account')
+const translations = require('../i18n/index')
 
 const userSignup = async (request, response) => {
 
@@ -33,7 +34,7 @@ const userSignup = async (request, response) => {
         if(emailList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Email is already registered',
+                message: translations[request.query.lang]['Email is already registered'],
                 field: 'email'
             })
         }
@@ -78,7 +79,7 @@ const userSignup = async (request, response) => {
             accepted: true,
             message: 'Account created successfully!',
             mailSuccess: mailData.isSent,
-            message: mailData.isSent ? 'email is sent successfully!' : 'there was a problem sending your email',
+            message: mailData.isSent ? 'email is sent successfully!' : translations[request.query.lang]['There was a problem sending your email'],
             user: newUser,
             emailVerification: newEmailVerification,
         })
@@ -169,7 +170,7 @@ const verifyEmailVerificationCode = async (request, response) => {
         if(emailVerificationList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'there is no verification code registered',
+                message: translations[request.query.lang]['There is no verification code registered'],
                 field: 'code'
             })
         }
@@ -451,7 +452,7 @@ const forgotPassword = async (request, response) => {
         if(emailList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'email is not registered',
+                message: translations[request.query.lang]['Email is not registered'],
                 field: 'email'
             })
         }
@@ -479,7 +480,7 @@ const forgotPassword = async (request, response) => {
         if(!sendEmail.isSent) {
             return response.status(400).json({
                 accepted: false,
-                message: 'There was a problem sending your email',
+                message: translations[request.query.lang]['There was a problem sending your email'],
                 field: 'isSent'
             })
         }
@@ -510,7 +511,7 @@ const sendUserDeleteAccountVerificationCode = async (request, response) => {
         if(!user.roles.includes('STAFF')) {
             return response.status(400).json({
                 accepted: false,
-                message: 'your account is with a role that cannot be deleted',
+                message: translations[request.query.lang]['Your account is with a role that cannot be deleted'],
                 field: 'userId'
             })
         }
@@ -537,7 +538,7 @@ const sendUserDeleteAccountVerificationCode = async (request, response) => {
         if(!sendEmail.isSent) {
             return response.status(400).json({
                 accepted: false,
-                message: 'There was a problem sending your email',
+                message: translations[request.query.lang]['There was a problem sending your email'],
                 field: 'isSent'
             })
         }
@@ -574,7 +575,7 @@ const verifyDeleteAccountVerificationCode = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'verification code is not registered',
+                message: translations[request.query.lang]['Verification code is not registered'],
                 field: 'verificationCode'
             })
         }
@@ -629,7 +630,7 @@ const verifyResetPasswordVerificationCode = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'verification code is not registered',
+                message: translations[request.query.lang]['Verification code is not registered'],
                 field: 'verificationCode'
             })
         }
@@ -675,7 +676,7 @@ const resetPassword = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'verification code is not registered',
+                message: translations[request.query.lang]['Verification code is not registered'],
                 field: 'verificationCode'
             })
         }
@@ -686,7 +687,7 @@ const resetPassword = async (request, response) => {
         if(bcrypt.compareSync(password, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'enter a new password to the current one',
+                message: translations[request.query.lang]['Enter a new password to the current one'],
                 field: 'password'
             })
         }
@@ -706,7 +707,7 @@ const resetPassword = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated user password successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
         })
 

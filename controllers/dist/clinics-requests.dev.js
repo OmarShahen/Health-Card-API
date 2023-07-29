@@ -22,8 +22,10 @@ var ClinicDoctorModel = require('../models/ClinicDoctorModel');
 
 var mongoose = require('mongoose');
 
+var translations = require('../i18n/index');
+
 var addClinicRequest = function addClinicRequest(request, response) {
-  var dataValidation, _request$body, clinicId, userId, role, clinicPromise, userPromise, _ref, _ref2, clinic, user, clinicRequestList, clinicRequest, clinicRequestData, clinicRequestObj, newClinicRequest;
+  var dataValidation, lang, _request$body, clinicId, userId, role, clinicPromise, userPromise, _ref, _ref2, clinic, user, clinicRequestList, clinicRequest, clinicRequestData, clinicRequestObj, newClinicRequest;
 
   return regeneratorRuntime.async(function addClinicRequest$(_context) {
     while (1) {
@@ -44,20 +46,21 @@ var addClinicRequest = function addClinicRequest(request, response) {
           }));
 
         case 4:
+          lang = request.query.lang;
           _request$body = request.body, clinicId = _request$body.clinicId, userId = _request$body.userId, role = _request$body.role;
           clinicPromise = ClinicModel.findById(clinicId);
           userPromise = UserModel.findById(userId);
-          _context.next = 9;
+          _context.next = 10;
           return regeneratorRuntime.awrap(Promise.all([clinicPromise, userPromise]));
 
-        case 9:
+        case 10:
           _ref = _context.sent;
           _ref2 = _slicedToArray(_ref, 2);
           clinic = _ref2[0];
           user = _ref2[1];
 
           if (clinic) {
-            _context.next = 15;
+            _context.next = 16;
             break;
           }
 
@@ -67,9 +70,9 @@ var addClinicRequest = function addClinicRequest(request, response) {
             field: 'clinicId'
           }));
 
-        case 15:
+        case 16:
           if (user) {
-            _context.next = 17;
+            _context.next = 18;
             break;
           }
 
@@ -79,78 +82,78 @@ var addClinicRequest = function addClinicRequest(request, response) {
             field: 'userId'
           }));
 
-        case 17:
-          _context.next = 19;
+        case 18:
+          _context.next = 20;
           return regeneratorRuntime.awrap(ClinicRequestModel.find({
             clinicId: clinicId,
             userId: userId
           }));
 
-        case 19:
+        case 20:
           clinicRequestList = _context.sent;
 
           if (!(clinicRequestList.length > 0)) {
-            _context.next = 28;
+            _context.next = 29;
             break;
           }
 
           clinicRequest = clinicRequestList[0];
 
           if (!(clinicRequest.status == 'ACCEPTED')) {
-            _context.next = 24;
+            _context.next = 25;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already accepted',
+            message: translations[lang]['Clinic request is already accepted'],
             field: 'clinicId'
           }));
 
-        case 24:
+        case 25:
           if (!(clinicRequest.status == 'PENDING')) {
-            _context.next = 26;
+            _context.next = 27;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already pending',
+            message: translations[lang]['Clinic request is already pending'],
             field: 'clinicId'
           }));
 
-        case 26:
+        case 27:
           if (!(clinicRequest.status == 'REJECTED')) {
-            _context.next = 28;
+            _context.next = 29;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already rejected',
+            message: translations[lang]['Clinic request is already rejected'],
             field: 'clinicId'
           }));
 
-        case 28:
+        case 29:
           clinicRequestData = {
             clinicId: clinicId,
             userId: userId,
             role: role
           };
           clinicRequestObj = new ClinicRequestModel(clinicRequestData);
-          _context.next = 32;
+          _context.next = 33;
           return regeneratorRuntime.awrap(clinicRequestObj.save());
 
-        case 32:
+        case 33:
           newClinicRequest = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
           }));
 
-        case 36:
-          _context.prev = 36;
+        case 37:
+          _context.prev = 37;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -159,16 +162,16 @@ var addClinicRequest = function addClinicRequest(request, response) {
             error: _context.t0.message
           }));
 
-        case 40:
+        case 41:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 36]]);
+  }, null, null, [[0, 37]]);
 };
 
 var addDoctorClinicRequestByReceiverEmail = function addDoctorClinicRequestByReceiverEmail(request, response) {
-  var dataValidation, _request$body2, clinicId, email, clinicPromise, userListPromise, _ref3, _ref4, clinic, userList, user, userId, clinicDoctorList, clinicRequestList, clinicRequest, clinicRequestData, clinicRequestObj, newClinicRequest;
+  var dataValidation, lang, _request$body2, clinicId, email, clinicPromise, userListPromise, _ref3, _ref4, clinic, userList, user, userId, clinicDoctorList, clinicRequestList, clinicRequest, clinicRequestData, clinicRequestObj, newClinicRequest;
 
   return regeneratorRuntime.async(function addDoctorClinicRequestByReceiverEmail$(_context2) {
     while (1) {
@@ -189,23 +192,24 @@ var addDoctorClinicRequestByReceiverEmail = function addDoctorClinicRequestByRec
           }));
 
         case 4:
+          lang = request.query.lang;
           _request$body2 = request.body, clinicId = _request$body2.clinicId, email = _request$body2.email;
           clinicPromise = ClinicModel.findById(clinicId);
           userListPromise = UserModel.find({
             email: email,
             isVerified: true
           });
-          _context2.next = 9;
+          _context2.next = 10;
           return regeneratorRuntime.awrap(Promise.all([clinicPromise, userListPromise]));
 
-        case 9:
+        case 10:
           _ref3 = _context2.sent;
           _ref4 = _slicedToArray(_ref3, 2);
           clinic = _ref4[0];
           userList = _ref4[1];
 
           if (clinic) {
-            _context2.next = 15;
+            _context2.next = 16;
             break;
           }
 
@@ -215,127 +219,127 @@ var addDoctorClinicRequestByReceiverEmail = function addDoctorClinicRequestByRec
             field: 'clinicId'
           }));
 
-        case 15:
+        case 16:
           if (!(userList.length == 0)) {
-            _context2.next = 17;
+            _context2.next = 18;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'user email is not registered',
+            message: translations[lang]['User email is not registered'],
             field: 'email'
           }));
 
-        case 17:
+        case 18:
           user = userList[0];
           userId = user._id;
 
           if (user.roles.includes('DOCTOR')) {
-            _context2.next = 21;
+            _context2.next = 22;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'cannot send request except for doctors',
+            message: translations[lang]['Cannot send request except for doctors'],
             field: 'userId'
           }));
 
-        case 21:
-          _context2.next = 23;
+        case 22:
+          _context2.next = 24;
           return regeneratorRuntime.awrap(ClinicDoctorModel.find({
             clinicId: clinicId,
             doctorId: userId
           }));
 
-        case 23:
+        case 24:
           clinicDoctorList = _context2.sent;
 
           if (!(clinicDoctorList.length != 0)) {
-            _context2.next = 26;
+            _context2.next = 27;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Doctor is already registered in the clinic',
+            message: translations[lang]['Doctor is already registered with the clinic'],
             field: 'userId'
           }));
 
-        case 26:
-          _context2.next = 28;
+        case 27:
+          _context2.next = 29;
           return regeneratorRuntime.awrap(ClinicRequestModel.find({
             clinicId: clinicId,
             userId: userId,
             role: 'DOCTOR'
           }));
 
-        case 28:
+        case 29:
           clinicRequestList = _context2.sent;
 
           if (!(clinicRequestList.length > 0)) {
-            _context2.next = 37;
+            _context2.next = 38;
             break;
           }
 
           clinicRequest = clinicRequestList[0];
 
           if (!(clinicRequest.status == 'ACCEPTED')) {
-            _context2.next = 33;
+            _context2.next = 34;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already accepted',
+            message: translations[lang]['Clinic request is already accepted'],
             field: 'clinicId'
           }));
 
-        case 33:
+        case 34:
           if (!(clinicRequest.status == 'PENDING')) {
-            _context2.next = 35;
+            _context2.next = 36;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already pending',
+            message: translations[lang]['Clinic request is already pending'],
             field: 'clinicId'
           }));
 
-        case 35:
+        case 36:
           if (!(clinicRequest.status == 'REJECTED')) {
-            _context2.next = 37;
+            _context2.next = 38;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already rejected',
+            message: translations[lang]['Clinic request is already rejected'],
             field: 'clinicId'
           }));
 
-        case 37:
+        case 38:
           clinicRequestData = {
             clinicId: clinicId,
             userId: userId,
             role: 'DOCTOR'
           };
           clinicRequestObj = new ClinicRequestModel(clinicRequestData);
-          _context2.next = 41;
+          _context2.next = 42;
           return regeneratorRuntime.awrap(clinicRequestObj.save());
 
-        case 41:
+        case 42:
           newClinicRequest = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
           }));
 
-        case 45:
-          _context2.prev = 45;
+        case 46:
+          _context2.prev = 46;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -344,16 +348,16 @@ var addDoctorClinicRequestByReceiverEmail = function addDoctorClinicRequestByRec
             error: _context2.t0.message
           }));
 
-        case 49:
+        case 50:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 45]]);
+  }, null, null, [[0, 46]]);
 };
 
 var addOwnerClinicRequestByReceiverEmail = function addOwnerClinicRequestByReceiverEmail(request, response) {
-  var dataValidation, _request$body3, clinicId, email, clinicPromise, userListPromise, _ref5, _ref6, clinic, userList, user, userId, clinicOwnerList, clinicRequestList, clinicRequest, clinicRequestData, clinicRequestObj, newClinicRequest;
+  var dataValidation, lang, _request$body3, clinicId, email, clinicPromise, userListPromise, _ref5, _ref6, clinic, userList, user, userId, clinicOwnerList, clinicRequestList, clinicRequest, clinicRequestData, clinicRequestObj, newClinicRequest;
 
   return regeneratorRuntime.async(function addOwnerClinicRequestByReceiverEmail$(_context3) {
     while (1) {
@@ -374,23 +378,24 @@ var addOwnerClinicRequestByReceiverEmail = function addOwnerClinicRequestByRecei
           }));
 
         case 4:
+          lang = request.query.lang;
           _request$body3 = request.body, clinicId = _request$body3.clinicId, email = _request$body3.email;
           clinicPromise = ClinicModel.findById(clinicId);
           userListPromise = UserModel.find({
             email: email,
             isVerified: true
           });
-          _context3.next = 9;
+          _context3.next = 10;
           return regeneratorRuntime.awrap(Promise.all([clinicPromise, userListPromise]));
 
-        case 9:
+        case 10:
           _ref5 = _context3.sent;
           _ref6 = _slicedToArray(_ref5, 2);
           clinic = _ref6[0];
           userList = _ref6[1];
 
           if (clinic) {
-            _context3.next = 15;
+            _context3.next = 16;
             break;
           }
 
@@ -400,127 +405,127 @@ var addOwnerClinicRequestByReceiverEmail = function addOwnerClinicRequestByRecei
             field: 'clinicId'
           }));
 
-        case 15:
+        case 16:
           if (!(userList.length == 0)) {
-            _context3.next = 17;
+            _context3.next = 18;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'user email is not registered',
+            message: translations[lang]['User email is not registered'],
             field: 'email'
           }));
 
-        case 17:
+        case 18:
           user = userList[0];
           userId = user._id;
 
           if (user.roles.includes('OWNER')) {
-            _context3.next = 21;
+            _context3.next = 22;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'cannot send request except for owners',
+            message: translations[lang]['Cannot send request except for owners'],
             field: 'userId'
           }));
 
-        case 21:
-          _context3.next = 23;
+        case 22:
+          _context3.next = 24;
           return regeneratorRuntime.awrap(ClinicOwnerModel.find({
             clinicId: clinicId,
             ownerId: userId
           }));
 
-        case 23:
+        case 24:
           clinicOwnerList = _context3.sent;
 
           if (!(clinicOwnerList.length != 0)) {
-            _context3.next = 26;
+            _context3.next = 27;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Owner is already registered in the clinic',
+            message: translations[lang]['Owner is already registered with the clinic'],
             field: 'userId'
           }));
 
-        case 26:
-          _context3.next = 28;
+        case 27:
+          _context3.next = 29;
           return regeneratorRuntime.awrap(ClinicRequestModel.find({
             clinicId: clinicId,
             userId: userId,
             role: 'OWNER'
           }));
 
-        case 28:
+        case 29:
           clinicRequestList = _context3.sent;
 
           if (!(clinicRequestList.length > 0)) {
-            _context3.next = 37;
+            _context3.next = 38;
             break;
           }
 
           clinicRequest = clinicRequestList[0];
 
           if (!(clinicRequest.status == 'ACCEPTED')) {
-            _context3.next = 33;
+            _context3.next = 34;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already accepted',
+            message: translations[lang]['Clinic request is already accepted'],
             field: 'clinicId'
           }));
 
-        case 33:
+        case 34:
           if (!(clinicRequest.status == 'PENDING')) {
-            _context3.next = 35;
+            _context3.next = 36;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already pending',
+            message: translations[lang]['Clinic request is already pending'],
             field: 'clinicId'
           }));
 
-        case 35:
+        case 36:
           if (!(clinicRequest.status == 'REJECTED')) {
-            _context3.next = 37;
+            _context3.next = 38;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request is already rejected',
+            message: translations[lang]['Clinic request is already rejected'],
             field: 'clinicId'
           }));
 
-        case 37:
+        case 38:
           clinicRequestData = {
             clinicId: clinicId,
             userId: userId,
             role: 'OWNER'
           };
           clinicRequestObj = new ClinicRequestModel(clinicRequestData);
-          _context3.next = 41;
+          _context3.next = 42;
           return regeneratorRuntime.awrap(clinicRequestObj.save());
 
-        case 41:
+        case 42:
           newClinicRequest = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
           }));
 
-        case 45:
-          _context3.prev = 45;
+        case 46:
+          _context3.prev = 46;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -529,12 +534,12 @@ var addOwnerClinicRequestByReceiverEmail = function addOwnerClinicRequestByRecei
             error: _context3.t0.message
           }));
 
-        case 49:
+        case 50:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 45]]);
+  }, null, null, [[0, 46]]);
 };
 
 var addStaffClinicRequestByClinicId = function addStaffClinicRequestByClinicId(request, response) {
@@ -604,7 +609,7 @@ var addStaffClinicRequestByClinicId = function addStaffClinicRequestByClinicId(r
 
           return _context4.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Invalid user role type to perform this operation',
+            message: translations[request.query.lang]['Invalid user role type to perform this operation'],
             field: 'userId'
           }));
 
@@ -616,7 +621,7 @@ var addStaffClinicRequestByClinicId = function addStaffClinicRequestByClinicId(r
 
           return _context4.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'user is already registered with a clinic',
+            message: translations[request.query.lang]['User is already registered with a clinic'],
             field: 'userId'
           }));
 
@@ -643,7 +648,7 @@ var addStaffClinicRequestByClinicId = function addStaffClinicRequestByClinicId(r
           newClinicRequest = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[request.query.lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
           }));
 
@@ -1240,7 +1245,7 @@ var deleteStaffClinicRequest = function deleteStaffClinicRequest(request, respon
           updatedUser = _ref10[1];
           return _context13.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted staff request successfully!',
+            message: translations[request.query.lang]['Deleted staff request successfully!'],
             clinicRequest: deletedClinicRequest,
             user: updatedUser
           }));
@@ -1306,7 +1311,7 @@ var deleteDoctorClinicRequest = function deleteDoctorClinicRequest(request, resp
           deletedClinicDoctor = _ref12[1];
           return _context14.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted doctor request successfully!',
+            message: translations[request.query.lang]['Deleted doctor request successfully!'],
             clinicRequest: deletedClinicRequest,
             clinicDoctor: deletedClinicDoctor
           }));
@@ -1372,7 +1377,7 @@ var deleteOwnerClinicRequest = function deleteOwnerClinicRequest(request, respon
           deletedClinicOwner = _ref14[1];
           return _context15.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted owner request successfully!',
+            message: translations[request.query.lang]['Deleted owner request successfully!'],
             clinicRequest: deletedClinicRequest,
             clinicOwner: deletedClinicOwner
           }));
@@ -1443,7 +1448,7 @@ var updateDoctorClinicRequestStatus = function updateDoctorClinicRequestStatus(r
 
           return _context16.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request has already this status',
+            message: translations[request.query.lang]['Clinic request has already this status'],
             field: 'status'
           }));
 
@@ -1482,7 +1487,7 @@ var updateDoctorClinicRequestStatus = function updateDoctorClinicRequestStatus(r
 
           return _context16.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'doctor is already registered with the clinic',
+            message: translations[request.query.lang]['Doctor is already registered with the clinic'],
             field: 'status'
           }));
 
@@ -1535,7 +1540,7 @@ var updateDoctorClinicRequestStatus = function updateDoctorClinicRequestStatus(r
         case 41:
           return _context16.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated clinic request status successfully!'
+            message: translations[request.query.lang]['Updated clinic request status successfully!']
           }));
 
         case 44:
@@ -1604,7 +1609,7 @@ var updateOwnerClinicRequestStatus = function updateOwnerClinicRequestStatus(req
 
           return _context17.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request has already this status',
+            message: translations[request.query.lang]['Clinic request has already this status'],
             field: 'status'
           }));
 
@@ -1643,7 +1648,7 @@ var updateOwnerClinicRequestStatus = function updateOwnerClinicRequestStatus(req
 
           return _context17.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'owner is already registered with the clinic',
+            message: translations[request.query.lang]['Owner is already registered with the clinic'],
             field: 'status'
           }));
 
@@ -1696,7 +1701,7 @@ var updateOwnerClinicRequestStatus = function updateOwnerClinicRequestStatus(req
         case 41:
           return _context17.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated clinic request status successfully!'
+            message: translations[request.query.lang]['Updated clinic request status successfully!']
           }));
 
         case 44:
@@ -1765,7 +1770,7 @@ var updateStaffClinicRequestStatus = function updateStaffClinicRequestStatus(req
 
           return _context18.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'clinic request has already this status',
+            message: translations[request.query.lang]['Clinic request has already this status'],
             field: 'status'
           }));
 
@@ -1801,7 +1806,7 @@ var updateStaffClinicRequestStatus = function updateStaffClinicRequestStatus(req
 
           return _context18.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'user is already registered with a clinic',
+            message: translations[request.query.lang]['Staff is already registered with a clinic'],
             field: 'userId'
           }));
 
@@ -1854,7 +1859,7 @@ var updateStaffClinicRequestStatus = function updateStaffClinicRequestStatus(req
         case 39:
           return _context18.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated clinic request status successfully!'
+            message: translations[request.query.lang]['Updated clinic request status successfully!']
           }));
 
         case 42:

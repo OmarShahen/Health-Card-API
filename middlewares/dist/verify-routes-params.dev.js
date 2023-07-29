@@ -36,6 +36,8 @@ var InvoiceServiceModel = require('../models/InvoiceServiceModel');
 
 var CardModel = require('../models/CardModel');
 
+var SubscriptionModel = require('../models/SubscriptionModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -307,10 +309,11 @@ var verifyPrescriptionId = function verifyPrescriptionId(request, response, next
           }));
 
         case 9:
+          request.doctorId = prescription.doctorId;
           return _context5.abrupt("return", next());
 
-        case 12:
-          _context5.prev = 12;
+        case 13:
+          _context5.prev = 13;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -318,12 +321,12 @@ var verifyPrescriptionId = function verifyPrescriptionId(request, response, next
             error: _context5.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
 var verifyCardId = function verifyCardId(request, response, next) {
@@ -471,10 +474,11 @@ var verifyEncounterId = function verifyEncounterId(request, response, next) {
           }));
 
         case 9:
+          request.doctorId = encounter.doctorId;
           return _context8.abrupt("return", next());
 
-        case 12:
-          _context8.prev = 12;
+        case 13:
+          _context8.prev = 13;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -483,12 +487,12 @@ var verifyEncounterId = function verifyEncounterId(request, response, next) {
             error: _context8.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context8.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
 var verifyClinicPatientId = function verifyClinicPatientId(request, response, next) {
@@ -1073,6 +1077,64 @@ var verifyInvoiceServiceId = function verifyInvoiceServiceId(request, response, 
   }, null, null, [[0, 12]]);
 };
 
+var verifySubscriptionId = function verifySubscriptionId(request, response, next) {
+  var subscriptionId, subscription;
+  return regeneratorRuntime.async(function verifySubscriptionId$(_context19) {
+    while (1) {
+      switch (_context19.prev = _context19.next) {
+        case 0:
+          _context19.prev = 0;
+          subscriptionId = request.params.subscriptionId;
+
+          if (utils.isObjectId(subscriptionId)) {
+            _context19.next = 4;
+            break;
+          }
+
+          return _context19.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'invalid subscription Id format',
+            field: 'subscriptionId'
+          }));
+
+        case 4:
+          _context19.next = 6;
+          return regeneratorRuntime.awrap(SubscriptionModel.findById(subscriptionId));
+
+        case 6:
+          subscription = _context19.sent;
+
+          if (subscription) {
+            _context19.next = 9;
+            break;
+          }
+
+          return _context19.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'subscription Id does not exist',
+            field: 'subscriptionId'
+          }));
+
+        case 9:
+          return _context19.abrupt("return", next());
+
+        case 12:
+          _context19.prev = 12;
+          _context19.t0 = _context19["catch"](0);
+          console.error(_context19.t0);
+          return _context19.abrupt("return", response.status(500).json({
+            message: 'internal server error',
+            error: _context19.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context19.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1091,5 +1153,6 @@ module.exports = {
   verifyServiceId: verifyServiceId,
   verifyInvoiceId: verifyInvoiceId,
   verifyInvoiceServiceId: verifyInvoiceServiceId,
-  verifyCardId: verifyCardId
+  verifyCardId: verifyCardId,
+  verifySubscriptionId: verifySubscriptionId
 };

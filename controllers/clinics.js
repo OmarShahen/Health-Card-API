@@ -9,7 +9,7 @@ const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
 const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const PatientModel = require('../models/PatientModel')
-
+const translations = require('../i18n/index')
 
 const isClinicsInTestMode = (clinics) => {
 
@@ -85,7 +85,7 @@ const addClinic = async (request, response) => {
         if(isClinicsInTestMode(ownerClinics)) {
             return response.status(400).json({
                 accepted: false,
-                message: `cannot create clinic in test mode`,
+                message: translations[request.query.lang][`Cannot create clinic in test mode`],
                 field: 'ownerId'
             })
         }
@@ -135,7 +135,6 @@ const addClinic = async (request, response) => {
             await ClinicPatientModel.insertMany(testPatients)
 
             if(owner.roles.includes('DOCTOR')) {
-                console.log('here')
                 testPatients.forEach(patient => patient.doctorId = owner._id)
                 await ClinicPatientDoctorModel.insertMany(testPatients)
             }
@@ -143,7 +142,7 @@ const addClinic = async (request, response) => {
         
         return response.status(200).json({
             accepted: true,
-            message: 'Added clinic successfully!',
+            message: translations[request.query.lang]['Added clinic successfully!'],
             clinic: newClinic,
             clinicDoctor: newClinicDoctor,
             clinicOwner: newClinicOwner
@@ -197,7 +196,7 @@ const updateClinic = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated clinic successfully!',
+            message: translations[request.query.lang]['Updated clinic successfully!'],
             clinic: updatedClinic,
         })
 

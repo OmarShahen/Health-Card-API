@@ -6,6 +6,7 @@ const ClinicModel = require('../models/ClinicModel')
 const utils = require('../utils/utils')
 const { sendAppointmentEmail } = require('../mails/appointment')
 const { format } = require('date-fns')
+const translations = require('../i18n/index')
 
 const addAppointment = async (request, response) => {
 
@@ -19,6 +20,8 @@ const addAppointment = async (request, response) => {
                 field: dataValidation.field
             })
         }
+
+        const { lang } = request.query
 
         const { 
             clinicId,
@@ -36,7 +39,7 @@ const addAppointment = async (request, response) => {
         if(todayDate > new Date(reservationTime)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Reservate time has passed',
+                message: translations[lang]['Reservation time has passed'],
                 field: 'reservationTime'
             })
         }
@@ -79,7 +82,7 @@ const addAppointment = async (request, response) => {
         if(appointment.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Doctor is already registered in that time',
+                message: translations[lang]['Doctor is already reserved in that time'],
                 field: 'reservationTime'
             })
         }
@@ -94,8 +97,6 @@ const addAppointment = async (request, response) => {
             status,
             reservationTime
         }
-
-        console.log(reservationTime)
 
         const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()
@@ -119,7 +120,7 @@ const addAppointment = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Registered appointment successfully!',
+            message: translations[lang]['Registered appointment successfully!'],
             appointment: newAppointment,
             mailStatus
         })
@@ -345,6 +346,7 @@ const updateAppointmentStatus = async (request, response) => {
     try {
 
         const { appointmentId } = request.params
+        const { lang } = request.query
         const { status } = request.body
 
         const dataValidation = appointmentValidation.updateAppointmentStatus(request.body)
@@ -361,7 +363,7 @@ const updateAppointmentStatus = async (request, response) => {
         if(appointment.status == status) {
             return response.status(400).json({
                 accepted: false,
-                message: 'appointment is already in this state',
+                message: translations[lang]['Appointment is already in this state'],
                 field: 'status'
             })
         }
@@ -370,7 +372,7 @@ const updateAppointmentStatus = async (request, response) => {
         if(appointment.reservationTime < todayDate) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Appointment date has passed',
+                message: translations[lang]['Appointment date has passed'],
                 field: 'reservationDate'
             })
         }
@@ -380,7 +382,7 @@ const updateAppointmentStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated appointment status successfully!',
+            message: translations[lang]['Updated appointment status successfully!'],
             appointment: updatedAppointment
         })
 
@@ -398,13 +400,14 @@ const deleteAppointment = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { appointmentId } = request.params
 
         const deletedAppointment = await AppointmentModel.findByIdAndDelete(appointmentId)
 
         return response.status(200).json({
             accepted: true,
-            message: 'deleted appointment successfully',
+            message: translations[lang]['Deleted appointment successfully!'],
             appointment: deletedAppointment
         })
 

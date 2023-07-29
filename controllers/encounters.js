@@ -8,6 +8,7 @@ const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const ClinicModel = require('../models/ClinicModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
 const addEncounter = async (request, response) => {
@@ -163,7 +164,7 @@ const addEncounterByPatientCardId = async (request, response) => {
         if(doctorPatientAccessList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'doctor does not have access to the patient',
+                message: translations[request.query.lang]['Doctor does not have access to the patient'],
                 field: 'patientId'
             })
         }
@@ -210,7 +211,7 @@ const addEncounterByPatientCardId = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Encounter added successfully!',
+            message: translations[request.query.lang]['Encounter added successfully!'],
             encounter: newEncounter,
             prescription: newPrescription,
         })
@@ -235,7 +236,7 @@ const deleteEncounter = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'encounter deleted successfully',
+            message: translations[request.query.lang]['Encounter deleted successfully!'],
             encounter: deletedEncounter
         })
 
@@ -496,7 +497,7 @@ const updateEncounter = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated encounter successfully!',
+            message: translations[request.query.lang]['Updated encounter successfully!'],
             encounter: updatedEncounter
         })
 

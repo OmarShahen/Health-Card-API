@@ -16,11 +16,9 @@ var PatientModel = require('../models/PatientModel');
 
 var ClinicModel = require('../models/ClinicModel');
 
-var ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel');
-
-var UserModel = require('../models/UserModel');
-
 var CardModel = require('../models/CardModel');
+
+var translations = require('../i18n/index');
 
 var getClinicsPatients = function getClinicsPatients(request, response) {
   var clinicsPatients;
@@ -211,26 +209,27 @@ var addClinicPatient = function addClinicPatient(request, response) {
 };
 
 var deleteClinicPatient = function deleteClinicPatient(request, response) {
-  var clinicPatientId, deletedClinicPatient;
+  var lang, clinicPatientId, deletedClinicPatient;
   return regeneratorRuntime.async(function deleteClinicPatient$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
+          lang = request.query.lang;
           clinicPatientId = request.params.clinicPatientId;
-          _context4.next = 4;
+          _context4.next = 5;
           return regeneratorRuntime.awrap(ClinicPatientModel.findByIdAndDelete(clinicPatientId));
 
-        case 4:
+        case 5:
           deletedClinicPatient = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'deleted clinic patient access successfully!',
+            message: translations[lang]['Deleted clinic patient access successfully!'],
             clinicPatient: deletedClinicPatient
           }));
 
-        case 8:
-          _context4.prev = 8;
+        case 9:
+          _context4.prev = 9;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -239,12 +238,12 @@ var deleteClinicPatient = function deleteClinicPatient(request, response) {
             error: _context4.t0.message
           }));
 
-        case 12:
+        case 13:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 9]]);
 };
 
 var addClinicPatientByCardId = function addClinicPatientByCardId(request, response) {
@@ -286,7 +285,7 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(request, respon
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Invalid card credentials',
+            message: translations[request.query.lang]['Invalid card credentials'],
             field: 'cardId'
           }));
 
@@ -300,7 +299,7 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(request, respon
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'card is deactivated',
+            message: translations[request.query.lang]['Card is deactivated'],
             field: 'cardId'
           }));
 
@@ -325,7 +324,7 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(request, respon
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'no patient is registered with the card',
+            message: translations[request.query.lang]['No patient is registered with the card'],
             field: 'cardId'
           }));
 
@@ -360,7 +359,7 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(request, respon
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'patient already registered with clinic',
+            message: translations[request.query.lang]['Patient is already registered with clinic'],
             field: 'clinicId'
           }));
 
@@ -377,7 +376,7 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(request, respon
           newClinicPatient = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'registered patient to clinic successfully!',
+            message: translations[request.query.lang]['Registered patient to clinic successfully!'],
             clinicPatient: newClinicPatient
           }));
 

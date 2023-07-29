@@ -9,6 +9,7 @@ const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
 const getInvoices = async (request, response) => {
@@ -317,7 +318,7 @@ const addInvoice = async (request, response) => {
         if(clinicPatientsList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'patient is not registered in the clinic',
+                message: translations[request.query.lang]['Patient is not registered with the clinic'],
                 field: 'cardId'
             })
         }
@@ -333,7 +334,7 @@ const addInvoice = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Added invoice successfully!',
+            message: translations[request.query.lang]['Added invoice successfully!'],
             invoice: newInvoice
         })
 
@@ -430,7 +431,7 @@ const addInvoiceCheckout = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'added invoice successfully!',
+            message: translations[request.query.lang]['Added invoice successfully!'],
             invoice: updatedInvoice,
             invoiceServices: newInvoiceServices
         })
@@ -476,7 +477,7 @@ const updateInvoiceStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated invoice successfully!',
+            message: translations[request.query.lang]['Updated invoice successfully!'],
             invoice: updatedInvoice
         })
 
@@ -511,7 +512,7 @@ const updateInvoicePaid = async (request, response) => {
         if(!['PARTIALLY_PAID', 'PENDING'].includes(invoice.status) || invoice.totalCost == invoice.paid) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invoice is not partially paid',
+                message: translations[request.query.lang]['Invoice is not partially paid'],
                 field: 'status'
             })
         }
@@ -522,7 +523,7 @@ const updateInvoicePaid = async (request, response) => {
         if(NEW_PAID > invoice.totalCost) {
             return response.status(400).json({
                 accepted: false,
-                message: 'paid amount is more than the required',
+                message: translations[request.query.lang]['Paid amount is more than the required'],
                 field: 'paid'
             })
         }
@@ -536,7 +537,7 @@ const updateInvoicePaid = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'added payment successfully!',
+            message: translations[request.query.lang]['Added payment successfully!'],
             invoice: updatedInvoice
         })
         
@@ -567,7 +568,7 @@ const deleteInvoice = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'deleted invoice successfully!',
+            message: translations[request.query.lang]['Deleted invoice successfully!'],
             invoice: deletedInvoice,
             invoiceServices: deletedInvoiceServices.deletedCount
         })
@@ -599,7 +600,7 @@ const updateInvoice = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated invoice successfully!'
+            message: translations[request.query.lang]['Updated invoice successfully!']
         })
 
     } catch(error) {

@@ -22,6 +22,8 @@ var ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel');
 
 var PatientModel = require('../models/PatientModel');
 
+var translations = require('../i18n/index');
+
 var isClinicsInTestMode = function isClinicsInTestMode(clinics) {
   for (var i = 0; i < clinics.length; i++) {
     if (clinics[i].clinic.mode == 'TEST') {
@@ -154,7 +156,7 @@ var addClinic = function addClinic(request, response) {
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: "cannot create clinic in test mode",
+            message: translations[request.query.lang]["Cannot create clinic in test mode"],
             field: 'ownerId'
           }));
 
@@ -183,7 +185,9 @@ var addClinic = function addClinic(request, response) {
             clinicId: counter.value,
             mode: mode,
             ownerId: ownerId,
-            speciality: speciality,
+            speciality: specialitiesList.map(function (special) {
+              return special._id;
+            }),
             name: name,
             city: city,
             country: country
@@ -240,7 +244,7 @@ var addClinic = function addClinic(request, response) {
 
         case 46:
           if (!(mode == 'TEST')) {
-            _context2.next = 57;
+            _context2.next = 56;
             break;
           }
 
@@ -254,28 +258,27 @@ var addClinic = function addClinic(request, response) {
 
         case 52:
           if (!owner.roles.includes('DOCTOR')) {
-            _context2.next = 57;
+            _context2.next = 56;
             break;
           }
 
-          console.log('here');
           testPatients.forEach(function (patient) {
             return patient.doctorId = owner._id;
           });
-          _context2.next = 57;
+          _context2.next = 56;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.insertMany(testPatients));
 
-        case 57:
+        case 56:
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added clinic successfully!',
+            message: translations[request.query.lang]['Added clinic successfully!'],
             clinic: newClinic,
             clinicDoctor: newClinicDoctor,
             clinicOwner: newClinicOwner
           }));
 
-        case 60:
-          _context2.prev = 60;
+        case 59:
+          _context2.prev = 59;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -284,12 +287,12 @@ var addClinic = function addClinic(request, response) {
             error: _context2.t0.message
           }));
 
-        case 64:
+        case 63:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 60]]);
+  }, null, null, [[0, 59]]);
 };
 
 var updateClinic = function updateClinic(request, response) {
@@ -355,7 +358,7 @@ var updateClinic = function updateClinic(request, response) {
           updatedClinic = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated clinic successfully!',
+            message: translations[request.query.lang]['Updated clinic successfully!'],
             clinic: updatedClinic
           }));
 

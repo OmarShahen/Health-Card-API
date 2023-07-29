@@ -44,6 +44,8 @@ var mongoose = require('mongoose');
 
 var utils = require('../utils/utils');
 
+var translations = require('../i18n/index');
+
 var getInvoices = function getInvoices(request, response) {
   var invoices;
   return regeneratorRuntime.async(function getInvoices$(_context) {
@@ -441,7 +443,7 @@ var addInvoice = function addInvoice(request, response) {
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'patient is not registered in the clinic',
+            message: translations[request.query.lang]['Patient is not registered with the clinic'],
             field: 'cardId'
           }));
 
@@ -471,7 +473,7 @@ var addInvoice = function addInvoice(request, response) {
           newInvoice = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added invoice successfully!',
+            message: translations[request.query.lang]['Added invoice successfully!'],
             invoice: newInvoice
           }));
 
@@ -604,7 +606,7 @@ var addInvoiceCheckout = function addInvoiceCheckout(request, response) {
           newInvoiceServices = _ref6[1];
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'added invoice successfully!',
+            message: translations[request.query.lang]['Added invoice successfully!'],
             invoice: updatedInvoice,
             invoiceServices: newInvoiceServices
           }));
@@ -679,7 +681,7 @@ var updateInvoiceStatus = function updateInvoiceStatus(request, response) {
           updatedInvoice = _context8.sent;
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated invoice successfully!',
+            message: translations[request.query.lang]['Updated invoice successfully!'],
             invoice: updatedInvoice
           }));
 
@@ -737,7 +739,7 @@ var updateInvoicePaid = function updateInvoicePaid(request, response) {
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invoice is not partially paid',
+            message: translations[request.query.lang]['Invoice is not partially paid'],
             field: 'status'
           }));
 
@@ -752,7 +754,7 @@ var updateInvoicePaid = function updateInvoicePaid(request, response) {
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'paid amount is more than the required',
+            message: translations[request.query.lang]['Paid amount is more than the required'],
             field: 'paid'
           }));
 
@@ -771,7 +773,7 @@ var updateInvoicePaid = function updateInvoicePaid(request, response) {
           updatedInvoice = _context9.sent;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'added payment successfully!',
+            message: translations[request.query.lang]['Added payment successfully!'],
             invoice: updatedInvoice
           }));
 
@@ -816,7 +818,7 @@ var deleteInvoice = function deleteInvoice(request, response) {
           deletedInvoiceServices = _ref8[1];
           return _context10.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'deleted invoice successfully!',
+            message: translations[request.query.lang]['Deleted invoice successfully!'],
             invoice: deletedInvoice,
             invoiceServices: deletedInvoiceServices.deletedCount
           }));
@@ -863,7 +865,7 @@ var updateInvoice = function updateInvoice(request, response) {
         case 5:
           return _context11.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated invoice successfully!'
+            message: translations[request.query.lang]['Updated invoice successfully!']
           }));
 
         case 8:

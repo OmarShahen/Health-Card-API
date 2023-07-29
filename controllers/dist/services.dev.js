@@ -16,6 +16,8 @@ var ClinicOwnerModel = require('../models/ClinicOwnerModel');
 
 var mongoose = require('mongoose');
 
+var translations = require('../i18n/index');
+
 var getServices = function getServices(request, response) {
   var services;
   return regeneratorRuntime.async(function getServices$(_context) {
@@ -230,7 +232,7 @@ var addService = function addService(request, response) {
 
           return _context4.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'service name is already registered',
+            message: translations[request.query.lang]['Service name is already registered'],
             field: 'name'
           }));
 
@@ -243,7 +245,7 @@ var addService = function addService(request, response) {
           newService = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added service successfully!',
+            message: translations[request.query.lang]['Added service successfully!'],
             service: newService
           }));
 
@@ -288,7 +290,7 @@ var deleteService = function deleteService(request, response) {
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'the service is already registered with invoices',
+            message: translations[request.query.lang]['The service is already registered with invoices'],
             field: 'serviceId'
           }));
 
@@ -308,7 +310,7 @@ var deleteService = function deleteService(request, response) {
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'the service is already registered with appointments',
+            message: translations[request.query.lang]['The service is already registered with appointments'],
             field: 'serviceId'
           }));
 
@@ -320,7 +322,7 @@ var deleteService = function deleteService(request, response) {
           deletedService = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted service successfully!',
+            message: translations[request.query.lang]['Deleted service successfully!'],
             service: deletedService
           }));
 
@@ -393,7 +395,7 @@ var updateService = function updateService(request, response) {
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'service name is already registered',
+            message: translations[request.query.lang]['Service name is already registered'],
             field: 'name'
           }));
 
@@ -411,7 +413,7 @@ var updateService = function updateService(request, response) {
           updatedService = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated service successfully!',
+            message: translations[request.query.lang]['Updated service successfully!'],
             service: updatedService
           }));
 

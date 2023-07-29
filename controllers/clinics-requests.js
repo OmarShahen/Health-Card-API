@@ -5,6 +5,7 @@ const UserModel = require('../models/UserModel')
 const clinicRequestValidation = require('../validations/clinics-requests')
 const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const mongoose = require('mongoose')
+const translations = require('../i18n/index')
 
 const addClinicRequest = async (request, response) => {
 
@@ -19,6 +20,7 @@ const addClinicRequest = async (request, response) => {
             })
         }
 
+        const { lang } = request.query
         const { clinicId, userId, role } = request.body
 
         const clinicPromise = ClinicModel.findById(clinicId)
@@ -48,7 +50,7 @@ const addClinicRequest = async (request, response) => {
             if(clinicRequest.status == 'ACCEPTED') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already accepted',
+                    message: translations[lang]['Clinic request is already accepted'],
                     field: 'clinicId'
                 })
             }
@@ -56,7 +58,7 @@ const addClinicRequest = async (request, response) => {
             if(clinicRequest.status == 'PENDING') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already pending',
+                    message: translations[lang]['Clinic request is already pending'],
                     field: 'clinicId'
                 })
             }
@@ -64,7 +66,7 @@ const addClinicRequest = async (request, response) => {
             if(clinicRequest.status == 'REJECTED') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already rejected',
+                    message: translations[lang]['Clinic request is already rejected'],
                     field: 'clinicId'
                 })
             }
@@ -77,7 +79,7 @@ const addClinicRequest = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
         })
 
@@ -104,6 +106,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
             })
         }
 
+        const { lang } = request.query
         const { clinicId, email } = request.body
 
         const clinicPromise = ClinicModel.findById(clinicId)
@@ -122,7 +125,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'user email is not registered',
+                message: translations[lang]['User email is not registered'],
                 field: 'email'
             })
         }
@@ -133,7 +136,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
         if(!user.roles.includes('DOCTOR')) {
             return response.status(400).json({
                 accepted: false,
-                message: 'cannot send request except for doctors',
+                message: translations[lang]['Cannot send request except for doctors'],
                 field: 'userId'
             })
         }
@@ -142,7 +145,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
         if(clinicDoctorList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Doctor is already registered in the clinic',
+                message: translations[lang]['Doctor is already registered with the clinic'],
                 field: 'userId'
             })
         }
@@ -153,7 +156,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
             if(clinicRequest.status == 'ACCEPTED') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already accepted',
+                    message: translations[lang]['Clinic request is already accepted'],
                     field: 'clinicId'
                 })
             }
@@ -161,7 +164,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
             if(clinicRequest.status == 'PENDING') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already pending',
+                    message: translations[lang]['Clinic request is already pending'],
                     field: 'clinicId'
                 })
             }
@@ -169,7 +172,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
             if(clinicRequest.status == 'REJECTED') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already rejected',
+                    message: translations[lang]['Clinic request is already rejected'],
                     field: 'clinicId'
                 })
             }
@@ -183,7 +186,7 @@ const addDoctorClinicRequestByReceiverEmail = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
         })
 
@@ -210,6 +213,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
             })
         }
 
+        const { lang } = request.query
         const { clinicId, email } = request.body
 
         const clinicPromise = ClinicModel.findById(clinicId)
@@ -228,7 +232,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'user email is not registered',
+                message: translations[lang]['User email is not registered'],
                 field: 'email'
             })
         }
@@ -239,7 +243,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
         if(!user.roles.includes('OWNER')) {
             return response.status(400).json({
                 accepted: false,
-                message: 'cannot send request except for owners',
+                message: translations[lang]['Cannot send request except for owners'],
                 field: 'userId'
             })
         }
@@ -248,7 +252,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
         if(clinicOwnerList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Owner is already registered in the clinic',
+                message: translations[lang]['Owner is already registered with the clinic'],
                 field: 'userId'
             })
         }
@@ -259,7 +263,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
             if(clinicRequest.status == 'ACCEPTED') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already accepted',
+                    message: translations[lang]['Clinic request is already accepted'],
                     field: 'clinicId'
                 })
             }
@@ -267,7 +271,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
             if(clinicRequest.status == 'PENDING') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already pending',
+                    message: translations[lang]['Clinic request is already pending'],
                     field: 'clinicId'
                 })
             }
@@ -275,7 +279,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
             if(clinicRequest.status == 'REJECTED') {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'clinic request is already rejected',
+                    message: translations[lang]['Clinic request is already rejected'],
                     field: 'clinicId'
                 })
             }
@@ -288,7 +292,7 @@ const addOwnerClinicRequestByReceiverEmail = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
         })
 
@@ -341,7 +345,7 @@ const addStaffClinicRequestByClinicId = async (request, response) => {
         if(!user.roles.includes('STAFF')) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Invalid user role type to perform this operation',
+                message: translations[request.query.lang]['Invalid user role type to perform this operation'],
                 field: 'userId'
             })
         }
@@ -349,7 +353,7 @@ const addStaffClinicRequestByClinicId = async (request, response) => {
         if(user.clinicId) {
             return response.status(400).json({
                 accepted: false,
-                message: 'user is already registered with a clinic',
+                message: translations[request.query.lang]['User is already registered with a clinic'],
                 field: 'userId'
             })
         }
@@ -366,7 +370,7 @@ const addStaffClinicRequestByClinicId = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'clinic request is registered successfully!',
+            message: translations[request.query.lang]['Clinic request is sent successfully!'],
             clinicRequest: newClinicRequest
         })
 
@@ -840,7 +844,7 @@ const deleteStaffClinicRequest = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted staff request successfully!',
+            message: translations[request.query.lang]['Deleted staff request successfully!'],
             clinicRequest: deletedClinicRequest,
             user: updatedUser
         })
@@ -884,7 +888,7 @@ const deleteDoctorClinicRequest = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted doctor request successfully!',
+            message: translations[request.query.lang]['Deleted doctor request successfully!'],
             clinicRequest: deletedClinicRequest,
             clinicDoctor: deletedClinicDoctor
         })
@@ -928,7 +932,7 @@ const deleteOwnerClinicRequest = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted owner request successfully!',
+            message: translations[request.query.lang]['Deleted owner request successfully!'],
             clinicRequest: deletedClinicRequest,
             clinicOwner: deletedClinicOwner
         })
@@ -970,7 +974,7 @@ const updateDoctorClinicRequestStatus = async (request, response) => {
         if(clinicRequest.status == status) {
             return response.status(400).json({
                 accepted: false,
-                message: 'clinic request has already this status',
+                message: translations[request.query.lang]['Clinic request has already this status'],
                 field: 'status'
             })
         }
@@ -989,7 +993,7 @@ const updateDoctorClinicRequestStatus = async (request, response) => {
             if(clinicDoctorList.length != 0) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'doctor is already registered with the clinic',
+                    message: translations[request.query.lang]['Doctor is already registered with the clinic'],
                     field: 'status'
                 })
             }
@@ -1018,7 +1022,7 @@ const updateDoctorClinicRequestStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated clinic request status successfully!'
+            message: translations[request.query.lang]['Updated clinic request status successfully!']
         })
 
     } catch(error) {
@@ -1058,7 +1062,7 @@ const updateOwnerClinicRequestStatus = async (request, response) => {
         if(clinicRequest.status == status) {
             return response.status(400).json({
                 accepted: false,
-                message: 'clinic request has already this status',
+                message: translations[request.query.lang]['Clinic request has already this status'],
                 field: 'status'
             })
         }
@@ -1078,7 +1082,7 @@ const updateOwnerClinicRequestStatus = async (request, response) => {
             if(clinicOwnerList.length != 0) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'owner is already registered with the clinic',
+                    message: translations[request.query.lang]['Owner is already registered with the clinic'],
                     field: 'status'
                 })
             }
@@ -1107,7 +1111,7 @@ const updateOwnerClinicRequestStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated clinic request status successfully!'
+            message: translations[request.query.lang]['Updated clinic request status successfully!']
         })
 
     } catch(error) {
@@ -1147,7 +1151,7 @@ const updateStaffClinicRequestStatus = async (request, response) => {
         if(clinicRequest.status == status) {
             return response.status(400).json({
                 accepted: false,
-                message: 'clinic request has already this status',
+                message: translations[request.query.lang]['Clinic request has already this status'],
                 field: 'status'
             })
         }
@@ -1167,7 +1171,7 @@ const updateStaffClinicRequestStatus = async (request, response) => {
             if(user.clinicId) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'user is already registered with a clinic',
+                    message: translations[request.query.lang]['Staff is already registered with a clinic'],
                     field: 'userId'
                 })
             }
@@ -1197,7 +1201,7 @@ const updateStaffClinicRequestStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated clinic request status successfully!'
+            message: translations[request.query.lang]['Updated clinic request status successfully!']
         })
 
     } catch(error) {

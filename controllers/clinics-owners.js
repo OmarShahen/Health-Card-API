@@ -4,6 +4,7 @@ const UserModel = require('../models/UserModel')
 const ClinicModel = require('../models/ClinicModel')
 const clinicOwnerValidation = require('../validations/clinics-owners')
 const mongoose = require('mongoose')
+const translations = require('../i18n/index')
 
 const addClinicOwner = async (request, response) => {
 
@@ -18,6 +19,7 @@ const addClinicOwner = async (request, response) => {
             })
         }
 
+        const { lang } = request.query
         const { ownerId, clinicId } = request.body
 
         const ownerPromise = UserModel.findById(ownerId)
@@ -45,7 +47,7 @@ const addClinicOwner = async (request, response) => {
         if(clinicOwnerList.length == 1) {
             return response.status(400).json({
                 accepted: false,
-                message: 'owner is already registered with the clinic',
+                message: translations[lang]['Owner is already registered with the clinic'],
                 field: 'ownerId'
             })
         }
@@ -56,7 +58,7 @@ const addClinicOwner = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'added clinic owner successfully!',
+            message: translations[lang]['Added clinic owner successfully!'],
             clinicOwner: newClinicOwner
         })
 
@@ -154,6 +156,7 @@ const deleteClinicOwner = async (request, response) => {
 
     try {
 
+        const { lang } = request.query
         const { clinicOwnerId } = request.params
 
         const deletedClinicOwner = await ClinicOwnerModel.findByIdAndDelete(clinicOwnerId)
@@ -164,7 +167,7 @@ const deleteClinicOwner = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'deleted clinic owner successfully!',
+            message: translations[lang]['Deleted clinic owner successfully!'],
             clinicOwner: deletedClinicOwner,
             clinicDoctor: deletedClinicDoctor
         })

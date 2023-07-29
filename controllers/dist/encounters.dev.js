@@ -28,6 +28,8 @@ var mongoose = require('mongoose');
 
 var utils = require('../utils/utils');
 
+var translations = require('../i18n/index');
+
 var addEncounter = function addEncounter(request, response) {
   var dataValidation, _request$body, doctorId, patientId, symptoms, diagnosis, notes, medicines, doctorPromise, patientPromise, _ref, _ref2, doctor, patient, doctorPatientAccessList, counter, encounterData, newPrescription, _counter, prescriptionData, prescriptionObj, encounterObj, newEncounter;
 
@@ -287,7 +289,7 @@ var addEncounterByPatientCardId = function addEncounterByPatientCardId(request, 
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'doctor does not have access to the patient',
+            message: translations[request.query.lang]['Doctor does not have access to the patient'],
             field: 'patientId'
           }));
 
@@ -359,7 +361,7 @@ var addEncounterByPatientCardId = function addEncounterByPatientCardId(request, 
           newEncounter = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Encounter added successfully!',
+            message: translations[request.query.lang]['Encounter added successfully!'],
             encounter: newEncounter,
             prescription: newPrescription
           }));
@@ -397,7 +399,7 @@ var deleteEncounter = function deleteEncounter(request, response) {
           deletedEncounter = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'encounter deleted successfully',
+            message: translations[request.query.lang]['Encounter deleted successfully!'],
             encounter: deletedEncounter
           }));
 
@@ -720,7 +722,7 @@ var updateEncounter = function updateEncounter(request, response) {
           updatedEncounter = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated encounter successfully!',
+            message: translations[request.query.lang]['Updated encounter successfully!'],
             encounter: updatedEncounter
           }));
 

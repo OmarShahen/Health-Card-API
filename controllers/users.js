@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const SpecialityModel = require('../models/SpecialityModel')
 const jwt = require('jsonwebtoken')
+const translations = require('../i18n/index')
 
 const getUser = async (request, response) => {
 
@@ -93,7 +94,7 @@ const updateUser = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated user successfully!',
+            message: translations[request.query.lang]['Updated user successfully!'],
             user: updatedUser
         })
 
@@ -145,7 +146,7 @@ const updateUserSpeciality = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated user successfully!',
+            message: translations[request.query.lang]['Updated user successfully!'],
             user: updatedUser
         })
 
@@ -229,7 +230,7 @@ const updateUserPassword = async (request, response) => {
         if(bcrypt.compareSync(password, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'new password must be diffrent from old password',
+                message: translations[request.query.lang]['New password must be diffrent from old password'],
                 field: 'password'
             })
         }
@@ -243,7 +244,7 @@ const updateUserPassword = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated user password successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
         })
 
@@ -277,7 +278,7 @@ const verifyAndUpdateUserPassword = async (request, response) => {
         if(newPassword == currentPassword) {
             return response.status(400).json({
                 accepted: false,
-                message: 'new password must be diffrent from current password',
+                message: translations[request.query.lang]['New password must be diffrent from old password'],
                 field: 'newPassword'
             })
         }
@@ -287,7 +288,7 @@ const verifyAndUpdateUserPassword = async (request, response) => {
         if(!bcrypt.compareSync(currentPassword, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'current password entered is invalid',
+                message: translations[request.query.lang]['Current password entered is already used'],
                 field: 'currentPassword'
             })
         }
@@ -301,7 +302,7 @@ const verifyAndUpdateUserPassword = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated user password successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
         })
 

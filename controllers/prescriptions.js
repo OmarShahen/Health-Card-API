@@ -8,7 +8,7 @@ const prescriptionValidation = require('../validations/prescriptions')
 const ClinicModel = require('../models/ClinicModel')
 const config = require('../config/config')
 const utils = require('../utils/utils')
-
+const translations = require('../i18n/index')
 
 const formatPrescriptionsDrugs = (prescriptions) => {
     let drugs = []
@@ -128,7 +128,7 @@ const addPrescriptionByPatientCardId = async (request, response) => {
         if(patientList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Patient card Id does not exists',
+                message: translations[request.query.lang]['Patient card Id does not exists'],
                 field: 'cardId'
             })
         }
@@ -155,7 +155,7 @@ const addPrescriptionByPatientCardId = async (request, response) => {
         if(doctorPatientAccessList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'doctor does not have access to the patient',
+                message: translations[request.query.lang]['Doctor does not have access to the patient'],
                 field: 'patientId'
             })
         }
@@ -181,7 +181,7 @@ const addPrescriptionByPatientCardId = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Prescription is recorded successfully',
+            message: translations[request.query.lang]['Prescription is added successfully!'],
             prescription: newPrescription
         })
 
@@ -453,7 +453,7 @@ const deletePrescription = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'prescription deleted successfully',
+            message: translations[request.query.lang]['Prescription deleted successfully!'],
             prescription: deletedPrescription
         })
 
@@ -549,7 +549,7 @@ const updatePrescription = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated prescription successfully!',
+            message: translations[request.query.lang]['Updated prescription successfully!'],
             prescription: updatedPrescription
         })
 

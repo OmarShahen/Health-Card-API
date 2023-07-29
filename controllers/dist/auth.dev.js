@@ -48,6 +48,8 @@ var _require3 = require('../mails/forgot-password'),
 var _require4 = require('../mails/delete-account'),
     sendDeleteAccountCode = _require4.sendDeleteAccountCode;
 
+var translations = require('../i18n/index');
+
 var userSignup = function userSignup(request, response) {
   var _response$status$json, dataValidation, _request$body, email, password, speciality, roles, emailList, specialitiesList, counter, userPassword, userData, userObj, newUser, verificationCode, mailData, emailVerificationData, emailVerificationObj, newEmailVerification;
 
@@ -87,7 +89,7 @@ var userSignup = function userSignup(request, response) {
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Email is already registered',
+            message: translations[request.query.lang]['Email is already registered'],
             field: 'email'
           }));
 
@@ -173,7 +175,7 @@ var userSignup = function userSignup(request, response) {
             accepted: true,
             message: 'Account created successfully!',
             mailSuccess: mailData.isSent
-          }, _defineProperty(_response$status$json, "message", mailData.isSent ? 'email is sent successfully!' : 'there was a problem sending your email'), _defineProperty(_response$status$json, "user", newUser), _defineProperty(_response$status$json, "emailVerification", newEmailVerification), _response$status$json)));
+          }, _defineProperty(_response$status$json, "message", mailData.isSent ? 'email is sent successfully!' : translations[request.query.lang]['There was a problem sending your email']), _defineProperty(_response$status$json, "user", newUser), _defineProperty(_response$status$json, "emailVerification", newEmailVerification), _response$status$json)));
 
         case 40:
           _context.prev = 40;
@@ -328,7 +330,7 @@ var verifyEmailVerificationCode = function verifyEmailVerificationCode(request, 
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'there is no verification code registered',
+            message: translations[request.query.lang]['There is no verification code registered'],
             field: 'code'
           }));
 
@@ -802,7 +804,7 @@ var forgotPassword = function forgotPassword(request, response) {
 
           return _context11.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'email is not registered',
+            message: translations[request.query.lang]['Email is not registered'],
             field: 'email'
           }));
 
@@ -840,7 +842,7 @@ var forgotPassword = function forgotPassword(request, response) {
 
           return _context11.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'There was a problem sending your email',
+            message: translations[request.query.lang]['There was a problem sending your email'],
             field: 'isSent'
           }));
 
@@ -890,7 +892,7 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
 
           return _context12.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'your account is with a role that cannot be deleted',
+            message: translations[request.query.lang]['Your account is with a role that cannot be deleted'],
             field: 'userId'
           }));
 
@@ -927,7 +929,7 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
 
           return _context12.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'There was a problem sending your email',
+            message: translations[request.query.lang]['There was a problem sending your email'],
             field: 'isSent'
           }));
 
@@ -984,7 +986,7 @@ var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificati
 
           return _context13.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'verification code is not registered',
+            message: translations[request.query.lang]['Verification code is not registered'],
             field: 'verificationCode'
           }));
 
@@ -1077,7 +1079,7 @@ var verifyResetPasswordVerificationCode = function verifyResetPasswordVerificati
 
           return _context14.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'verification code is not registered',
+            message: translations[request.query.lang]['Verification code is not registered'],
             field: 'verificationCode'
           }));
 
@@ -1148,7 +1150,7 @@ var resetPassword = function resetPassword(request, response) {
 
           return _context15.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'verification code is not registered',
+            message: translations[request.query.lang]['Verification code is not registered'],
             field: 'verificationCode'
           }));
 
@@ -1163,7 +1165,7 @@ var resetPassword = function resetPassword(request, response) {
 
           return _context15.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'enter a new password to the current one',
+            message: translations[request.query.lang]['Enter a new password to the current one'],
             field: 'password'
           }));
 
@@ -1186,7 +1188,7 @@ var resetPassword = function resetPassword(request, response) {
           updatedUser.password = undefined;
           return _context15.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated user password successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
           }));
 

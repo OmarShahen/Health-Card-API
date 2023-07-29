@@ -18,6 +18,8 @@ var SpecialityModel = require('../models/SpecialityModel');
 
 var jwt = require('jsonwebtoken');
 
+var translations = require('../i18n/index');
+
 var getUser = function getUser(request, response) {
   var userId, user, token;
   return regeneratorRuntime.async(function getUser$(_context) {
@@ -149,7 +151,7 @@ var updateUser = function updateUser(request, response) {
           updatedUser.password = undefined;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated user successfully!',
+            message: translations[request.query.lang]['Updated user successfully!'],
             user: updatedUser
           }));
 
@@ -231,7 +233,7 @@ var updateUserSpeciality = function updateUserSpeciality(request, response) {
           updatedUser.password = undefined;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated user successfully!',
+            message: translations[request.query.lang]['Updated user successfully!'],
             user: updatedUser
           }));
 
@@ -366,7 +368,7 @@ var updateUserPassword = function updateUserPassword(request, response) {
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'new password must be diffrent from old password',
+            message: translations[request.query.lang]['New password must be diffrent from old password'],
             field: 'password'
           }));
 
@@ -384,7 +386,7 @@ var updateUserPassword = function updateUserPassword(request, response) {
           updatedUser.password = undefined;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated user password successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
           }));
 
@@ -438,7 +440,7 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'new password must be diffrent from current password',
+            message: translations[request.query.lang]['New password must be diffrent from old password'],
             field: 'newPassword'
           }));
 
@@ -456,7 +458,7 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'current password entered is invalid',
+            message: translations[request.query.lang]['Current password entered is already used'],
             field: 'currentPassword'
           }));
 
@@ -474,7 +476,7 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
           updatedUser.password = undefined;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated user password successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
           }));
 

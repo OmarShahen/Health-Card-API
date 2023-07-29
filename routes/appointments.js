@@ -6,14 +6,14 @@ const authorization = require('../middlewares/verify-permission')
 
 router.post(
     '/v1/appointments',
-    authorization.staffPermission,
+    authorization.allPermission,
     verifyClinicAppointments,
     (request, response) => appointmentsController.addAppointment(request, response)
 )
 
 router.get(
     '/v1/appointments/doctors/:userId',
-    authorization.doctorPermission,
+    authorization.allPermission,
     verifyUserId, 
     (request, response) => appointmentsController.getAppointmentsByDoctorId(request, response)
 )

@@ -46,6 +46,8 @@ var utils = require('../utils/utils');
 
 var CardModel = require('../models/CardModel');
 
+var translations = require('../i18n/index');
+
 var addPatient = function addPatient(request, response) {
   var dataValidation, _request$body, cardId, cvc, clinicId, doctorId, countryCode, phone, card, clinic, doctor, phoneList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctor, clinicPatientDoctorData, clinicPatientDoctorObj, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, cardData, cardObj, newCard;
 
@@ -84,7 +86,7 @@ var addPatient = function addPatient(request, response) {
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'card Id is already used',
+            message: translations[request.query.lang]['Card ID is already used'],
             field: 'cardId'
           }));
 
@@ -151,7 +153,7 @@ var addPatient = function addPatient(request, response) {
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Phone number is already registered',
+            message: translations[request.query.lang]['Phone number is already registered'],
             field: 'phone'
           }));
 
@@ -238,7 +240,7 @@ var addPatient = function addPatient(request, response) {
           newCard = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added patient successfully!',
+            message: translations[request.query.lang]['Added patient successfully!'],
             patient: newPatient,
             card: newCard,
             clinicPatient: newClinicPatient,
@@ -519,7 +521,7 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Doctor is already registered with the patient',
+            message: translations[request.query.lang]['Doctor is already registered with the patient'],
             field: 'doctorId'
           }));
 
@@ -543,7 +545,7 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
           updatedPatient.password = undefined;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Doctor is added successfully to the patient',
+            message: translations[request.query.lang]['Doctor is added successfully to the patient'],
             updatedPatient: updatedPatient
           }));
 
@@ -802,7 +804,7 @@ var addEmergencyContactToPatient = function addEmergencyContactToPatient(request
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'contact phone is the same as patient phone',
+            message: translations[request.query.lang]['Contact phone is the same as patient phone'],
             field: 'phone'
           }));
 
@@ -820,7 +822,7 @@ var addEmergencyContactToPatient = function addEmergencyContactToPatient(request
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'contact phone is already registered',
+            message: translations[request.query.lang]['Contact phone is already registered in patient contacts'],
             field: 'phone'
           }));
 
@@ -844,7 +846,7 @@ var addEmergencyContactToPatient = function addEmergencyContactToPatient(request
           updatedPatient = _context9.sent;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'added emergency contact successfully!',
+            message: translations[request.query.lang]['Added emergency contact successfully!'],
             patient: updatedPatient
           }));
 
@@ -898,7 +900,7 @@ var deleteEmergencyContactOfPatient = function deleteEmergencyContactOfPatient(r
           updatedPatient = _context10.sent;
           return _context10.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'deleted emergency contact successfully!',
+            message: translations[request.query.lang]['Deleted emergency contact successfully!'],
             patient: updatedPatient
           }));
 
@@ -982,7 +984,7 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
 
           return _context11.abrupt("return", response.status(200).json({
             accepted: false,
-            message: 'contact phone is the same as patient phone',
+            message: translations[request.query.lang]['Contact phone is the same as patient phone'],
             field: 'phone'
           }));
 
@@ -994,7 +996,7 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
 
           return _context11.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'contact phone is already registered in patient contacts',
+            message: translations[request.query.lang]['Contact phone is already registered in patient contacts'],
             field: 'phone'
           }));
 
@@ -1022,7 +1024,7 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
           updatedPatient = _context11.sent;
           return _context11.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated patient contact successfully',
+            message: translations[request.query.lang]['Updated patient contact successfully!'],
             patient: updatedPatient
           }));
 
@@ -1072,7 +1074,7 @@ var deleteDoctorFromPatient = function deleteDoctorFromPatient(request, response
 
           return _context12.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'doctor is not registered with the patient',
+            message: translations[request.query.lang]['Doctor is not registered with the patient'],
             field: 'doctorId'
           }));
 
@@ -1091,7 +1093,7 @@ var deleteDoctorFromPatient = function deleteDoctorFromPatient(request, response
           updatedPatient = _context12.sent;
           return _context12.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'removed patient successfully!',
+            message: translations[request.query.lang]['Removed patient successfully!'],
             patient: updatedPatient
           }));
 

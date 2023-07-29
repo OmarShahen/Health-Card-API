@@ -6,6 +6,7 @@ const UserModel = require('../models/UserModel')
 const InvoiceServiceModel = require('../models/InvoiceServiceModel')
 const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const mongoose = require('mongoose')
+const translations = require('../i18n/index')
 
 const getServices = async (request, response) => {
 
@@ -144,7 +145,7 @@ const addService = async (request, response) => {
         if(serviceList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'service name is already registered',
+                message: translations[request.query.lang]['Service name is already registered'],
                 field: 'name'
             })
         }
@@ -154,7 +155,7 @@ const addService = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Added service successfully!',
+            message: translations[request.query.lang]['Added service successfully!'],
             service: newService
         })
 
@@ -179,7 +180,7 @@ const deleteService = async (request, response) => {
         if(invoiceList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'the service is already registered with invoices',
+                message: translations[request.query.lang]['The service is already registered with invoices'],
                 field: 'serviceId'
             })
         }
@@ -189,7 +190,7 @@ const deleteService = async (request, response) => {
         if(appointmentsList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'the service is already registered with appointments',
+                message: translations[request.query.lang]['The service is already registered with appointments'],
                 field: 'serviceId'
             })
         }
@@ -198,7 +199,7 @@ const deleteService = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted service successfully!',
+            message: translations[request.query.lang]['Deleted service successfully!'],
             service: deletedService
         })
 
@@ -236,7 +237,7 @@ const updateService = async (request, response) => {
             if(nameList.length != 0) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'service name is already registered',
+                    message: translations[request.query.lang]['Service name is already registered'],
                     field: 'name'
                 })
             }
@@ -248,7 +249,7 @@ const updateService = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated service successfully!',
+            message: translations[request.query.lang]['Updated service successfully!'],
             service: updatedService
         })
 

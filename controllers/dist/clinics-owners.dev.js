@@ -20,8 +20,10 @@ var clinicOwnerValidation = require('../validations/clinics-owners');
 
 var mongoose = require('mongoose');
 
+var translations = require('../i18n/index');
+
 var addClinicOwner = function addClinicOwner(request, response) {
-  var dataValidation, _request$body, ownerId, clinicId, ownerPromise, clinicPromise, _ref, _ref2, owner, clinic, clinicOwnerList, clinicOwnerData, clinicOwnerObj, newClinicOwner;
+  var dataValidation, lang, _request$body, ownerId, clinicId, ownerPromise, clinicPromise, _ref, _ref2, owner, clinic, clinicOwnerList, clinicOwnerData, clinicOwnerObj, newClinicOwner;
 
   return regeneratorRuntime.async(function addClinicOwner$(_context) {
     while (1) {
@@ -42,20 +44,21 @@ var addClinicOwner = function addClinicOwner(request, response) {
           }));
 
         case 4:
+          lang = request.query.lang;
           _request$body = request.body, ownerId = _request$body.ownerId, clinicId = _request$body.clinicId;
           ownerPromise = UserModel.findById(ownerId);
           clinicPromise = ClinicModel.findById(clinicId);
-          _context.next = 9;
+          _context.next = 10;
           return regeneratorRuntime.awrap(Promise.all([ownerPromise, clinicPromise]));
 
-        case 9:
+        case 10:
           _ref = _context.sent;
           _ref2 = _slicedToArray(_ref, 2);
           owner = _ref2[0];
           clinic = _ref2[1];
 
           if (owner) {
-            _context.next = 15;
+            _context.next = 16;
             break;
           }
 
@@ -65,9 +68,9 @@ var addClinicOwner = function addClinicOwner(request, response) {
             field: 'ownerId'
           }));
 
-        case 15:
+        case 16:
           if (clinic) {
-            _context.next = 17;
+            _context.next = 18;
             break;
           }
 
@@ -77,46 +80,46 @@ var addClinicOwner = function addClinicOwner(request, response) {
             field: 'clinicId'
           }));
 
-        case 17:
-          _context.next = 19;
+        case 18:
+          _context.next = 20;
           return regeneratorRuntime.awrap(ClinicOwnerModel.find({
             ownerId: ownerId,
             clinicId: clinicId
           }));
 
-        case 19:
+        case 20:
           clinicOwnerList = _context.sent;
 
           if (!(clinicOwnerList.length == 1)) {
-            _context.next = 22;
+            _context.next = 23;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'owner is already registered with the clinic',
+            message: translations[lang]['Owner is already registered with the clinic'],
             field: 'ownerId'
           }));
 
-        case 22:
+        case 23:
           clinicOwnerData = {
             ownerId: ownerId,
             clinicId: clinicId
           };
           clinicOwnerObj = new ClinicOwnerModel(clinicOwnerData);
-          _context.next = 26;
+          _context.next = 27;
           return regeneratorRuntime.awrap(clinicOwnerObj.save());
 
-        case 26:
+        case 27:
           newClinicOwner = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'added clinic owner successfully!',
+            message: translations[lang]['Added clinic owner successfully!'],
             clinicOwner: newClinicOwner
           }));
 
-        case 30:
-          _context.prev = 30;
+        case 31:
+          _context.prev = 31;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -125,12 +128,12 @@ var addClinicOwner = function addClinicOwner(request, response) {
             error: _context.t0.message
           }));
 
-        case 34:
+        case 35:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 30]]);
+  }, null, null, [[0, 31]]);
 };
 
 var getClinicsByOwnerId = function getClinicsByOwnerId(request, response) {
@@ -243,36 +246,37 @@ var getClinicsByOwnerIdWhichIsCreatedByOwner = function getClinicsByOwnerIdWhich
 };
 
 var deleteClinicOwner = function deleteClinicOwner(request, response) {
-  var clinicOwnerId, deletedClinicOwner, ownerId, clinicId, deletedClinicDoctor;
+  var lang, clinicOwnerId, deletedClinicOwner, ownerId, clinicId, deletedClinicDoctor;
   return regeneratorRuntime.async(function deleteClinicOwner$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
+          lang = request.query.lang;
           clinicOwnerId = request.params.clinicOwnerId;
-          _context4.next = 4;
+          _context4.next = 5;
           return regeneratorRuntime.awrap(ClinicOwnerModel.findByIdAndDelete(clinicOwnerId));
 
-        case 4:
+        case 5:
           deletedClinicOwner = _context4.sent;
           ownerId = deletedClinicOwner.ownerId, clinicId = deletedClinicOwner.clinicId;
-          _context4.next = 8;
+          _context4.next = 9;
           return regeneratorRuntime.awrap(ClinicDoctorModel.deleteOne({
             doctorId: ownerId,
             clinicId: clinicId
           }));
 
-        case 8:
+        case 9:
           deletedClinicDoctor = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'deleted clinic owner successfully!',
+            message: translations[lang]['Deleted clinic owner successfully!'],
             clinicOwner: deletedClinicOwner,
             clinicDoctor: deletedClinicDoctor
           }));
 
-        case 12:
-          _context4.prev = 12;
+        case 13:
+          _context4.prev = 13;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -281,12 +285,12 @@ var deleteClinicOwner = function deleteClinicOwner(request, response) {
             error: _context4.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
 module.exports = {

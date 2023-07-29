@@ -10,7 +10,7 @@ const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicModel = require('../models/ClinicModel')
 const utils = require('../utils/utils')
 const CardModel = require('../models/CardModel')
-
+const translations = require('../i18n/index')
 
 const addPatient = async (request, response) => {
 
@@ -31,7 +31,7 @@ const addPatient = async (request, response) => {
         if(card.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'card Id is already used',
+                message: translations[request.query.lang]['Card ID is already used'],
                 field: 'cardId'
             })
         }
@@ -63,7 +63,7 @@ const addPatient = async (request, response) => {
         if(phoneList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Phone number is already registered',
+                message: translations[request.query.lang]['Phone number is already registered'],
                 field: 'phone'
             })
         }
@@ -105,7 +105,7 @@ const addPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Added patient successfully!',
+            message: translations[request.query.lang]['Added patient successfully!'],
             patient: newPatient,
             card: newCard,
             clinicPatient: newClinicPatient,
@@ -285,7 +285,7 @@ const addDoctorToPatient = async (request, response) => {
         if(patientDoctorsIds.includes(doctorId)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Doctor is already registered with the patient',
+                message: translations[request.query.lang]['Doctor is already registered with the patient'],
                 field: 'doctorId'
             })
         }
@@ -299,7 +299,7 @@ const addDoctorToPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Doctor is added successfully to the patient',
+            message: translations[request.query.lang]['Doctor is added successfully to the patient'],
             updatedPatient
         })
 
@@ -501,7 +501,7 @@ const addEmergencyContactToPatient = async (request, response) => {
         if(patientPhone == newContactPhone) {
             return response.status(400).json({
                 accepted: false,
-                message: 'contact phone is the same as patient phone',
+                message: translations[request.query.lang]['Contact phone is the same as patient phone'],
                 field: 'phone'
             })
         }
@@ -516,7 +516,7 @@ const addEmergencyContactToPatient = async (request, response) => {
         if(samePhones.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'contact phone is already registered',
+                message: translations[request.query.lang]['Contact phone is already registered in patient contacts'],
                 field: 'phone'
             })
         }
@@ -533,7 +533,7 @@ const addEmergencyContactToPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'added emergency contact successfully!',
+            message: translations[request.query.lang]['Added emergency contact successfully!'],
             patient: updatedPatient
         })
 
@@ -570,7 +570,7 @@ const deleteEmergencyContactOfPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'deleted emergency contact successfully!',
+            message: translations[request.query.lang]['Deleted emergency contact successfully!'],
             patient: updatedPatient
         })
 
@@ -621,7 +621,7 @@ const updateEmergencyContactOfPatient = async (request, response) => {
         if(newPhone == patientPhone) {
             return response.status(200).json({
                 accepted: false,
-                message: 'contact phone is the same as patient phone',
+                message: translations[request.query.lang]['Contact phone is the same as patient phone'],
                 field: 'phone'
             })
         }
@@ -629,7 +629,7 @@ const updateEmergencyContactOfPatient = async (request, response) => {
         if(patientContacts.includes(newPhone)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'contact phone is already registered in patient contacts',
+                message: translations[request.query.lang]['Contact phone is already registered in patient contacts'],
                 field: 'phone'
             })
         }
@@ -652,7 +652,7 @@ const updateEmergencyContactOfPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'updated patient contact successfully',
+            message: translations[request.query.lang]['Updated patient contact successfully!'],
             patient: updatedPatient
         })
 
@@ -682,7 +682,7 @@ const deleteDoctorFromPatient = async (request, response) => {
         if(targetDoctorList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'doctor is not registered with the patient',
+                message: translations[request.query.lang]['Doctor is not registered with the patient'],
                 field: 'doctorId'
             })
         }
@@ -694,7 +694,7 @@ const deleteDoctorFromPatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'removed patient successfully!',
+            message: translations[request.query.lang]['Removed patient successfully!'],
             patient: updatedPatient
         })
 

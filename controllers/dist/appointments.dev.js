@@ -26,8 +26,10 @@ var _require = require('../mails/appointment'),
 var _require2 = require('date-fns'),
     format = _require2.format;
 
+var translations = require('../i18n/index');
+
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, _request$body, clinicId, doctorId, serviceId, patientName, patientCountryCode, patientPhone, status, reservationTime, isSendMail, todayDate, clinicPromise, serviceListPromise, doctorPromise, _ref, _ref2, clinic, serviceList, doctor, appointment, appointmentData, appointmentObj, newAppointment, mailData, mailStatus;
+  var dataValidation, lang, _request$body, clinicId, doctorId, serviceId, patientName, patientCountryCode, patientPhone, status, reservationTime, isSendMail, todayDate, clinicPromise, serviceListPromise, doctorPromise, _ref, _ref2, clinic, serviceList, doctor, appointment, appointmentData, appointmentObj, newAppointment, mailData, mailStatus;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -48,31 +50,32 @@ var addAppointment = function addAppointment(request, response) {
           }));
 
         case 4:
+          lang = request.query.lang;
           _request$body = request.body, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId, serviceId = _request$body.serviceId, patientName = _request$body.patientName, patientCountryCode = _request$body.patientCountryCode, patientPhone = _request$body.patientPhone, status = _request$body.status, reservationTime = _request$body.reservationTime, isSendMail = _request$body.isSendMail;
           todayDate = new Date();
 
           if (!(todayDate > new Date(reservationTime))) {
-            _context.next = 8;
+            _context.next = 9;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Reservate time has passed',
+            message: translations[lang]['Reservation time has passed'],
             field: 'reservationTime'
           }));
 
-        case 8:
+        case 9:
           clinicPromise = ClinicModel.findById(clinicId);
           serviceListPromise = ServiceModel.find({
             _id: serviceId,
             clinicId: clinicId
           });
           doctorPromise = UserModel.findById(doctorId);
-          _context.next = 13;
+          _context.next = 14;
           return regeneratorRuntime.awrap(Promise.all([clinicPromise, serviceListPromise, doctorPromise]));
 
-        case 13:
+        case 14:
           _ref = _context.sent;
           _ref2 = _slicedToArray(_ref, 3);
           clinic = _ref2[0];
@@ -80,7 +83,7 @@ var addAppointment = function addAppointment(request, response) {
           doctor = _ref2[2];
 
           if (clinic) {
-            _context.next = 20;
+            _context.next = 21;
             break;
           }
 
@@ -90,9 +93,9 @@ var addAppointment = function addAppointment(request, response) {
             field: 'clinicId'
           }));
 
-        case 20:
+        case 21:
           if (!(serviceList.length == 0)) {
-            _context.next = 22;
+            _context.next = 23;
             break;
           }
 
@@ -102,9 +105,9 @@ var addAppointment = function addAppointment(request, response) {
             field: 'serviceId'
           }));
 
-        case 22:
+        case 23:
           if (doctor) {
-            _context.next = 24;
+            _context.next = 25;
             break;
           }
 
@@ -114,28 +117,28 @@ var addAppointment = function addAppointment(request, response) {
             field: 'doctorId'
           }));
 
-        case 24:
-          _context.next = 26;
+        case 25:
+          _context.next = 27;
           return regeneratorRuntime.awrap(AppointmentModel.find({
             doctorId: doctorId,
             reservationTime: reservationTime
           }));
 
-        case 26:
+        case 27:
           appointment = _context.sent;
 
           if (!(appointment.length != 0)) {
-            _context.next = 29;
+            _context.next = 30;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Doctor is already registered in that time',
+            message: translations[lang]['Doctor is already reserved in that time'],
             field: 'reservationTime'
           }));
 
-        case 29:
+        case 30:
           appointmentData = {
             clinicId: clinicId,
             doctorId: doctorId,
@@ -146,7 +149,6 @@ var addAppointment = function addAppointment(request, response) {
             status: status,
             reservationTime: reservationTime
           };
-          console.log(reservationTime);
           appointmentObj = new AppointmentModel(appointmentData);
           _context.next = 34;
           return regeneratorRuntime.awrap(appointmentObj.save());
@@ -177,7 +179,7 @@ var addAppointment = function addAppointment(request, response) {
         case 40:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Registered appointment successfully!',
+            message: translations[lang]['Registered appointment successfully!'],
             appointment: newAppointment,
             mailStatus: mailStatus
           }));
@@ -437,18 +439,19 @@ var getAppointmentsByDoctorIdAndStatus = function getAppointmentsByDoctorIdAndSt
 };
 
 var updateAppointmentStatus = function updateAppointmentStatus(request, response) {
-  var appointmentId, status, dataValidation, appointment, todayDate, updatedAppointment;
+  var appointmentId, lang, status, dataValidation, appointment, todayDate, updatedAppointment;
   return regeneratorRuntime.async(function updateAppointmentStatus$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
           appointmentId = request.params.appointmentId;
+          lang = request.query.lang;
           status = request.body.status;
           dataValidation = appointmentValidation.updateAppointmentStatus(request.body);
 
           if (dataValidation.isAccepted) {
-            _context6.next = 6;
+            _context6.next = 7;
             break;
           }
 
@@ -458,56 +461,56 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
             field: dataValidation.field
           }));
 
-        case 6:
-          _context6.next = 8;
+        case 7:
+          _context6.next = 9;
           return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
-        case 8:
+        case 9:
           appointment = _context6.sent;
 
           if (!(appointment.status == status)) {
-            _context6.next = 11;
+            _context6.next = 12;
             break;
           }
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'appointment is already in this state',
+            message: translations[lang]['Appointment is already in this state'],
             field: 'status'
           }));
 
-        case 11:
+        case 12:
           todayDate = new Date();
 
           if (!(appointment.reservationTime < todayDate)) {
-            _context6.next = 14;
+            _context6.next = 15;
             break;
           }
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Appointment date has passed',
+            message: translations[lang]['Appointment date has passed'],
             field: 'reservationDate'
           }));
 
-        case 14:
-          _context6.next = 16;
+        case 15:
+          _context6.next = 17;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
             status: status
           }, {
             "new": true
           }));
 
-        case 16:
+        case 17:
           updatedAppointment = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated appointment status successfully!',
+            message: translations[lang]['Updated appointment status successfully!'],
             appointment: updatedAppointment
           }));
 
-        case 20:
-          _context6.prev = 20;
+        case 21:
+          _context6.prev = 21;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -516,35 +519,36 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
             error: _context6.t0.message
           }));
 
-        case 24:
+        case 25:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 20]]);
+  }, null, null, [[0, 21]]);
 };
 
 var deleteAppointment = function deleteAppointment(request, response) {
-  var appointmentId, deletedAppointment;
+  var lang, appointmentId, deletedAppointment;
   return regeneratorRuntime.async(function deleteAppointment$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
+          lang = request.query.lang;
           appointmentId = request.params.appointmentId;
-          _context7.next = 4;
+          _context7.next = 5;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndDelete(appointmentId));
 
-        case 4:
+        case 5:
           deletedAppointment = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'deleted appointment successfully',
+            message: translations[lang]['Deleted appointment successfully!'],
             appointment: deletedAppointment
           }));
 
-        case 8:
-          _context7.prev = 8;
+        case 9:
+          _context7.prev = 9;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -553,12 +557,12 @@ var deleteAppointment = function deleteAppointment(request, response) {
             error: _context7.t0.message
           }));
 
-        case 12:
+        case 13:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 9]]);
 };
 
 module.exports = {
