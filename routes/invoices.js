@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const invoicesController = require('../controllers/invoices')
-const { verifyInvoiceId, verifyClinicId, verifyPatientId, verifyUserId } = require('../middlewares/verify-routes-params')
+const { verifyInvoiceId, verifyClinicId, verifyPatientId, verifyUserId, verifyInsuranceId } = require('../middlewares/verify-routes-params')
 const { verifyClinicInvoices } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
@@ -37,6 +37,13 @@ router.get(
     authorization.allPermission,
     verifyUserId, 
     (request, response) => invoicesController.getInvoicesByOwnerId(request, response)
+)
+
+router.get(
+    '/v1/invoices/insurance-companies/:insuranceId',
+    authorization.allPermission,
+    verifyInsuranceId,
+    (request, response) => invoicesController.getInvoicesByInsuranceCompanyId(request, response)
 )
 
 router.post(

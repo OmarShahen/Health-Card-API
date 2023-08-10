@@ -7,6 +7,8 @@ const CounterModel = require('../models/CounterModel')
 const ServiceModel = require('../models/ServiceModel')
 const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
+const InsurancePolicyModel = require('../models/InsurancePolicyModel')
+const InsuranceCompanyModel = require('../models/InsuranceModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
 const translations = require('../i18n/index')
@@ -62,6 +64,14 @@ const getInvoice = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
                 $project: {
                     'patient.healthHistory': 0,
                     'patient.emergencyContacts': 0
@@ -91,6 +101,7 @@ const getInvoice = async (request, response) => {
         invoiceList.forEach(invoice => {
             invoice.clinic = invoice.clinic[0]
             invoice.patient = invoice.patient[0]
+            invoice.insuranceCompany = invoice.insuranceCompany[0]
         })
 
         invoiceServices.forEach(invoiceService => invoiceService.service = invoiceService.service[0])
@@ -132,6 +143,14 @@ const getInvoicesByClinicId = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
                 $sort: {
                     createdAt: -1
                 }
@@ -144,7 +163,71 @@ const getInvoicesByClinicId = async (request, response) => {
             }
         ])
 
-        invoices.forEach(invoice => invoice.patient = invoice.patient[0])
+        invoices.forEach(invoice => {
+            invoice.patient = invoice.patient[0]
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            invoices
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getInvoicesByInsuranceCompanyId = async (request, response) => {
+
+    try {
+
+        const { insuranceId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('insuranceCompanyId', insuranceId, request.query)
+
+        const invoices = await InvoiceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0
+                }
+            }
+        ])
+
+        invoices.forEach(invoice => {
+            invoice.patient = invoice.patient[0]
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null
+        })
 
         return response.status(200).json({
             accepted: true,
@@ -323,19 +406,41 @@ const addInvoice = async (request, response) => {
             })
         }
 
+        const insurancePolicyList = await InsurancePolicyModel
+        .find({ patientId, clinicId: clinic._id, status: 'ACTIVE', endDate: { $gt: Date.now() } })
+
         const counter = await CounterModel.findOneAndUpdate(
             { name: `${clinic._id}-invoice` },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
 
-        const invoiceObj = new InvoiceModel({ invoiceId: counter.value, patientId, ...request.body })
+        let newInvoiceData = { invoiceId: counter.value, patientId, ...request.body }
+
+        if(insurancePolicyList.length != 0) {
+            const insurancePolicy = insurancePolicyList[0]
+            newInvoiceData.insuranceCompanyId = insurancePolicy.insuranceCompanyId
+            newInvoiceData.insurancePolicyId = insurancePolicy._id
+            newInvoiceData.insuranceCoveragePercentage = insurancePolicy.coveragePercentage
+        }
+
+        const invoiceObj = new InvoiceModel(newInvoiceData)
         const newInvoice = await invoiceObj.save()
+
+        let formattedInvoice = { ...newInvoice._doc, clinic } 
+        
+        if(insurancePolicyList.length != 0) {
+            const insurancePolicy = insurancePolicyList[0]
+            const insuranceCompany = await InsuranceCompanyModel.findById(insurancePolicy.insuranceCompanyId)
+
+            formattedInvoice.insurancePolicy = insurancePolicy
+            formattedInvoice.insuranceCompany = { ...insuranceCompany._doc }
+        }
 
         return response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added invoice successfully!'],
-            invoice: newInvoice
+            invoice: formattedInvoice,
         })
 
     } catch(error) {
@@ -388,15 +493,32 @@ const addInvoiceCheckout = async (request, response) => {
         }
 
         const servicesIds = services
-        const INVOICE_TOTAL_COST = utils.calculateServicesTotalCost(servicesList, servicesIds)
+        const invoiceServicesTotalCost = utils.calculateServicesTotalCost(servicesList, servicesIds)
+
+        let invoiceFinalTotalCost = invoiceServicesTotalCost
+
+        if(invoice.insurancePolicyId) {
+            const insurancePolicy = await InsurancePolicyModel.findById(invoice.insurancePolicyId)
+            const insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100)
+            invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount
+        }
+        
+
+        if(invoiceFinalTotalCost < paidAmount) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Amount paid is more than the required',
+                field: 'paidAmount'
+            })
+        }
 
         let invoiceStatus
 
-        if(INVOICE_TOTAL_COST <= paidAmount) {
+        if(invoiceFinalTotalCost == paidAmount) {
             invoiceStatus = 'PAID'
         } else if(paidAmount == 0) {
             invoiceStatus = 'PENDING'
-        } else if(INVOICE_TOTAL_COST > paidAmount) {
+        } else if(invoiceFinalTotalCost > paidAmount) {
             invoiceStatus = 'PARTIALLY_PAID'
         }
 
@@ -412,7 +534,7 @@ const addInvoiceCheckout = async (request, response) => {
 
         const invoiceNewData = {
             status: invoiceStatus,
-            totalCost: INVOICE_TOTAL_COST,
+            totalCost: invoiceServicesTotalCost,
             paymentMethod,
             paid: paidAmount,
             invoiceDate: new Date(invoiceDate),
@@ -622,6 +744,7 @@ module.exports = {
     updateInvoice,
     deleteInvoice,
     getInvoicesByClinicId,
+    getInvoicesByInsuranceCompanyId,
     getInvoicesByOwnerId,
     getInvoicesByPatientId,
     addInvoiceCheckout

@@ -38,6 +38,10 @@ var CardModel = require('../models/CardModel');
 
 var SubscriptionModel = require('../models/SubscriptionModel');
 
+var InsuranceModel = require('../models/InsuranceModel');
+
+var InsurancePolicyModel = require('../models/InsurancePolicyModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1135,6 +1139,122 @@ var verifySubscriptionId = function verifySubscriptionId(request, response, next
   }, null, null, [[0, 12]]);
 };
 
+var verifyInsuranceId = function verifyInsuranceId(request, response, next) {
+  var insuranceId, insurance;
+  return regeneratorRuntime.async(function verifyInsuranceId$(_context20) {
+    while (1) {
+      switch (_context20.prev = _context20.next) {
+        case 0:
+          _context20.prev = 0;
+          insuranceId = request.params.insuranceId;
+
+          if (utils.isObjectId(insuranceId)) {
+            _context20.next = 4;
+            break;
+          }
+
+          return _context20.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid insurance Id format',
+            field: 'insuranceId'
+          }));
+
+        case 4:
+          _context20.next = 6;
+          return regeneratorRuntime.awrap(InsuranceModel.findById(insuranceId));
+
+        case 6:
+          insurance = _context20.sent;
+
+          if (insurance) {
+            _context20.next = 9;
+            break;
+          }
+
+          return _context20.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Insurance Id does not exist',
+            field: 'insuranceId'
+          }));
+
+        case 9:
+          return _context20.abrupt("return", next());
+
+        case 12:
+          _context20.prev = 12;
+          _context20.t0 = _context20["catch"](0);
+          console.error(_context20.t0);
+          return _context20.abrupt("return", response.status(500).json({
+            message: 'internal server error',
+            error: _context20.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context20.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyInsurancePolicyId = function verifyInsurancePolicyId(request, response, next) {
+  var insurancePolicyId, insurancePolicy;
+  return regeneratorRuntime.async(function verifyInsurancePolicyId$(_context21) {
+    while (1) {
+      switch (_context21.prev = _context21.next) {
+        case 0:
+          _context21.prev = 0;
+          insurancePolicyId = request.params.insurancePolicyId;
+
+          if (utils.isObjectId(insurancePolicyId)) {
+            _context21.next = 4;
+            break;
+          }
+
+          return _context21.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid insurance policy Id format',
+            field: 'insurancePolicyId'
+          }));
+
+        case 4:
+          _context21.next = 6;
+          return regeneratorRuntime.awrap(InsurancePolicyModel.findById(insurancePolicyId));
+
+        case 6:
+          insurancePolicy = _context21.sent;
+
+          if (insurancePolicy) {
+            _context21.next = 9;
+            break;
+          }
+
+          return _context21.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Insurance policy Id does not exist',
+            field: 'insurancePolicyId'
+          }));
+
+        case 9:
+          return _context21.abrupt("return", next());
+
+        case 12:
+          _context21.prev = 12;
+          _context21.t0 = _context21["catch"](0);
+          console.error(_context21.t0);
+          return _context21.abrupt("return", response.status(500).json({
+            message: 'internal server error',
+            error: _context21.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context21.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1154,5 +1274,7 @@ module.exports = {
   verifyInvoiceId: verifyInvoiceId,
   verifyInvoiceServiceId: verifyInvoiceServiceId,
   verifyCardId: verifyCardId,
-  verifySubscriptionId: verifySubscriptionId
+  verifySubscriptionId: verifySubscriptionId,
+  verifyInsuranceId: verifyInsuranceId,
+  verifyInsurancePolicyId: verifyInsurancePolicyId
 };

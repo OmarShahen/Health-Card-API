@@ -8,7 +8,8 @@ var _require = require('../middlewares/verify-routes-params'),
     verifyInvoiceId = _require.verifyInvoiceId,
     verifyClinicId = _require.verifyClinicId,
     verifyPatientId = _require.verifyPatientId,
-    verifyUserId = _require.verifyUserId;
+    verifyUserId = _require.verifyUserId,
+    verifyInsuranceId = _require.verifyInsuranceId;
 
 var _require2 = require('../middlewares/verify-clinic-mode'),
     verifyClinicInvoices = _require2.verifyClinicInvoices;
@@ -29,6 +30,9 @@ router.get('/v1/invoices/patients/:patientId', authorization.allPermission, veri
 });
 router.get('/v1/invoices/owners/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return invoicesController.getInvoicesByOwnerId(request, response);
+});
+router.get('/v1/invoices/insurance-companies/:insuranceId', authorization.allPermission, verifyInsuranceId, function (request, response) {
+  return invoicesController.getInvoicesByInsuranceCompanyId(request, response);
 });
 router.post('/v1/invoices', authorization.allPermission, verifyClinicInvoices, function (request, response) {
   return invoicesController.addInvoice(request, response);

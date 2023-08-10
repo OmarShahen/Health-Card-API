@@ -80,5 +80,12 @@ module.exports = {
     "Verification code is not registered": "كود التحقق غير مسجل",
     "Enter a new password to the current one": "ادخل كلمة سر جديدة عن القديمة",
     "Patient card ID does not exists": "رقم كارت الحالة غير مسجل",
-    "New password must be diffrent from old password": "كلمة السر الجديدة يجب ان تختلف عن القديمة"
+    "New password must be diffrent from old password": "كلمة السر الجديدة يجب ان تختلف عن القديمة",
+    "Added new insurance successfully!": "تم اضافة التامين بنجاح",
+    "Name is already registered in the clinic": "الاسم مسجل مسبقا في العيادة",
+    "This insurance is registered with invoices": "التامين مسجل في الواتير",
+    "Deleted insurance successfully!": "تم مسح التامين بنجاح",
+    "Updated insurance successfully!": "تم تحديث التامين بنجاح",
+    "Doctor is already registered with the clinic": "الدكتور مسجل مسبقا في العيادة",
+    "Patient is not registered with the clinic": "الحالة غير مسجلة في العيادة"
 }   

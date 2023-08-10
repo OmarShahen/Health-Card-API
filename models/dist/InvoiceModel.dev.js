@@ -7,12 +7,17 @@ var config = require('../config/config');
 var InvoiceSchema = new mongoose.Schema({
   invoiceId: {
     type: Number,
-    required: true,
-    unique: true
+    required: true
   },
   clinicId: {
     type: mongoose.Types.ObjectId,
     required: true
+  },
+  insuranceCompanyId: {
+    type: mongoose.Types.ObjectId
+  },
+  insurancePolicyId: {
+    type: mongoose.Types.ObjectId
   },
   patientId: {
     type: mongoose.Types.ObjectId,
@@ -22,6 +27,9 @@ var InvoiceSchema = new mongoose.Schema({
     type: Number,
     required: true,
     "default": 0
+  },
+  insuranceCoveragePercentage: {
+    type: Number
   },
   paid: {
     type: Number,

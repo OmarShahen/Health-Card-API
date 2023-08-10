@@ -85,5 +85,12 @@ module.exports = {
     "Verification code is not registered": "Verification code is not registered",
     "Enter a new password to the current one": "Enter a new password to the current one",
     "Patient card ID does not exists": "Patient card ID does not exists",
-    "New password must be diffrent from old password": "New password must be diffrent from old password"
+    "New password must be diffrent from old password": "New password must be diffrent from old password",
+    "Added new insurance successfully!": "Added new insurance successfully!",
+    "Name is already registered in the clinic": "Name is already registered in the clinic",
+    "This insurance is registered with invoices": "This insurance is registered with invoices",
+    "Deleted insurance successfully!": "Deleted insurance successfully!",
+    "Updated insurance successfully!": "Updated insurance successfully!",
+    "Doctor is already registered with the clinic": "Doctor is already registered with the clinic",
+    "Patient is not registered with the clinic": "Patient is not registered with the clinic"
 }   

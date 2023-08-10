@@ -17,6 +17,8 @@ const InvoiceModel = require('../models/InvoiceModel')
 const InvoiceServiceModel = require('../models/InvoiceServiceModel')
 const CardModel = require('../models/CardModel')
 const SubscriptionModel = require('../models/SubscriptionModel')
+const InsuranceModel = require('../models/InsuranceModel')
+const InsurancePolicyModel = require('../models/InsurancePolicyModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -668,6 +670,73 @@ const verifySubscriptionId = async (request, response, next) => {
 }
 
 
+const verifyInsuranceId = async (request, response, next) => {
+
+    try {
+
+        const { insuranceId } = request.params
+
+        if(!utils.isObjectId(insuranceId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid insurance Id format',
+                field: 'insuranceId'
+            })
+        }
+
+        const insurance = await InsuranceModel.findById(insuranceId)
+        if(!insurance) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Insurance Id does not exist',
+                field: 'insuranceId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyInsurancePolicyId = async (request, response, next) => {
+
+    try {
+
+        const { insurancePolicyId } = request.params
+
+        if(!utils.isObjectId(insurancePolicyId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid insurance policy Id format',
+                field: 'insurancePolicyId'
+            })
+        }
+
+        const insurancePolicy = await InsurancePolicyModel.findById(insurancePolicyId)
+        if(!insurancePolicy) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Insurance policy Id does not exist',
+                field: 'insurancePolicyId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 module.exports = { 
     verifyClinicId, 
@@ -688,5 +757,7 @@ module.exports = {
     verifyInvoiceId,
     verifyInvoiceServiceId,
     verifyCardId,
-    verifySubscriptionId
+    verifySubscriptionId,
+    verifyInsuranceId,
+    verifyInsurancePolicyId
 }
