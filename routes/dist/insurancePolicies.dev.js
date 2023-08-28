@@ -8,7 +8,8 @@ var _require = require('../middlewares/verify-routes-params'),
     verifyClinicId = _require.verifyClinicId,
     verifyUserId = _require.verifyUserId,
     verifyInsurancePolicyId = _require.verifyInsurancePolicyId,
-    verifyInsuranceId = _require.verifyInsuranceId;
+    verifyInsuranceId = _require.verifyInsuranceId,
+    verifyPatientId = _require.verifyPatientId;
 
 var _require2 = require('../middlewares/verify-clinic-mode'),
     verifyClinicServices = _require2.verifyClinicServices;
@@ -23,6 +24,12 @@ router.post('/v1/insurance-policies', authorization.allPermission, function (req
 });
 router.get('/v1/insurance-policies/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return insurancePoliciesController.getInsurancePoliciesByClinicId(request, response);
+});
+router.get('/v1/insurance-policies/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
+  return insurancePoliciesController.getInsurancePoliciesByPatientId(request, response);
+});
+router.get('/v1/insurance-policies/patients/:patientId/clinics/:clinicId', authorization.allPermission, verifyPatientId, verifyClinicId, function (request, response) {
+  return insurancePoliciesController.getClinicPatientActiveInsurancePolicy(request, response);
 });
 router.get('/v1/insurance-policies/insurances/:insuranceId', authorization.allPermission, verifyInsuranceId, function (request, response) {
   return insurancePoliciesController.getInsurancePoliciesByInsuranceCompanyId(request, response);

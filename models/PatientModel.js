@@ -6,7 +6,7 @@ const { EmergencyContactSchema } = require('./EmergencyContactModel')
 const PatientSchema = new mongoose.Schema({
 
     patientId: { type: Number, required: true, unique: true },
-    cardId: { type: Number, required: true },
+    cardId: { type: Number },
     cardUUID: { type: String },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },

@@ -4,7 +4,11 @@ const moment = require('moment')
 
 const addAppointment = (appointmentData) => {
 
-    const { clinicId, doctorId, serviceId, patientName, patientPhone, patientCountryCode, status, reservationTime } = appointmentData
+    const { patientId, clinicId, doctorId, serviceId, status, reservationTime } = appointmentData
+
+    if(!patientId) return { isAccepted: false, message: 'patient Id is required', field: 'patientId' }
+
+    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'invalid patient Id format', field: 'patientId' }
 
     if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
 
@@ -14,21 +18,7 @@ const addAppointment = (appointmentData) => {
 
     if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'invalid doctor Id format', field: 'doctorId' }
 
-    if(!serviceId) return { isAccepted: false, message: 'service Id is required', field: 'serviceId' }
-
-    if(!utils.isObjectId(serviceId)) return { isAccepted: false, message: 'invalid service Id format', field: 'serviceId' }
-
-    if(!patientName) return { isAccepted: false, message: 'patient name is required', field: 'patientName' }
-
-    if(typeof patientName != 'string') return { isAccepted: false, message: 'invalid patient name format', field: 'patientName' }
-
-    if(!patientPhone) return { isAccepted: false, message: 'patient phone is required', field: 'patientPhone' }
-
-    if(typeof patientPhone != 'number') return { isAccepted: false, message: 'invalid patient phone format', field: 'patientPhone' }
-
-    if(!patientCountryCode) return { isAccepted: false, message: 'patient country code is required', field: 'patientCountryCode' }
-
-    if(typeof patientCountryCode != 'number') return { isAccepted: false, message: 'invalid patient country code format', field: 'patientCountryCode' }
+    if(serviceId && !utils.isObjectId(serviceId)) return { isAccepted: false, message: 'invalid service Id format', field: 'serviceId' }
 
     if(!status) return { isAccepted: false, message: 'status is required', field: 'status' }
 

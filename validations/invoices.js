@@ -12,31 +12,18 @@ const checkServices = (services) => {
 }
 
 
+
 const addInvoice = (invoiceData) => {
 
-    const { clinicId, cardId, status, paymentMethod } = invoiceData
+    const { clinicId, patientId, services, paymentMethod, invoiceDate, paidAmount, dueDate } = invoiceData
 
     if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
 
     if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Clinic Id format is invalid', field: 'clinicId' }
 
-    if(!cardId) return { isAccepted: false, message: 'Card Id is required', field: 'cardId' }
+    if(!patientId) return { isAccepted: false, message: 'Patient Id is required', field: 'patientId' }
 
-    if(typeof cardId != 'number') return { isAccepted: false, message: 'Card Id format is invalid', field: 'cardId' }
-
-    if(!status) return { isAccepted: false, message: 'Status is required', field: 'status' }
-
-    if(!config.INVOICE_STATUS.includes(status)) return { isAccepted: false, message: 'Invalid status value', field: 'status' }
-
-    if(paymentMethod && !config.PAYMENT_METHOD.includes(paymentMethod)) return { isAccepted: false, message: 'Invalid payment method value', field: 'paymentMethod' }
-
-    return { isAccepted: true, message: 'data is valid', data: invoiceData }
-
-}
-
-const addInvoiceCheckout = (invoiceData) => {
-
-    const { services, paymentMethod, invoiceDate, paidAmount, dueDate } = invoiceData
+    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Patient Id format is invalid', field: 'patientId' }
 
     if(!services) return { isAccepted: false, message: 'Services is required', field: 'services' }
 
@@ -108,7 +95,6 @@ const updateInvoice = (invoiceData) => {
 
 module.exports = { 
     addInvoice, 
-    addInvoiceCheckout, 
     updateInvoiceStatus, 
     updateInvoicePaid, 
     updateInvoice 

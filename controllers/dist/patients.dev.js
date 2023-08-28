@@ -49,7 +49,7 @@ var CardModel = require('../models/CardModel');
 var translations = require('../i18n/index');
 
 var addPatient = function addPatient(request, response) {
-  var dataValidation, _request$body, cardId, cvc, clinicId, doctorId, countryCode, phone, card, clinic, doctor, phoneList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctor, clinicPatientDoctorData, clinicPatientDoctorObj, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, cardData, cardObj, newCard;
+  var dataValidation, _request$body, cardId, cvc, clinicId, doctorId, card, clinic, doctor, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctor, clinicPatientDoctorData, clinicPatientDoctorObj, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, newCard, cardData, cardObj;
 
   return regeneratorRuntime.async(function addPatient$(_context) {
     while (1) {
@@ -70,17 +70,23 @@ var addPatient = function addPatient(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId, countryCode = _request$body.countryCode, phone = _request$body.phone;
-          _context.next = 7;
+          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId;
+
+          if (!cardId) {
+            _context.next = 11;
+            break;
+          }
+
+          _context.next = 8;
           return regeneratorRuntime.awrap(PatientModel.find({
             cardId: cardId
           }));
 
-        case 7:
+        case 8:
           card = _context.sent;
 
           if (!(card.length != 0)) {
-            _context.next = 10;
+            _context.next = 11;
             break;
           }
 
@@ -90,20 +96,20 @@ var addPatient = function addPatient(request, response) {
             field: 'cardId'
           }));
 
-        case 10:
+        case 11:
           if (!clinicId) {
-            _context.next = 16;
+            _context.next = 17;
             break;
           }
 
-          _context.next = 13;
+          _context.next = 14;
           return regeneratorRuntime.awrap(ClinicModel.findById(clinicId));
 
-        case 13:
+        case 14:
           clinic = _context.sent;
 
           if (clinic) {
-            _context.next = 16;
+            _context.next = 17;
             break;
           }
 
@@ -113,20 +119,20 @@ var addPatient = function addPatient(request, response) {
             field: 'clinicId'
           }));
 
-        case 16:
+        case 17:
           if (!doctorId) {
-            _context.next = 22;
+            _context.next = 23;
             break;
           }
 
-          _context.next = 19;
+          _context.next = 20;
           return regeneratorRuntime.awrap(UserModel.findById(doctorId));
 
-        case 19:
+        case 20:
           doctor = _context.sent;
 
           if (doctor) {
-            _context.next = 22;
+            _context.next = 23;
             break;
           }
 
@@ -136,30 +142,9 @@ var addPatient = function addPatient(request, response) {
             field: 'doctorId'
           }));
 
-        case 22:
-          _context.next = 24;
-          return regeneratorRuntime.awrap(PatientModel.find({
-            countryCode: countryCode,
-            phone: phone
-          }));
-
-        case 24:
-          phoneList = _context.sent;
-
-          if (!(phoneList.length != 0)) {
-            _context.next = 27;
-            break;
-          }
-
-          return _context.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['Phone number is already registered'],
-            field: 'phone'
-          }));
-
-        case 27:
+        case 23:
           patientData = _objectSpread({}, request.body);
-          _context.next = 30;
+          _context.next = 26;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'patient'
           }, {
@@ -171,18 +156,18 @@ var addPatient = function addPatient(request, response) {
             upsert: true
           }));
 
-        case 30:
+        case 26:
           counter = _context.sent;
           patientData.patientId = counter.value;
           patientObj = new PatientModel(patientData);
-          _context.next = 35;
+          _context.next = 31;
           return regeneratorRuntime.awrap(patientObj.save());
 
-        case 35:
+        case 31:
           newPatient = _context.sent;
 
           if (!(clinicId && doctorId)) {
-            _context.next = 49;
+            _context.next = 45;
             break;
           }
 
@@ -192,27 +177,27 @@ var addPatient = function addPatient(request, response) {
             doctorId: doctorId
           };
           clinicPatientDoctorObj = new ClinicPatientDoctorModel(clinicPatientDoctorData);
-          _context.next = 41;
+          _context.next = 37;
           return regeneratorRuntime.awrap(clinicPatientDoctorObj.save());
 
-        case 41:
+        case 37:
           newClinicPatientDoctor = _context.sent;
           clinicPatientData = {
             patientId: newPatient._id,
             clinicId: clinicId
           };
           clinicPatientObj = new ClinicPatientModel(clinicPatientData);
-          _context.next = 46;
+          _context.next = 42;
           return regeneratorRuntime.awrap(clinicPatientObj.save());
 
-        case 46:
+        case 42:
           newClinicPatient = _context.sent;
-          _context.next = 55;
+          _context.next = 51;
           break;
 
-        case 49:
+        case 45:
           if (!clinicId) {
-            _context.next = 55;
+            _context.next = 51;
             break;
           }
 
@@ -221,23 +206,32 @@ var addPatient = function addPatient(request, response) {
             clinicId: clinicId
           };
           _clinicPatientObj = new ClinicPatientModel(_clinicPatientData);
-          _context.next = 54;
+          _context.next = 50;
           return regeneratorRuntime.awrap(_clinicPatientObj.save());
 
-        case 54:
+        case 50:
           newClinicPatient = _context.sent;
 
-        case 55:
+        case 51:
+          newCard = {};
+
+          if (!cardId) {
+            _context.next = 58;
+            break;
+          }
+
           cardData = {
             cardId: cardId,
             cvc: cvc
           };
           cardObj = new CardModel(cardData);
-          _context.next = 59;
+          _context.next = 57;
           return regeneratorRuntime.awrap(cardObj.save());
 
-        case 59:
+        case 57:
           newCard = _context.sent;
+
+        case 58:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added patient successfully!'],
@@ -247,8 +241,8 @@ var addPatient = function addPatient(request, response) {
             clinicPatientDoctor: newClinicPatientDoctor
           }));
 
-        case 63:
-          _context.prev = 63;
+        case 61:
+          _context.prev = 61;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -257,22 +251,76 @@ var addPatient = function addPatient(request, response) {
             error: _context.t0.message
           }));
 
-        case 67:
+        case 65:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 63]]);
+  }, null, null, [[0, 61]]);
+};
+
+var updatePatient = function updatePatient(request, response) {
+  var dataValidation, patientId, updatePatientData, updatedPatient;
+  return regeneratorRuntime.async(function updatePatient$(_context2) {
+    while (1) {
+      switch (_context2.prev = _context2.next) {
+        case 0:
+          _context2.prev = 0;
+          dataValidation = patientValidation.updatePatient(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context2.next = 4;
+            break;
+          }
+
+          return _context2.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          patientId = request.params.patientId;
+          updatePatientData = _objectSpread({}, request.body);
+          _context2.next = 8;
+          return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patientId, updatePatientData, {
+            "new": true
+          }));
+
+        case 8:
+          updatedPatient = _context2.sent;
+          return _context2.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Patient updated successfully!',
+            patient: updatedPatient
+          }));
+
+        case 12:
+          _context2.prev = 12;
+          _context2.t0 = _context2["catch"](0);
+          console.error(_context2.t0);
+          return _context2.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context2.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context2.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
 };
 
 var getPatientInfo = function getPatientInfo(request, response) {
   var patientId, patientPromise, encountersPromise, _ref, _ref2, patient, encounters;
 
-  return regeneratorRuntime.async(function getPatientInfo$(_context2) {
+  return regeneratorRuntime.async(function getPatientInfo$(_context3) {
     while (1) {
-      switch (_context2.prev = _context2.next) {
+      switch (_context3.prev = _context3.next) {
         case 0:
-          _context2.prev = 0;
+          _context3.prev = 0;
           patientId = request.params.patientId;
           patientPromise = PatientModel.findById(patientId);
           encountersPromise = EncounterModel.aggregate([{
@@ -291,61 +339,25 @@ var getPatientInfo = function getPatientInfo(request, response) {
               createdAt: -1
             }
           }]);
-          _context2.next = 6;
+          _context3.next = 6;
           return regeneratorRuntime.awrap(Promise.all([patientPromise, encountersPromise]));
 
         case 6:
-          _ref = _context2.sent;
+          _ref = _context3.sent;
           _ref2 = _slicedToArray(_ref, 2);
           patient = _ref2[0];
           encounters = _ref2[1];
           encounters.forEach(function (encounter) {
             return encounter.patient = encounter.patient[0];
           });
-          return _context2.abrupt("return", response.status(200).json({
+          return _context3.abrupt("return", response.status(200).json({
             accepted: true,
             patient: patient,
             encounters: encounters
           }));
 
         case 14:
-          _context2.prev = 14;
-          _context2.t0 = _context2["catch"](0);
-          console.error(_context2.t0);
-          return _context2.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context2.t0.message
-          }));
-
-        case 18:
-        case "end":
-          return _context2.stop();
-      }
-    }
-  }, null, null, [[0, 14]]);
-};
-
-var getPatient = function getPatient(request, response) {
-  var patientId, patient;
-  return regeneratorRuntime.async(function getPatient$(_context3) {
-    while (1) {
-      switch (_context3.prev = _context3.next) {
-        case 0:
-          _context3.prev = 0;
-          patientId = request.params.patientId;
-          _context3.next = 4;
-          return regeneratorRuntime.awrap(PatientModel.findById(patientId));
-
-        case 4:
-          patient = _context3.sent;
-          return _context3.abrupt("return", response.status(200).json({
-            accepted: true,
-            patient: patient
-          }));
-
-        case 8:
-          _context3.prev = 8;
+          _context3.prev = 14;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -354,9 +366,45 @@ var getPatient = function getPatient(request, response) {
             error: _context3.t0.message
           }));
 
-        case 12:
+        case 18:
         case "end":
           return _context3.stop();
+      }
+    }
+  }, null, null, [[0, 14]]);
+};
+
+var getPatient = function getPatient(request, response) {
+  var patientId, patient;
+  return regeneratorRuntime.async(function getPatient$(_context4) {
+    while (1) {
+      switch (_context4.prev = _context4.next) {
+        case 0:
+          _context4.prev = 0;
+          patientId = request.params.patientId;
+          _context4.next = 4;
+          return regeneratorRuntime.awrap(PatientModel.findById(patientId));
+
+        case 4:
+          patient = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            patient: patient
+          }));
+
+        case 8:
+          _context4.prev = 8;
+          _context4.t0 = _context4["catch"](0);
+          console.error(_context4.t0);
+          return _context4.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context4.t0.message
+          }));
+
+        case 12:
+        case "end":
+          return _context4.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -364,39 +412,39 @@ var getPatient = function getPatient(request, response) {
 
 var getPatientByCardId = function getPatientByCardId(request, response) {
   var cardId, cardList, card, patientList, patient;
-  return regeneratorRuntime.async(function getPatientByCardId$(_context4) {
+  return regeneratorRuntime.async(function getPatientByCardId$(_context5) {
     while (1) {
-      switch (_context4.prev = _context4.next) {
+      switch (_context5.prev = _context5.next) {
         case 0:
-          _context4.prev = 0;
+          _context5.prev = 0;
           cardId = request.params.cardId;
 
           if (!isNaN(Number.parseInt(cardId))) {
-            _context4.next = 4;
+            _context5.next = 4;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
+          return _context5.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'invalid card ID format',
             field: 'cardId'
           }));
 
         case 4:
-          _context4.next = 6;
+          _context5.next = 6;
           return regeneratorRuntime.awrap(CardModel.find({
             cardId: cardId
           }));
 
         case 6:
-          cardList = _context4.sent;
+          cardList = _context5.sent;
 
           if (!(cardList.length == 0)) {
-            _context4.next = 9;
+            _context5.next = 9;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
+          return _context5.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'card ID is not registered',
             field: 'cardId'
@@ -406,43 +454,43 @@ var getPatientByCardId = function getPatientByCardId(request, response) {
           card = cardList[0];
 
           if (card.isActive) {
-            _context4.next = 12;
+            _context5.next = 12;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
+          return _context5.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Card is deactivated',
             field: 'cardId'
           }));
 
         case 12:
-          _context4.next = 14;
+          _context5.next = 14;
           return regeneratorRuntime.awrap(PatientModel.find({
             cardId: cardId
           }));
 
         case 14:
-          patientList = _context4.sent;
+          patientList = _context5.sent;
           patient = patientList[0] || null;
-          return _context4.abrupt("return", response.status(200).json({
+          return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             patient: patient
           }));
 
         case 19:
-          _context4.prev = 19;
-          _context4.t0 = _context4["catch"](0);
-          console.error(_context4.t0);
-          return _context4.abrupt("return", response.status(500).json({
+          _context5.prev = 19;
+          _context5.t0 = _context5["catch"](0);
+          console.error(_context5.t0);
+          return _context5.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context4.t0.message
+            error: _context5.t0.message
           }));
 
         case 23:
         case "end":
-          return _context4.stop();
+          return _context5.stop();
       }
     }
   }, null, null, [[0, 19]]);
@@ -450,59 +498,59 @@ var getPatientByCardId = function getPatientByCardId(request, response) {
 
 var addDoctorToPatient = function addDoctorToPatient(request, response) {
   var cardId, doctorId, dataValidation, doctor, patientList, patient, patientDoctorsIds, additionData, updatedPatient;
-  return regeneratorRuntime.async(function addDoctorToPatient$(_context5) {
+  return regeneratorRuntime.async(function addDoctorToPatient$(_context6) {
     while (1) {
-      switch (_context5.prev = _context5.next) {
+      switch (_context6.prev = _context6.next) {
         case 0:
-          _context5.prev = 0;
+          _context6.prev = 0;
           cardId = request.params.cardId;
           doctorId = request.body.doctorId;
           dataValidation = patientValidation.addDoctorToPatient(request.body);
 
           if (dataValidation.isAccepted) {
-            _context5.next = 6;
+            _context6.next = 6;
             break;
           }
 
-          return _context5.abrupt("return", response.status(500).json({
+          return _context6.abrupt("return", response.status(500).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
           }));
 
         case 6:
-          _context5.next = 8;
+          _context6.next = 8;
           return regeneratorRuntime.awrap(UserModel.findById(doctorId));
 
         case 8:
-          doctor = _context5.sent;
+          doctor = _context6.sent;
 
           if (doctor) {
-            _context5.next = 11;
+            _context6.next = 11;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Doctor Id is not registered',
             field: 'doctorId'
           }));
 
         case 11:
-          _context5.next = 13;
+          _context6.next = 13;
           return regeneratorRuntime.awrap(PatientModel.find({
             cardId: cardId
           }));
 
         case 13:
-          patientList = _context5.sent;
+          patientList = _context6.sent;
 
           if (!(patientList.length == 0)) {
-            _context5.next = 16;
+            _context6.next = 16;
             break;
           }
 
-          return _context5.abrupt("return", response.status(404).json({
+          return _context6.abrupt("return", response.status(404).json({
             accepted: false,
             message: 'card Id is not registered',
             field: 'cardId'
@@ -515,11 +563,11 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
           });
 
           if (!patientDoctorsIds.includes(doctorId)) {
-            _context5.next = 20;
+            _context6.next = 20;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Doctor is already registered with the patient'],
             field: 'doctorId'
@@ -531,7 +579,7 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
             createdAt: new Date(),
             updatedAt: new Date()
           };
-          _context5.next = 23;
+          _context6.next = 23;
           return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patient._id, {
             $push: {
               doctors: additionData
@@ -541,27 +589,27 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
           }));
 
         case 23:
-          updatedPatient = _context5.sent;
+          updatedPatient = _context6.sent;
           updatedPatient.password = undefined;
-          return _context5.abrupt("return", response.status(200).json({
+          return _context6.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Doctor is added successfully to the patient'],
             updatedPatient: updatedPatient
           }));
 
         case 28:
-          _context5.prev = 28;
-          _context5.t0 = _context5["catch"](0);
-          console.error(_context5.t0);
-          return _context5.abrupt("return", response.status(500).json({
+          _context6.prev = 28;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context5.t0.message
+            error: _context6.t0.message
           }));
 
         case 32:
         case "end":
-          return _context5.stop();
+          return _context6.stop();
       }
     }
   }, null, null, [[0, 28]]);
@@ -570,14 +618,14 @@ var addDoctorToPatient = function addDoctorToPatient(request, response) {
 var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
   var clinicId, _utils$statsQueryGene, searchQuery, patients;
 
-  return regeneratorRuntime.async(function getPatientsByClinicId$(_context6) {
+  return regeneratorRuntime.async(function getPatientsByClinicId$(_context7) {
     while (1) {
-      switch (_context6.prev = _context6.next) {
+      switch (_context7.prev = _context7.next) {
         case 0:
-          _context6.prev = 0;
+          _context7.prev = 0;
           clinicId = request.params.clinicId;
           _utils$statsQueryGene = utils.statsQueryGenerator('clinicId', clinicId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
-          _context6.next = 5;
+          _context7.next = 5;
           return regeneratorRuntime.awrap(ClinicPatientModel.aggregate([{
             $match: searchQuery
           }, {
@@ -599,30 +647,30 @@ var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
           }]));
 
         case 5:
-          patients = _context6.sent;
+          patients = _context7.sent;
           patients.forEach(function (patient) {
             patient.patient = patient.patient[0];
             patient.patient.emergencyContacts = undefined;
             patient.patient.healthHistory = undefined;
           });
-          return _context6.abrupt("return", response.status(200).json({
+          return _context7.abrupt("return", response.status(200).json({
             accepted: true,
             patients: patients
           }));
 
         case 10:
-          _context6.prev = 10;
-          _context6.t0 = _context6["catch"](0);
-          console.error(_context6.t0);
-          return _context6.abrupt("return", response.status(500).json({
+          _context7.prev = 10;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context6.t0.message
+            error: _context7.t0.message
           }));
 
         case 14:
         case "end":
-          return _context6.stop();
+          return _context7.stop();
       }
     }
   }, null, null, [[0, 10]]);
@@ -631,14 +679,14 @@ var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
 var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
   var userId, _utils$statsQueryGene2, searchQuery, patients;
 
-  return regeneratorRuntime.async(function getPatientsByDoctorId$(_context7) {
+  return regeneratorRuntime.async(function getPatientsByDoctorId$(_context8) {
     while (1) {
-      switch (_context7.prev = _context7.next) {
+      switch (_context8.prev = _context8.next) {
         case 0:
-          _context7.prev = 0;
+          _context8.prev = 0;
           userId = request.params.userId;
           _utils$statsQueryGene2 = utils.statsQueryGenerator('doctorId', userId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
-          _context7.next = 5;
+          _context8.next = 5;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.aggregate([{
             $match: searchQuery
           }, {
@@ -667,29 +715,29 @@ var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
           }]));
 
         case 5:
-          patients = _context7.sent;
+          patients = _context8.sent;
           patients.forEach(function (patient) {
             patient.patient = patient.patient[0];
             patient.clinic = patient.clinic[0];
           });
-          return _context7.abrupt("return", response.status(200).json({
+          return _context8.abrupt("return", response.status(200).json({
             accepted: true,
             patients: patients
           }));
 
         case 10:
-          _context7.prev = 10;
-          _context7.t0 = _context7["catch"](0);
-          console.error(_context7.t0);
-          return _context7.abrupt("return", response.status(500).json({
+          _context8.prev = 10;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context7.t0.message
+            error: _context8.t0.message
           }));
 
         case 14:
         case "end":
-          return _context7.stop();
+          return _context8.stop();
       }
     }
   }, null, null, [[0, 10]]);
@@ -697,25 +745,25 @@ var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
 
 var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
   var patientId, doctorsList, doctorsIdsList, doctorsIdsSet, doctorsIds, doctors;
-  return regeneratorRuntime.async(function getDoctorsByPatientId$(_context8) {
+  return regeneratorRuntime.async(function getDoctorsByPatientId$(_context9) {
     while (1) {
-      switch (_context8.prev = _context8.next) {
+      switch (_context9.prev = _context9.next) {
         case 0:
-          _context8.prev = 0;
+          _context9.prev = 0;
           patientId = request.params.patientId;
-          _context8.next = 4;
+          _context9.next = 4;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.find({
             patientId: patientId
           }));
 
         case 4:
-          doctorsList = _context8.sent;
+          doctorsList = _context9.sent;
           doctorsIdsList = doctorsList.map(function (doctor) {
             return doctor.doctorId;
           });
           doctorsIdsSet = new Set(doctorsIdsList);
           doctorsIds = _toConsumableArray(doctorsIdsSet);
-          _context8.next = 10;
+          _context9.next = 10;
           return regeneratorRuntime.awrap(UserModel.aggregate([{
             $match: {
               _id: {
@@ -742,25 +790,25 @@ var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
           }]));
 
         case 10:
-          doctors = _context8.sent;
-          return _context8.abrupt("return", response.status(200).json({
+          doctors = _context9.sent;
+          return _context9.abrupt("return", response.status(200).json({
             accepted: true,
             doctors: doctors
           }));
 
         case 14:
-          _context8.prev = 14;
-          _context8.t0 = _context8["catch"](0);
-          console.error(_context8.t0);
-          return _context8.abrupt("return", response.status(500).json({
+          _context9.prev = 14;
+          _context9.t0 = _context9["catch"](0);
+          console.error(_context9.t0);
+          return _context9.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context8.t0.message
+            error: _context9.t0.message
           }));
 
         case 18:
         case "end":
-          return _context8.stop();
+          return _context9.stop();
       }
     }
   }, null, null, [[0, 14]]);
@@ -768,41 +816,41 @@ var getDoctorsByPatientId = function getDoctorsByPatientId(request, response) {
 
 var addEmergencyContactToPatient = function addEmergencyContactToPatient(request, response) {
   var patientId, dataValidation, patient, emergencyContacts, phone, countryCode, newContactPhone, patientPhone, samePhones, contactData, updatedPatient;
-  return regeneratorRuntime.async(function addEmergencyContactToPatient$(_context9) {
+  return regeneratorRuntime.async(function addEmergencyContactToPatient$(_context10) {
     while (1) {
-      switch (_context9.prev = _context9.next) {
+      switch (_context10.prev = _context10.next) {
         case 0:
-          _context9.prev = 0;
+          _context10.prev = 0;
           patientId = request.params.patientId;
           dataValidation = patientValidation.addEmergencyContactToPatient(request.body);
 
           if (dataValidation.isAccepted) {
-            _context9.next = 5;
+            _context10.next = 5;
             break;
           }
 
-          return _context9.abrupt("return", response.status(400).json({
+          return _context10.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
           }));
 
         case 5:
-          _context9.next = 7;
+          _context10.next = 7;
           return regeneratorRuntime.awrap(PatientModel.findById(patientId));
 
         case 7:
-          patient = _context9.sent;
+          patient = _context10.sent;
           emergencyContacts = patient.emergencyContacts, phone = patient.phone, countryCode = patient.countryCode;
           newContactPhone = "".concat(request.body.countryCode).concat(request.body.phone);
           patientPhone = "".concat(countryCode).concat(phone);
 
           if (!(patientPhone == newContactPhone)) {
-            _context9.next = 13;
+            _context10.next = 13;
             break;
           }
 
-          return _context9.abrupt("return", response.status(400).json({
+          return _context10.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Contact phone is the same as patient phone'],
             field: 'phone'
@@ -816,11 +864,11 @@ var addEmergencyContactToPatient = function addEmergencyContactToPatient(request
           });
 
           if (!(samePhones.length != 0)) {
-            _context9.next = 16;
+            _context10.next = 16;
             break;
           }
 
-          return _context9.abrupt("return", response.status(400).json({
+          return _context10.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Contact phone is already registered in patient contacts'],
             field: 'phone'
@@ -833,7 +881,7 @@ var addEmergencyContactToPatient = function addEmergencyContactToPatient(request
             countryCode: request.body.countryCode,
             phone: request.body.phone
           };
-          _context9.next = 19;
+          _context10.next = 19;
           return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patientId, {
             $push: {
               emergencyContacts: contactData
@@ -843,69 +891,15 @@ var addEmergencyContactToPatient = function addEmergencyContactToPatient(request
           }));
 
         case 19:
-          updatedPatient = _context9.sent;
-          return _context9.abrupt("return", response.status(200).json({
+          updatedPatient = _context10.sent;
+          return _context10.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added emergency contact successfully!'],
             patient: updatedPatient
           }));
 
         case 23:
-          _context9.prev = 23;
-          _context9.t0 = _context9["catch"](0);
-          console.error(_context9.t0);
-          return _context9.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context9.t0.message
-          }));
-
-        case 27:
-        case "end":
-          return _context9.stop();
-      }
-    }
-  }, null, null, [[0, 23]]);
-};
-
-var deleteEmergencyContactOfPatient = function deleteEmergencyContactOfPatient(request, response) {
-  var _request$params, patientId, countryCode, phone, patient, emergencyContacts, targetContact, updatedContactList, updatedPatient;
-
-  return regeneratorRuntime.async(function deleteEmergencyContactOfPatient$(_context10) {
-    while (1) {
-      switch (_context10.prev = _context10.next) {
-        case 0:
-          _context10.prev = 0;
-          _request$params = request.params, patientId = _request$params.patientId, countryCode = _request$params.countryCode, phone = _request$params.phone;
-          _context10.next = 4;
-          return regeneratorRuntime.awrap(PatientModel.findById(patientId));
-
-        case 4:
-          patient = _context10.sent;
-          emergencyContacts = patient.emergencyContacts;
-          targetContact = "".concat(countryCode).concat(phone);
-          updatedContactList = emergencyContacts.filter(function (contact) {
-            var contactPhone = "".concat(contact.countryCode).concat(contact.phone);
-            if (contactPhone == targetContact) return false;
-            return true;
-          });
-          _context10.next = 10;
-          return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patientId, {
-            emergencyContacts: updatedContactList
-          }, {
-            "new": true
-          }));
-
-        case 10:
-          updatedPatient = _context10.sent;
-          return _context10.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Deleted emergency contact successfully!'],
-            patient: updatedPatient
-          }));
-
-        case 14:
-          _context10.prev = 14;
+          _context10.prev = 23;
           _context10.t0 = _context10["catch"](0);
           console.error(_context10.t0);
           return _context10.abrupt("return", response.status(500).json({
@@ -914,9 +908,63 @@ var deleteEmergencyContactOfPatient = function deleteEmergencyContactOfPatient(r
             error: _context10.t0.message
           }));
 
-        case 18:
+        case 27:
         case "end":
           return _context10.stop();
+      }
+    }
+  }, null, null, [[0, 23]]);
+};
+
+var deleteEmergencyContactOfPatient = function deleteEmergencyContactOfPatient(request, response) {
+  var _request$params, patientId, countryCode, phone, patient, emergencyContacts, targetContact, updatedContactList, updatedPatient;
+
+  return regeneratorRuntime.async(function deleteEmergencyContactOfPatient$(_context11) {
+    while (1) {
+      switch (_context11.prev = _context11.next) {
+        case 0:
+          _context11.prev = 0;
+          _request$params = request.params, patientId = _request$params.patientId, countryCode = _request$params.countryCode, phone = _request$params.phone;
+          _context11.next = 4;
+          return regeneratorRuntime.awrap(PatientModel.findById(patientId));
+
+        case 4:
+          patient = _context11.sent;
+          emergencyContacts = patient.emergencyContacts;
+          targetContact = "".concat(countryCode).concat(phone);
+          updatedContactList = emergencyContacts.filter(function (contact) {
+            var contactPhone = "".concat(contact.countryCode).concat(contact.phone);
+            if (contactPhone == targetContact) return false;
+            return true;
+          });
+          _context11.next = 10;
+          return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patientId, {
+            emergencyContacts: updatedContactList
+          }, {
+            "new": true
+          }));
+
+        case 10:
+          updatedPatient = _context11.sent;
+          return _context11.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Deleted emergency contact successfully!'],
+            patient: updatedPatient
+          }));
+
+        case 14:
+          _context11.prev = 14;
+          _context11.t0 = _context11["catch"](0);
+          console.error(_context11.t0);
+          return _context11.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context11.t0.message
+          }));
+
+        case 18:
+        case "end":
+          return _context11.stop();
       }
     }
   }, null, null, [[0, 14]]);
@@ -925,42 +973,42 @@ var deleteEmergencyContactOfPatient = function deleteEmergencyContactOfPatient(r
 var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(request, response) {
   var _request$params2, patientId, contactId, dataValidation, patient, emergencyContacts, targetContactList, _request$body2, name, countryCode, phone, relation, newPhone, patientPhone, withOutTargetContactList, patientContacts, newEmergencyContacts, updatedPatient;
 
-  return regeneratorRuntime.async(function updateEmergencyContactOfPatient$(_context11) {
+  return regeneratorRuntime.async(function updateEmergencyContactOfPatient$(_context12) {
     while (1) {
-      switch (_context11.prev = _context11.next) {
+      switch (_context12.prev = _context12.next) {
         case 0:
-          _context11.prev = 0;
+          _context12.prev = 0;
           _request$params2 = request.params, patientId = _request$params2.patientId, contactId = _request$params2.contactId;
           dataValidation = patientValidation.updateEmergencyContactOfPatient(request.body);
 
           if (dataValidation.isAccepted) {
-            _context11.next = 5;
+            _context12.next = 5;
             break;
           }
 
-          return _context11.abrupt("return", response.status(400).json({
+          return _context12.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
           }));
 
         case 5:
-          _context11.next = 7;
+          _context12.next = 7;
           return regeneratorRuntime.awrap(PatientModel.findById(patientId));
 
         case 7:
-          patient = _context11.sent;
+          patient = _context12.sent;
           emergencyContacts = patient.emergencyContacts;
           targetContactList = emergencyContacts.filter(function (contact) {
             return contact._id.equals(contactId);
           });
 
           if (!(targetContactList.length == 0)) {
-            _context11.next = 12;
+            _context12.next = 12;
             break;
           }
 
-          return _context11.abrupt("return", response.status(400).json({
+          return _context12.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'emergency contact does not exists',
             field: 'contactId'
@@ -978,11 +1026,11 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
           });
 
           if (!(newPhone == patientPhone)) {
-            _context11.next = 19;
+            _context12.next = 19;
             break;
           }
 
-          return _context11.abrupt("return", response.status(200).json({
+          return _context12.abrupt("return", response.status(200).json({
             accepted: false,
             message: translations[request.query.lang]['Contact phone is the same as patient phone'],
             field: 'phone'
@@ -990,11 +1038,11 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
 
         case 19:
           if (!patientContacts.includes(newPhone)) {
-            _context11.next = 21;
+            _context12.next = 21;
             break;
           }
 
-          return _context11.abrupt("return", response.status(400).json({
+          return _context12.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Contact phone is already registered in patient contacts'],
             field: 'phone'
@@ -1013,7 +1061,7 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
 
             return contact;
           });
-          _context11.next = 24;
+          _context12.next = 24;
           return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patientId, {
             emergencyContacts: newEmergencyContacts
           }, {
@@ -1021,26 +1069,26 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
           }));
 
         case 24:
-          updatedPatient = _context11.sent;
-          return _context11.abrupt("return", response.status(200).json({
+          updatedPatient = _context12.sent;
+          return _context12.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Updated patient contact successfully!'],
             patient: updatedPatient
           }));
 
         case 28:
-          _context11.prev = 28;
-          _context11.t0 = _context11["catch"](0);
-          console.error(_context11.t0);
-          return _context11.abrupt("return", response.status(500).json({
+          _context12.prev = 28;
+          _context12.t0 = _context12["catch"](0);
+          console.error(_context12.t0);
+          return _context12.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context11.t0.message
+            error: _context12.t0.message
           }));
 
         case 32:
         case "end":
-          return _context11.stop();
+          return _context12.stop();
       }
     }
   }, null, null, [[0, 28]]);
@@ -1049,30 +1097,30 @@ var updateEmergencyContactOfPatient = function updateEmergencyContactOfPatient(r
 var deleteDoctorFromPatient = function deleteDoctorFromPatient(request, response) {
   var _request$params3, patientId, doctorId, patient, doctors, targetDoctorList, updatedDoctorList, updatedPatient;
 
-  return regeneratorRuntime.async(function deleteDoctorFromPatient$(_context12) {
+  return regeneratorRuntime.async(function deleteDoctorFromPatient$(_context13) {
     while (1) {
-      switch (_context12.prev = _context12.next) {
+      switch (_context13.prev = _context13.next) {
         case 0:
-          _context12.prev = 0;
+          _context13.prev = 0;
           _request$params3 = request.params, patientId = _request$params3.patientId, doctorId = _request$params3.doctorId;
-          _context12.next = 4;
+          _context13.next = 4;
           return regeneratorRuntime.awrap(PatientModel.findById(patientId).select({
             doctors: 1
           }));
 
         case 4:
-          patient = _context12.sent;
+          patient = _context13.sent;
           doctors = patient.doctors;
           targetDoctorList = doctors.filter(function (doctor) {
             return doctor.doctorId == doctorId;
           });
 
           if (!(targetDoctorList.length == 0)) {
-            _context12.next = 9;
+            _context13.next = 9;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context13.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Doctor is not registered with the patient'],
             field: 'doctorId'
@@ -1082,7 +1130,7 @@ var deleteDoctorFromPatient = function deleteDoctorFromPatient(request, response
           updatedDoctorList = doctors.filter(function (doctor) {
             return doctor.doctorId != doctorId;
           });
-          _context12.next = 12;
+          _context13.next = 12;
           return regeneratorRuntime.awrap(PatientModel.findByIdAndUpdate(patientId, {
             doctors: updatedDoctorList
           }, {
@@ -1090,26 +1138,26 @@ var deleteDoctorFromPatient = function deleteDoctorFromPatient(request, response
           }));
 
         case 12:
-          updatedPatient = _context12.sent;
-          return _context12.abrupt("return", response.status(200).json({
+          updatedPatient = _context13.sent;
+          return _context13.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Removed patient successfully!'],
             patient: updatedPatient
           }));
 
         case 16:
-          _context12.prev = 16;
-          _context12.t0 = _context12["catch"](0);
-          console.error(_context12.t0);
-          return _context12.abrupt("return", response.status(500).json({
+          _context13.prev = 16;
+          _context13.t0 = _context13["catch"](0);
+          console.error(_context13.t0);
+          return _context13.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context12.t0.message
+            error: _context13.t0.message
           }));
 
         case 20:
         case "end":
-          return _context12.stop();
+          return _context13.stop();
       }
     }
   }, null, null, [[0, 16]]);
@@ -1117,6 +1165,7 @@ var deleteDoctorFromPatient = function deleteDoctorFromPatient(request, response
 
 module.exports = {
   addPatient: addPatient,
+  updatePatient: updatePatient,
   addEmergencyContactToPatient: addEmergencyContactToPatient,
   getPatientInfo: getPatientInfo,
   getPatient: getPatient,

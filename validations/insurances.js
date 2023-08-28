@@ -2,7 +2,7 @@ const utils = require('../utils/utils')
 
 const addInsurance = (insuranceData) => {
 
-    const { name, clinicId } = insuranceData
+    const { name, clinicId, startDate, endDate } = insuranceData
 
     if(!name) return { isAccepted: false, message: 'Name is required', field: 'name' }
 
@@ -12,17 +12,42 @@ const addInsurance = (insuranceData) => {
 
     if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic ID format', field: 'clinicId' }
 
+    if(!startDate) return { isAccepted: false, message: 'Start date is required', field: 'startDate' }
+
+    if(!utils.isDateValid(startDate)) return { isAccepted: false, message: 'Start date format is invalid', field: 'startDate' }
+
+    if(!endDate) return { isAccepted: false, message: 'End date is required', field: 'endDate' }
+
+    if(!utils.isDateValid(endDate)) return { isAccepted: false, message: 'End date format is invalid', field: 'endDate' }
+
+    if(new Date(startDate) >= new Date(endDate)) return { isAccepted: false, message: 'Start date cannot pass end date', field: 'endDate' }
+
+    if(new Date(endDate) < new Date()) return { isAccepted: false, message: 'End date has already passed', field: 'enddate' }
+
 
     return { isAccepted: true, message: 'data is valid', data: insuranceData }
 }
 
 const updateInsurance = (insuranceData) => {
 
-    const { name } = insuranceData
+    const { name, startDate, endDate } = insuranceData
 
     if(!name) return { isAccepted: false, message: 'Name is required', field: 'name' }
 
     if(typeof name != 'string') return { isAccepted: false, message: 'Invalid name format', field: 'name' }
+
+    if(!startDate) return { isAccepted: false, message: 'Start date is required', field: 'startDate' }
+
+    if(!utils.isDateValid(startDate)) return { isAccepted: false, message: 'Start date format is invalid', field: 'startDate' }
+
+    if(!endDate) return { isAccepted: false, message: 'End date is required', field: 'endDate' }
+
+    if(!utils.isDateValid(endDate)) return { isAccepted: false, message: 'End date format is invalid', field: 'endDate' }
+
+    if(new Date(startDate) >= new Date(endDate)) return { isAccepted: false, message: 'Start date cannot pass end date', field: 'endDate' }
+
+    if(new Date(endDate) < new Date()) return { isAccepted: false, message: 'End date has already passed', field: 'enddate' }
+
 
     return { isAccepted: true, message: 'data is valid', data: insuranceData }
 

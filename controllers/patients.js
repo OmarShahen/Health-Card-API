@@ -25,15 +25,17 @@ const addPatient = async (request, response) => {
             })
         }
 
-        const { cardId, cvc, clinicId, doctorId, countryCode, phone } = request.body
+        const { cardId, cvc, clinicId, doctorId } = request.body
 
-        const card = await PatientModel.find({ cardId })
-        if(card.length != 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: translations[request.query.lang]['Card ID is already used'],
-                field: 'cardId'
-            })
+        if(cardId) {
+            const card = await PatientModel.find({ cardId })
+            if(card.length != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: translations[request.query.lang]['Card ID is already used'],
+                    field: 'cardId'
+                })
+            }
         }
 
         if(clinicId) {
@@ -56,16 +58,6 @@ const addPatient = async (request, response) => {
                     field: 'doctorId'
                 })
             }
-        }
-
-
-        const phoneList = await PatientModel.find({ countryCode, phone })
-        if(phoneList.length != 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: translations[request.query.lang]['Phone number is already registered'],
-                field: 'phone'
-            })
         }
 
         const patientData = { ...request.body }
@@ -99,9 +91,13 @@ const addPatient = async (request, response) => {
             newClinicPatient = await clinicPatientObj.save()
         }
 
-        const cardData = { cardId, cvc }
-        const cardObj = new CardModel(cardData)
-        const newCard = await cardObj.save()
+        let newCard = {}
+
+        if(cardId) {
+            const cardData = { cardId, cvc }
+            const cardObj = new CardModel(cardData)
+            newCard = await cardObj.save()
+        }
 
         return response.status(200).json({
             accepted: true,
@@ -110,6 +106,40 @@ const addPatient = async (request, response) => {
             card: newCard,
             clinicPatient: newClinicPatient,
             clinicPatientDoctor: newClinicPatientDoctor
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updatePatient = async (request, response) => {
+
+    try {
+
+        const dataValidation = patientValidation.updatePatient(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { patientId } = request.params
+        const updatePatientData = { ...request.body }
+
+        const updatedPatient = await PatientModel.findByIdAndUpdate(patientId, updatePatientData, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Patient updated successfully!',
+            patient: updatedPatient
         })
 
     } catch(error) {
@@ -711,6 +741,7 @@ const deleteDoctorFromPatient = async (request, response) => {
 
 module.exports = { 
     addPatient,
+    updatePatient,
     addEmergencyContactToPatient,
     getPatientInfo, 
     getPatient, 

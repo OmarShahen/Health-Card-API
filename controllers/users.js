@@ -288,8 +288,16 @@ const verifyAndUpdateUserPassword = async (request, response) => {
         if(!bcrypt.compareSync(currentPassword, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[request.query.lang]['Current password entered is already used'],
+                message: translations[request.query.lang]['Current password is invalid'],
                 field: 'currentPassword'
+            })
+        }
+
+        if(bcrypt.compareSync(newPassword, user.password)) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['Current password entered is already used'],
+                field: 'newPassword'
             })
         }
 

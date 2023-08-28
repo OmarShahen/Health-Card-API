@@ -7,21 +7,25 @@ var appointmentsController = require('../controllers/appointments');
 var _require = require('../middlewares/verify-routes-params'),
     verifyUserId = _require.verifyUserId,
     verifyAppointmentId = _require.verifyAppointmentId,
-    verifyClinicId = _require.verifyClinicId;
+    verifyClinicId = _require.verifyClinicId,
+    verifyPatientId = _require.verifyPatientId;
 
 var _require2 = require('../middlewares/verify-clinic-mode'),
     verifyClinicAppointments = _require2.verifyClinicAppointments;
 
 var authorization = require('../middlewares/verify-permission');
 
-router.post('/v1/appointments', authorization.staffPermission, verifyClinicAppointments, function (request, response) {
+router.post('/v1/appointments', authorization.allPermission, verifyClinicAppointments, function (request, response) {
   return appointmentsController.addAppointment(request, response);
 });
-router.get('/v1/appointments/doctors/:userId', authorization.doctorPermission, verifyUserId, function (request, response) {
+router.get('/v1/appointments/doctors/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return appointmentsController.getAppointmentsByDoctorId(request, response);
 });
 router.get('/v1/appointments/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return appointmentsController.getAppointmentsByClinicId(request, response);
+});
+router.get('/v1/appointments/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
+  return appointmentsController.getAppointmentsByPatientId(request, response);
 });
 router.get('/v1/appointments/clinics/:clinicId/status/:status', authorization.allPermission, verifyClinicId, function (request, response) {
   return appointmentsController.getAppointmentsByClinicIdAndStatus(request, response);
@@ -29,10 +33,10 @@ router.get('/v1/appointments/clinics/:clinicId/status/:status', authorization.al
 router.get('/v1/appointments/doctors/:userId/status/:status', authorization.allPermission, verifyUserId, function (request, response) {
   return appointmentsController.getAppointmentsByDoctorIdAndStatus(request, response);
 });
-router.patch('/v1/appointments/:appointmentId/status', authorization.staffPermission, verifyAppointmentId, function (request, response) {
+router.patch('/v1/appointments/:appointmentId/status', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentStatus(request, response);
 });
-router["delete"]('/v1/appointments/:appointmentId', authorization.staffPermission, verifyAppointmentId, function (request, response) {
+router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.deleteAppointment(request, response);
 });
 module.exports = router;

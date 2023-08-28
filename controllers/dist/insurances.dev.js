@@ -2,6 +2,8 @@
 
 var InsuranceModel = require('../models/InsuranceModel');
 
+var InsurancePolicyModel = require('../models/InsurancePolicyModel');
+
 var ClinicModel = require('../models/ClinicModel');
 
 var InvoiceModel = require('../models/InvoiceModel');
@@ -208,7 +210,7 @@ var getInsurancesByOwnerId = function getInsurancesByOwnerId(request, response) 
 };
 
 var addInsurance = function addInsurance(request, response) {
-  var dataValidation, _request$body, name, clinicId, clinic, insuranceList, insuranceData, insuranceObj, newInsurance;
+  var dataValidation, _request$body, name, clinicId, startDate, endDate, clinic, insuranceList, insuranceData, insuranceObj, newInsurance;
 
   return regeneratorRuntime.async(function addInsurance$(_context5) {
     while (1) {
@@ -229,7 +231,7 @@ var addInsurance = function addInsurance(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, name = _request$body.name, clinicId = _request$body.clinicId;
+          _request$body = request.body, name = _request$body.name, clinicId = _request$body.clinicId, startDate = _request$body.startDate, endDate = _request$body.endDate;
           _context5.next = 7;
           return regeneratorRuntime.awrap(ClinicModel.findById(clinicId));
 
@@ -271,7 +273,9 @@ var addInsurance = function addInsurance(request, response) {
         case 15:
           insuranceData = {
             name: name,
-            clinicId: clinicId
+            clinicId: clinicId,
+            startDate: startDate,
+            endDate: endDate
           };
           insuranceObj = new InsuranceModel(insuranceData);
           _context5.next = 19;
@@ -304,7 +308,7 @@ var addInsurance = function addInsurance(request, response) {
 };
 
 var deleteInsurance = function deleteInsurance(request, response) {
-  var insuranceId, invoicesList, insurance;
+  var insuranceId, invoicesList, insurancePoliciesList, insurance;
   return regeneratorRuntime.async(function deleteInsurance$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
@@ -332,9 +336,29 @@ var deleteInsurance = function deleteInsurance(request, response) {
 
         case 7:
           _context6.next = 9;
-          return regeneratorRuntime.awrap(InsuranceModel.findByIdAndDelete(insuranceId));
+          return regeneratorRuntime.awrap(InsurancePolicyModel.find({
+            insuranceCompanyId: insuranceId
+          }));
 
         case 9:
+          insurancePoliciesList = _context6.sent;
+
+          if (!(insurancePoliciesList.length != 0)) {
+            _context6.next = 12;
+            break;
+          }
+
+          return _context6.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'This insurance is registered with insurance policies',
+            field: 'insuranceId'
+          }));
+
+        case 12:
+          _context6.next = 14;
+          return regeneratorRuntime.awrap(InsuranceModel.findByIdAndDelete(insuranceId));
+
+        case 14:
           insurance = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
@@ -342,8 +366,8 @@ var deleteInsurance = function deleteInsurance(request, response) {
             insurance: insurance
           }));
 
-        case 13:
-          _context6.prev = 13;
+        case 18:
+          _context6.prev = 18;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -352,16 +376,17 @@ var deleteInsurance = function deleteInsurance(request, response) {
             error: _context6.t0.message
           }));
 
-        case 17:
+        case 22:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 18]]);
 };
 
 var updateInsurance = function updateInsurance(request, response) {
-  var dataValidation, insuranceId, name, insurance, nameList, insuranceData, updatedInsurance;
+  var dataValidation, insuranceId, _request$body2, name, startDate, endDate, insurance, nameList, insuranceStartDate, insuranceEndDate, insurancePolicies, insuranceData, updatedInsurance;
+
   return regeneratorRuntime.async(function updateInsurance$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
@@ -382,7 +407,7 @@ var updateInsurance = function updateInsurance(request, response) {
 
         case 4:
           insuranceId = request.params.insuranceId;
-          name = request.body.name;
+          _request$body2 = request.body, name = _request$body2.name, startDate = _request$body2.startDate, endDate = _request$body2.endDate;
           _context7.next = 8;
           return regeneratorRuntime.awrap(InsuranceModel.findById(insuranceId));
 
@@ -415,15 +440,45 @@ var updateInsurance = function updateInsurance(request, response) {
           }));
 
         case 15:
+          insuranceStartDate = new Date(insurance.startDate).getTime();
+          insuranceEndDate = new Date(insurance.endDate).getTime();
+
+          if (!(new Date(startDate).getTime() != insuranceStartDate || new Date(endDate).getTime() != insuranceEndDate)) {
+            _context7.next = 23;
+            break;
+          }
+
+          _context7.next = 20;
+          return regeneratorRuntime.awrap(InsurancePolicyModel.find({
+            insuranceCompanyId: insuranceId
+          }));
+
+        case 20:
+          insurancePolicies = _context7.sent;
+
+          if (!(insurancePolicies.length != 0)) {
+            _context7.next = 23;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Cannot update dates and there is insurance policies registered with it',
+            field: 'insuranceId'
+          }));
+
+        case 23:
           insuranceData = {
-            name: name
+            name: name,
+            startDate: startDate,
+            endDate: endDate
           };
-          _context7.next = 18;
+          _context7.next = 26;
           return regeneratorRuntime.awrap(InsuranceModel.findByIdAndUpdate(insuranceId, insuranceData, {
             "new": true
           }));
 
-        case 18:
+        case 26:
           updatedInsurance = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
@@ -431,8 +486,8 @@ var updateInsurance = function updateInsurance(request, response) {
             insurance: updatedInsurance
           }));
 
-        case 22:
-          _context7.prev = 22;
+        case 30:
+          _context7.prev = 30;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -441,12 +496,12 @@ var updateInsurance = function updateInsurance(request, response) {
             error: _context7.t0.message
           }));
 
-        case 26:
+        case 34:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 22]]);
+  }, null, null, [[0, 30]]);
 };
 
 module.exports = {

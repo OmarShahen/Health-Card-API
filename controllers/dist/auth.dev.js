@@ -234,7 +234,7 @@ var userLogin = function userLogin(request, response) {
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Email is not registered',
+            message: translations[request.query.lang]['Email is not registered'],
             field: 'email'
           }));
 
@@ -248,7 +248,7 @@ var userLogin = function userLogin(request, response) {
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Incorrect password',
+            message: translations[request.query.lang]['Incorrect password'],
             field: 'password'
           }));
 

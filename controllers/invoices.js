@@ -130,9 +130,11 @@ const getInvoicesByClinicId = async (request, response) => {
 
         const { clinicId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('clinicId', clinicId, request.query)
+
         const invoices = await InvoiceModel.aggregate([
             {
-                $match: { clinicId: mongoose.Types.ObjectId(clinicId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -244,6 +246,7 @@ const getInvoicesByInsuranceCompanyId = async (request, response) => {
     }
 }
 
+
 const getInvoicesByOwnerId = async (request, response) => {
 
     try {
@@ -254,9 +257,14 @@ const getInvoicesByOwnerId = async (request, response) => {
 
         const clinics = ownerClinics.map(clinic => clinic.clinicId)
 
+        let { searchQuery } = utils.statsQueryGenerator('temp', userId, request.query)
+        
+        delete searchQuery.temp
+        searchQuery.clinicId = { $in: clinics }
+
         const invoices = await InvoiceModel.aggregate([
             {
-                $match: { clinicId: { $in: clinics } }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -275,6 +283,14 @@ const getInvoicesByOwnerId = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
                 $sort: {
                     createdAt: -1
                 }
@@ -290,6 +306,7 @@ const getInvoicesByOwnerId = async (request, response) => {
         invoices.forEach(invoice => {
             invoice.patient = invoice.patient[0]
             invoice.clinic = invoice.clinic[0]
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null
         })
 
         return response.status(200).json({
@@ -313,9 +330,11 @@ const getInvoicesByPatientId = async (request, response) => {
 
         const { patientId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+
         const invoices = await InvoiceModel.aggregate([
             {
-                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -323,6 +342,14 @@ const getInvoicesByPatientId = async (request, response) => {
                     localField: 'patientId',
                     foreignField: '_id',
                     as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
                 }
             },
             {
@@ -338,7 +365,10 @@ const getInvoicesByPatientId = async (request, response) => {
             }
         ])
 
-        invoices.forEach(invoice => invoice.patient = invoice.patient[0])
+        invoices.forEach(invoice => {
+            invoice.patient = invoice.patient[0]
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null
+        })
 
         return response.status(200).json({
             accepted: true,
@@ -355,6 +385,7 @@ const getInvoicesByPatientId = async (request, response) => {
     }
 }
 
+
 const addInvoice = async (request, response) => {
 
     try {
@@ -367,15 +398,15 @@ const addInvoice = async (request, response) => {
                 field: dataValidation.field
             })
         }
-        
-        const { clinicId, cardId } = request.body
+
+        const { clinicId, patientId, services, paymentMethod, invoiceDate, paidAmount, dueDate } = request.body
 
         const clinicPromise = ClinicModel.findById(clinicId)
-        const patientListPromise = PatientModel.find({ cardId })
+        const patientPromise = PatientModel.findById(patientId)
 
-        const [clinic, patientList] = await Promise.all([
+        const [clinic, patient] = await Promise.all([
             clinicPromise,
-            patientListPromise
+            patientPromise
         ])
 
         if(!clinic) {
@@ -386,103 +417,27 @@ const addInvoice = async (request, response) => {
             })
         }
 
-        if(patientList.length == 0) {
+        if(!patient) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Card Id does not exist',
-                field: 'cardId'
+                message: 'Patient Id does not exist',
+                field: 'patientId'
             })
         }
 
-        const patient = patientList[0]
-        const patientId = patient._id
-
-        const clinicPatientsList = await ClinicPatientModel.find({ clinicId: clinic._id, patientId })
+        const clinicPatientsList = await ClinicPatientModel.find({ clinicId, patientId })
         if(clinicPatientsList.length == 0) {
             return response.status(400).json({
                 accepted: false,
                 message: translations[request.query.lang]['Patient is not registered with the clinic'],
-                field: 'cardId'
-            })
-        }
-
-        const insurancePolicyList = await InsurancePolicyModel
-        .find({ patientId, clinicId: clinic._id, status: 'ACTIVE', endDate: { $gt: Date.now() } })
-
-        const counter = await CounterModel.findOneAndUpdate(
-            { name: `${clinic._id}-invoice` },
-            { $inc: { value: 1 } },
-            { new: true, upsert: true }
-        )
-
-        let newInvoiceData = { invoiceId: counter.value, patientId, ...request.body }
-
-        if(insurancePolicyList.length != 0) {
-            const insurancePolicy = insurancePolicyList[0]
-            newInvoiceData.insuranceCompanyId = insurancePolicy.insuranceCompanyId
-            newInvoiceData.insurancePolicyId = insurancePolicy._id
-            newInvoiceData.insuranceCoveragePercentage = insurancePolicy.coveragePercentage
-        }
-
-        const invoiceObj = new InvoiceModel(newInvoiceData)
-        const newInvoice = await invoiceObj.save()
-
-        let formattedInvoice = { ...newInvoice._doc, clinic } 
-        
-        if(insurancePolicyList.length != 0) {
-            const insurancePolicy = insurancePolicyList[0]
-            const insuranceCompany = await InsuranceCompanyModel.findById(insurancePolicy.insuranceCompanyId)
-
-            formattedInvoice.insurancePolicy = insurancePolicy
-            formattedInvoice.insuranceCompany = { ...insuranceCompany._doc }
-        }
-
-        return response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Added invoice successfully!'],
-            invoice: formattedInvoice,
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const addInvoiceCheckout = async (request, response) => {
-
-    try {
-
-        const dataValidation = invoiceValidator.addInvoiceCheckout(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
-        const { invoiceId } = request.params
-        const { services, paymentMethod, invoiceDate, paidAmount, dueDate } = request.body
-
-        const invoice = await InvoiceModel.findById(invoiceId)
-
-        if(invoice.status != 'DRAFT') {
-            return response.status(400).json({
-                accepted: false,
-                message: `Invoice is already checkedout`,
-                field: 'invoiceId'
+                field: 'patientId'
             })
         }
 
         const uniqueServicesSet = new Set(services)
         const uniqueServicesList = [...uniqueServicesSet]
 
-        const servicesList = await ServiceModel.find({ _id: { $in: uniqueServicesList }, clinicId: invoice.clinicId })
+        const servicesList = await ServiceModel.find({ _id: { $in: uniqueServicesList }, clinicId: clinicId })
 
         if(servicesList.length == 0 || servicesList.length != uniqueServicesList.length) {
             return response.status(400).json({
@@ -492,22 +447,24 @@ const addInvoiceCheckout = async (request, response) => {
             })
         }
 
+        const insurancePolicyList = await InsurancePolicyModel
+        .find({ patientId, clinicId, status: 'ACTIVE', endDate: { $gt: Date.now() } })
+
         const servicesIds = services
         const invoiceServicesTotalCost = utils.calculateServicesTotalCost(servicesList, servicesIds)
 
         let invoiceFinalTotalCost = invoiceServicesTotalCost
 
-        if(invoice.insurancePolicyId) {
-            const insurancePolicy = await InsurancePolicyModel.findById(invoice.insurancePolicyId)
+        if(insurancePolicyList.length != 0) {
+            const insurancePolicy = insurancePolicyList[0]
             const insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100)
             invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount
         }
-        
 
         if(invoiceFinalTotalCost < paidAmount) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Amount paid is more than the required',
+                message: translations[request.query.lang]['Amount paid is more than the required'],
                 field: 'paidAmount'
             })
         }
@@ -522,17 +479,16 @@ const addInvoiceCheckout = async (request, response) => {
             invoiceStatus = 'PARTIALLY_PAID'
         }
 
-        const invoiceServices = services.map(service => {
-            return {
-                invoiceId,
-                clinicId: invoice.clinicId,
-                patientId: invoice.patientId,
-                serviceId: service,
-                amount: servicesList.filter(targetService => targetService._id.equals(service))[0].cost
-            }
-        })
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: `${clinic._id}-invoice` },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
 
-        const invoiceNewData = {
+        let newInvoiceData = {
+            invoiceId: counter.value,
+            patientId,
+            clinicId,
             status: invoiceStatus,
             totalCost: invoiceServicesTotalCost,
             paymentMethod,
@@ -541,20 +497,42 @@ const addInvoiceCheckout = async (request, response) => {
             dueDate
         }
 
-        const updatedInvoicePromise = InvoiceModel
-        .findByIdAndUpdate(invoiceId, invoiceNewData, { new: true })
+        if(insurancePolicyList.length != 0) {
+            const insurancePolicy = insurancePolicyList[0]
+            newInvoiceData.insuranceCompanyId = insurancePolicy.insuranceCompanyId
+            newInvoiceData.insurancePolicyId = insurancePolicy._id
+            newInvoiceData.insuranceCoveragePercentage = insurancePolicy.coveragePercentage
+        } 
 
-        const newInvoiceServicesPromise = InvoiceServiceModel.insertMany(invoiceServices)
+        const invoiceObj = new InvoiceModel(newInvoiceData)
+        const newInvoice = await invoiceObj.save()
 
-        const [updatedInvoice, newInvoiceServices] = await Promise.all([
-            updatedInvoicePromise,
-            newInvoiceServicesPromise
-        ])
+        let formattedInvoice = { ...newInvoice._doc, clinic } 
+        
+        if(insurancePolicyList.length != 0) {
+            const insurancePolicy = insurancePolicyList[0]
+            const insuranceCompany = await InsuranceCompanyModel.findById(insurancePolicy.insuranceCompanyId)
+
+            formattedInvoice.insurancePolicy = insurancePolicy
+            formattedInvoice.insuranceCompany = { ...insuranceCompany._doc }
+        }   
+
+        const invoiceServices = services.map(service => {
+            return {
+                invoiceId: newInvoice._id,
+                clinicId: newInvoice.clinicId,
+                patientId: newInvoice.patientId,
+                serviceId: service,
+                amount: servicesList.filter(targetService => targetService._id.equals(service))[0].cost
+            }
+        })
+
+        const newInvoiceServices = await InvoiceServiceModel.insertMany(invoiceServices)
 
         return response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added invoice successfully!'],
-            invoice: updatedInvoice,
+            invoice: formattedInvoice,
             invoiceServices: newInvoiceServices
         })
 
@@ -641,8 +619,14 @@ const updateInvoicePaid = async (request, response) => {
 
         let invoiceStatus = invoice.status
         const NEW_PAID = invoice.paid + paid
+        let amountRemaining = invoice.totalCost - invoice.paid
 
-        if(NEW_PAID > invoice.totalCost) {
+        if(invoice.insuranceCoveragePercentage) {
+            const insuranceCoverageAmount = invoice.totalCost * (invoice.insuranceCoveragePercentage / 100)
+            amountRemaining = (invoice.totalCost - insuranceCoverageAmount) - invoice.paid
+        }
+
+        if(paid > amountRemaining) {
             return response.status(400).json({
                 accepted: false,
                 message: translations[request.query.lang]['Paid amount is more than the required'],
@@ -650,13 +634,13 @@ const updateInvoicePaid = async (request, response) => {
             })
         }
 
-        invoiceStatus = invoice.totalCost == NEW_PAID ? 'PAID' : 'PARTIALLY_PAID'
+        invoiceStatus = amountRemaining == paid ? 'PAID' : 'PARTIALLY_PAID'
 
         const invoiceUpdateData = { paid: NEW_PAID, status: invoiceStatus }
 
         const updatedInvoice = await InvoiceModel
         .findByIdAndUpdate(invoice._id, invoiceUpdateData, { new: true })
-
+        
         return response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added payment successfully!'],
@@ -747,5 +731,4 @@ module.exports = {
     getInvoicesByInsuranceCompanyId,
     getInvoicesByOwnerId,
     getInvoicesByPatientId,
-    addInvoiceCheckout
 }

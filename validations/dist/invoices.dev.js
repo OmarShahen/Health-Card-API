@@ -16,9 +16,12 @@ var checkServices = function checkServices(services) {
 
 var addInvoice = function addInvoice(invoiceData) {
   var clinicId = invoiceData.clinicId,
-      cardId = invoiceData.cardId,
-      status = invoiceData.status,
-      paymentMethod = invoiceData.paymentMethod;
+      patientId = invoiceData.patientId,
+      services = invoiceData.services,
+      paymentMethod = invoiceData.paymentMethod,
+      invoiceDate = invoiceData.invoiceDate,
+      paidAmount = invoiceData.paidAmount,
+      dueDate = invoiceData.dueDate;
   if (!clinicId) return {
     isAccepted: false,
     message: 'Clinic Id is required',
@@ -29,44 +32,16 @@ var addInvoice = function addInvoice(invoiceData) {
     message: 'Clinic Id format is invalid',
     field: 'clinicId'
   };
-  if (!cardId) return {
+  if (!patientId) return {
     isAccepted: false,
-    message: 'Card Id is required',
-    field: 'cardId'
+    message: 'Patient Id is required',
+    field: 'patientId'
   };
-  if (typeof cardId != 'number') return {
+  if (!utils.isObjectId(patientId)) return {
     isAccepted: false,
-    message: 'Card Id format is invalid',
-    field: 'cardId'
+    message: 'Patient Id format is invalid',
+    field: 'patientId'
   };
-  if (!status) return {
-    isAccepted: false,
-    message: 'Status is required',
-    field: 'status'
-  };
-  if (!config.INVOICE_STATUS.includes(status)) return {
-    isAccepted: false,
-    message: 'Invalid status value',
-    field: 'status'
-  };
-  if (paymentMethod && !config.PAYMENT_METHOD.includes(paymentMethod)) return {
-    isAccepted: false,
-    message: 'Invalid payment method value',
-    field: 'paymentMethod'
-  };
-  return {
-    isAccepted: true,
-    message: 'data is valid',
-    data: invoiceData
-  };
-};
-
-var addInvoiceCheckout = function addInvoiceCheckout(invoiceData) {
-  var services = invoiceData.services,
-      paymentMethod = invoiceData.paymentMethod,
-      invoiceDate = invoiceData.invoiceDate,
-      paidAmount = invoiceData.paidAmount,
-      dueDate = invoiceData.dueDate;
   if (!services) return {
     isAccepted: false,
     message: 'Services is required',
@@ -205,7 +180,6 @@ var updateInvoice = function updateInvoice(invoiceData) {
 
 module.exports = {
   addInvoice: addInvoice,
-  addInvoiceCheckout: addInvoiceCheckout,
   updateInvoiceStatus: updateInvoiceStatus,
   updateInvoicePaid: updateInvoicePaid,
   updateInvoice: updateInvoice

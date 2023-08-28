@@ -1,5 +1,11 @@
 "use strict";
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
@@ -7,12 +13,6 @@ function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread n
 function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
 
@@ -181,18 +181,18 @@ var getInvoice = function getInvoice(request, response) {
 };
 
 var getInvoicesByClinicId = function getInvoicesByClinicId(request, response) {
-  var clinicId, invoices;
+  var clinicId, _utils$statsQueryGene, searchQuery, invoices;
+
   return regeneratorRuntime.async(function getInvoicesByClinicId$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
           clinicId = request.params.clinicId;
-          _context3.next = 4;
+          _utils$statsQueryGene = utils.statsQueryGenerator('clinicId', clinicId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
+          _context3.next = 5;
           return regeneratorRuntime.awrap(InvoiceModel.aggregate([{
-            $match: {
-              clinicId: mongoose.Types.ObjectId(clinicId)
-            }
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'patients',
@@ -218,7 +218,7 @@ var getInvoicesByClinicId = function getInvoicesByClinicId(request, response) {
             }
           }]));
 
-        case 4:
+        case 5:
           invoices = _context3.sent;
           invoices.forEach(function (invoice) {
             invoice.patient = invoice.patient[0];
@@ -229,8 +229,8 @@ var getInvoicesByClinicId = function getInvoicesByClinicId(request, response) {
             invoices: invoices
           }));
 
-        case 9:
-          _context3.prev = 9;
+        case 10:
+          _context3.prev = 10;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -239,16 +239,16 @@ var getInvoicesByClinicId = function getInvoicesByClinicId(request, response) {
             error: _context3.t0.message
           }));
 
-        case 13:
+        case 14:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 10]]);
 };
 
 var getInvoicesByInsuranceCompanyId = function getInvoicesByInsuranceCompanyId(request, response) {
-  var insuranceId, _utils$statsQueryGene, searchQuery, invoices;
+  var insuranceId, _utils$statsQueryGene2, searchQuery, invoices;
 
   return regeneratorRuntime.async(function getInvoicesByInsuranceCompanyId$(_context4) {
     while (1) {
@@ -256,7 +256,7 @@ var getInvoicesByInsuranceCompanyId = function getInvoicesByInsuranceCompanyId(r
         case 0:
           _context4.prev = 0;
           insuranceId = request.params.insuranceId;
-          _utils$statsQueryGene = utils.statsQueryGenerator('insuranceCompanyId', insuranceId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
+          _utils$statsQueryGene2 = utils.statsQueryGenerator('insuranceCompanyId', insuranceId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
           _context4.next = 5;
           return regeneratorRuntime.awrap(InvoiceModel.aggregate([{
             $match: searchQuery
@@ -315,7 +315,8 @@ var getInvoicesByInsuranceCompanyId = function getInvoicesByInsuranceCompanyId(r
 };
 
 var getInvoicesByOwnerId = function getInvoicesByOwnerId(request, response) {
-  var userId, ownerClinics, clinics, invoices;
+  var userId, ownerClinics, clinics, _utils$statsQueryGene3, searchQuery, invoices;
+
   return regeneratorRuntime.async(function getInvoicesByOwnerId$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
@@ -332,13 +333,14 @@ var getInvoicesByOwnerId = function getInvoicesByOwnerId(request, response) {
           clinics = ownerClinics.map(function (clinic) {
             return clinic.clinicId;
           });
-          _context5.next = 8;
+          _utils$statsQueryGene3 = utils.statsQueryGenerator('temp', userId, request.query), searchQuery = _utils$statsQueryGene3.searchQuery;
+          delete searchQuery.temp;
+          searchQuery.clinicId = {
+            $in: clinics
+          };
+          _context5.next = 11;
           return regeneratorRuntime.awrap(InvoiceModel.aggregate([{
-            $match: {
-              clinicId: {
-                $in: clinics
-              }
-            }
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'patients',
@@ -354,6 +356,13 @@ var getInvoicesByOwnerId = function getInvoicesByOwnerId(request, response) {
               as: 'clinic'
             }
           }, {
+            $lookup: {
+              from: 'insurances',
+              localField: 'insuranceCompanyId',
+              foreignField: '_id',
+              as: 'insuranceCompany'
+            }
+          }, {
             $sort: {
               createdAt: -1
             }
@@ -364,19 +373,20 @@ var getInvoicesByOwnerId = function getInvoicesByOwnerId(request, response) {
             }
           }]));
 
-        case 8:
+        case 11:
           invoices = _context5.sent;
           invoices.forEach(function (invoice) {
             invoice.patient = invoice.patient[0];
             invoice.clinic = invoice.clinic[0];
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null;
           });
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             invoices: invoices
           }));
 
-        case 13:
-          _context5.prev = 13;
+        case 16:
+          _context5.prev = 16;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -385,33 +395,40 @@ var getInvoicesByOwnerId = function getInvoicesByOwnerId(request, response) {
             error: _context5.t0.message
           }));
 
-        case 17:
+        case 20:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 16]]);
 };
 
 var getInvoicesByPatientId = function getInvoicesByPatientId(request, response) {
-  var patientId, invoices;
+  var patientId, _utils$statsQueryGene4, searchQuery, invoices;
+
   return regeneratorRuntime.async(function getInvoicesByPatientId$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
           patientId = request.params.patientId;
-          _context6.next = 4;
+          _utils$statsQueryGene4 = utils.statsQueryGenerator('patientId', patientId, request.query), searchQuery = _utils$statsQueryGene4.searchQuery;
+          _context6.next = 5;
           return regeneratorRuntime.awrap(InvoiceModel.aggregate([{
-            $match: {
-              patientId: mongoose.Types.ObjectId(patientId)
-            }
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'patients',
               localField: 'patientId',
               foreignField: '_id',
               as: 'patient'
+            }
+          }, {
+            $lookup: {
+              from: 'insurances',
+              localField: 'insuranceCompanyId',
+              foreignField: '_id',
+              as: 'insuranceCompany'
             }
           }, {
             $sort: {
@@ -424,18 +441,19 @@ var getInvoicesByPatientId = function getInvoicesByPatientId(request, response) 
             }
           }]));
 
-        case 4:
+        case 5:
           invoices = _context6.sent;
           invoices.forEach(function (invoice) {
-            return invoice.patient = invoice.patient[0];
+            invoice.patient = invoice.patient[0];
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null;
           });
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
             invoices: invoices
           }));
 
-        case 9:
-          _context6.prev = 9;
+        case 10:
+          _context6.prev = 10;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -444,16 +462,16 @@ var getInvoicesByPatientId = function getInvoicesByPatientId(request, response) 
             error: _context6.t0.message
           }));
 
-        case 13:
+        case 14:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 10]]);
 };
 
 var addInvoice = function addInvoice(request, response) {
-  var dataValidation, _request$body, clinicId, cardId, clinicPromise, patientListPromise, _ref3, _ref4, clinic, patientList, patient, patientId, clinicPatientsList, insurancePolicyList, counter, newInvoiceData, insurancePolicy, invoiceObj, newInvoice, formattedInvoice, _insurancePolicy, insuranceCompany;
+  var dataValidation, _request$body, clinicId, patientId, services, paymentMethod, invoiceDate, paidAmount, dueDate, clinicPromise, patientPromise, _ref3, _ref4, clinic, patient, clinicPatientsList, uniqueServicesSet, uniqueServicesList, servicesList, insurancePolicyList, servicesIds, invoiceServicesTotalCost, invoiceFinalTotalCost, insurancePolicy, insuranceCoverageAmount, invoiceStatus, counter, newInvoiceData, _insurancePolicy, invoiceObj, newInvoice, formattedInvoice, _insurancePolicy2, insuranceCompany, invoiceServices, newInvoiceServices;
 
   return regeneratorRuntime.async(function addInvoice$(_context7) {
     while (1) {
@@ -474,19 +492,17 @@ var addInvoice = function addInvoice(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, clinicId = _request$body.clinicId, cardId = _request$body.cardId;
+          _request$body = request.body, clinicId = _request$body.clinicId, patientId = _request$body.patientId, services = _request$body.services, paymentMethod = _request$body.paymentMethod, invoiceDate = _request$body.invoiceDate, paidAmount = _request$body.paidAmount, dueDate = _request$body.dueDate;
           clinicPromise = ClinicModel.findById(clinicId);
-          patientListPromise = PatientModel.find({
-            cardId: cardId
-          });
+          patientPromise = PatientModel.findById(patientId);
           _context7.next = 9;
-          return regeneratorRuntime.awrap(Promise.all([clinicPromise, patientListPromise]));
+          return regeneratorRuntime.awrap(Promise.all([clinicPromise, patientPromise]));
 
         case 9:
           _ref3 = _context7.sent;
           _ref4 = _slicedToArray(_ref3, 2);
           clinic = _ref4[0];
-          patientList = _ref4[1];
+          patient = _ref4[1];
 
           if (clinic) {
             _context7.next = 15;
@@ -500,54 +516,107 @@ var addInvoice = function addInvoice(request, response) {
           }));
 
         case 15:
-          if (!(patientList.length == 0)) {
+          if (patient) {
             _context7.next = 17;
             break;
           }
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Card Id does not exist',
-            field: 'cardId'
+            message: 'Patient Id does not exist',
+            field: 'patientId'
           }));
 
         case 17:
-          patient = patientList[0];
-          patientId = patient._id;
-          _context7.next = 21;
+          _context7.next = 19;
           return regeneratorRuntime.awrap(ClinicPatientModel.find({
-            clinicId: clinic._id,
+            clinicId: clinicId,
             patientId: patientId
           }));
 
-        case 21:
+        case 19:
           clinicPatientsList = _context7.sent;
 
           if (!(clinicPatientsList.length == 0)) {
-            _context7.next = 24;
+            _context7.next = 22;
             break;
           }
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Patient is not registered with the clinic'],
-            field: 'cardId'
+            field: 'patientId'
           }));
 
-        case 24:
+        case 22:
+          uniqueServicesSet = new Set(services);
+          uniqueServicesList = _toConsumableArray(uniqueServicesSet);
           _context7.next = 26;
+          return regeneratorRuntime.awrap(ServiceModel.find({
+            _id: {
+              $in: uniqueServicesList
+            },
+            clinicId: clinicId
+          }));
+
+        case 26:
+          servicesList = _context7.sent;
+
+          if (!(servicesList.length == 0 || servicesList.length != uniqueServicesList.length)) {
+            _context7.next = 29;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'service Id is not registered',
+            field: 'services'
+          }));
+
+        case 29:
+          _context7.next = 31;
           return regeneratorRuntime.awrap(InsurancePolicyModel.find({
             patientId: patientId,
-            clinicId: clinic._id,
+            clinicId: clinicId,
             status: 'ACTIVE',
             endDate: {
               $gt: Date.now()
             }
           }));
 
-        case 26:
+        case 31:
           insurancePolicyList = _context7.sent;
-          _context7.next = 29;
+          servicesIds = services;
+          invoiceServicesTotalCost = utils.calculateServicesTotalCost(servicesList, servicesIds);
+          invoiceFinalTotalCost = invoiceServicesTotalCost;
+
+          if (insurancePolicyList.length != 0) {
+            insurancePolicy = insurancePolicyList[0];
+            insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100);
+            invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount;
+          }
+
+          if (!(invoiceFinalTotalCost < paidAmount)) {
+            _context7.next = 38;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Amount paid is more than the required'],
+            field: 'paidAmount'
+          }));
+
+        case 38:
+          if (invoiceFinalTotalCost == paidAmount) {
+            invoiceStatus = 'PAID';
+          } else if (paidAmount == 0) {
+            invoiceStatus = 'PENDING';
+          } else if (invoiceFinalTotalCost > paidAmount) {
+            invoiceStatus = 'PARTIALLY_PAID';
+          }
+
+          _context7.next = 41;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: "".concat(clinic._id, "-invoice")
           }, {
@@ -559,53 +628,77 @@ var addInvoice = function addInvoice(request, response) {
             upsert: true
           }));
 
-        case 29:
+        case 41:
           counter = _context7.sent;
-          newInvoiceData = _objectSpread({
+          newInvoiceData = {
             invoiceId: counter.value,
-            patientId: patientId
-          }, request.body);
+            patientId: patientId,
+            clinicId: clinicId,
+            status: invoiceStatus,
+            totalCost: invoiceServicesTotalCost,
+            paymentMethod: paymentMethod,
+            paid: paidAmount,
+            invoiceDate: new Date(invoiceDate),
+            dueDate: dueDate
+          };
 
           if (insurancePolicyList.length != 0) {
-            insurancePolicy = insurancePolicyList[0];
-            newInvoiceData.insuranceCompanyId = insurancePolicy.insuranceCompanyId;
-            newInvoiceData.insurancePolicyId = insurancePolicy._id;
-            newInvoiceData.insuranceCoveragePercentage = insurancePolicy.coveragePercentage;
+            _insurancePolicy = insurancePolicyList[0];
+            newInvoiceData.insuranceCompanyId = _insurancePolicy.insuranceCompanyId;
+            newInvoiceData.insurancePolicyId = _insurancePolicy._id;
+            newInvoiceData.insuranceCoveragePercentage = _insurancePolicy.coveragePercentage;
           }
 
           invoiceObj = new InvoiceModel(newInvoiceData);
-          _context7.next = 35;
+          _context7.next = 47;
           return regeneratorRuntime.awrap(invoiceObj.save());
 
-        case 35:
+        case 47:
           newInvoice = _context7.sent;
           formattedInvoice = _objectSpread({}, newInvoice._doc, {
             clinic: clinic
           });
 
           if (!(insurancePolicyList.length != 0)) {
-            _context7.next = 44;
+            _context7.next = 56;
             break;
           }
 
-          _insurancePolicy = insurancePolicyList[0];
-          _context7.next = 41;
-          return regeneratorRuntime.awrap(InsuranceCompanyModel.findById(_insurancePolicy.insuranceCompanyId));
+          _insurancePolicy2 = insurancePolicyList[0];
+          _context7.next = 53;
+          return regeneratorRuntime.awrap(InsuranceCompanyModel.findById(_insurancePolicy2.insuranceCompanyId));
 
-        case 41:
+        case 53:
           insuranceCompany = _context7.sent;
-          formattedInvoice.insurancePolicy = _insurancePolicy;
+          formattedInvoice.insurancePolicy = _insurancePolicy2;
           formattedInvoice.insuranceCompany = _objectSpread({}, insuranceCompany._doc);
 
-        case 44:
+        case 56:
+          invoiceServices = services.map(function (service) {
+            return {
+              invoiceId: newInvoice._id,
+              clinicId: newInvoice.clinicId,
+              patientId: newInvoice.patientId,
+              serviceId: service,
+              amount: servicesList.filter(function (targetService) {
+                return targetService._id.equals(service);
+              })[0].cost
+            };
+          });
+          _context7.next = 59;
+          return regeneratorRuntime.awrap(InvoiceServiceModel.insertMany(invoiceServices));
+
+        case 59:
+          newInvoiceServices = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added invoice successfully!'],
-            invoice: formattedInvoice
+            invoice: formattedInvoice,
+            invoiceServices: newInvoiceServices
           }));
 
-        case 47:
-          _context7.prev = 47;
+        case 63:
+          _context7.prev = 63;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -614,26 +707,27 @@ var addInvoice = function addInvoice(request, response) {
             error: _context7.t0.message
           }));
 
-        case 51:
+        case 67:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 47]]);
+  }, null, null, [[0, 63]]);
 };
 
-var addInvoiceCheckout = function addInvoiceCheckout(request, response) {
-  var dataValidation, invoiceId, _request$body2, services, paymentMethod, invoiceDate, paidAmount, dueDate, invoice, uniqueServicesSet, uniqueServicesList, servicesList, servicesIds, invoiceServicesTotalCost, invoiceFinalTotalCost, insurancePolicy, insuranceCoverageAmount, invoiceStatus, invoiceServices, invoiceNewData, updatedInvoicePromise, newInvoiceServicesPromise, _ref5, _ref6, updatedInvoice, newInvoiceServices;
-
-  return regeneratorRuntime.async(function addInvoiceCheckout$(_context8) {
+var updateInvoiceStatus = function updateInvoiceStatus(request, response) {
+  var invoiceId, status, dataValidation, invoice, updatedInvoice;
+  return regeneratorRuntime.async(function updateInvoiceStatus$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
         case 0:
           _context8.prev = 0;
-          dataValidation = invoiceValidator.addInvoiceCheckout(request.body);
+          invoiceId = request.params.invoiceId;
+          status = request.body.status;
+          dataValidation = invoiceValidator.updateInvoiceStatus(request.body);
 
           if (dataValidation.isAccepted) {
-            _context8.next = 4;
+            _context8.next = 6;
             break;
           }
 
@@ -643,130 +737,42 @@ var addInvoiceCheckout = function addInvoiceCheckout(request, response) {
             field: dataValidation.field
           }));
 
-        case 4:
-          invoiceId = request.params.invoiceId;
-          _request$body2 = request.body, services = _request$body2.services, paymentMethod = _request$body2.paymentMethod, invoiceDate = _request$body2.invoiceDate, paidAmount = _request$body2.paidAmount, dueDate = _request$body2.dueDate;
+        case 6:
           _context8.next = 8;
           return regeneratorRuntime.awrap(InvoiceModel.findById(invoiceId));
 
         case 8:
           invoice = _context8.sent;
 
-          if (!(invoice.status != 'DRAFT')) {
+          if (!(status == 'REFUNDED' && ['REFUNDED', 'DRAFT', 'PENDING'].includes(invoice.status))) {
             _context8.next = 11;
             break;
           }
 
           return _context8.abrupt("return", response.status(400).json({
             accepted: false,
-            message: "Invoice is already checkedout",
-            field: 'invoiceId'
+            message: "invoice is already ".concat(invoice.status.toLowerCase()),
+            field: 'status'
           }));
 
         case 11:
-          uniqueServicesSet = new Set(services);
-          uniqueServicesList = _toConsumableArray(uniqueServicesSet);
-          _context8.next = 15;
-          return regeneratorRuntime.awrap(ServiceModel.find({
-            _id: {
-              $in: uniqueServicesList
-            },
-            clinicId: invoice.clinicId
-          }));
-
-        case 15:
-          servicesList = _context8.sent;
-
-          if (!(servicesList.length == 0 || servicesList.length != uniqueServicesList.length)) {
-            _context8.next = 18;
-            break;
-          }
-
-          return _context8.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'service Id is not registered',
-            field: 'services'
-          }));
-
-        case 18:
-          servicesIds = services;
-          invoiceServicesTotalCost = utils.calculateServicesTotalCost(servicesList, servicesIds);
-          invoiceFinalTotalCost = invoiceServicesTotalCost;
-
-          if (!invoice.insurancePolicyId) {
-            _context8.next = 27;
-            break;
-          }
-
-          _context8.next = 24;
-          return regeneratorRuntime.awrap(InsurancePolicyModel.findById(invoice.insurancePolicyId));
-
-        case 24:
-          insurancePolicy = _context8.sent;
-          insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100);
-          invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount;
-
-        case 27:
-          if (!(invoiceFinalTotalCost < paidAmount)) {
-            _context8.next = 29;
-            break;
-          }
-
-          return _context8.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Amount paid is more than the required',
-            field: 'paidAmount'
-          }));
-
-        case 29:
-          if (invoiceFinalTotalCost == paidAmount) {
-            invoiceStatus = 'PAID';
-          } else if (paidAmount == 0) {
-            invoiceStatus = 'PENDING';
-          } else if (invoiceFinalTotalCost > paidAmount) {
-            invoiceStatus = 'PARTIALLY_PAID';
-          }
-
-          invoiceServices = services.map(function (service) {
-            return {
-              invoiceId: invoiceId,
-              clinicId: invoice.clinicId,
-              patientId: invoice.patientId,
-              serviceId: service,
-              amount: servicesList.filter(function (targetService) {
-                return targetService._id.equals(service);
-              })[0].cost
-            };
-          });
-          invoiceNewData = {
-            status: invoiceStatus,
-            totalCost: invoiceServicesTotalCost,
-            paymentMethod: paymentMethod,
-            paid: paidAmount,
-            invoiceDate: new Date(invoiceDate),
-            dueDate: dueDate
-          };
-          updatedInvoicePromise = InvoiceModel.findByIdAndUpdate(invoiceId, invoiceNewData, {
+          _context8.next = 13;
+          return regeneratorRuntime.awrap(InvoiceModel.findByIdAndUpdate(invoiceId, {
+            status: status
+          }, {
             "new": true
-          });
-          newInvoiceServicesPromise = InvoiceServiceModel.insertMany(invoiceServices);
-          _context8.next = 36;
-          return regeneratorRuntime.awrap(Promise.all([updatedInvoicePromise, newInvoiceServicesPromise]));
+          }));
 
-        case 36:
-          _ref5 = _context8.sent;
-          _ref6 = _slicedToArray(_ref5, 2);
-          updatedInvoice = _ref6[0];
-          newInvoiceServices = _ref6[1];
+        case 13:
+          updatedInvoice = _context8.sent;
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Added invoice successfully!'],
-            invoice: updatedInvoice,
-            invoiceServices: newInvoiceServices
+            message: translations[request.query.lang]['Updated invoice successfully!'],
+            invoice: updatedInvoice
           }));
 
-        case 43:
-          _context8.prev = 43;
+        case 17:
+          _context8.prev = 17;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -775,103 +781,29 @@ var addInvoiceCheckout = function addInvoiceCheckout(request, response) {
             error: _context8.t0.message
           }));
 
-        case 47:
-        case "end":
-          return _context8.stop();
-      }
-    }
-  }, null, null, [[0, 43]]);
-};
-
-var updateInvoiceStatus = function updateInvoiceStatus(request, response) {
-  var invoiceId, status, dataValidation, invoice, updatedInvoice;
-  return regeneratorRuntime.async(function updateInvoiceStatus$(_context9) {
-    while (1) {
-      switch (_context9.prev = _context9.next) {
-        case 0:
-          _context9.prev = 0;
-          invoiceId = request.params.invoiceId;
-          status = request.body.status;
-          dataValidation = invoiceValidator.updateInvoiceStatus(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context9.next = 6;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
-
-        case 6:
-          _context9.next = 8;
-          return regeneratorRuntime.awrap(InvoiceModel.findById(invoiceId));
-
-        case 8:
-          invoice = _context9.sent;
-
-          if (!(status == 'REFUNDED' && ['REFUNDED', 'DRAFT', 'PENDING'].includes(invoice.status))) {
-            _context9.next = 11;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: "invoice is already ".concat(invoice.status.toLowerCase()),
-            field: 'status'
-          }));
-
-        case 11:
-          _context9.next = 13;
-          return regeneratorRuntime.awrap(InvoiceModel.findByIdAndUpdate(invoiceId, {
-            status: status
-          }, {
-            "new": true
-          }));
-
-        case 13:
-          updatedInvoice = _context9.sent;
-          return _context9.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Updated invoice successfully!'],
-            invoice: updatedInvoice
-          }));
-
-        case 17:
-          _context9.prev = 17;
-          _context9.t0 = _context9["catch"](0);
-          console.error(_context9.t0);
-          return _context9.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context9.t0.message
-          }));
-
         case 21:
         case "end":
-          return _context9.stop();
+          return _context8.stop();
       }
     }
   }, null, null, [[0, 17]]);
 };
 
 var updateInvoicePaid = function updateInvoicePaid(request, response) {
-  var dataValidation, invoiceId, paid, invoice, invoiceStatus, NEW_PAID, invoiceUpdateData, updatedInvoice;
-  return regeneratorRuntime.async(function updateInvoicePaid$(_context10) {
+  var dataValidation, invoiceId, paid, invoice, invoiceStatus, NEW_PAID, amountRemaining, insuranceCoverageAmount, invoiceUpdateData, updatedInvoice;
+  return regeneratorRuntime.async(function updateInvoicePaid$(_context9) {
     while (1) {
-      switch (_context10.prev = _context10.next) {
+      switch (_context9.prev = _context9.next) {
         case 0:
-          _context10.prev = 0;
+          _context9.prev = 0;
           dataValidation = invoiceValidator.updateInvoicePaid(request.body);
 
           if (dataValidation.isAccepted) {
-            _context10.next = 4;
+            _context9.next = 4;
             break;
           }
 
-          return _context10.abrupt("return", response.status(400).json({
+          return _context9.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -880,18 +812,18 @@ var updateInvoicePaid = function updateInvoicePaid(request, response) {
         case 4:
           invoiceId = request.params.invoiceId;
           paid = request.body.paid;
-          _context10.next = 8;
+          _context9.next = 8;
           return regeneratorRuntime.awrap(InvoiceModel.findById(invoiceId));
 
         case 8:
-          invoice = _context10.sent;
+          invoice = _context9.sent;
 
           if (!(!['PARTIALLY_PAID', 'PENDING'].includes(invoice.status) || invoice.totalCost == invoice.paid)) {
-            _context10.next = 11;
+            _context9.next = 11;
             break;
           }
 
-          return _context10.abrupt("return", response.status(400).json({
+          return _context9.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Invoice is not partially paid'],
             field: 'status'
@@ -900,39 +832,91 @@ var updateInvoicePaid = function updateInvoicePaid(request, response) {
         case 11:
           invoiceStatus = invoice.status;
           NEW_PAID = invoice.paid + paid;
+          amountRemaining = invoice.totalCost - invoice.paid;
 
-          if (!(NEW_PAID > invoice.totalCost)) {
-            _context10.next = 15;
+          if (invoice.insuranceCoveragePercentage) {
+            insuranceCoverageAmount = invoice.totalCost * (invoice.insuranceCoveragePercentage / 100);
+            amountRemaining = invoice.totalCost - insuranceCoverageAmount - invoice.paid;
+          }
+
+          if (!(paid > amountRemaining)) {
+            _context9.next = 17;
             break;
           }
 
-          return _context10.abrupt("return", response.status(400).json({
+          return _context9.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Paid amount is more than the required'],
             field: 'paid'
           }));
 
-        case 15:
-          invoiceStatus = invoice.totalCost == NEW_PAID ? 'PAID' : 'PARTIALLY_PAID';
+        case 17:
+          invoiceStatus = amountRemaining == paid ? 'PAID' : 'PARTIALLY_PAID';
           invoiceUpdateData = {
             paid: NEW_PAID,
             status: invoiceStatus
           };
-          _context10.next = 19;
+          _context9.next = 21;
           return regeneratorRuntime.awrap(InvoiceModel.findByIdAndUpdate(invoice._id, invoiceUpdateData, {
             "new": true
           }));
 
-        case 19:
-          updatedInvoice = _context10.sent;
-          return _context10.abrupt("return", response.status(200).json({
+        case 21:
+          updatedInvoice = _context9.sent;
+          return _context9.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added payment successfully!'],
             invoice: updatedInvoice
           }));
 
-        case 23:
-          _context10.prev = 23;
+        case 25:
+          _context9.prev = 25;
+          _context9.t0 = _context9["catch"](0);
+          console.error(_context9.t0);
+          return _context9.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context9.t0.message
+          }));
+
+        case 29:
+        case "end":
+          return _context9.stop();
+      }
+    }
+  }, null, null, [[0, 25]]);
+};
+
+var deleteInvoice = function deleteInvoice(request, response) {
+  var invoiceId, deletedInvoicePromise, deletedInvoiceServicesPromise, _ref5, _ref6, deletedInvoice, deletedInvoiceServices;
+
+  return regeneratorRuntime.async(function deleteInvoice$(_context10) {
+    while (1) {
+      switch (_context10.prev = _context10.next) {
+        case 0:
+          _context10.prev = 0;
+          invoiceId = request.params.invoiceId;
+          deletedInvoicePromise = InvoiceModel.findByIdAndDelete(invoiceId);
+          deletedInvoiceServicesPromise = InvoiceServiceModel.deleteMany({
+            invoiceId: invoiceId
+          });
+          _context10.next = 6;
+          return regeneratorRuntime.awrap(Promise.all([deletedInvoicePromise, deletedInvoiceServicesPromise]));
+
+        case 6:
+          _ref5 = _context10.sent;
+          _ref6 = _slicedToArray(_ref5, 2);
+          deletedInvoice = _ref6[0];
+          deletedInvoiceServices = _ref6[1];
+          return _context10.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Deleted invoice successfully!'],
+            invoice: deletedInvoice,
+            invoiceServices: deletedInvoiceServices.deletedCount
+          }));
+
+        case 13:
+          _context10.prev = 13;
           _context10.t0 = _context10["catch"](0);
           console.error(_context10.t0);
           return _context10.abrupt("return", response.status(500).json({
@@ -941,44 +925,43 @@ var updateInvoicePaid = function updateInvoicePaid(request, response) {
             error: _context10.t0.message
           }));
 
-        case 27:
+        case 17:
         case "end":
           return _context10.stop();
       }
     }
-  }, null, null, [[0, 23]]);
+  }, null, null, [[0, 13]]);
 };
 
-var deleteInvoice = function deleteInvoice(request, response) {
-  var invoiceId, deletedInvoicePromise, deletedInvoiceServicesPromise, _ref7, _ref8, deletedInvoice, deletedInvoiceServices;
-
-  return regeneratorRuntime.async(function deleteInvoice$(_context11) {
+var updateInvoice = function updateInvoice(request, response) {
+  var invoiceId, dataValidation;
+  return regeneratorRuntime.async(function updateInvoice$(_context11) {
     while (1) {
       switch (_context11.prev = _context11.next) {
         case 0:
           _context11.prev = 0;
           invoiceId = request.params.invoiceId;
-          deletedInvoicePromise = InvoiceModel.findByIdAndDelete(invoiceId);
-          deletedInvoiceServicesPromise = InvoiceServiceModel.deleteMany({
-            invoiceId: invoiceId
-          });
-          _context11.next = 6;
-          return regeneratorRuntime.awrap(Promise.all([deletedInvoicePromise, deletedInvoiceServicesPromise]));
+          dataValidation = invoiceValidator.updateInvoice(request.body);
 
-        case 6:
-          _ref7 = _context11.sent;
-          _ref8 = _slicedToArray(_ref7, 2);
-          deletedInvoice = _ref8[0];
-          deletedInvoiceServices = _ref8[1];
-          return _context11.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Deleted invoice successfully!'],
-            invoice: deletedInvoice,
-            invoiceServices: deletedInvoiceServices.deletedCount
+          if (dataValidation.isAccepted) {
+            _context11.next = 5;
+            break;
+          }
+
+          return _context11.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
-        case 13:
-          _context11.prev = 13;
+        case 5:
+          return _context11.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Updated invoice successfully!']
+          }));
+
+        case 8:
+          _context11.prev = 8;
           _context11.t0 = _context11["catch"](0);
           console.error(_context11.t0);
           return _context11.abrupt("return", response.status(500).json({
@@ -987,54 +970,9 @@ var deleteInvoice = function deleteInvoice(request, response) {
             error: _context11.t0.message
           }));
 
-        case 17:
-        case "end":
-          return _context11.stop();
-      }
-    }
-  }, null, null, [[0, 13]]);
-};
-
-var updateInvoice = function updateInvoice(request, response) {
-  var invoiceId, dataValidation;
-  return regeneratorRuntime.async(function updateInvoice$(_context12) {
-    while (1) {
-      switch (_context12.prev = _context12.next) {
-        case 0:
-          _context12.prev = 0;
-          invoiceId = request.params.invoiceId;
-          dataValidation = invoiceValidator.updateInvoice(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context12.next = 5;
-            break;
-          }
-
-          return _context12.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
-
-        case 5:
-          return _context12.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Updated invoice successfully!']
-          }));
-
-        case 8:
-          _context12.prev = 8;
-          _context12.t0 = _context12["catch"](0);
-          console.error(_context12.t0);
-          return _context12.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context12.t0.message
-          }));
-
         case 12:
         case "end":
-          return _context12.stop();
+          return _context11.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -1051,6 +989,5 @@ module.exports = {
   getInvoicesByClinicId: getInvoicesByClinicId,
   getInvoicesByInsuranceCompanyId: getInvoicesByInsuranceCompanyId,
   getInvoicesByOwnerId: getInvoicesByOwnerId,
-  getInvoicesByPatientId: getInvoicesByPatientId,
-  addInvoiceCheckout: addInvoiceCheckout
+  getInvoicesByPatientId: getInvoicesByPatientId
 };

@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const insurancePoliciesController = require('../controllers/insurance-policies')
-const { verifyClinicId, verifyUserId, verifyInsurancePolicyId, verifyInsuranceId } = require('../middlewares/verify-routes-params')
+const { verifyClinicId, verifyUserId, verifyInsurancePolicyId, verifyInsuranceId, verifyPatientId } = require('../middlewares/verify-routes-params')
 const { verifyClinicServices } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
@@ -22,6 +22,21 @@ router.get(
     authorization.allPermission,
     verifyClinicId,
     (request, response) => insurancePoliciesController.getInsurancePoliciesByClinicId(request, response)
+)
+
+router.get(
+    '/v1/insurance-policies/patients/:patientId',
+    authorization.allPermission,
+    verifyPatientId,
+    (request, response) => insurancePoliciesController.getInsurancePoliciesByPatientId(request, response)
+)
+
+router.get(
+    '/v1/insurance-policies/patients/:patientId/clinics/:clinicId',
+    authorization.allPermission,
+    verifyPatientId,
+    verifyClinicId,
+    (request, response) => insurancePoliciesController.getClinicPatientActiveInsurancePolicy(request, response)
 )
 
 router.get(

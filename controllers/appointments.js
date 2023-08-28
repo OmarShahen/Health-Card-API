@@ -1,4 +1,5 @@
 const AppointmentModel = require('../models/AppointmentModel')
+const PatientModel = require('../models/PatientModel')
 const UserModel = require('../models/UserModel')
 const ServiceModel = require('../models/ServiceModel')
 const appointmentValidation = require('../validations/appointments')
@@ -24,12 +25,10 @@ const addAppointment = async (request, response) => {
         const { lang } = request.query
 
         const { 
+            patientId,
             clinicId,
             doctorId, 
             serviceId, 
-            patientName, 
-            patientCountryCode, 
-            patientPhone, 
             status, 
             reservationTime,
             isSendMail
@@ -44,29 +43,29 @@ const addAppointment = async (request, response) => {
             })
         }
 
+        const patientPromise = PatientModel.findById(patientId)
         const clinicPromise = ClinicModel.findById(clinicId)
-        const serviceListPromise = ServiceModel.find({ _id: serviceId, clinicId })
         const doctorPromise = UserModel.findById(doctorId)
 
-        const [clinic, serviceList, doctor] = await Promise.all([
+        const [patient, clinic, doctor] = await Promise.all([
+            patientPromise,
             clinicPromise,
-            serviceListPromise,
             doctorPromise
         ])
+
+        if(!patient) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'patient Id is not registered',
+                field: 'patientId'
+            })
+        }
 
         if(!clinic) {
             return response.status(400).json({
                 accepted: false,
                 message: 'clinic Id is not registered',
                 field: 'clinicId'
-            })
-        }
-
-        if(serviceList.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'service Id is not registered',
-                field: 'serviceId'
             })
         }
 
@@ -78,6 +77,20 @@ const addAppointment = async (request, response) => {
             })
         }
 
+        let serviceList = []
+
+        if(serviceId) {
+            serviceList = await ServiceModel.find({ _id: serviceId, clinicId })
+            if(serviceList.length == 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'service Id is not registered',
+                    field: 'serviceId'
+                })
+            }
+        }
+
+
         const appointment = await AppointmentModel.find({ doctorId, reservationTime })
         if(appointment.length != 0) {
             return response.status(400).json({
@@ -88,12 +101,10 @@ const addAppointment = async (request, response) => {
         }
 
         const appointmentData = { 
+            patientId,
             clinicId,
             doctorId, 
             serviceId, 
-            patientName,
-            patientCountryCode,
-            patientPhone,
             status,
             reservationTime
         }
@@ -106,7 +117,7 @@ const addAppointment = async (request, response) => {
             appointmentData: {
                 clinicName: clinic.name,
                 clinicCity: utils.capitalizeFirstLetter(clinic.city),
-                serviceName: serviceList[0].name,
+                serviceName: serviceId ? serviceList[0].name : 'Issue',
                 appointmentDate: format(new Date(newAppointment.reservationTime), 'EEEE, MMMM d, yyyy h:mm a')
             }
 
@@ -158,6 +169,14 @@ const getAppointmentsByDoctorId = async (request, response) => {
             },
             {
                 $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
                     from: 'services',
                     localField: 'serviceId',
                     foreignField: '_id',
@@ -185,6 +204,7 @@ const getAppointmentsByDoctorId = async (request, response) => {
         ])
 
         appointments.forEach(appointment => {
+            appointment.patient = appointment.patient[0]
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
             appointment.service = appointment.service[0]
@@ -233,6 +253,14 @@ const getAppointmentsByClinicId = async (request, response) => {
             },
             {
                 $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
                     from: 'services',
                     localField: 'serviceId',
                     foreignField: '_id',
@@ -260,6 +288,7 @@ const getAppointmentsByClinicId = async (request, response) => {
         ])
 
         appointments.forEach(appointment => {
+            appointment.patient = appointment.patient[0]
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
             appointment.service = appointment.service[0]
@@ -284,6 +313,90 @@ const getAppointmentsByClinicId = async (request, response) => {
         })
     }
 }
+
+const getAppointmentsByPatientId = async (request, response) => {
+
+    try {
+
+        const { patientId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query, 'reservationTime')
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'services',
+                    localField: 'serviceId',
+                    foreignField: '_id',
+                    as: 'service'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.patient = appointment.patient[0]
+            appointment.doctor = appointment.doctor[0]
+            appointment.clinic = appointment.clinic[0]
+            appointment.service = appointment.service[0]
+            const todayDate = new Date()
+
+            if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
+                appointment.status = 'EXPIRED'
+            }
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 const getAppointmentsByClinicIdAndStatus = async (request, response) => {
 
@@ -425,6 +538,7 @@ module.exports = {
     addAppointment, 
     getAppointmentsByDoctorId, 
     getAppointmentsByClinicId,
+    getAppointmentsByPatientId,
     getAppointmentsByClinicIdAndStatus,
     getAppointmentsByDoctorIdAndStatus,
     updateAppointmentStatus, 

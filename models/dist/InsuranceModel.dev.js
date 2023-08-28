@@ -2,8 +2,6 @@
 
 var mongoose = require('mongoose');
 
-var config = require('../config/config');
-
 var InsuranceSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -11,6 +9,14 @@ var InsuranceSchema = new mongoose.Schema({
   },
   clinicId: {
     type: mongoose.Types.ObjectId,
+    required: true
+  },
+  startDate: {
+    type: Date,
+    required: true
+  },
+  endDate: {
+    type: Date,
     required: true
   }
 }, {

@@ -40,9 +40,10 @@ const medicineValidation  = (medicine) => {
 
 }
 
+
 const addPrescription = (prescriptionData) => {
 
-    const { doctorId, patientId, note, medicines } = prescriptionData
+    const { doctorId, patientId, clinicId, note, medicines, registrationDate, notes } = prescriptionData
 
     if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
 
@@ -50,29 +51,7 @@ const addPrescription = (prescriptionData) => {
 
     if(!patientId) return { isAccepted: false, message: 'Patient Id is required', field: 'patientId' }
 
-    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Invalid patient Id formate', field: 'patientId' }
-
-    if(note && typeof note != 'string') return { isAccepted: false, message: 'note must be a string', field: 'note' }
-
-    if(!Array.isArray(medicines) || medicines.length == 0) return { isAccepted: false, message: 'Medicines must be a list', field: 'medicines' }
-
-    for(let i=0;i<medicines.length;i++) {
-        const dataValidation = medicineValidation(medicines[i])
-        if(!dataValidation.isAccepted) return dataValidation
-    }
-
-
-    return { isAccepted: true, message: 'data is valid', data: prescriptionData }
-
-}
-
-const addPrescriptionByPatientCardId = (prescriptionData) => {
-
-    const { doctorId, clinicId, note, medicines, registrationDate, notes } = prescriptionData
-
-    if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
-
-    if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor Id formate', field: 'doctorId' }
+    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Invalid patient Id format', field: 'patientId' }
 
     if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
 
@@ -116,4 +95,4 @@ const updatePrescription = (prescriptionData) => {
 
 
 
-module.exports = { addPrescription, addPrescriptionByPatientCardId, updatePrescription } 
+module.exports = { addPrescription, updatePrescription } 

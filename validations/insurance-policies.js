@@ -3,7 +3,7 @@ const config = require('../config/config')
 
 const addInsurancePolicy = (insurancePolicyData) => {
 
-    const { insuranceCompanyId, clinicId, cardId, type, coveragePercentage, status, startDate, endDate } = insurancePolicyData
+    const { insuranceCompanyId, clinicId, patientId, type, coveragePercentage, status, startDate, endDate } = insurancePolicyData
 
     if(!insuranceCompanyId) return { isAccepted: false, message: 'Insurance company ID is required', field: 'insuranceCompanyId' }
 
@@ -13,9 +13,9 @@ const addInsurancePolicy = (insurancePolicyData) => {
 
     if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Clinic ID format is invalid', field: 'clinicId' }
 
-    if(!cardId) return { isAccepted: false, message: 'Card ID is required', field: 'cardId' }
+    if(!patientId) return { isAccepted: false, message: 'Patient ID is required', field: 'patientId' }
 
-    if(typeof cardId != 'number') return { isAccepted: false, message: 'Card ID format is invalid', field: 'cardId' }
+    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Patient ID format is invalid', field: 'patientId' }
 
     if(!type) return { isAccepted: false, message: 'Type is required', field: 'type' }
 

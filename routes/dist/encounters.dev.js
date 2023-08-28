@@ -9,7 +9,12 @@ var _require = require('../middlewares/verify-routes-params'),
     verifyUserId = _require.verifyUserId,
     verifyEncounterId = _require.verifyEncounterId;
 
+var _require2 = require('../middlewares/verify-clinic-mode'),
+    verifyClinicEncounters = _require2.verifyClinicEncounters;
+
 var authorization = require('../middlewares/verify-permission');
+
+var actionAccess = require('../middlewares/verify-action-access');
 
 router.post('/v1/encounters', authorization.allPermission, function (request, response) {
   return encountersController.addEncounter(request, response);
@@ -23,13 +28,10 @@ router.get('/v1/encounters/doctors/:userId', authorization.allPermission, verify
 router.get('/v1/encounters/:encounterId', authorization.allPermission, verifyEncounterId, function (request, response) {
   return encountersController.getEncounter(request, response);
 });
-router["delete"]('/v1/encounters/:encounterId', authorization.allPermission, verifyEncounterId, function (request, response) {
+router["delete"]('/v1/encounters/:encounterId', authorization.allPermission, verifyEncounterId, actionAccess.verifyDoctorActionAccess, function (request, response) {
   return encountersController.deleteEncounter(request, response);
 });
-router.post('/v1/encounters/cardsId/:cardId', authorization.allPermission, function (request, response) {
-  return encountersController.addEncounterByPatientCardId(request, response);
-});
-router.put('/v1/encounters/:encounterId', authorization.allPermission, verifyEncounterId, function (request, response) {
+router.put('/v1/encounters/:encounterId', authorization.allPermission, verifyEncounterId, actionAccess.verifyDoctorActionAccess, function (request, response) {
   return encountersController.updateEncounter(request, response);
 });
 module.exports = router;

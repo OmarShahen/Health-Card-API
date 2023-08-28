@@ -11,6 +11,13 @@ router.post(
     (request, response) => patientsController.addPatient(request, response)
 )
 
+router.put(
+    '/v1/patients/:patientId',
+    authorization.allPermission,
+    verifyPatientId,
+    (request, response) => patientsController.updatePatient(request, response)
+)
+
 router.post(
     '/v1/patients/:patientId/emergency-contacts',
     authorization.allPermission,
@@ -66,14 +73,14 @@ router.get(
 
 router.delete(
     '/v1/patients/:patientId/emergency-contacts/country-codes/:countryCode/phones/:phone',
-    authorization.staffPermission,
+    authorization.allPermission,
     verifyPatientId, 
     (request, response) => patientsController.deleteEmergencyContactOfPatient(request, response)
 )
 
 router.put(
     '/v1/patients/:patientId/emergency-contacts/:contactId',
-    authorization.staffPermission,
+    authorization.allPermission,
     verifyPatientId,
     (request, response) => patientsController.updateEmergencyContactOfPatient(request, response)
 )

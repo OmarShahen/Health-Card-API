@@ -23,6 +23,7 @@ const formatPrescriptionsDrugs = (prescriptions) => {
     return drugs
 }
 
+
 const addPrescription = async (request, response) => {
 
     try {
@@ -36,100 +37,24 @@ const addPrescription = async (request, response) => {
             })
         }
 
-        const { doctorId, patientId, medicines } = request.body
+        const { doctorId, patientId, clinicId, medicines, registrationDate, notes } = request.body
 
-        const doctorPromise = UserModel.findById(doctorId)
         const patientPromise = PatientModel.findById(patientId)
-
-        const [doctor, patient] = await Promise.all([
-            doctorPromise,
-            patientPromise
-        ])
-
-        if(!doctor || doctor.role != 'DOCTOR') {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Doctor Id does not exist',
-                field: 'doctorId'
-            })
-        }
-
-        if(!patient) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Patient Id does not exist',
-                field: 'patientId'
-            })
-        }
-
-        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ patientId, doctorId })
-        
-        if(doctorPatientAccessList.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'doctor has no access to this patient',
-                field: 'patientId'
-            })
-        }
-
-        const counter = await CounterModel.findOneAndUpdate(
-            { name: 'prescription' },
-            { $inc: { value: 1 } },
-            { new: true, upsert: true }
-        )
-        const prescriptionData = { prescriptionId: counter.value, doctorId, patientId, medicines }
-        const prescriptionObj = new PrescriptionModel(prescriptionData)
-        const newPrescription = await prescriptionObj.save()
-
-        return response.status(200).json({
-            accepted: true,
-            message: 'Prescription is recorded successfully',
-            prescription: newPrescription
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const addPrescriptionByPatientCardId = async (request, response) => {
-
-    try {
-
-        const dataValidation = prescriptionValidation.addPrescriptionByPatientCardId(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
-        const { cardId } = request.params
-        const { doctorId, clinicId, medicines, registrationDate, notes } = request.body
-
-
-        const patientListPromise = PatientModel.find({ cardId })
         const doctorPromise = UserModel.findById(doctorId)
         const clinicPromise = ClinicModel.findById(clinicId)
 
 
-        const [doctor, patientList, clinic] = await Promise.all([
+        const [doctor, patient, clinic] = await Promise.all([
             doctorPromise,
-            patientListPromise,
+            patientPromise,
             clinicPromise
         ])
 
-        if(patientList.length == 0) {
+        if(!patient) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[request.query.lang]['Patient card Id does not exists'],
-                field: 'cardId'
+                message:'Patient ID is not registered',
+                field: 'patientId'
             })
         }
 
@@ -149,7 +74,6 @@ const addPrescriptionByPatientCardId = async (request, response) => {
             })
         }
 
-        const patient = patientList[0]
         const doctorPatientAccessList = await ClinicPatientDoctorModel.find({ doctorId, patientId: patient._id, clinicId: clinic._id })
 
         if(doctorPatientAccessList.length == 0) {
@@ -668,7 +592,6 @@ const getPatientDrugs = async (request, response) => {
 
 module.exports = { 
     addPrescription,
-    addPrescriptionByPatientCardId,
     getDoctorPrescriptions, 
     getClinicPrescriptions,
     getPatientPrescriptions, 

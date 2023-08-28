@@ -16,11 +16,10 @@ var _require2 = require('../middlewares/verify-clinic-mode'),
 
 var authorization = require('../middlewares/verify-permission');
 
+var actionAccess = require('../middlewares/verify-action-access');
+
 router.post('/v1/prescriptions', authorization.allPermission, function (request, response) {
   return prescriptionsController.addPrescription(request, response);
-});
-router.post('/v1/prescriptions/cardsId/:cardId', authorization.allPermission, verifyClinicPrescriptions, function (request, response) {
-  return prescriptionsController.addPrescriptionByPatientCardId(request, response);
 });
 router.get('/v1/prescriptions/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return prescriptionsController.getClinicPrescriptions(request, response);
@@ -44,13 +43,13 @@ router.patch('/v1/prescriptions/:prescriptionId/rate', authorization.allPermissi
     (request, response) => prescriptionsController.getPatientLastPrescriptionByCardUUID(request, response)
 )*/
 
-router["delete"]('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, function (request, response) {
+router["delete"]('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, actionAccess.verifyDoctorActionAccess, function (request, response) {
   return prescriptionsController.deletePrescription(request, response);
 });
 router.get('/v1/prescriptions/patients/:patientId/drugs', authorization.allPermission, verifyPatientId, function (request, response) {
   return prescriptionsController.getPatientDrugs(request, response);
 });
-router.put('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, function (request, response) {
+router.put('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, actionAccess.verifyDoctorActionAccess, function (request, response) {
   return prescriptionsController.updatePrescription(request, response);
 });
 module.exports = router;

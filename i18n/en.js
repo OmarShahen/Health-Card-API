@@ -92,5 +92,10 @@ module.exports = {
     "Deleted insurance successfully!": "Deleted insurance successfully!",
     "Updated insurance successfully!": "Updated insurance successfully!",
     "Doctor is already registered with the clinic": "Doctor is already registered with the clinic",
-    "Patient is not registered with the clinic": "Patient is not registered with the clinic"
+    "Patient is not registered with the clinic": "Patient is not registered with the clinic",
+    "Email is not registered": "Email is not registered",
+    "Incorrect password": "Incorrect password",
+    "User has no access to perform changes": "User has no access to perform changes",
+    "Current password is invalid": "Current password is invalid",
+    "Amount paid is more than the required": "Amount paid is more than the required"
 }   

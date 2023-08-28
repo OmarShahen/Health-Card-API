@@ -116,7 +116,7 @@ const userLogin = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Email is not registered',
+                message: translations[request.query.lang]['Email is not registered'],
                 field: 'email'
             })
         }
@@ -126,7 +126,7 @@ const userLogin = async (request, response) => {
         if(!bcrypt.compareSync(password, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Incorrect password',
+                message: translations[request.query.lang]['Incorrect password'],
                 field: 'password'
             })
         }

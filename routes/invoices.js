@@ -53,12 +53,6 @@ router.post(
     (request, response) => invoicesController.addInvoice(request, response)
 )
 
-router.post(
-    '/v1/invoices/:invoiceId/checkout', 
-    authorization.allPermission,
-    verifyInvoiceId,
-    (request, response) => invoicesController.addInvoiceCheckout(request, response)
-)
 
 router.put(
     '/v1/invoices/:invoiceId',

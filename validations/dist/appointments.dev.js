@@ -7,14 +7,22 @@ var config = require('../config/config');
 var moment = require('moment');
 
 var addAppointment = function addAppointment(appointmentData) {
-  var clinicId = appointmentData.clinicId,
+  var patientId = appointmentData.patientId,
+      clinicId = appointmentData.clinicId,
       doctorId = appointmentData.doctorId,
       serviceId = appointmentData.serviceId,
-      patientName = appointmentData.patientName,
-      patientPhone = appointmentData.patientPhone,
-      patientCountryCode = appointmentData.patientCountryCode,
       status = appointmentData.status,
       reservationTime = appointmentData.reservationTime;
+  if (!patientId) return {
+    isAccepted: false,
+    message: 'patient Id is required',
+    field: 'patientId'
+  };
+  if (!utils.isObjectId(patientId)) return {
+    isAccepted: false,
+    message: 'invalid patient Id format',
+    field: 'patientId'
+  };
   if (!clinicId) return {
     isAccepted: false,
     message: 'clinic Id is required',
@@ -35,45 +43,10 @@ var addAppointment = function addAppointment(appointmentData) {
     message: 'invalid doctor Id format',
     field: 'doctorId'
   };
-  if (!serviceId) return {
-    isAccepted: false,
-    message: 'service Id is required',
-    field: 'serviceId'
-  };
-  if (!utils.isObjectId(serviceId)) return {
+  if (serviceId && !utils.isObjectId(serviceId)) return {
     isAccepted: false,
     message: 'invalid service Id format',
     field: 'serviceId'
-  };
-  if (!patientName) return {
-    isAccepted: false,
-    message: 'patient name is required',
-    field: 'patientName'
-  };
-  if (typeof patientName != 'string') return {
-    isAccepted: false,
-    message: 'invalid patient name format',
-    field: 'patientName'
-  };
-  if (!patientPhone) return {
-    isAccepted: false,
-    message: 'patient phone is required',
-    field: 'patientPhone'
-  };
-  if (typeof patientPhone != 'number') return {
-    isAccepted: false,
-    message: 'invalid patient phone format',
-    field: 'patientPhone'
-  };
-  if (!patientCountryCode) return {
-    isAccepted: false,
-    message: 'patient country code is required',
-    field: 'patientCountryCode'
-  };
-  if (typeof patientCountryCode != 'number') return {
-    isAccepted: false,
-    message: 'invalid patient country code format',
-    field: 'patientCountryCode'
   };
   if (!status) return {
     isAccepted: false,

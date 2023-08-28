@@ -11,13 +11,6 @@ router.post(
     (request, response) => encountersController.addEncounter(request, response)
 )
 
-router.post(
-    '/v1/encounters/cardsId/:cardId', 
-    authorization.allPermission,
-    verifyClinicEncounters,
-    (request, response) => encountersController.addEncounterByPatientCardId(request, response)
-)
-
 router.get(
     '/v1/encounters/patients/:patientId', 
     authorization.allPermission,

@@ -39,64 +39,19 @@ const medicineValidation  = (medicine) => {
 
 }
 
+
 const addEncounter = (encounterData) => {
 
-    const { doctorId, clinicId, patientId, symptoms, diagnosis, notes, labTests, labAnalysis, medicines } = encounterData
+    const { doctorId, patientId, clinicId, symptoms, diagnosis, notes, medicines, registrationDate } = encounterData
 
 
     if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
 
     if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor Id formate', field: 'doctorId' }
-
-    if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
-
-    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id formate', field: 'clinicId' }
 
     if(!patientId) return { isAccepted: false, message: 'Patient Id is required', field: 'patientId' }
 
-    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Invalid patient Id formate', field: 'patientId' }
-
-    if(!Array.isArray(symptoms)) return { isAccepted: false, message: 'Symptoms must be a list', field: 'symptoms' }
-
-    if(symptoms.length == 0) return { isAccepted: false, message: 'Symptoms is required', field: 'symptoms' }
-
-    if(!Array.isArray(diagnosis)) return { isAccepted: false, message: 'Diagnosis must be a list', field: 'diagnosis' }
-
-    if(diagnosis.length == 0) return { isAccepted: false, message: 'Diagnosis must be a list', field: 'diagnosis' }
-
-    if(notes && !Array.isArray(notes)) return { isAccepted: false, message: 'Notes is required', field: 'notes' }
-
-    if(notes && notes.length == 0) return { isAccepted: false, message: 'Notes must be a list', field: 'notes' }
-
-    if(labTests && !Array.isArray(labTests)) return { isAccepted: false, message: 'Lab tests must be a list', field: 'labTests' }
-
-    if(labAnalysis && !Array.isArray(labAnalysis)) return { isAccepted: false, message: 'Lab analysis must be a list', field: 'labAnalysis' }
-    
-
-    if(medicines) {
-
-        if(!Array.isArray(medicines)) return { isAccepted: false, message: 'Medicines must be a list', field: 'medicines' }
-
-        for(let i=0;i<medicines.length;i++) {
-            const dataValidation = medicineValidation(medicines[i])
-            if(!dataValidation.isAccepted) return dataValidation
-        }
-
-    }
-
-
-    return { isAccepted: true, message: 'data is valid', data: encounterData }
-
-}
-
-const addEncounterByPatientCardId = (encounterData) => {
-
-    const { doctorId, clinicId, symptoms, diagnosis, notes, medicines, registrationDate } = encounterData
-
-
-    if(!doctorId) return { isAccepted: false, message: 'Doctor Id is required', field: 'doctorId' }
-
-    if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor Id formate', field: 'doctorId' }
+    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Invalid patient Id format', field: 'patientId' }
 
     if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
 
@@ -153,4 +108,4 @@ const updateEncounter = (encounterData) => {
 }
 
 
-module.exports = { addEncounter, addEncounterByPatientCardId, updateEncounter }
+module.exports = { addEncounter, updateEncounter }

@@ -296,7 +296,7 @@ var addClinic = function addClinic(request, response) {
 };
 
 var updateClinic = function updateClinic(request, response) {
-  var dataValidation, clinicId, _request$body2, name, speciality, city, country, specialitiesList, clinicData, updatedClinic;
+  var dataValidation, user, clinicId, _request$body2, name, speciality, city, country, clinicOwnerList, specialitiesList, clinicData, updatedClinic;
 
   return regeneratorRuntime.async(function updateClinic$(_context3) {
     while (1) {
@@ -317,20 +317,42 @@ var updateClinic = function updateClinic(request, response) {
           }));
 
         case 4:
+          user = request.user;
           clinicId = request.params.clinicId;
           _request$body2 = request.body, name = _request$body2.name, speciality = _request$body2.speciality, city = _request$body2.city, country = _request$body2.country;
-          _context3.next = 8;
+          _context3.next = 9;
+          return regeneratorRuntime.awrap(ClinicOwnerModel.find({
+            ownerId: user._id,
+            clinicId: clinicId
+          }));
+
+        case 9:
+          clinicOwnerList = _context3.sent;
+
+          if (!(clinicOwnerList.length == 0)) {
+            _context3.next = 12;
+            break;
+          }
+
+          return _context3.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['User has no access to perform changes'],
+            field: 'clinicId'
+          }));
+
+        case 12:
+          _context3.next = 14;
           return regeneratorRuntime.awrap(SpecialityModel.find({
             _id: {
               $in: speciality
             }
           }));
 
-        case 8:
+        case 14:
           specialitiesList = _context3.sent;
 
           if (!(specialitiesList.length != speciality.length)) {
-            _context3.next = 11;
+            _context3.next = 17;
             break;
           }
 
@@ -340,7 +362,7 @@ var updateClinic = function updateClinic(request, response) {
             field: 'speciality'
           }));
 
-        case 11:
+        case 17:
           clinicData = {
             speciality: specialitiesList.map(function (special) {
               return special._id;
@@ -349,12 +371,12 @@ var updateClinic = function updateClinic(request, response) {
             city: city,
             country: country
           };
-          _context3.next = 14;
+          _context3.next = 20;
           return regeneratorRuntime.awrap(ClinicModel.findByIdAndUpdate(clinicId, clinicData, {
             "new": true
           }));
 
-        case 14:
+        case 20:
           updatedClinic = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
@@ -362,8 +384,8 @@ var updateClinic = function updateClinic(request, response) {
             clinic: updatedClinic
           }));
 
-        case 18:
-          _context3.prev = 18;
+        case 24:
+          _context3.prev = 24;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -372,12 +394,12 @@ var updateClinic = function updateClinic(request, response) {
             error: _context3.t0.message
           }));
 
-        case 22:
+        case 28:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 18]]);
+  }, null, null, [[0, 24]]);
 };
 
 var getClinics = function getClinics(request, response) {

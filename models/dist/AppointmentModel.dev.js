@@ -5,6 +5,10 @@ var mongoose = require('mongoose');
 var config = require('../config/config');
 
 var AppointmentSchema = new mongoose.Schema({
+  patientId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
   clinicId: {
     type: mongoose.Types.ObjectId,
     required: true
@@ -14,20 +18,7 @@ var AppointmentSchema = new mongoose.Schema({
     required: true
   },
   serviceId: {
-    type: mongoose.Types.ObjectId,
-    required: true
-  },
-  patientName: {
-    type: String,
-    required: true
-  },
-  patientPhone: {
-    type: Number,
-    required: true
-  },
-  patientCountryCode: {
-    type: Number,
-    required: true
+    type: mongoose.Types.ObjectId
   },
   status: {
     type: String,

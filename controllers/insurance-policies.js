@@ -7,6 +7,7 @@ const ClinicPatientModel = require('../models/ClinicPatientModel')
 const PatientModel = require('../models/PatientModel')
 const insurancePolicyValidator = require('../validations/insurance-policies')
 const mongoose = require('mongoose')
+const utils = require('../utils/utils')
 
 
 const getInsurancePolicies = async (request, response) => {
@@ -38,9 +39,11 @@ const getInsurancePoliciesByClinicId = async (request, response) => {
 
         const { clinicId } = request.params
 
+        const { searchQuery } = utils.statsQueryGenerator('clinicId', clinicId, request.query)
+
         const insurancePolicies = await InsurancePolicyModel.aggregate([
             {
-                $match: { clinicId: mongoose.Types.ObjectId(clinicId)}
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -82,6 +85,92 @@ const getInsurancePoliciesByClinicId = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             insurancePolicies
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getInsurancePoliciesByPatientId = async (request, response) => {
+
+    try {
+
+        const { patientId } = request.params
+
+        const insurancePolicies = await InsurancePolicyModel.aggregate([
+            {
+                $match: { patientId: mongoose.Types.ObjectId(patientId) }
+            },
+            {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        insurancePolicies.forEach(insurancePolicy => {
+            insurancePolicy.insuranceCompany = insurancePolicy.insuranceCompany[0]
+            insurancePolicy.clinic = insurancePolicy.clinic[0]
+            insurancePolicy.patient = insurancePolicy.patient[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            insurancePolicies
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getClinicPatientActiveInsurancePolicy = async (request, response) => {
+
+    try {
+
+        const { patientId, clinicId } = request.params
+
+        const insurancePolicyList = await InsurancePolicyModel
+        .find({ patientId, clinicId, status: 'ACTIVE', endDate: { $gt: Date.now() } })
+
+        return response.status(200).json({
+            accepted: true,
+            insurancePolicy: insurancePolicyList
         })
 
     } catch(error) {
@@ -166,9 +255,14 @@ const getInsurancePoliciesByOwnerId = async (request, response) => {
 
         const clinics = ownerClinics.map(clinic => clinic.clinicId)
 
+        let { searchQuery } = utils.statsQueryGenerator('temp', userId, request.query)
+
+        delete searchQuery.temp
+        searchQuery.clinicId = { $in: clinics }
+
         const insurancePolicies = await InsurancePolicyModel.aggregate([
             {
-                $match: { clinicId: { $in: clinics } }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -235,16 +329,16 @@ const addInsurancePolicy = async (request, response) => {
             })
         }
 
-        const { insuranceCompanyId, clinicId, cardId, type, status, coveragePercentage, startDate, endDate } = request.body
+        const { insuranceCompanyId, clinicId, patientId, type, status, coveragePercentage, startDate, endDate } = request.body
 
         const insuranceCompanyPromise = InsuranceModel.findById(insuranceCompanyId)
         const clinicPromise = ClinicModel.findById(clinicId)
-        const patientListPromise = PatientModel.find({ cardId })
+        const patientPromise = PatientModel.findById(patientId)
 
-        const [insuranceCompany, clinic, patientList] = await Promise.all([
+        const [insuranceCompany, clinic, patient] = await Promise.all([
             insuranceCompanyPromise,
             clinicPromise,
-            patientListPromise
+            patientPromise
         ])
 
         if(!insuranceCompany) {
@@ -263,15 +357,13 @@ const addInsurancePolicy = async (request, response) => {
             })
         }
 
-        if(patientList.length == 0) {
+        if(!patient) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Patient card ID is not registered',
-                field: 'cardId'
+                message: 'Patient ID is not registered',
+                field: 'patientId'
             })
         }
-
-        const patientId = patientList[0]._id
 
         const clinicPatientList = await ClinicPatientModel.find({ patientId })
 
@@ -279,7 +371,38 @@ const addInsurancePolicy = async (request, response) => {
             return response.status(400).json({
                 accepted: false,
                 message: 'Patient is not registered in clinic',
-                field: 'cardId'
+                field: 'patientId'
+            })
+        }
+
+        const todayDate = new Date()
+        const insuranceCompanyStartDate = new Date(insuranceCompany.startDate)
+        const insuranceCompanyEndDate = new Date(insuranceCompany.endDate)
+
+        if(insuranceCompanyEndDate < todayDate) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Insurance company contract has expired',
+                field: 'insuranceCompanyId'
+            })
+        }
+
+        const insurancePolicyStartDate = new Date(startDate)
+        const insurancePolicyEndDate = new Date(endDate)
+
+        if(insuranceCompanyStartDate > insurancePolicyStartDate) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Insurance company contract is not active yet',
+                field: 'startDate'
+            })
+        }
+
+        if(insuranceCompanyEndDate < insurancePolicyEndDate) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Insurance company contract has expired',
+                field: 'endDate'
             })
         }
 
@@ -504,8 +627,10 @@ module.exports = {
     addInsurancePolicy, 
     getInsurancePoliciesByClinicId, 
     getInsurancePoliciesByOwnerId,
+    getInsurancePoliciesByPatientId,
     getInsurancePoliciesByInsuranceCompanyId,
     deleteInsurancePolicy,
     updateInsurancePolicyStatus,
-    updateInsurancePolicy
+    updateInsurancePolicy,
+    getClinicPatientActiveInsurancePolicy
 }

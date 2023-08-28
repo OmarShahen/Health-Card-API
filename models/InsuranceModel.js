@@ -1,9 +1,11 @@
 const mongoose = require('mongoose')
-const config = require('../config/config')
+
 
 const InsuranceSchema = new mongoose.Schema({
     name: { type: String, required: true },
-    clinicId: { type: mongoose.Types.ObjectId, required: true }
+    clinicId: { type: mongoose.Types.ObjectId, required: true },
+    startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true }
 
 }, { timestamps: true })
 

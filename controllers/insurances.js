@@ -1,4 +1,5 @@
 const InsuranceModel = require('../models/InsuranceModel')
+const InsurancePolicyModel = require('../models/InsurancePolicyModel')
 const ClinicModel = require('../models/ClinicModel')
 const InvoiceModel = require('../models/InvoiceModel')
 const ClinicOwnerModel = require('../models/ClinicOwnerModel')
@@ -156,7 +157,7 @@ const addInsurance = async (request, response) => {
             })
         }
 
-        const { name, clinicId } = request.body
+        const { name, clinicId, startDate, endDate } = request.body
         
         const clinic = await ClinicModel.findById(clinicId)
         if(!clinic) {
@@ -176,7 +177,7 @@ const addInsurance = async (request, response) => {
             })
         }
 
-        const insuranceData = { name, clinicId }
+        const insuranceData = { name, clinicId, startDate, endDate }
         const insuranceObj = new InsuranceModel(insuranceData)
         const newInsurance = await insuranceObj.save()
 
@@ -207,6 +208,15 @@ const deleteInsurance = async (request, response) => {
             return response.status(400).json({
                 accepted: false,
                 message: translations[request.query.lang]['This insurance is registered with invoices'],
+                field: 'insuranceId'
+            })
+        }
+
+        const insurancePoliciesList = await InsurancePolicyModel.find({ insuranceCompanyId: insuranceId })
+        if(insurancePoliciesList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'This insurance is registered with insurance policies',
                 field: 'insuranceId'
             })
         }
@@ -243,7 +253,7 @@ const updateInsurance = async (request, response) => {
         }
 
         const { insuranceId } = request.params
-        const { name } = request.body
+        const { name, startDate, endDate } = request.body
 
         const insurance = await InsuranceModel.findById(insuranceId)
 
@@ -258,7 +268,21 @@ const updateInsurance = async (request, response) => {
             }
         }
 
-        const insuranceData = { name }
+        const insuranceStartDate = new Date(insurance.startDate).getTime()
+        const insuranceEndDate = new Date(insurance.endDate).getTime()
+
+        if(new Date(startDate).getTime() != insuranceStartDate || new Date(endDate).getTime() != insuranceEndDate) {
+            const insurancePolicies = await InsurancePolicyModel.find({ insuranceCompanyId: insuranceId })
+            if(insurancePolicies.length != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Cannot update dates and there is insurance policies registered with it',
+                    field: 'insuranceId'
+                })
+            }
+        }
+
+        const insuranceData = { name, startDate, endDate }
         const updatedInsurance = await InsuranceModel
         .findByIdAndUpdate(insuranceId, insuranceData, { new: true })
 

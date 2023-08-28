@@ -54,7 +54,7 @@ var formatPrescriptionsDrugs = function formatPrescriptionsDrugs(prescriptions) 
 };
 
 var addPrescription = function addPrescription(request, response) {
-  var dataValidation, _request$body, doctorId, patientId, medicines, doctorPromise, patientPromise, _ref, _ref2, doctor, patient, doctorPatientAccessList, counter, prescriptionData, prescriptionObj, newPrescription;
+  var dataValidation, _request$body, doctorId, patientId, clinicId, medicines, registrationDate, notes, patientPromise, doctorPromise, clinicPromise, _ref, _ref2, doctor, patient, clinic, doctorPatientAccessList, counter, prescriptionData, prescriptionObj, newPrescription;
 
   return regeneratorRuntime.async(function addPrescription$(_context) {
     while (1) {
@@ -75,30 +75,20 @@ var addPrescription = function addPrescription(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, doctorId = _request$body.doctorId, patientId = _request$body.patientId, medicines = _request$body.medicines;
-          doctorPromise = UserModel.findById(doctorId);
+          _request$body = request.body, doctorId = _request$body.doctorId, patientId = _request$body.patientId, clinicId = _request$body.clinicId, medicines = _request$body.medicines, registrationDate = _request$body.registrationDate, notes = _request$body.notes;
           patientPromise = PatientModel.findById(patientId);
-          _context.next = 9;
-          return regeneratorRuntime.awrap(Promise.all([doctorPromise, patientPromise]));
+          doctorPromise = UserModel.findById(doctorId);
+          clinicPromise = ClinicModel.findById(clinicId);
+          _context.next = 10;
+          return regeneratorRuntime.awrap(Promise.all([doctorPromise, patientPromise, clinicPromise]));
 
-        case 9:
+        case 10:
           _ref = _context.sent;
-          _ref2 = _slicedToArray(_ref, 2);
+          _ref2 = _slicedToArray(_ref, 3);
           doctor = _ref2[0];
           patient = _ref2[1];
+          clinic = _ref2[2];
 
-          if (!(!doctor || doctor.role != 'DOCTOR')) {
-            _context.next = 15;
-            break;
-          }
-
-          return _context.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Doctor Id does not exist',
-            field: 'doctorId'
-          }));
-
-        case 15:
           if (patient) {
             _context.next = 17;
             break;
@@ -106,181 +96,58 @@ var addPrescription = function addPrescription(request, response) {
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Patient Id does not exist',
+            message: 'Patient ID is not registered',
             field: 'patientId'
           }));
 
         case 17:
-          _context.next = 19;
-          return regeneratorRuntime.awrap(DoctorPatientAccessModel.find({
-            patientId: patientId,
-            doctorId: doctorId
-          }));
-
-        case 19:
-          doctorPatientAccessList = _context.sent;
-
-          if (!(doctorPatientAccessList.length == 0)) {
-            _context.next = 22;
+          if (!(!doctor || !doctor.roles.includes('DOCTOR'))) {
+            _context.next = 19;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'doctor has no access to this patient',
-            field: 'patientId'
-          }));
-
-        case 22:
-          _context.next = 24;
-          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
-            name: 'prescription'
-          }, {
-            $inc: {
-              value: 1
-            }
-          }, {
-            "new": true,
-            upsert: true
-          }));
-
-        case 24:
-          counter = _context.sent;
-          prescriptionData = {
-            prescriptionId: counter.value,
-            doctorId: doctorId,
-            patientId: patientId,
-            medicines: medicines
-          };
-          prescriptionObj = new PrescriptionModel(prescriptionData);
-          _context.next = 29;
-          return regeneratorRuntime.awrap(prescriptionObj.save());
-
-        case 29:
-          newPrescription = _context.sent;
-          return _context.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'Prescription is recorded successfully',
-            prescription: newPrescription
-          }));
-
-        case 33:
-          _context.prev = 33;
-          _context.t0 = _context["catch"](0);
-          console.error(_context.t0);
-          return _context.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context.t0.message
-          }));
-
-        case 37:
-        case "end":
-          return _context.stop();
-      }
-    }
-  }, null, null, [[0, 33]]);
-};
-
-var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(request, response) {
-  var dataValidation, cardId, _request$body2, doctorId, clinicId, medicines, registrationDate, notes, patientListPromise, doctorPromise, clinicPromise, _ref3, _ref4, doctor, patientList, clinic, patient, doctorPatientAccessList, counter, prescriptionData, prescriptionObj, newPrescription;
-
-  return regeneratorRuntime.async(function addPrescriptionByPatientCardId$(_context2) {
-    while (1) {
-      switch (_context2.prev = _context2.next) {
-        case 0:
-          _context2.prev = 0;
-          dataValidation = prescriptionValidation.addPrescriptionByPatientCardId(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context2.next = 4;
-            break;
-          }
-
-          return _context2.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
-
-        case 4:
-          cardId = request.params.cardId;
-          _request$body2 = request.body, doctorId = _request$body2.doctorId, clinicId = _request$body2.clinicId, medicines = _request$body2.medicines, registrationDate = _request$body2.registrationDate, notes = _request$body2.notes;
-          patientListPromise = PatientModel.find({
-            cardId: cardId
-          });
-          doctorPromise = UserModel.findById(doctorId);
-          clinicPromise = ClinicModel.findById(clinicId);
-          _context2.next = 11;
-          return regeneratorRuntime.awrap(Promise.all([doctorPromise, patientListPromise, clinicPromise]));
-
-        case 11:
-          _ref3 = _context2.sent;
-          _ref4 = _slicedToArray(_ref3, 3);
-          doctor = _ref4[0];
-          patientList = _ref4[1];
-          clinic = _ref4[2];
-
-          if (!(patientList.length == 0)) {
-            _context2.next = 18;
-            break;
-          }
-
-          return _context2.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['Patient card Id does not exists'],
-            field: 'cardId'
-          }));
-
-        case 18:
-          if (!(!doctor || !doctor.roles.includes('DOCTOR'))) {
-            _context2.next = 20;
-            break;
-          }
-
-          return _context2.abrupt("return", response.status(400).json({
-            accepted: false,
             message: 'Doctor Id does not exist',
             field: 'doctorId'
           }));
 
-        case 20:
+        case 19:
           if (clinic) {
-            _context2.next = 22;
+            _context.next = 21;
             break;
           }
 
-          return _context2.abrupt("return", response.status(400).json({
+          return _context.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Clinic Id does not exist',
             field: 'clinicId'
           }));
 
-        case 22:
-          patient = patientList[0];
-          _context2.next = 25;
+        case 21:
+          _context.next = 23;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.find({
             doctorId: doctorId,
             patientId: patient._id,
             clinicId: clinic._id
           }));
 
-        case 25:
-          doctorPatientAccessList = _context2.sent;
+        case 23:
+          doctorPatientAccessList = _context.sent;
 
           if (!(doctorPatientAccessList.length == 0)) {
-            _context2.next = 28;
+            _context.next = 26;
             break;
           }
 
-          return _context2.abrupt("return", response.status(400).json({
+          return _context.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Doctor does not have access to the patient'],
             field: 'patientId'
           }));
 
-        case 28:
-          _context2.next = 30;
+        case 26:
+          _context.next = 28;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: "".concat(clinic._id, "-prescription")
           }, {
@@ -292,8 +159,8 @@ var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(req
             upsert: true
           }));
 
-        case 30:
-          counter = _context2.sent;
+        case 28:
+          counter = _context.sent;
           prescriptionData = {
             prescriptionId: counter.value,
             clinicId: clinicId,
@@ -304,48 +171,48 @@ var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(req
             createdAt: registrationDate
           };
           prescriptionObj = new PrescriptionModel(prescriptionData);
-          _context2.next = 35;
+          _context.next = 33;
           return regeneratorRuntime.awrap(prescriptionObj.save());
 
-        case 35:
-          newPrescription = _context2.sent;
-          return _context2.abrupt("return", response.status(200).json({
+        case 33:
+          newPrescription = _context.sent;
+          return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Prescription is added successfully!'],
             prescription: newPrescription
           }));
 
-        case 39:
-          _context2.prev = 39;
-          _context2.t0 = _context2["catch"](0);
-          console.error(_context2.t0);
-          return _context2.abrupt("return", response.status(500).json({
+        case 37:
+          _context.prev = 37;
+          _context.t0 = _context["catch"](0);
+          console.error(_context.t0);
+          return _context.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context2.t0.message
+            error: _context.t0.message
           }));
 
-        case 43:
+        case 41:
         case "end":
-          return _context2.stop();
+          return _context.stop();
       }
     }
-  }, null, null, [[0, 39]]);
+  }, null, null, [[0, 37]]);
 };
 
 var getDoctorPrescriptions = function getDoctorPrescriptions(request, response) {
   var doctorId, query, _utils$statsQueryGene, searchQuery, prescriptions;
 
-  return regeneratorRuntime.async(function getDoctorPrescriptions$(_context3) {
+  return regeneratorRuntime.async(function getDoctorPrescriptions$(_context2) {
     while (1) {
-      switch (_context3.prev = _context3.next) {
+      switch (_context2.prev = _context2.next) {
         case 0:
-          _context3.prev = 0;
+          _context2.prev = 0;
           doctorId = request.params.doctorId;
           query = request.query.query;
           query = query ? query : '';
           _utils$statsQueryGene = utils.statsQueryGenerator('doctorId', doctorId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
-          _context3.next = 7;
+          _context2.next = 7;
           return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
             $match: searchQuery
           }, {
@@ -407,30 +274,30 @@ var getDoctorPrescriptions = function getDoctorPrescriptions(request, response) 
           }]));
 
         case 7:
-          prescriptions = _context3.sent;
+          prescriptions = _context2.sent;
           prescriptions.forEach(function (prescription) {
             prescription.patient = prescription.patient[0];
             prescription.doctor = prescription.doctor[0];
             prescription.clinic = prescription.clinic[0];
           });
-          return _context3.abrupt("return", response.status(200).json({
+          return _context2.abrupt("return", response.status(200).json({
             accepted: true,
             prescriptions: prescriptions
           }));
 
         case 12:
-          _context3.prev = 12;
-          _context3.t0 = _context3["catch"](0);
-          console.error(_context3.t0);
-          return _context3.abrupt("return", response.status(500).json({
+          _context2.prev = 12;
+          _context2.t0 = _context2["catch"](0);
+          console.error(_context2.t0);
+          return _context2.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context3.t0.message
+            error: _context2.t0.message
           }));
 
         case 16:
         case "end":
-          return _context3.stop();
+          return _context2.stop();
       }
     }
   }, null, null, [[0, 12]]);
@@ -439,16 +306,16 @@ var getDoctorPrescriptions = function getDoctorPrescriptions(request, response) 
 var getClinicPrescriptions = function getClinicPrescriptions(request, response) {
   var clinicId, query, _utils$statsQueryGene2, searchQuery, prescriptions;
 
-  return regeneratorRuntime.async(function getClinicPrescriptions$(_context4) {
+  return regeneratorRuntime.async(function getClinicPrescriptions$(_context3) {
     while (1) {
-      switch (_context4.prev = _context4.next) {
+      switch (_context3.prev = _context3.next) {
         case 0:
-          _context4.prev = 0;
+          _context3.prev = 0;
           clinicId = request.params.clinicId;
           query = request.query.query;
           query = query ? query : '';
           _utils$statsQueryGene2 = utils.statsQueryGenerator('clinicId', clinicId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
-          _context4.next = 7;
+          _context3.next = 7;
           return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
             $match: searchQuery
           }, {
@@ -525,30 +392,30 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
           }]));
 
         case 7:
-          prescriptions = _context4.sent;
+          prescriptions = _context3.sent;
           prescriptions.forEach(function (prescription) {
             prescription.patient = prescription.patient[0];
             prescription.doctor = prescription.doctor[0];
             prescription.clinic = prescription.clinic[0];
           });
-          return _context4.abrupt("return", response.status(200).json({
+          return _context3.abrupt("return", response.status(200).json({
             accepted: true,
             prescriptions: prescriptions
           }));
 
         case 12:
-          _context4.prev = 12;
-          _context4.t0 = _context4["catch"](0);
-          console.error(_context4.t0);
-          return _context4.abrupt("return", response.status(500).json({
+          _context3.prev = 12;
+          _context3.t0 = _context3["catch"](0);
+          console.error(_context3.t0);
+          return _context3.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context4.t0.message
+            error: _context3.t0.message
           }));
 
         case 16:
         case "end":
-          return _context4.stop();
+          return _context3.stop();
       }
     }
   }, null, null, [[0, 12]]);
@@ -557,16 +424,16 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
 var getPatientPrescriptions = function getPatientPrescriptions(request, response) {
   var patientId, query, _utils$statsQueryGene3, searchQuery, prescriptions;
 
-  return regeneratorRuntime.async(function getPatientPrescriptions$(_context5) {
+  return regeneratorRuntime.async(function getPatientPrescriptions$(_context4) {
     while (1) {
-      switch (_context5.prev = _context5.next) {
+      switch (_context4.prev = _context4.next) {
         case 0:
-          _context5.prev = 0;
+          _context4.prev = 0;
           patientId = request.params.patientId;
           query = request.query.query;
           query = query ? query : '';
           _utils$statsQueryGene3 = utils.statsQueryGenerator('patientId', patientId, request.query), searchQuery = _utils$statsQueryGene3.searchQuery;
-          _context5.next = 7;
+          _context4.next = 7;
           return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
             $match: searchQuery
           }, {
@@ -604,19 +471,56 @@ var getPatientPrescriptions = function getPatientPrescriptions(request, response
           }]));
 
         case 7:
-          prescriptions = _context5.sent;
+          prescriptions = _context4.sent;
           prescriptions.forEach(function (prescription) {
             prescription.doctor = prescription.doctor[0];
             prescription.patient = prescription.patient[0];
             prescription.clinic = prescription.clinic[0];
           });
-          return _context5.abrupt("return", response.status(200).json({
+          return _context4.abrupt("return", response.status(200).json({
             accepted: true,
             prescriptions: prescriptions
           }));
 
         case 12:
-          _context5.prev = 12;
+          _context4.prev = 12;
+          _context4.t0 = _context4["catch"](0);
+          console.error(_context4.t0);
+          return _context4.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context4.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context4.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var deletePrescription = function deletePrescription(request, response) {
+  var prescriptionId, deletedPrescription;
+  return regeneratorRuntime.async(function deletePrescription$(_context5) {
+    while (1) {
+      switch (_context5.prev = _context5.next) {
+        case 0:
+          _context5.prev = 0;
+          prescriptionId = request.params.prescriptionId;
+          _context5.next = 4;
+          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndDelete(prescriptionId));
+
+        case 4:
+          deletedPrescription = _context5.sent;
+          return _context5.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Prescription deleted successfully!'],
+            prescription: deletedPrescription
+          }));
+
+        case 8:
+          _context5.prev = 8;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -625,46 +529,9 @@ var getPatientPrescriptions = function getPatientPrescriptions(request, response
             error: _context5.t0.message
           }));
 
-        case 16:
-        case "end":
-          return _context5.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var deletePrescription = function deletePrescription(request, response) {
-  var prescriptionId, deletedPrescription;
-  return regeneratorRuntime.async(function deletePrescription$(_context6) {
-    while (1) {
-      switch (_context6.prev = _context6.next) {
-        case 0:
-          _context6.prev = 0;
-          prescriptionId = request.params.prescriptionId;
-          _context6.next = 4;
-          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndDelete(prescriptionId));
-
-        case 4:
-          deletedPrescription = _context6.sent;
-          return _context6.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Prescription deleted successfully!'],
-            prescription: deletedPrescription
-          }));
-
-        case 8:
-          _context6.prev = 8;
-          _context6.t0 = _context6["catch"](0);
-          console.error(_context6.t0);
-          return _context6.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context6.t0.message
-          }));
-
         case 12:
         case "end":
-          return _context6.stop();
+          return _context5.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -672,13 +539,13 @@ var deletePrescription = function deletePrescription(request, response) {
 
 var getPrescription = function getPrescription(request, response) {
   var prescriptionId, prescription;
-  return regeneratorRuntime.async(function getPrescription$(_context7) {
+  return regeneratorRuntime.async(function getPrescription$(_context6) {
     while (1) {
-      switch (_context7.prev = _context7.next) {
+      switch (_context6.prev = _context6.next) {
         case 0:
-          _context7.prev = 0;
+          _context6.prev = 0;
           prescriptionId = request.params.prescriptionId;
-          _context7.next = 4;
+          _context6.next = 4;
           return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
             $match: {
               _id: mongoose.Types.ObjectId(prescriptionId)
@@ -707,18 +574,77 @@ var getPrescription = function getPrescription(request, response) {
           }]));
 
         case 4:
-          prescription = _context7.sent;
+          prescription = _context6.sent;
           prescription.forEach(function (prescription) {
             prescription.patient = prescription.patient[0];
             prescription.doctor = prescription.doctor[0];
           });
-          return _context7.abrupt("return", response.status(200).json({
+          return _context6.abrupt("return", response.status(200).json({
             accepted: true,
             prescription: prescription[0]
           }));
 
         case 9:
-          _context7.prev = 9;
+          _context6.prev = 9;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context6.t0.message
+          }));
+
+        case 13:
+        case "end":
+          return _context6.stop();
+      }
+    }
+  }, null, null, [[0, 9]]);
+};
+
+var updatePrescription = function updatePrescription(request, response) {
+  var prescriptionId, dataValidation, _request$body2, medicines, notes, updateData, updatedPrescription;
+
+  return regeneratorRuntime.async(function updatePrescription$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          prescriptionId = request.params.prescriptionId;
+          dataValidation = prescriptionValidation.updatePrescription(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context7.next = 5;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 5:
+          _request$body2 = request.body, medicines = _request$body2.medicines, notes = _request$body2.notes;
+          updateData = {
+            medicines: medicines,
+            notes: notes
+          };
+          _context7.next = 9;
+          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndUpdate(prescriptionId, updateData, {
+            "new": true
+          }));
+
+        case 9:
+          updatedPrescription = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Updated prescription successfully!'],
+            prescription: updatedPrescription
+          }));
+
+        case 13:
+          _context7.prev = 13;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -727,57 +653,53 @@ var getPrescription = function getPrescription(request, response) {
             error: _context7.t0.message
           }));
 
-        case 13:
+        case 17:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 13]]);
 };
 
-var updatePrescription = function updatePrescription(request, response) {
-  var prescriptionId, dataValidation, _request$body3, medicines, notes, updateData, updatedPrescription;
-
-  return regeneratorRuntime.async(function updatePrescription$(_context8) {
+var ratePrescription = function ratePrescription(request, response) {
+  var prescriptionId, rate, updatedPerscription;
+  return regeneratorRuntime.async(function ratePrescription$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
         case 0:
           _context8.prev = 0;
           prescriptionId = request.params.prescriptionId;
-          dataValidation = prescriptionValidation.updatePrescription(request.body);
+          rate = request.body.rate;
 
-          if (dataValidation.isAccepted) {
+          if (config.RATES.includes(rate)) {
             _context8.next = 5;
             break;
           }
 
           return _context8.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
+            accepted: false,
+            message: 'Invalid rate value',
+            field: 'rate'
           }));
 
         case 5:
-          _request$body3 = request.body, medicines = _request$body3.medicines, notes = _request$body3.notes;
-          updateData = {
-            medicines: medicines,
-            notes: notes
-          };
-          _context8.next = 9;
-          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndUpdate(prescriptionId, updateData, {
+          _context8.next = 7;
+          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndUpdate(prescriptionId, {
+            rate: rate
+          }, {
             "new": true
           }));
 
-        case 9:
-          updatedPrescription = _context8.sent;
+        case 7:
+          updatedPerscription = _context8.sent;
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated prescription successfully!'],
-            prescription: updatedPrescription
+            message: 'Updated prescription rate successfully',
+            prescription: updatedPerscription
           }));
 
-        case 13:
-          _context8.prev = 13;
+        case 11:
+          _context8.prev = 11;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -786,53 +708,36 @@ var updatePrescription = function updatePrescription(request, response) {
             error: _context8.t0.message
           }));
 
-        case 17:
+        case 15:
         case "end":
           return _context8.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 11]]);
 };
 
-var ratePrescription = function ratePrescription(request, response) {
-  var prescriptionId, rate, updatedPerscription;
-  return regeneratorRuntime.async(function ratePrescription$(_context9) {
+var getPatientLastPrescriptionByCardUUID = function getPatientLastPrescriptionByCardUUID(request, response) {
+  var cardUUID, patient;
+  return regeneratorRuntime.async(function getPatientLastPrescriptionByCardUUID$(_context9) {
     while (1) {
       switch (_context9.prev = _context9.next) {
         case 0:
           _context9.prev = 0;
-          prescriptionId = request.params.prescriptionId;
-          rate = request.body.rate;
-
-          if (config.RATES.includes(rate)) {
-            _context9.next = 5;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid rate value',
-            field: 'rate'
+          cardUUID = request.params.cardUUID;
+          _context9.next = 4;
+          return regeneratorRuntime.awrap(PatientModel.find({
+            cardUUID: cardUUID
           }));
 
-        case 5:
-          _context9.next = 7;
-          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndUpdate(prescriptionId, {
-            rate: rate
-          }, {
-            "new": true
-          }));
-
-        case 7:
-          updatedPerscription = _context9.sent;
+        case 4:
+          patient = _context9.sent;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated prescription rate successfully',
-            prescription: updatedPerscription
+            patient: patient
           }));
 
-        case 11:
-          _context9.prev = 11;
+        case 8:
+          _context9.prev = 8;
           _context9.t0 = _context9["catch"](0);
           console.error(_context9.t0);
           return _context9.abrupt("return", response.status(500).json({
@@ -841,47 +746,9 @@ var ratePrescription = function ratePrescription(request, response) {
             error: _context9.t0.message
           }));
 
-        case 15:
-        case "end":
-          return _context9.stop();
-      }
-    }
-  }, null, null, [[0, 11]]);
-};
-
-var getPatientLastPrescriptionByCardUUID = function getPatientLastPrescriptionByCardUUID(request, response) {
-  var cardUUID, patient;
-  return regeneratorRuntime.async(function getPatientLastPrescriptionByCardUUID$(_context10) {
-    while (1) {
-      switch (_context10.prev = _context10.next) {
-        case 0:
-          _context10.prev = 0;
-          cardUUID = request.params.cardUUID;
-          _context10.next = 4;
-          return regeneratorRuntime.awrap(PatientModel.find({
-            cardUUID: cardUUID
-          }));
-
-        case 4:
-          patient = _context10.sent;
-          return _context10.abrupt("return", response.status(200).json({
-            accepted: true,
-            patient: patient
-          }));
-
-        case 8:
-          _context10.prev = 8;
-          _context10.t0 = _context10["catch"](0);
-          console.error(_context10.t0);
-          return _context10.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context10.t0.message
-          }));
-
         case 12:
         case "end":
-          return _context10.stop();
+          return _context9.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -890,16 +757,16 @@ var getPatientLastPrescriptionByCardUUID = function getPatientLastPrescriptionBy
 var getPatientDrugs = function getPatientDrugs(request, response) {
   var patientId, query, _utils$statsQueryGene4, searchQuery, prescriptions, drugs;
 
-  return regeneratorRuntime.async(function getPatientDrugs$(_context11) {
+  return regeneratorRuntime.async(function getPatientDrugs$(_context10) {
     while (1) {
-      switch (_context11.prev = _context11.next) {
+      switch (_context10.prev = _context10.next) {
         case 0:
-          _context11.prev = 0;
+          _context10.prev = 0;
           patientId = request.params.patientId;
           query = request.query.query;
           query = query ? query : '';
           _utils$statsQueryGene4 = utils.statsQueryGenerator('patientId', patientId, request.query), searchQuery = _utils$statsQueryGene4.searchQuery;
-          _context11.next = 7;
+          _context10.next = 7;
           return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
             $match: searchQuery
           }, {
@@ -913,26 +780,26 @@ var getPatientDrugs = function getPatientDrugs(request, response) {
           }]));
 
         case 7:
-          prescriptions = _context11.sent;
+          prescriptions = _context10.sent;
           drugs = formatPrescriptionsDrugs(prescriptions);
-          return _context11.abrupt("return", response.status(200).json({
+          return _context10.abrupt("return", response.status(200).json({
             accepted: true,
             drugs: drugs
           }));
 
         case 12:
-          _context11.prev = 12;
-          _context11.t0 = _context11["catch"](0);
-          console.error(_context11.t0);
-          return _context11.abrupt("return", response.status(500).json({
+          _context10.prev = 12;
+          _context10.t0 = _context10["catch"](0);
+          console.error(_context10.t0);
+          return _context10.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context11.t0.message
+            error: _context10.t0.message
           }));
 
         case 16:
         case "end":
-          return _context11.stop();
+          return _context10.stop();
       }
     }
   }, null, null, [[0, 12]]);
@@ -940,7 +807,6 @@ var getPatientDrugs = function getPatientDrugs(request, response) {
 
 module.exports = {
   addPrescription: addPrescription,
-  addPrescriptionByPatientCardId: addPrescriptionByPatientCardId,
   getDoctorPrescriptions: getDoctorPrescriptions,
   getClinicPrescriptions: getClinicPrescriptions,
   getPatientPrescriptions: getPatientPrescriptions,

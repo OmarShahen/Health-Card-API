@@ -458,20 +458,32 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: translations[request.query.lang]['Current password entered is already used'],
+            message: translations[request.query.lang]['Current password is invalid'],
             field: 'currentPassword'
           }));
 
         case 13:
+          if (!bcrypt.compareSync(newPassword, user.password)) {
+            _context7.next = 15;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Current password entered is already used'],
+            field: 'newPassword'
+          }));
+
+        case 15:
           newUserPassword = bcrypt.hashSync(newPassword, config.SALT_ROUNDS);
-          _context7.next = 16;
+          _context7.next = 18;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
             password: newUserPassword
           }, {
             "new": true
           }));
 
-        case 16:
+        case 18:
           updatedUser = _context7.sent;
           updatedUser.password = undefined;
           return _context7.abrupt("return", response.status(200).json({
@@ -480,8 +492,8 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
             user: updatedUser
           }));
 
-        case 21:
-          _context7.prev = 21;
+        case 23:
+          _context7.prev = 23;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -490,12 +502,12 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
             error: _context7.t0.message
           }));
 
-        case 25:
+        case 27:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 21]]);
+  }, null, null, [[0, 23]]);
 };
 
 var deleteUser = function deleteUser(request, response) {

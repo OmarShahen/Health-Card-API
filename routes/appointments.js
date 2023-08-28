@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const appointmentsController = require('../controllers/appointments')
-const { verifyUserId, verifyAppointmentId, verifyClinicId } = require('../middlewares/verify-routes-params')
+const { verifyUserId, verifyAppointmentId, verifyClinicId, verifyPatientId } = require('../middlewares/verify-routes-params')
 const { verifyClinicAppointments } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
@@ -26,6 +26,13 @@ router.get(
 )
 
 router.get(
+    '/v1/appointments/patients/:patientId',
+    authorization.allPermission,
+    verifyPatientId, 
+    (request, response) => appointmentsController.getAppointmentsByPatientId(request, response)
+)
+
+router.get(
     '/v1/appointments/clinics/:clinicId/status/:status',
     authorization.allPermission,
     verifyClinicId,
@@ -41,14 +48,14 @@ router.get(
 
 router.patch(
     '/v1/appointments/:appointmentId/status', 
-    authorization.staffPermission,
+    authorization.allPermission,
     verifyAppointmentId, 
     (request, response) => appointmentsController.updateAppointmentStatus(request, response)
 )
 
 router.delete(
     '/v1/appointments/:appointmentId',
-    authorization.staffPermission,
+    authorization.allPermission,
     verifyAppointmentId, 
     (request, response)=> appointmentsController.deleteAppointment(request, response)
 )

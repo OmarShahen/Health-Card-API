@@ -12,12 +12,6 @@ router.post(
     (request, response) => prescriptionsController.addPrescription(request, response)
 )
 
-router.post(
-    '/v1/prescriptions/cardsId/:cardId',
-    authorization.allPermission,
-    verifyClinicPrescriptions,
-    (request, response) => prescriptionsController.addPrescriptionByPatientCardId(request, response)
-)
 
 router.get(
     '/v1/prescriptions/clinics/:clinicId', 

@@ -171,8 +171,18 @@ const updateClinic = async (request, response) => {
             })
         }
 
+        const { user } = request
         const { clinicId } = request.params
         const { name, speciality, city, country } = request.body
+
+        const clinicOwnerList = await ClinicOwnerModel.find({ ownerId: user._id, clinicId })
+        if(clinicOwnerList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['User has no access to perform changes'],
+                field: 'clinicId'
+            })
+        }
 
         const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality } })
 

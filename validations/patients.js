@@ -32,13 +32,9 @@ const addPatient = (patientData) => {
 
     if(clinicId && !utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id format', field: 'clinicId' }
 
-    if(!cardId) return { isAccepted: false, message: 'card Id is required', field: 'cardId'}
+    if(cardId && typeof cardId != 'number') return { isAccepted: false, message: 'card Id format is invalid', field: 'cardId' } 
 
-    if(typeof cardId != 'number') return { isAccepted: false, message: 'card Id format is invalid', field: 'cardId' } 
-
-    if(!cvc) return { isAccepted: false, message: 'card cvc is required', field: 'cvc'}
-
-    if(typeof cvc != 'number') return { isAccepted: false, message: 'card cvc format is invalid', field: 'cvc' } 
+    if(cvc && typeof cvc != 'number') return { isAccepted: false, message: 'card cvc format is invalid', field: 'cvc' } 
 
     if(doctorId && !utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Doctor Id is invalid', field: 'doctorId' }
 
@@ -84,6 +80,103 @@ const addPatient = (patientData) => {
             return { isAccepted: emergencyContactsDataValidation.isAccepted, message: emergencyContactsDataValidation.message, field: emergencyContactsDataValidation.field }
         }
     }
+
+    if(healthHistory?.isSmokingPast && typeof healthHistory.isSmokingPast != 'boolean') 
+        return { isAccepted: false, message: 'Invalid value for smoking past', field: 'healthHistory.isSmokingPast' }
+
+    if(healthHistory?.isSmokingPresent && typeof healthHistory.isSmokingPresent != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for smoking present', field: 'healthHistory.isSmokingPast' }
+
+    if(healthHistory?.isAlcoholPast && typeof healthHistory.isAlcoholPast != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for alcohol past', field: 'healthHistory.isAlcoholPast' }
+
+    if(healthHistory?.isAlcoholPresent && typeof healthHistory.isAlcoholPresent != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for alcohol present', field: 'healthHistory.isAlcoholPresent' }
+
+    if(healthHistory?.isHospitalConfined && typeof healthHistory.isHospitalConfined != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for hospital confined', field: 'healthHistory.isHospitalConfined' }
+
+    if(healthHistory?.hospitalConfinedReason && !Array.isArray(healthHistory.hospitalConfinedReason))
+      return { isAccepted: false, message: 'Invalid value for hospital confined reason', field: 'healthHistory.isHospitalConfined' }
+
+    if(healthHistory?.isSurgicalOperations && typeof healthHistory.isSurgicalOperations != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for surgical operation', field: 'healthHistory.isSurgicalOperations' }
+    
+    if(healthHistory?.surgicalOperationsReason && !Array.isArray(healthHistory.surgicalOperationsReason))
+        return { isAccepted: false, message: 'Invalid value for surgical operation reason', field: 'healthHistory.isHospitalConfined' }
+
+    if(healthHistory?.isAllergic && typeof healthHistory.isAllergic != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for allergic', field: 'healthHistory.isAllergic' }
+
+    if(healthHistory?.isBloodTransfusion && typeof healthHistory.isBloodTransfusion != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for blood transfusion', field: 'healthHistory.isBloodTransfusion' }
+
+    if(healthHistory?.isGeneticIssue && typeof healthHistory.isGeneticIssue != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for genetic issue', field: 'healthHistory.isGeneticIssue' }
+
+    if(healthHistory?.isCancerFamily && typeof healthHistory.isCancerFamily != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for cancer family', field: 'healthHistory.isCancerFamily' }
+
+    if(healthHistory?.isHighBloodPressure && typeof healthHistory.isHighBloodPressure != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for high blood pressure', field: 'healthHistory.isHighBloodPressure' }
+
+    if(healthHistory?.isDiabetic && typeof healthHistory.isDiabetic != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for alcohol present', field: 'healthHistory.isDiabetic' }
+
+    if(healthHistory?.isChronicHeart && typeof healthHistory.isChronicHeart != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for chronic heart', field: 'healthHistory.isChronicHeart' }
+
+    if(healthHistory?.isChronicNeurological && typeof healthHistory.isChronicNeurological != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for chronic neurological', field: 'healthHistory.isChronicNeurological' }
+
+    if(healthHistory?.isChronicLiver && typeof healthHistory.isChronicLiver != 'boolean')
+        return { isAccepted: false, message: 'Invalid value for chronic liver', field: 'healthHistory.isChronicLiver' }
+
+    if(healthHistory?.isChronicKidney && typeof healthHistory.isChronicKidney != 'boolean') 
+        return { isAccepted: false, message: 'Invalid value for chronic kidney', field: 'healthHistory.isChronicKidney' }
+
+    if(healthHistory?.isImmuneDiseases && typeof healthHistory.isImmuneDiseases != 'boolean') 
+        return { isAccepted: false, message: 'Invalid value for immune diseases', field: 'healthHistory.isImmuneDiseases' }
+
+    if(healthHistory?.isBloodDiseases && typeof healthHistory.isBloodDiseases != 'boolean') 
+        return { isAccepted: false, message: 'Invalid value for blood diseases', field: 'healthHistory.isBloodDiseases' }
+
+
+    return { isAccepted: true, message: 'data is valid', data: patientData }
+
+}
+
+const updatePatient = (patientData) => {
+
+    const { firstName, lastName, socialStatus, email, countryCode, city, phone, gender, dateOfBirth, bloodGroup, weight, emergencyContacts, healthHistory } = patientData
+
+    if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
+
+    if(!utils.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
+
+    if(!lastName) return { isAccepted: false, message: 'Last name is required', field: 'lastName' }
+
+    if(!utils.isNameValid(lastName)) return { isAccepted: false, message: 'Invalid name formate', field: 'lastName' }
+
+    if(socialStatus && typeof socialStatus != 'string') return { isAccepted: false, message: 'Invalid social status value', field: 'socialStatus' }
+
+    if(email && !utils.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
+
+    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
+
+    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Invalid country code', field: 'countryCode' }
+
+    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
+    
+    if(city && typeof city != 'string') return { isAccepted: false, message: 'Invalid city', field: 'city' }
+
+    if(typeof phone != 'number') return { isAccepted: false, message: 'Phone formate is invalid', field: 'phone' }
+
+    if(gender && !config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
+
+    if(dateOfBirth && !utils.isBirthYearValid(dateOfBirth)) return { isAccepted: false, message: 'Invalid date', field: 'dateOfBirth' }
+
+    if(bloodGroup && !config.BLOOD_GROUPS.includes(bloodGroup)) return { isAccepted: false, message: 'Invalid blood group', field: 'bloodGroup' }
 
     if(healthHistory?.isSmokingPast && typeof healthHistory.isSmokingPast != 'boolean') 
         return { isAccepted: false, message: 'Invalid value for smoking past', field: 'healthHistory.isSmokingPast' }
@@ -211,6 +304,7 @@ const updateEmergencyContactOfPatient = (contactData) => {
 
 module.exports = { 
     addPatient, 
+    updatePatient,
     addDoctorToPatient, 
     addEmergencyContactToPatient, 
     updateEmergencyContactOfPatient 

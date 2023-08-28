@@ -37,9 +37,6 @@ router.get('/v1/invoices/insurance-companies/:insuranceId', authorization.allPer
 router.post('/v1/invoices', authorization.allPermission, verifyClinicInvoices, function (request, response) {
   return invoicesController.addInvoice(request, response);
 });
-router.post('/v1/invoices/:invoiceId/checkout', authorization.allPermission, verifyInvoiceId, function (request, response) {
-  return invoicesController.addInvoiceCheckout(request, response);
-});
 router.put('/v1/invoices/:invoiceId', authorization.allPermission, verifyInvoiceId, function (request, response) {
   return invoicesController.updateInvoice(request, response);
 });

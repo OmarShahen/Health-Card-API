@@ -18,7 +18,10 @@ var authorization = require('../middlewares/verify-permission');
 router.post('/v1/patients', authorization.allPermission, verifyClinicPatients, function (request, response) {
   return patientsController.addPatient(request, response);
 });
-router.post('/v1/patients/:patientId/emergency-contacts', authorization.staffPermission, verifyPatientId, function (request, response) {
+router.put('/v1/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
+  return patientsController.updatePatient(request, response);
+});
+router.post('/v1/patients/:patientId/emergency-contacts', authorization.allPermission, verifyPatientId, function (request, response) {
   return patientsController.addEmergencyContactToPatient(request, response);
 });
 router.get('/v1/patients/:patientId/encounters', authorization.allPermission, verifyPatientId, function (request, response) {
@@ -42,10 +45,10 @@ router.get('/v1/patients/doctors/:userId', authorization.allPermission, verifyUs
 router.get('/v1/patients/:patientId/doctors', authorization.allPermission, verifyPatientId, function (request, response) {
   return patientsController.getDoctorsByPatientId(request, response);
 });
-router["delete"]('/v1/patients/:patientId/emergency-contacts/country-codes/:countryCode/phones/:phone', authorization.staffPermission, verifyPatientId, function (request, response) {
+router["delete"]('/v1/patients/:patientId/emergency-contacts/country-codes/:countryCode/phones/:phone', authorization.allPermission, verifyPatientId, function (request, response) {
   return patientsController.deleteEmergencyContactOfPatient(request, response);
 });
-router.put('/v1/patients/:patientId/emergency-contacts/:contactId', authorization.staffPermission, verifyPatientId, function (request, response) {
+router.put('/v1/patients/:patientId/emergency-contacts/:contactId', authorization.allPermission, verifyPatientId, function (request, response) {
   return patientsController.updateEmergencyContactOfPatient(request, response);
 });
 router["delete"]('/v1/patients/:patientId/doctors/:doctorId', authorization.allPermission, verifyPatientId, verifyDoctorId, function (request, response) {

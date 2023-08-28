@@ -11,7 +11,7 @@ const utils = require('../utils/utils')
 const translations = require('../i18n/index')
 
 
-const addEncounter = async (request, response) => {
+const addEncounter= async (request, response) => {
 
     try {
 
@@ -24,14 +24,16 @@ const addEncounter = async (request, response) => {
             })
         }
 
-        const { doctorId, patientId, symptoms, diagnosis, notes, medicines } = request.body
+        const { doctorId, patientId, clinicId, symptoms, diagnosis, registrationDate, notes, medicines } = request.body
 
         const doctorPromise = UserModel.findById(doctorId)
         const patientPromise = PatientModel.findById(patientId)
+        const clinicPromise = ClinicModel.findById(clinicId)
 
-        const [doctor, patient] = await Promise.all([
+        const [doctor, patient, clinic] = await Promise.all([
             doctorPromise,
-            patientPromise
+            patientPromise,
+            clinicPromise
         ])
 
         if(!doctor || !doctor.roles.includes('DOCTOR')) {
@@ -50,106 +52,6 @@ const addEncounter = async (request, response) => {
             })
         }
 
-        const doctorPatientAccessList = await DoctorPatientAccessModel.find({ doctorId, patientId })
-
-        if(doctorPatientAccessList.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'no access to this patient',
-                field: 'patientId'
-            })
-        }
-
-        const counter = await CounterModel.findOneAndUpdate(
-            { name: 'encounter' },
-            { $inc: { value: 1 } },
-            { new: true, upsert: true }
-        )
-
-        let encounterData = {
-            encounterId: counter.value,
-            doctorId,
-            patientId,
-            symptoms,
-            diagnosis,
-            notes,
-        }
-
-        let newPrescription
-
-        if(medicines && medicines.length != 0) {
-            const counter = await CounterModel.findOneAndUpdate(
-                { name: 'prescription' },
-                { $inc: { value: 1 } },
-                { new: true, upsert: true }
-            )
-            let prescriptionData = { prescriptionId: counter.value, doctorId, patientId, medicines }
-            const prescriptionObj = new PrescriptionModel(prescriptionData)
-            newPrescription = await prescriptionObj.save()
-        }
-
-        const encounterObj = new EncounterModel(encounterData)
-        const newEncounter = await encounterObj.save()
-
-        return response.status(200).json({
-            accepted: true,
-            message: 'Encounter added successfully!',
-            encounter: newEncounter,
-            prescription: newPrescription,
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const addEncounterByPatientCardId = async (request, response) => {
-
-    try {
-
-        const dataValidation = encounterValidation.addEncounterByPatientCardId(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
-        const { cardId } = request.params
-        const { doctorId, clinicId, symptoms, diagnosis, registrationDate, notes, medicines } = request.body
-
-        const doctorPromise = UserModel.findById(doctorId)
-        const patientPromise = PatientModel.find({ cardId })
-        const clinicPromise = ClinicModel.findById(clinicId)
-
-        const [doctor, patientList, clinic] = await Promise.all([
-            doctorPromise,
-            patientPromise,
-            clinicPromise
-        ])
-
-        if(!doctor || !doctor.roles.includes('DOCTOR')) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Doctor Id does not exist',
-                field: 'doctorId'
-            })
-        }
-
-        if(patientList.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Patient card Id does not exists',
-                field: 'cardId'
-            })
-        }
-
         if(!clinic) {
             return response.status(400).json({
                 accepted: false,
@@ -158,7 +60,6 @@ const addEncounterByPatientCardId = async (request, response) => {
             })
         }
 
-        const patient = patientList[0]
         const doctorPatientAccessList = await ClinicPatientDoctorModel.find({ doctorId, patientId: patient._id, clinicId: clinic._id })
 
         if(doctorPatientAccessList.length == 0) {
@@ -517,6 +418,5 @@ module.exports = {
     getPatientEncounters, 
     getDoctorEncounters,
     getEncounter,
-    addEncounterByPatientCardId,
     updateEncounter
 }

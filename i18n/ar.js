@@ -83,9 +83,14 @@ module.exports = {
     "New password must be diffrent from old password": "كلمة السر الجديدة يجب ان تختلف عن القديمة",
     "Added new insurance successfully!": "تم اضافة التامين بنجاح",
     "Name is already registered in the clinic": "الاسم مسجل مسبقا في العيادة",
-    "This insurance is registered with invoices": "التامين مسجل في الواتير",
+    "This insurance is registered with invoices": "التامين مسجل في الفواتير",
     "Deleted insurance successfully!": "تم مسح التامين بنجاح",
     "Updated insurance successfully!": "تم تحديث التامين بنجاح",
     "Doctor is already registered with the clinic": "الدكتور مسجل مسبقا في العيادة",
-    "Patient is not registered with the clinic": "الحالة غير مسجلة في العيادة"
+    "Patient is not registered with the clinic": "الحالة غير مسجلة في العيادة",
+    "Email is not registered": "البريد غير مسجل",
+    "Incorrect password": "كلمة السر غير صحيحة",
+    "User has no access to perform changes": "المستخدم ليس لديه صلاحيه للقيام بهذا الفعل",
+    "Current password is invalid": "كلمة السر الحالية غير صحيحة",
+    "Amount paid is more than the required": "الكمية المدفوعة اكثر من المطلوب"
 }   

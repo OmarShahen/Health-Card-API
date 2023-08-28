@@ -17,8 +17,7 @@ var PatientSchema = new mongoose.Schema({
     unique: true
   },
   cardId: {
-    type: Number,
-    required: true
+    type: Number
   },
   cardUUID: {
     type: String

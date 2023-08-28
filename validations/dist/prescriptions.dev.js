@@ -95,8 +95,11 @@ var medicineValidation = function medicineValidation(medicine) {
 var addPrescription = function addPrescription(prescriptionData) {
   var doctorId = prescriptionData.doctorId,
       patientId = prescriptionData.patientId,
+      clinicId = prescriptionData.clinicId,
       note = prescriptionData.note,
-      medicines = prescriptionData.medicines;
+      medicines = prescriptionData.medicines,
+      registrationDate = prescriptionData.registrationDate,
+      notes = prescriptionData.notes;
   if (!doctorId) return {
     isAccepted: false,
     message: 'Doctor Id is required',
@@ -114,48 +117,8 @@ var addPrescription = function addPrescription(prescriptionData) {
   };
   if (!utils.isObjectId(patientId)) return {
     isAccepted: false,
-    message: 'Invalid patient Id formate',
+    message: 'Invalid patient Id format',
     field: 'patientId'
-  };
-  if (note && typeof note != 'string') return {
-    isAccepted: false,
-    message: 'note must be a string',
-    field: 'note'
-  };
-  if (!Array.isArray(medicines) || medicines.length == 0) return {
-    isAccepted: false,
-    message: 'Medicines must be a list',
-    field: 'medicines'
-  };
-
-  for (var i = 0; i < medicines.length; i++) {
-    var dataValidation = medicineValidation(medicines[i]);
-    if (!dataValidation.isAccepted) return dataValidation;
-  }
-
-  return {
-    isAccepted: true,
-    message: 'data is valid',
-    data: prescriptionData
-  };
-};
-
-var addPrescriptionByPatientCardId = function addPrescriptionByPatientCardId(prescriptionData) {
-  var doctorId = prescriptionData.doctorId,
-      clinicId = prescriptionData.clinicId,
-      note = prescriptionData.note,
-      medicines = prescriptionData.medicines,
-      registrationDate = prescriptionData.registrationDate,
-      notes = prescriptionData.notes;
-  if (!doctorId) return {
-    isAccepted: false,
-    message: 'Doctor Id is required',
-    field: 'doctorId'
-  };
-  if (!utils.isObjectId(doctorId)) return {
-    isAccepted: false,
-    message: 'Invalid doctor Id formate',
-    field: 'doctorId'
   };
   if (!clinicId) return {
     isAccepted: false,
@@ -228,6 +191,5 @@ var updatePrescription = function updatePrescription(prescriptionData) {
 
 module.exports = {
   addPrescription: addPrescription,
-  addPrescriptionByPatientCardId: addPrescriptionByPatientCardId,
   updatePrescription: updatePrescription
 };

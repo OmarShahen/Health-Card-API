@@ -7,7 +7,7 @@ var config = require('../config/config');
 var addInsurancePolicy = function addInsurancePolicy(insurancePolicyData) {
   var insuranceCompanyId = insurancePolicyData.insuranceCompanyId,
       clinicId = insurancePolicyData.clinicId,
-      cardId = insurancePolicyData.cardId,
+      patientId = insurancePolicyData.patientId,
       type = insurancePolicyData.type,
       coveragePercentage = insurancePolicyData.coveragePercentage,
       status = insurancePolicyData.status,
@@ -33,15 +33,15 @@ var addInsurancePolicy = function addInsurancePolicy(insurancePolicyData) {
     message: 'Clinic ID format is invalid',
     field: 'clinicId'
   };
-  if (!cardId) return {
+  if (!patientId) return {
     isAccepted: false,
-    message: 'Card ID is required',
-    field: 'cardId'
+    message: 'Patient ID is required',
+    field: 'patientId'
   };
-  if (typeof cardId != 'number') return {
+  if (!utils.isObjectId(patientId)) return {
     isAccepted: false,
-    message: 'Card ID format is invalid',
-    field: 'cardId'
+    message: 'Patient ID format is invalid',
+    field: 'patientId'
   };
   if (!type) return {
     isAccepted: false,
