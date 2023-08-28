@@ -28,6 +28,8 @@ var mongoose = require('mongoose');
 
 var utils = require('../utils/utils');
 
+var translations = require('../i18n/index');
+
 var getInsurancePolicies = function getInsurancePolicies(request, response) {
   var insurancePolicies;
   return regeneratorRuntime.async(function getInsurancePolicies$(_context) {
@@ -490,7 +492,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Patient is not registered in clinic',
+            message: translations[request.query.lang]['Patient is not registered in clinic'],
             field: 'patientId'
           }));
 
@@ -506,7 +508,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance company contract has expired',
+            message: translations[request.query.lang]['Insurance company contract has expired'],
             field: 'insuranceCompanyId'
           }));
 
@@ -521,7 +523,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance company contract is not active yet',
+            message: translations[request.query.lang]['Insurance company contract is not active yet'],
             field: 'startDate'
           }));
 
@@ -533,7 +535,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance company contract has expired',
+            message: translations[request.query.lang]['Insurance company contract has expired'],
             field: 'endDate'
           }));
 
@@ -558,7 +560,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Patient is already registered with active insurance policy in clinic',
+            message: translations[request.query.lang]['Patient is already registered with active insurance policy in clinic'],
             field: 'patientId'
           }));
 
@@ -581,7 +583,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
           newInsurancePolicy = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added new insurance policy successfully!',
+            message: translations[request.query.lang]['Added new insurance policy successfully!'],
             insurancePolicy: newInsurancePolicy
           }));
 
@@ -626,7 +628,7 @@ var deleteInsurancePolicy = function deleteInsurancePolicy(request, response) {
 
           return _context8.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance policy is registered with invoices',
+            message: translations[request.query.lang]['Insurance policy is registered with invoices'],
             field: 'insurancePolicyId'
           }));
 
@@ -638,7 +640,7 @@ var deleteInsurancePolicy = function deleteInsurancePolicy(request, response) {
           deletedInsurancePolicy = _context8.sent;
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted insurance policy successfully!',
+            message: translations[request.query.lang]['Deleted insurance policy successfully!'],
             insurancePolicy: deletedInsurancePolicy
           }));
 
@@ -698,7 +700,7 @@ var updateInsurancePolicyStatus = function updateInsurancePolicyStatus(request, 
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance end date has passed',
+            message: translations[request.query.lang]['Insurance end date has passed'],
             field: 'endDate'
           }));
 
@@ -710,7 +712,7 @@ var updateInsurancePolicyStatus = function updateInsurancePolicyStatus(request, 
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance policy is already in this status',
+            message: translations[request.query.lang]['Insurance policy is already in this status'],
             field: 'status'
           }));
 
@@ -741,7 +743,7 @@ var updateInsurancePolicyStatus = function updateInsurancePolicyStatus(request, 
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Patient is already registered with active insurance policy in clinic',
+            message: translations[request.query.lang]['Patient is already registered with active insurance policy in clinic'],
             field: 'patientId'
           }));
 
@@ -757,7 +759,7 @@ var updateInsurancePolicyStatus = function updateInsurancePolicyStatus(request, 
           updatedInsurancePolicy = _context9.sent;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated insurance policy status successfully!',
+            message: translations[request.query.lang]['Updated insurance policy status successfully!'],
             insurancePolicy: updatedInsurancePolicy
           }));
 
@@ -817,7 +819,7 @@ var updateInsurancePolicy = function updateInsurancePolicy(request, response) {
 
           return _context10.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance policy is registered with invoices',
+            message: translations[request.query.lang]['Insurance policy is registered with invoices'],
             field: 'insurancePolicyId'
           }));
 
@@ -835,7 +837,7 @@ var updateInsurancePolicy = function updateInsurancePolicy(request, response) {
 
           return _context10.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance Policy is inactive',
+            message: translations[request.query.lang]['Insurance policy is inactive'],
             field: 'insurancePolicyId'
           }));
 
@@ -850,7 +852,7 @@ var updateInsurancePolicy = function updateInsurancePolicy(request, response) {
 
           return _context10.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Insurance end date has passed',
+            message: translations[request.query.lang]['Insurance end date has passed'],
             field: 'insurancePolicyId'
           }));
 
@@ -871,7 +873,7 @@ var updateInsurancePolicy = function updateInsurancePolicy(request, response) {
           updatedInsurancePolicy = _context10.sent;
           return _context10.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated insurance policy successfully!',
+            message: translations[request.query.lang]['Updated insurance policy successfully!'],
             insurancePolicy: updatedInsurancePolicy
           }));
 

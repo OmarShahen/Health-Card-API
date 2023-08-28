@@ -97,5 +97,22 @@ module.exports = {
     "Incorrect password": "Incorrect password",
     "User has no access to perform changes": "User has no access to perform changes",
     "Current password is invalid": "Current password is invalid",
-    "Amount paid is more than the required": "Amount paid is more than the required"
+    "Amount paid is more than the required": "Amount paid is more than the required",
+
+    "Updated insurance policy successfully!": "Updated insurance policy successfully!",
+    "Insurance end date has passed": "Insurance end date has passed",
+    "Insurance policy is inactive": "Insurance policy is inactive",
+    "Insurance policy is registered with invoices": "Insurance policy is registered with invoices",
+    "Updated insurance policy status successfully!": "Updated insurance policy status successfully!",
+    "Patient is already registered with active insurance policy in clinic": "Patient is already registered with active insurance policy in clinic",
+    "Insurance policy is already in this status": "Insurance policy is already in this status",
+    "Deleted insurance policy successfully!": "Deleted insurance policy successfully!",
+    "Patient is not registered in clinic": "Patient is not registered in clinic",
+    "Insurance company contract has expired": "Insurance company contract has expired",
+    "Insurance company contract is not active yet": "Insurance company contract is not active yet",
+    "Added new insurance policy successfully!": "Added new insurance policy successfully!",
+    "Start date cannot pass end date": "Start date cannot pass end date",
+    "End date has already passed": "End date has already passed",
+    "This insurance is registered with insurance policies": "This insurance is registered with insurance policies",
+    "Cannot update dates and there is insurance policies registered with it": "Cannot update dates and there is insurance policies registered with it"
 }   

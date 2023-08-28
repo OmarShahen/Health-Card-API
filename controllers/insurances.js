@@ -216,7 +216,7 @@ const deleteInsurance = async (request, response) => {
         if(insurancePoliciesList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'This insurance is registered with insurance policies',
+                message: translations[request.query.lang]['This insurance is registered with insurance policies'],
                 field: 'insuranceId'
             })
         }
@@ -276,7 +276,7 @@ const updateInsurance = async (request, response) => {
             if(insurancePolicies.length != 0) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'Cannot update dates and there is insurance policies registered with it',
+                    message: translations[request.query.lang]['Cannot update dates and there is insurance policies registered with it'],
                     field: 'insuranceId'
                 })
             }

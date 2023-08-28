@@ -8,6 +8,7 @@ const PatientModel = require('../models/PatientModel')
 const insurancePolicyValidator = require('../validations/insurance-policies')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
+const translations = require('../i18n/index')
 
 
 const getInsurancePolicies = async (request, response) => {
@@ -370,7 +371,7 @@ const addInsurancePolicy = async (request, response) => {
         if(clinicPatientList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Patient is not registered in clinic',
+                message: translations[request.query.lang]['Patient is not registered in clinic'],
                 field: 'patientId'
             })
         }
@@ -382,7 +383,7 @@ const addInsurancePolicy = async (request, response) => {
         if(insuranceCompanyEndDate < todayDate) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance company contract has expired',
+                message: translations[request.query.lang]['Insurance company contract has expired'],
                 field: 'insuranceCompanyId'
             })
         }
@@ -393,7 +394,7 @@ const addInsurancePolicy = async (request, response) => {
         if(insuranceCompanyStartDate > insurancePolicyStartDate) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance company contract is not active yet',
+                message: translations[request.query.lang]['Insurance company contract is not active yet'],
                 field: 'startDate'
             })
         }
@@ -401,7 +402,7 @@ const addInsurancePolicy = async (request, response) => {
         if(insuranceCompanyEndDate < insurancePolicyEndDate) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance company contract has expired',
+                message: translations[request.query.lang]['Insurance company contract has expired'],
                 field: 'endDate'
             })
         }
@@ -412,7 +413,7 @@ const addInsurancePolicy = async (request, response) => {
         if(patientInsurancePolicy.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Patient is already registered with active insurance policy in clinic',
+                message: translations[request.query.lang]['Patient is already registered with active insurance policy in clinic'],
                 field: 'patientId'
             })
         }
@@ -433,7 +434,7 @@ const addInsurancePolicy = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Added new insurance policy successfully!',
+            message: translations[request.query.lang]['Added new insurance policy successfully!'],
             insurancePolicy: newInsurancePolicy
         })
 
@@ -458,7 +459,7 @@ const deleteInsurancePolicy = async (request, response) => {
         if(invoices.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance policy is registered with invoices',
+                message: translations[request.query.lang]['Insurance policy is registered with invoices'],
                 field: 'insurancePolicyId'
             })
         }
@@ -467,7 +468,7 @@ const deleteInsurancePolicy = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted insurance policy successfully!',
+            message: translations[request.query.lang]['Deleted insurance policy successfully!'],
             insurancePolicy: deletedInsurancePolicy
         })
 
@@ -506,7 +507,7 @@ const updateInsurancePolicyStatus = async (request, response) => {
         if(todayDate > insurancePolicyEndDate) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance end date has passed',
+                message: translations[request.query.lang]['Insurance end date has passed'],
                 field: 'endDate'
             })
         }
@@ -514,7 +515,7 @@ const updateInsurancePolicyStatus = async (request, response) => {
         if(status == insurancePolicy.status) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance policy is already in this status',
+                message: translations[request.query.lang]['Insurance policy is already in this status'],
                 field: 'status'
             })
         }
@@ -529,7 +530,7 @@ const updateInsurancePolicyStatus = async (request, response) => {
             if(patientInsurancePolicy.length != 0) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'Patient is already registered with active insurance policy in clinic',
+                    message: translations[request.query.lang]['Patient is already registered with active insurance policy in clinic'],
                     field: 'patientId'
                 })
             }
@@ -540,7 +541,7 @@ const updateInsurancePolicyStatus = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated insurance policy status successfully!',
+            message: translations[request.query.lang]['Updated insurance policy status successfully!'],
             insurancePolicy: updatedInsurancePolicy
         })
 
@@ -573,7 +574,7 @@ const updateInsurancePolicy = async (request, response) => {
         if(invoicesList.length != 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance policy is registered with invoices',
+                message: translations[request.query.lang]['Insurance policy is registered with invoices'],
                 field: 'insurancePolicyId'
             })
         }
@@ -583,7 +584,7 @@ const updateInsurancePolicy = async (request, response) => {
         if(insurancePolicy.status == 'INACTIVE') {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance Policy is inactive',
+                message: translations[request.query.lang]['Insurance policy is inactive'],
                 field: 'insurancePolicyId'
             })
         }
@@ -594,7 +595,7 @@ const updateInsurancePolicy = async (request, response) => {
         if(todayDate > insurancePolicyEndDate) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Insurance end date has passed',
+                message: translations[request.query.lang]['Insurance end date has passed'],
                 field: 'insurancePolicyId'
             })
         }
@@ -608,7 +609,7 @@ const updateInsurancePolicy = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated insurance policy successfully!',
+            message: translations[request.query.lang]['Updated insurance policy successfully!'],
             insurancePolicy: updatedInsurancePolicy
         })
 

@@ -92,5 +92,21 @@ module.exports = {
     "Incorrect password": "كلمة السر غير صحيحة",
     "User has no access to perform changes": "المستخدم ليس لديه صلاحيه للقيام بهذا الفعل",
     "Current password is invalid": "كلمة السر الحالية غير صحيحة",
-    "Amount paid is more than the required": "الكمية المدفوعة اكثر من المطلوب"
+    "Amount paid is more than the required": "الكمية المدفوعة اكثر من المطلوب",
+    "Updated insurance policy successfully!": "تم تحديث عقد التامين بنجاح",
+    "Insurance end date has passed": "قد مر تاريخ انتهاء التامين",
+    "Insurance policy is inactive": "عقد التامين غير نشط",
+    "Insurance policy is registered with invoices": "عقد التامين مسجل في الفواتير",
+    "Updated insurance policy status successfully!": "تم تحديث حالة عقد التامين بنجاح",
+    "Patient is already registered with active insurance policy in clinic": "الحالة مسجلة مسبقا في عقد تامين نشط في العيادة",
+    "Insurance policy is already in this status": "عقد التامين في هذه الحالة مسبقا",
+    "Deleted insurance policy successfully!": "تم مسح عقد التامين بنجاح",
+    "Patient is not registered in clinic": "الحالة غير مسجلة في العيادة",
+    "Insurance company contract has expired": "تم انتهاء عقد شركة التامين",
+    "Insurance company contract is not active yet": "عقد شركة التامين غير نشط الان",
+    "Added new insurance policy successfully!": "تم اضافة عقد التامين بنجاح",
+    "Start date cannot pass end date": "تاريخ البداية لا يجب ان يكون اكبر من تاريخ الانتهاء",
+    "End date has already passed": "تاريخ الانتهاء قد مر",
+    "This insurance is registered with insurance policies": "شركة التامين مسجلة في عقود التامين",
+    "Cannot update dates and there is insurance policies registered with it": "لا يمكن تعديل التواريخ و يوجد عقود تامين مسجلة"
 }   

@@ -350,7 +350,7 @@ var deleteInsurance = function deleteInsurance(request, response) {
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'This insurance is registered with insurance policies',
+            message: translations[request.query.lang]['This insurance is registered with insurance policies'],
             field: 'insuranceId'
           }));
 
@@ -463,7 +463,7 @@ var updateInsurance = function updateInsurance(request, response) {
 
           return _context7.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Cannot update dates and there is insurance policies registered with it',
+            message: translations[request.query.lang]['Cannot update dates and there is insurance policies registered with it'],
             field: 'insuranceId'
           }));
 
