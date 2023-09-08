@@ -15,7 +15,7 @@ const checkServices = (services) => {
 
 const addInvoice = (invoiceData) => {
 
-    const { clinicId, patientId, services, paymentMethod, invoiceDate, paidAmount, dueDate } = invoiceData
+    const { clinicId, patientId, creatorId, services, paymentMethod, invoiceDate, paidAmount, dueDate } = invoiceData
 
     if(!clinicId) return { isAccepted: false, message: 'Clinic Id is required', field: 'clinicId' }
 
@@ -24,6 +24,10 @@ const addInvoice = (invoiceData) => {
     if(!patientId) return { isAccepted: false, message: 'Patient Id is required', field: 'patientId' }
 
     if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Patient Id format is invalid', field: 'patientId' }
+
+    if(!creatorId) return { isAccepted: false, message: 'Creator Id is required', field: 'creatorId' }
+
+    if(!utils.isObjectId(creatorId)) return { isAccepted: false, message: 'Creator Id format is invalid', field: 'creatorId' }
 
     if(!services) return { isAccepted: false, message: 'Services is required', field: 'services' }
 

@@ -1,13 +1,5 @@
 "use strict";
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
@@ -21,6 +13,14 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 var PatientModel = require('../models/PatientModel');
 
@@ -38,8 +38,6 @@ var ClinicPatientModel = require('../models/ClinicPatientModel');
 
 var mongoose = require('mongoose');
 
-var ClinicDoctorModel = require('../models/ClinicDoctorModel');
-
 var ClinicModel = require('../models/ClinicModel');
 
 var utils = require('../utils/utils');
@@ -49,7 +47,7 @@ var CardModel = require('../models/CardModel');
 var translations = require('../i18n/index');
 
 var addPatient = function addPatient(request, response) {
-  var dataValidation, _request$body, cardId, cvc, clinicId, doctorId, card, clinic, doctor, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctor, clinicPatientDoctorData, clinicPatientDoctorObj, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, newCard, cardData, cardObj;
+  var dataValidation, _request$body, cardId, cvc, clinicId, doctorsIds, card, clinic, doctorsList, doctorsSet, doctorsUniqueList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctorList, clinicPatientDoctorList, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, newCard, cardData, cardObj;
 
   return regeneratorRuntime.async(function addPatient$(_context) {
     while (1) {
@@ -70,7 +68,7 @@ var addPatient = function addPatient(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorId = _request$body.doctorId;
+          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorsIds = _request$body.doctorsIds;
 
           if (!cardId) {
             _context.next = 11;
@@ -120,31 +118,39 @@ var addPatient = function addPatient(request, response) {
           }));
 
         case 17:
-          if (!doctorId) {
-            _context.next = 23;
+          doctorsList = [];
+
+          if (!(doctorsIds && doctorsIds.length != 0)) {
+            _context.next = 26;
             break;
           }
 
-          _context.next = 20;
-          return regeneratorRuntime.awrap(UserModel.findById(doctorId));
+          doctorsSet = new Set(doctorsIds);
+          doctorsUniqueList = _toConsumableArray(doctorsSet);
+          _context.next = 23;
+          return regeneratorRuntime.awrap(UserModel.find({
+            _id: {
+              $in: doctorsUniqueList
+            }
+          }));
 
-        case 20:
-          doctor = _context.sent;
+        case 23:
+          doctorsList = _context.sent;
 
-          if (doctor) {
-            _context.next = 23;
+          if (!(doctorsList.length == 0)) {
+            _context.next = 26;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'doctor Id is not registered',
-            field: 'doctorId'
+            message: 'Doctors Ids is not registered',
+            field: 'doctorsIds'
           }));
 
-        case 23:
+        case 26:
           patientData = _objectSpread({}, request.body);
-          _context.next = 26;
+          _context.next = 29;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'patient'
           }, {
@@ -156,48 +162,49 @@ var addPatient = function addPatient(request, response) {
             upsert: true
           }));
 
-        case 26:
+        case 29:
           counter = _context.sent;
           patientData.patientId = counter.value;
           patientObj = new PatientModel(patientData);
-          _context.next = 31;
+          _context.next = 34;
           return regeneratorRuntime.awrap(patientObj.save());
 
-        case 31:
+        case 34:
           newPatient = _context.sent;
 
-          if (!(clinicId && doctorId)) {
-            _context.next = 45;
+          if (!(clinicId && doctorsList.length != 0)) {
+            _context.next = 47;
             break;
           }
 
-          clinicPatientDoctorData = {
-            patientId: newPatient._id,
-            clinicId: clinicId,
-            doctorId: doctorId
-          };
-          clinicPatientDoctorObj = new ClinicPatientDoctorModel(clinicPatientDoctorData);
-          _context.next = 37;
-          return regeneratorRuntime.awrap(clinicPatientDoctorObj.save());
+          clinicPatientDoctorList = doctorsList.map(function (doctor) {
+            return {
+              patientId: newPatient._id,
+              clinicId: clinicId,
+              doctorId: doctor._id
+            };
+          });
+          _context.next = 39;
+          return regeneratorRuntime.awrap(ClinicPatientDoctorModel.insertMany(clinicPatientDoctorList));
 
-        case 37:
-          newClinicPatientDoctor = _context.sent;
+        case 39:
+          newClinicPatientDoctorList = _context.sent;
           clinicPatientData = {
             patientId: newPatient._id,
             clinicId: clinicId
           };
           clinicPatientObj = new ClinicPatientModel(clinicPatientData);
-          _context.next = 42;
+          _context.next = 44;
           return regeneratorRuntime.awrap(clinicPatientObj.save());
 
-        case 42:
+        case 44:
           newClinicPatient = _context.sent;
-          _context.next = 51;
+          _context.next = 53;
           break;
 
-        case 45:
+        case 47:
           if (!clinicId) {
-            _context.next = 51;
+            _context.next = 53;
             break;
           }
 
@@ -206,17 +213,17 @@ var addPatient = function addPatient(request, response) {
             clinicId: clinicId
           };
           _clinicPatientObj = new ClinicPatientModel(_clinicPatientData);
-          _context.next = 50;
+          _context.next = 52;
           return regeneratorRuntime.awrap(_clinicPatientObj.save());
 
-        case 50:
+        case 52:
           newClinicPatient = _context.sent;
 
-        case 51:
+        case 53:
           newCard = {};
 
           if (!cardId) {
-            _context.next = 58;
+            _context.next = 60;
             break;
           }
 
@@ -225,24 +232,24 @@ var addPatient = function addPatient(request, response) {
             cvc: cvc
           };
           cardObj = new CardModel(cardData);
-          _context.next = 57;
+          _context.next = 59;
           return regeneratorRuntime.awrap(cardObj.save());
 
-        case 57:
+        case 59:
           newCard = _context.sent;
 
-        case 58:
+        case 60:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added patient successfully!'],
             patient: newPatient,
             card: newCard,
             clinicPatient: newClinicPatient,
-            clinicPatientDoctor: newClinicPatientDoctor
+            clinicPatientDoctorList: newClinicPatientDoctorList
           }));
 
-        case 61:
-          _context.prev = 61;
+        case 63:
+          _context.prev = 63;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -251,12 +258,12 @@ var addPatient = function addPatient(request, response) {
             error: _context.t0.message
           }));
 
-        case 65:
+        case 67:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 61]]);
+  }, null, null, [[0, 63]]);
 };
 
 var updatePatient = function updatePatient(request, response) {

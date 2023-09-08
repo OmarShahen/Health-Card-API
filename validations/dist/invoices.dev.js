@@ -17,6 +17,7 @@ var checkServices = function checkServices(services) {
 var addInvoice = function addInvoice(invoiceData) {
   var clinicId = invoiceData.clinicId,
       patientId = invoiceData.patientId,
+      creatorId = invoiceData.creatorId,
       services = invoiceData.services,
       paymentMethod = invoiceData.paymentMethod,
       invoiceDate = invoiceData.invoiceDate,
@@ -41,6 +42,16 @@ var addInvoice = function addInvoice(invoiceData) {
     isAccepted: false,
     message: 'Patient Id format is invalid',
     field: 'patientId'
+  };
+  if (!creatorId) return {
+    isAccepted: false,
+    message: 'Creator Id is required',
+    field: 'creatorId'
+  };
+  if (!utils.isObjectId(creatorId)) return {
+    isAccepted: false,
+    message: 'Creator Id format is invalid',
+    field: 'creatorId'
   };
   if (!services) return {
     isAccepted: false,

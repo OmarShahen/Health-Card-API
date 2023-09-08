@@ -115,7 +115,22 @@ var updateInsurance = function updateInsurance(insuranceData) {
   };
 };
 
+var updateInsuranceStatus = function updateInsuranceStatus(insuranceData) {
+  var isActive = insuranceData.isActive;
+  if (typeof isActive != 'boolean') return {
+    isAccepted: false,
+    message: 'invalid status format',
+    field: 'isActive'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: insuranceData
+  };
+};
+
 module.exports = {
   addInsurance: addInsurance,
-  updateInsurance: updateInsurance
+  updateInsurance: updateInsurance,
+  updateInsuranceStatus: updateInsuranceStatus
 };

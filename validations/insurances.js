@@ -53,4 +53,14 @@ const updateInsurance = (insuranceData) => {
 
 }
 
-module.exports = { addInsurance, updateInsurance }
+const updateInsuranceStatus = (insuranceData) => {
+
+    const { isActive } = insuranceData
+    
+    if(typeof isActive != 'boolean') return { isAccepted: false, message: 'invalid status format', field: 'isActive' }
+
+    return { isAccepted: true, message: 'data is valid', data: insuranceData }
+
+}
+
+module.exports = { addInsurance, updateInsurance, updateInsuranceStatus }

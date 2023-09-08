@@ -303,6 +303,56 @@ const updateInsurance = async (request, response) => {
     }
 }
 
+const updateInsuranceStatus = async (request, response) => {
+
+    try {
+
+        const { insuranceId } = request.params
+        const { isActive } = request.body
+
+        const dataValidation = insuranceValidator.updateInsuranceStatus(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const insurance = await InsuranceModel.findById(insuranceId)
+
+        const todayDate = new Date()
+        const insuranceEndDate = new Date(insurance.endDate)
+
+        if(todayDate > insuranceEndDate) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['Insurance passed expiry date'],
+                field: 'insuranceId'
+            })
+        }
+
+        const updateData = { isActive }
+        const updatedInsurance = await InsuranceModel
+        .findByIdAndUpdate(insuranceId, updateData, { new: true })
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Updated insurance company status successfully!'],
+            insurance: updatedInsurance
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     getInsurances,
@@ -311,5 +361,6 @@ module.exports = {
     getInsurancesByOwnerId,
     addInsurance, 
     deleteInsurance,
-    updateInsurance
+    updateInsurance,
+    updateInsuranceStatus
 }

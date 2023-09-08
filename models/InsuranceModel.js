@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const InsuranceSchema = new mongoose.Schema({
     name: { type: String, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
+    isActive: { type: Boolean, default: true },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true }
 

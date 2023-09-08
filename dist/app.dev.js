@@ -51,6 +51,8 @@ app.use('/api', require('./routes/payments'));
 app.use('/api', require('./routes/subscriptions'));
 app.use('/api', require('./routes/insurances'));
 app.use('/api', require('./routes/insurancePolicies'));
+app.use('/api', require('./routes/file-storage/folders'));
+app.use('/api', require('./routes/file-storage/files'));
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
 })["catch"](function (error) {

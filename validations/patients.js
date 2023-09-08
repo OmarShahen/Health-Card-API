@@ -26,9 +26,38 @@ const validateEmergencyContact = (emergencyContacts, patientPhone) => {
     return { isAccepted: true, data: emergencyContacts }
 }
 
+const checkIdsInList = (IdsList) => {
+
+    for(let i=0;i<IdsList.length;i++) {
+        if(!utils.isObjectId(IdsList[i])) {
+            return false
+        }
+    }
+
+    return true
+}
+
 const addPatient = (patientData) => {
 
-    const { clinicId, cvc, cardId, doctorId, firstName, lastName, socialStatus, email, countryCode, city, phone, gender, dateOfBirth, bloodGroup, weight, emergencyContacts, healthHistory } = patientData
+    const { 
+        clinicId, 
+        cvc, 
+        cardId, 
+        doctorsIds, 
+        firstName, 
+        lastName, 
+        socialStatus,
+        email, 
+        countryCode, 
+        city, 
+        phone, 
+        gender, 
+        dateOfBirth, 
+        bloodGroup, 
+        weight, 
+        emergencyContacts, 
+        healthHistory 
+    } = patientData
 
     if(clinicId && !utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic Id format', field: 'clinicId' }
 
@@ -36,7 +65,10 @@ const addPatient = (patientData) => {
 
     if(cvc && typeof cvc != 'number') return { isAccepted: false, message: 'card cvc format is invalid', field: 'cvc' } 
 
-    if(doctorId && !utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Doctor Id is invalid', field: 'doctorId' }
+    if(doctorsIds && !Array.isArray(doctorsIds)) return { isAccepted: false, message: 'doctors Ids list format is invalid', field: 'doctorsIds' }
+
+    if(doctorsIds && doctorsIds.length != 0 && !checkIdsInList(doctorsIds)) 
+        return { isAccepted: false, message: 'doctors Ids format is invalid', field: 'doctorsIds' }
 
     if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
 

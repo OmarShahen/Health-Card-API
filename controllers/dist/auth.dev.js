@@ -32,6 +32,8 @@ var ClinicRequestModel = require('../models/ClinicRequestModel');
 
 var SpecialityModel = require('../models/SpecialityModel');
 
+var InvoiceModel = require('../models/InvoiceModel');
+
 var EmailVerificationModel = require('../models/EmailVerificationModel');
 
 var _require = require('../utils/random-number'),
@@ -871,7 +873,7 @@ var forgotPassword = function forgotPassword(request, response) {
 };
 
 var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerificationCode(request, response) {
-  var userId, user, verificationCode, verificationData, updatedUserPromise, deleteAccountData, sendEmailPromise, _ref5, _ref6, updatedUser, _sendEmail2;
+  var userId, user, invoices, verificationCode, verificationData, updatedUserPromise, deleteAccountData, sendEmailPromise, _ref5, _ref6, updatedUser, _sendEmail2;
 
   return regeneratorRuntime.async(function sendUserDeleteAccountVerificationCode$(_context12) {
     while (1) {
@@ -897,6 +899,26 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
           }));
 
         case 7:
+          _context12.next = 9;
+          return regeneratorRuntime.awrap(InvoiceModel.find({
+            creatorId: userId
+          }));
+
+        case 9:
+          invoices = _context12.sent;
+
+          if (!(invoices.length != 0)) {
+            _context12.next = 12;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Data registered with the account',
+            field: 'userId'
+          }));
+
+        case 12:
           verificationCode = generateVerificationCode();
           verificationData = {
             deleteAccount: {
@@ -913,17 +935,17 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
             verificationCode: verificationCode
           };
           sendEmailPromise = sendDeleteAccountCode(deleteAccountData);
-          _context12.next = 14;
+          _context12.next = 19;
           return regeneratorRuntime.awrap(Promise.all([updatedUserPromise, sendEmailPromise]));
 
-        case 14:
+        case 19:
           _ref5 = _context12.sent;
           _ref6 = _slicedToArray(_ref5, 2);
           updatedUser = _ref6[0];
           _sendEmail2 = _ref6[1];
 
           if (_sendEmail2.isSent) {
-            _context12.next = 20;
+            _context12.next = 25;
             break;
           }
 
@@ -933,14 +955,14 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
             field: 'isSent'
           }));
 
-        case 20:
+        case 25:
           return _context12.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Verification code is sent successfully!'
           }));
 
-        case 23:
-          _context12.prev = 23;
+        case 28:
+          _context12.prev = 28;
           _context12.t0 = _context12["catch"](0);
           console.error(_context12.t0);
           return _context12.abrupt("return", response.status(500).json({
@@ -949,12 +971,12 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
             error: _context12.t0.message
           }));
 
-        case 27:
+        case 32:
         case "end":
           return _context12.stop();
       }
     }
-  }, null, null, [[0, 23]]);
+  }, null, null, [[0, 28]]);
 };
 
 var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificationCode(request, response) {

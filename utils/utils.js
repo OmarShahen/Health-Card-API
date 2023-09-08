@@ -17,6 +17,7 @@ const { isListUnique } = require('./unique')
 const { calculateServicesTotalCost } = require('./calculateServicesTotalCost')
 const { isRolesValid } = require('./roles')
 const { capitalizeFirstLetter, concatenateHmacString } = require('./formatString')
+const { isValidURL } = require('./validateURL')
 
 module.exports = {
     isRolesValid,
@@ -27,6 +28,7 @@ module.exports = {
     isPhoneValid,
     isUUIDValid,
     isAdminRole,
+    isValidURL,
     isCountryCodeValid,
     isDatePeriodValid,
     generateVerificationCode,

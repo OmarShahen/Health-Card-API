@@ -169,6 +169,19 @@ const getClinicPatientActiveInsurancePolicy = async (request, response) => {
         const insurancePolicyList = await InsurancePolicyModel
         .find({ patientId, clinicId, status: 'ACTIVE', endDate: { $gt: Date.now() } })
 
+        if(insurancePolicyList.length != 0) {
+            const insurancePolicy = insurancePolicyList[0]
+            const insuranceCompany = await InsuranceModel.findById(insurancePolicy.insuranceCompanyId)
+
+            if(!insuranceCompany.isActive) {
+                return response.status(200).json({
+                    accepted: true,
+                    insurancePolicy: []
+                })
+            }
+
+        }
+
         return response.status(200).json({
             accepted: true,
             insurancePolicy: insurancePolicyList
@@ -346,6 +359,14 @@ const addInsurancePolicy = async (request, response) => {
             return response.status(400).json({
                 accepted: false, 
                 message: 'Insurance company ID is not registered',
+                field: 'insuranceCompanyId'
+            })
+        }
+
+        if(!insuranceCompany.isActive) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['Insurance company is blocked'],
                 field: 'insuranceCompanyId'
             })
         }

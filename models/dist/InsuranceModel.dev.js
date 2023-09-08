@@ -11,6 +11,10 @@ var InsuranceSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  isActive: {
+    type: Boolean,
+    "default": true
+  },
   startDate: {
     type: Date,
     required: true

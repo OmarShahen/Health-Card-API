@@ -209,10 +209,6 @@ const getClinicPrescriptions = async (request, response) => {
     try {
 
         const { clinicId } = request.params
-        let { query } = request.query
-
-        query = query ? query : ''
-
         const { searchQuery } = utils.statsQueryGenerator('clinicId', clinicId, request.query)
 
         const prescriptions = await PrescriptionModel.aggregate([
@@ -241,19 +237,6 @@ const getClinicPrescriptions = async (request, response) => {
                     localField: 'clinicId',
                     foreignField: '_id',
                     as: 'clinic'
-                }
-            },
-            {
-                $match: {
-                    $or: [
-                        { 'patient.firstName': { $regex: query, $options: 'i' } },
-                        { 'patient.lastName': { $regex: query, $options: 'i' } },
-                        { 'patient.phone': { $regex: query, $options: 'i' } },
-                        { 'patient.cardId': { $regex: query, $options: 'i' } },
-                        { 'doctor.firstName': { $regex: query, $options: 'i' } },
-                        { 'doctor.lastName': { $regex: query, $options: 'i' } },
-                        { 'doctor.email': { $regex: query, $options: 'i' } },
-                    ]
                 }
             },
             {

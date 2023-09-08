@@ -108,5 +108,21 @@ module.exports = {
     "Start date cannot pass end date": "تاريخ البداية لا يجب ان يكون اكبر من تاريخ الانتهاء",
     "End date has already passed": "تاريخ الانتهاء قد مر",
     "This insurance is registered with insurance policies": "شركة التامين مسجلة في عقود التامين",
-    "Cannot update dates and there is insurance policies registered with it": "لا يمكن تعديل التواريخ و يوجد عقود تامين مسجلة"
+    "Cannot update dates and there is insurance policies registered with it": "لا يمكن تعديل التواريخ و يوجد عقود تامين مسجلة",
+    "Insurance passed expiry date": "تم انتهاء تاريخ عقد شركة التامين",
+    "Updated insurance company status successfully!": "تم تحديث حالة شركة التامين بنجاح",
+    "Insurance company is blocked": "شركة التامين موقوفة",
+
+    "Folder name is already registered in this folder": "اسم المجلد مسجل مسبقا في المجلد",
+    "Added folder successfully!": "تم اضافة المجلد بنجاح",
+    "Added patient folder successfully!": "تم اضافة مجلد الحالة بنجاح",
+    "Updated folder name successfully!": "تم تعديل اسم المجلد بنجاح",
+    "Folder contains files": "يحتوي المجلد علي ملفات",
+    "Folder contains files": "يحتوي المجلد علي مجلدات",
+    "Deleted folder successfully!": "تم مسح المجلد بنجاح",
+    "File name is already registered in this folder": "اسم الملف مسجل مسبقا في المجلد",
+    "Added file successfully!": "تم اضافة الملف بنجاح",
+    "Deleted file successfully!": "تم مسح الملف بنجاح",
+    "Updated file name successfully!": "تم تعديل اسم الملف بنجاح",
+    "Updated file pinning status successfully!": "تم تعديل حالة تثبيت الملف بنجاح"
 }   

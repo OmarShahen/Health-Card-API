@@ -504,6 +504,83 @@ var updateInsurance = function updateInsurance(request, response) {
   }, null, null, [[0, 30]]);
 };
 
+var updateInsuranceStatus = function updateInsuranceStatus(request, response) {
+  var insuranceId, isActive, dataValidation, insurance, todayDate, insuranceEndDate, updateData, updatedInsurance;
+  return regeneratorRuntime.async(function updateInsuranceStatus$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          insuranceId = request.params.insuranceId;
+          isActive = request.body.isActive;
+          dataValidation = insuranceValidator.updateInsuranceStatus(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context8.next = 6;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 6:
+          _context8.next = 8;
+          return regeneratorRuntime.awrap(InsuranceModel.findById(insuranceId));
+
+        case 8:
+          insurance = _context8.sent;
+          todayDate = new Date();
+          insuranceEndDate = new Date(insurance.endDate);
+
+          if (!(todayDate > insuranceEndDate)) {
+            _context8.next = 13;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Insurance passed expiry date'],
+            field: 'insuranceId'
+          }));
+
+        case 13:
+          updateData = {
+            isActive: isActive
+          };
+          _context8.next = 16;
+          return regeneratorRuntime.awrap(InsuranceModel.findByIdAndUpdate(insuranceId, updateData, {
+            "new": true
+          }));
+
+        case 16:
+          updatedInsurance = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Updated insurance company status successfully!'],
+            insurance: updatedInsurance
+          }));
+
+        case 20:
+          _context8.prev = 20;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 24:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 20]]);
+};
+
 module.exports = {
   getInsurances: getInsurances,
   getInsurance: getInsurance,
@@ -511,5 +588,6 @@ module.exports = {
   getInsurancesByOwnerId: getInsurancesByOwnerId,
   addInsurance: addInsurance,
   deleteInsurance: deleteInsurance,
-  updateInsurance: updateInsurance
+  updateInsurance: updateInsurance,
+  updateInsuranceStatus: updateInsuranceStatus
 };

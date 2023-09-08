@@ -2,6 +2,7 @@ const InvoiceModel = require('../models/InvoiceModel')
 const InvoiceServiceModel = require('../models/InvoiceServiceModel')
 const invoiceValidator = require('../validations/invoices')
 const ClinicModel = require('../models/ClinicModel')
+const InsuranceModel = require('../models/InsuranceModel')
 const PatientModel = require('../models/PatientModel')
 const CounterModel = require('../models/CounterModel')
 const ServiceModel = require('../models/ServiceModel')
@@ -9,6 +10,7 @@ const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
 const InsurancePolicyModel = require('../models/InsurancePolicyModel')
 const InsuranceCompanyModel = require('../models/InsuranceModel')
+const UserModel = require('../models/UserModel')
 const mongoose = require('mongoose')
 const utils = require('../utils/utils')
 const translations = require('../i18n/index')
@@ -72,6 +74,14 @@ const getInvoice = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'users',
+                    localField: 'creatorId',
+                    foreignField: '_id',
+                    as: 'creator'
+                }
+            },
+            {
                 $project: {
                     'patient.healthHistory': 0,
                     'patient.emergencyContacts': 0
@@ -101,6 +111,7 @@ const getInvoice = async (request, response) => {
         invoiceList.forEach(invoice => {
             invoice.clinic = invoice.clinic[0]
             invoice.patient = invoice.patient[0]
+            invoice.creator = invoice.creator[0]
             invoice.insuranceCompany = invoice.insuranceCompany[0]
         })
 
@@ -385,7 +396,6 @@ const getInvoicesByPatientId = async (request, response) => {
     }
 }
 
-
 const addInvoice = async (request, response) => {
 
     try {
@@ -399,14 +409,16 @@ const addInvoice = async (request, response) => {
             })
         }
 
-        const { clinicId, patientId, services, paymentMethod, invoiceDate, paidAmount, dueDate } = request.body
+        const { clinicId, patientId, creatorId, services, paymentMethod, invoiceDate, paidAmount, dueDate } = request.body
 
         const clinicPromise = ClinicModel.findById(clinicId)
         const patientPromise = PatientModel.findById(patientId)
+        const creatorPromise = UserModel.findById(creatorId)
 
-        const [clinic, patient] = await Promise.all([
+        const [clinic, patient, creator] = await Promise.all([
             clinicPromise,
-            patientPromise
+            patientPromise,
+            creatorPromise
         ])
 
         if(!clinic) {
@@ -422,6 +434,14 @@ const addInvoice = async (request, response) => {
                 accepted: false,
                 message: 'Patient Id does not exist',
                 field: 'patientId'
+            })
+        }
+
+        if(!creator) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Creator Id does not exist',
+                field: 'creatorId'
             })
         }
 
@@ -455,10 +475,17 @@ const addInvoice = async (request, response) => {
 
         let invoiceFinalTotalCost = invoiceServicesTotalCost
 
+        let isInsuranceCompanyActive
+
         if(insurancePolicyList.length != 0) {
             const insurancePolicy = insurancePolicyList[0]
-            const insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100)
-            invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount
+            const insuranceCompany = await InsuranceModel.findById(insurancePolicy.insuranceCompanyId)
+            isInsuranceCompanyActive = insuranceCompany.isActive
+
+            if(insuranceCompany.isActive) {
+                const insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100)
+                invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount
+            }
         }
 
         if(invoiceFinalTotalCost < paidAmount) {
@@ -489,6 +516,7 @@ const addInvoice = async (request, response) => {
             invoiceId: counter.value,
             patientId,
             clinicId,
+            creatorId,
             status: invoiceStatus,
             totalCost: invoiceServicesTotalCost,
             paymentMethod,
@@ -497,7 +525,7 @@ const addInvoice = async (request, response) => {
             dueDate
         }
 
-        if(insurancePolicyList.length != 0) {
+        if(insurancePolicyList.length != 0 && isInsuranceCompanyActive) {
             const insurancePolicy = insurancePolicyList[0]
             newInvoiceData.insuranceCompanyId = insurancePolicy.insuranceCompanyId
             newInvoiceData.insurancePolicyId = insurancePolicy._id

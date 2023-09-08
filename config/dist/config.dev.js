@@ -7,8 +7,11 @@ module.exports = {
   //DB_URL: process.env.DB_URL,
   PAYMOB_HMAC: process.env.PAYMOB_HMAC,
   PAYMOB_API_KEYS: process.env.PAYMOB_API_KEYS,
+  MAX_FILE_SIZE: 25 * 1000000,
+  // bytes
   GENDER: ['MALE', 'FEMALE'],
   BLOOD_GROUPS: ['A', 'B', 'O', 'AB', 'A-', 'A+', 'B-', 'B+', 'O+', 'O-', 'AB+', 'AB-'],
+  ALLOWED_FILE_EXTENSIONS: ['doc', 'docx', 'xls', 'xlsx', 'pdf', 'png', 'jpeg', 'jpg'],
   ROLES: ['OWNER', 'DOCTOR', 'STAFF'],
   CLINIC_MODES: ['TEST', 'PRODUCTION'],
   TEST_MODE_LIMIT: 3,

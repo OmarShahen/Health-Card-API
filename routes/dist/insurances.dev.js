@@ -35,4 +35,7 @@ router["delete"]('/v1/insurances/:insuranceId', authorization.allPermission, ver
 router.put('/v1/insurances/:insuranceId', authorization.allPermission, verifyInsuranceId, function (request, response) {
   return insurancesController.updateInsurance(request, response);
 });
+router.patch('/v1/insurances/:insuranceId/status', authorization.allPermission, verifyInsuranceId, function (request, response) {
+  return insurancesController.updateInsuranceStatus(request, response);
+});
 module.exports = router;

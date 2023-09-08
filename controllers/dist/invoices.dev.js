@@ -30,6 +30,8 @@ var invoiceValidator = require('../validations/invoices');
 
 var ClinicModel = require('../models/ClinicModel');
 
+var InsuranceModel = require('../models/InsuranceModel');
+
 var PatientModel = require('../models/PatientModel');
 
 var CounterModel = require('../models/CounterModel');
@@ -43,6 +45,8 @@ var ClinicPatientModel = require('../models/ClinicPatientModel');
 var InsurancePolicyModel = require('../models/InsurancePolicyModel');
 
 var InsuranceCompanyModel = require('../models/InsuranceModel');
+
+var UserModel = require('../models/UserModel');
 
 var mongoose = require('mongoose');
 
@@ -122,6 +126,13 @@ var getInvoice = function getInvoice(request, response) {
               as: 'insuranceCompany'
             }
           }, {
+            $lookup: {
+              from: 'users',
+              localField: 'creatorId',
+              foreignField: '_id',
+              as: 'creator'
+            }
+          }, {
             $project: {
               'patient.healthHistory': 0,
               'patient.emergencyContacts': 0
@@ -150,6 +161,7 @@ var getInvoice = function getInvoice(request, response) {
           invoiceList.forEach(function (invoice) {
             invoice.clinic = invoice.clinic[0];
             invoice.patient = invoice.patient[0];
+            invoice.creator = invoice.creator[0];
             invoice.insuranceCompany = invoice.insuranceCompany[0];
           });
           invoiceServices.forEach(function (invoiceService) {
@@ -471,7 +483,7 @@ var getInvoicesByPatientId = function getInvoicesByPatientId(request, response) 
 };
 
 var addInvoice = function addInvoice(request, response) {
-  var dataValidation, _request$body, clinicId, patientId, services, paymentMethod, invoiceDate, paidAmount, dueDate, clinicPromise, patientPromise, _ref3, _ref4, clinic, patient, clinicPatientsList, uniqueServicesSet, uniqueServicesList, servicesList, insurancePolicyList, servicesIds, invoiceServicesTotalCost, invoiceFinalTotalCost, insurancePolicy, insuranceCoverageAmount, invoiceStatus, counter, newInvoiceData, _insurancePolicy, invoiceObj, newInvoice, formattedInvoice, _insurancePolicy2, insuranceCompany, invoiceServices, newInvoiceServices;
+  var dataValidation, _request$body, clinicId, patientId, creatorId, services, paymentMethod, invoiceDate, paidAmount, dueDate, clinicPromise, patientPromise, creatorPromise, _ref3, _ref4, clinic, patient, creator, clinicPatientsList, uniqueServicesSet, uniqueServicesList, servicesList, insurancePolicyList, servicesIds, invoiceServicesTotalCost, invoiceFinalTotalCost, isInsuranceCompanyActive, insurancePolicy, insuranceCompany, insuranceCoverageAmount, invoiceStatus, counter, newInvoiceData, _insurancePolicy, invoiceObj, newInvoice, formattedInvoice, _insurancePolicy2, _insuranceCompany, invoiceServices, newInvoiceServices;
 
   return regeneratorRuntime.async(function addInvoice$(_context7) {
     while (1) {
@@ -492,20 +504,22 @@ var addInvoice = function addInvoice(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, clinicId = _request$body.clinicId, patientId = _request$body.patientId, services = _request$body.services, paymentMethod = _request$body.paymentMethod, invoiceDate = _request$body.invoiceDate, paidAmount = _request$body.paidAmount, dueDate = _request$body.dueDate;
+          _request$body = request.body, clinicId = _request$body.clinicId, patientId = _request$body.patientId, creatorId = _request$body.creatorId, services = _request$body.services, paymentMethod = _request$body.paymentMethod, invoiceDate = _request$body.invoiceDate, paidAmount = _request$body.paidAmount, dueDate = _request$body.dueDate;
           clinicPromise = ClinicModel.findById(clinicId);
           patientPromise = PatientModel.findById(patientId);
-          _context7.next = 9;
-          return regeneratorRuntime.awrap(Promise.all([clinicPromise, patientPromise]));
+          creatorPromise = UserModel.findById(creatorId);
+          _context7.next = 10;
+          return regeneratorRuntime.awrap(Promise.all([clinicPromise, patientPromise, creatorPromise]));
 
-        case 9:
+        case 10:
           _ref3 = _context7.sent;
-          _ref4 = _slicedToArray(_ref3, 2);
+          _ref4 = _slicedToArray(_ref3, 3);
           clinic = _ref4[0];
           patient = _ref4[1];
+          creator = _ref4[2];
 
           if (clinic) {
-            _context7.next = 15;
+            _context7.next = 17;
             break;
           }
 
@@ -515,9 +529,9 @@ var addInvoice = function addInvoice(request, response) {
             field: 'clinicId'
           }));
 
-        case 15:
+        case 17:
           if (patient) {
-            _context7.next = 17;
+            _context7.next = 19;
             break;
           }
 
@@ -527,18 +541,30 @@ var addInvoice = function addInvoice(request, response) {
             field: 'patientId'
           }));
 
-        case 17:
-          _context7.next = 19;
+        case 19:
+          if (creator) {
+            _context7.next = 21;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Creator Id does not exist',
+            field: 'creatorId'
+          }));
+
+        case 21:
+          _context7.next = 23;
           return regeneratorRuntime.awrap(ClinicPatientModel.find({
             clinicId: clinicId,
             patientId: patientId
           }));
 
-        case 19:
+        case 23:
           clinicPatientsList = _context7.sent;
 
           if (!(clinicPatientsList.length == 0)) {
-            _context7.next = 22;
+            _context7.next = 26;
             break;
           }
 
@@ -548,10 +574,10 @@ var addInvoice = function addInvoice(request, response) {
             field: 'patientId'
           }));
 
-        case 22:
+        case 26:
           uniqueServicesSet = new Set(services);
           uniqueServicesList = _toConsumableArray(uniqueServicesSet);
-          _context7.next = 26;
+          _context7.next = 30;
           return regeneratorRuntime.awrap(ServiceModel.find({
             _id: {
               $in: uniqueServicesList
@@ -559,11 +585,11 @@ var addInvoice = function addInvoice(request, response) {
             clinicId: clinicId
           }));
 
-        case 26:
+        case 30:
           servicesList = _context7.sent;
 
           if (!(servicesList.length == 0 || servicesList.length != uniqueServicesList.length)) {
-            _context7.next = 29;
+            _context7.next = 33;
             break;
           }
 
@@ -573,8 +599,8 @@ var addInvoice = function addInvoice(request, response) {
             field: 'services'
           }));
 
-        case 29:
-          _context7.next = 31;
+        case 33:
+          _context7.next = 35;
           return regeneratorRuntime.awrap(InsurancePolicyModel.find({
             patientId: patientId,
             clinicId: clinicId,
@@ -584,20 +610,33 @@ var addInvoice = function addInvoice(request, response) {
             }
           }));
 
-        case 31:
+        case 35:
           insurancePolicyList = _context7.sent;
           servicesIds = services;
           invoiceServicesTotalCost = utils.calculateServicesTotalCost(servicesList, servicesIds);
           invoiceFinalTotalCost = invoiceServicesTotalCost;
 
-          if (insurancePolicyList.length != 0) {
-            insurancePolicy = insurancePolicyList[0];
+          if (!(insurancePolicyList.length != 0)) {
+            _context7.next = 46;
+            break;
+          }
+
+          insurancePolicy = insurancePolicyList[0];
+          _context7.next = 43;
+          return regeneratorRuntime.awrap(InsuranceModel.findById(insurancePolicy.insuranceCompanyId));
+
+        case 43:
+          insuranceCompany = _context7.sent;
+          isInsuranceCompanyActive = insuranceCompany.isActive;
+
+          if (insuranceCompany.isActive) {
             insuranceCoverageAmount = invoiceServicesTotalCost * (insurancePolicy.coveragePercentage / 100);
             invoiceFinalTotalCost = invoiceServicesTotalCost - insuranceCoverageAmount;
           }
 
+        case 46:
           if (!(invoiceFinalTotalCost < paidAmount)) {
-            _context7.next = 38;
+            _context7.next = 48;
             break;
           }
 
@@ -607,7 +646,7 @@ var addInvoice = function addInvoice(request, response) {
             field: 'paidAmount'
           }));
 
-        case 38:
+        case 48:
           if (invoiceFinalTotalCost == paidAmount) {
             invoiceStatus = 'PAID';
           } else if (paidAmount == 0) {
@@ -616,7 +655,7 @@ var addInvoice = function addInvoice(request, response) {
             invoiceStatus = 'PARTIALLY_PAID';
           }
 
-          _context7.next = 41;
+          _context7.next = 51;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: "".concat(clinic._id, "-invoice")
           }, {
@@ -628,12 +667,13 @@ var addInvoice = function addInvoice(request, response) {
             upsert: true
           }));
 
-        case 41:
+        case 51:
           counter = _context7.sent;
           newInvoiceData = {
             invoiceId: counter.value,
             patientId: patientId,
             clinicId: clinicId,
+            creatorId: creatorId,
             status: invoiceStatus,
             totalCost: invoiceServicesTotalCost,
             paymentMethod: paymentMethod,
@@ -642,7 +682,7 @@ var addInvoice = function addInvoice(request, response) {
             dueDate: dueDate
           };
 
-          if (insurancePolicyList.length != 0) {
+          if (insurancePolicyList.length != 0 && isInsuranceCompanyActive) {
             _insurancePolicy = insurancePolicyList[0];
             newInvoiceData.insuranceCompanyId = _insurancePolicy.insuranceCompanyId;
             newInvoiceData.insurancePolicyId = _insurancePolicy._id;
@@ -650,30 +690,30 @@ var addInvoice = function addInvoice(request, response) {
           }
 
           invoiceObj = new InvoiceModel(newInvoiceData);
-          _context7.next = 47;
+          _context7.next = 57;
           return regeneratorRuntime.awrap(invoiceObj.save());
 
-        case 47:
+        case 57:
           newInvoice = _context7.sent;
           formattedInvoice = _objectSpread({}, newInvoice._doc, {
             clinic: clinic
           });
 
           if (!(insurancePolicyList.length != 0)) {
-            _context7.next = 56;
+            _context7.next = 66;
             break;
           }
 
           _insurancePolicy2 = insurancePolicyList[0];
-          _context7.next = 53;
+          _context7.next = 63;
           return regeneratorRuntime.awrap(InsuranceCompanyModel.findById(_insurancePolicy2.insuranceCompanyId));
 
-        case 53:
-          insuranceCompany = _context7.sent;
+        case 63:
+          _insuranceCompany = _context7.sent;
           formattedInvoice.insurancePolicy = _insurancePolicy2;
-          formattedInvoice.insuranceCompany = _objectSpread({}, insuranceCompany._doc);
+          formattedInvoice.insuranceCompany = _objectSpread({}, _insuranceCompany._doc);
 
-        case 56:
+        case 66:
           invoiceServices = services.map(function (service) {
             return {
               invoiceId: newInvoice._id,
@@ -685,10 +725,10 @@ var addInvoice = function addInvoice(request, response) {
               })[0].cost
             };
           });
-          _context7.next = 59;
+          _context7.next = 69;
           return regeneratorRuntime.awrap(InvoiceServiceModel.insertMany(invoiceServices));
 
-        case 59:
+        case 69:
           newInvoiceServices = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
@@ -697,8 +737,8 @@ var addInvoice = function addInvoice(request, response) {
             invoiceServices: newInvoiceServices
           }));
 
-        case 63:
-          _context7.prev = 63;
+        case 73:
+          _context7.prev = 73;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -707,12 +747,12 @@ var addInvoice = function addInvoice(request, response) {
             error: _context7.t0.message
           }));
 
-        case 67:
+        case 77:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 63]]);
+  }, null, null, [[0, 73]]);
 };
 
 var updateInvoiceStatus = function updateInvoiceStatus(request, response) {

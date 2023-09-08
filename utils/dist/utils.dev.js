@@ -63,6 +63,9 @@ var _require19 = require('./formatString'),
     capitalizeFirstLetter = _require19.capitalizeFirstLetter,
     concatenateHmacString = _require19.concatenateHmacString;
 
+var _require20 = require('./validateURL'),
+    isValidURL = _require20.isValidURL;
+
 module.exports = {
   isRolesValid: isRolesValid,
   isNameValid: isNameValid,
@@ -72,6 +75,7 @@ module.exports = {
   isPhoneValid: isPhoneValid,
   isUUIDValid: isUUIDValid,
   isAdminRole: isAdminRole,
+  isValidURL: isValidURL,
   isCountryCodeValid: isCountryCodeValid,
   isDatePeriodValid: isDatePeriodValid,
   generateVerificationCode: generateVerificationCode,

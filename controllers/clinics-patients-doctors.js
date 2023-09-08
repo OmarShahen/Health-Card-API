@@ -29,6 +29,7 @@ const getClinicsPatientsDoctors = async (request, response) => {
     }
 }
 
+
 const addClinicPatientDoctor = async (request, response) => {
 
     try {

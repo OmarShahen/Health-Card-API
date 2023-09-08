@@ -304,7 +304,7 @@ var getDoctorPrescriptions = function getDoctorPrescriptions(request, response) 
 };
 
 var getClinicPrescriptions = function getClinicPrescriptions(request, response) {
-  var clinicId, query, _utils$statsQueryGene2, searchQuery, prescriptions;
+  var clinicId, _utils$statsQueryGene2, searchQuery, prescriptions;
 
   return regeneratorRuntime.async(function getClinicPrescriptions$(_context3) {
     while (1) {
@@ -312,10 +312,8 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
         case 0:
           _context3.prev = 0;
           clinicId = request.params.clinicId;
-          query = request.query.query;
-          query = query ? query : '';
           _utils$statsQueryGene2 = utils.statsQueryGenerator('clinicId', clinicId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
-          _context3.next = 7;
+          _context3.next = 5;
           return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
             $match: searchQuery
           }, {
@@ -340,45 +338,6 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
               as: 'clinic'
             }
           }, {
-            $match: {
-              $or: [{
-                'patient.firstName': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }, {
-                'patient.lastName': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }, {
-                'patient.phone': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }, {
-                'patient.cardId': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }, {
-                'doctor.firstName': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }, {
-                'doctor.lastName': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }, {
-                'doctor.email': {
-                  $regex: query,
-                  $options: 'i'
-                }
-              }]
-            }
-          }, {
             $sort: {
               createdAt: -1
             }
@@ -391,7 +350,7 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
             }
           }]));
 
-        case 7:
+        case 5:
           prescriptions = _context3.sent;
           prescriptions.forEach(function (prescription) {
             prescription.patient = prescription.patient[0];
@@ -403,8 +362,8 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
             prescriptions: prescriptions
           }));
 
-        case 12:
-          _context3.prev = 12;
+        case 10:
+          _context3.prev = 10;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -413,12 +372,12 @@ var getClinicPrescriptions = function getClinicPrescriptions(request, response) 
             error: _context3.t0.message
           }));
 
-        case 16:
+        case 14:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 10]]);
 };
 
 var getPatientPrescriptions = function getPatientPrescriptions(request, response) {

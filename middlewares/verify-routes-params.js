@@ -19,6 +19,8 @@ const CardModel = require('../models/CardModel')
 const SubscriptionModel = require('../models/SubscriptionModel')
 const InsuranceModel = require('../models/InsuranceModel')
 const InsurancePolicyModel = require('../models/InsurancePolicyModel')
+const FolderModel = require('../models/file-storage/FolderModel')
+const FileModel = require('../models/file-storage/FileModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -738,6 +740,76 @@ const verifyInsurancePolicyId = async (request, response, next) => {
     }
 }
 
+const verifyFolderId = async (request, response, next) => {
+
+    try {
+
+        const { folderId } = request.params
+
+        if(!utils.isObjectId(folderId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid folder Id format',
+                field: 'folderId'
+            })
+        }
+
+        const folder = await FolderModel.findById(folderId)
+        if(!folder) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Folder Id does not exist',
+                field: 'folderId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyFileId = async (request, response, next) => {
+
+    try {
+
+        const { fileId } = request.params
+
+        if(!utils.isObjectId(fileId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid file Id format',
+                field: 'fileId'
+            })
+        }
+
+        const file = await FileModel.findById(fileId)
+        if(!file) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'File Id does not exist',
+                field: 'fileId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -759,5 +831,7 @@ module.exports = {
     verifyCardId,
     verifySubscriptionId,
     verifyInsuranceId,
-    verifyInsurancePolicyId
+    verifyInsurancePolicyId,
+    verifyFolderId,
+    verifyFileId
 }

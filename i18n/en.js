@@ -98,7 +98,6 @@ module.exports = {
     "User has no access to perform changes": "User has no access to perform changes",
     "Current password is invalid": "Current password is invalid",
     "Amount paid is more than the required": "Amount paid is more than the required",
-
     "Updated insurance policy successfully!": "Updated insurance policy successfully!",
     "Insurance end date has passed": "Insurance end date has passed",
     "Insurance policy is inactive": "Insurance policy is inactive",
@@ -114,5 +113,22 @@ module.exports = {
     "Start date cannot pass end date": "Start date cannot pass end date",
     "End date has already passed": "End date has already passed",
     "This insurance is registered with insurance policies": "This insurance is registered with insurance policies",
-    "Cannot update dates and there is insurance policies registered with it": "Cannot update dates and there is insurance policies registered with it"
+    "Cannot update dates and there is insurance policies registered with it": "Cannot update dates and there is insurance policies registered with it",
+    "Insurance passed expiry date": "Insurance passed expiry date",
+    "Updated insurance company status successfully!": "Updated insurance company status successfully!",
+    "Insurance company is blocked": "Insurance company is blocked",
+    "Folder name is already registered in this folder": "Folder name is already registered in this folder",
+    "Added folder successfully!": "Added folder successfully!",
+    "Added patient folder successfully!": "Added patient folder successfully!",
+    "Updated folder name successfully!": "Updated folder name successfully!",
+    "Folder contains files": "Folder contains files",
+    "Folder contains folders": "Folder contains folders",
+    "Deleted folder successfully!": "Deleted folder successfully!",
+    "File name is already registered in this folder": "File name is already registered in this folder",
+    "Added file successfully!": "Added file successfully!",
+    "Deleted file successfully!": "Deleted file successfully!",
+    "Updated file name successfully!": "Updated file name successfully!",
+    "Updated file pinning status successfully!": "Updated file pinning status successfully!"
+
+
 }   

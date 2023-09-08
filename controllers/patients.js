@@ -6,7 +6,6 @@ const patientValidation = require('../validations/patients')
 const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
 const mongoose = require('mongoose')
-const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicModel = require('../models/ClinicModel')
 const utils = require('../utils/utils')
 const CardModel = require('../models/CardModel')
@@ -25,7 +24,7 @@ const addPatient = async (request, response) => {
             })
         }
 
-        const { cardId, cvc, clinicId, doctorId } = request.body
+        const { cardId, cvc, clinicId, doctorsIds } = request.body
 
         if(cardId) {
             const card = await PatientModel.find({ cardId })
@@ -49,16 +48,22 @@ const addPatient = async (request, response) => {
             }
         }
 
-        if(doctorId) {
-            const doctor = await UserModel.findById(doctorId)
-            if(!doctor) {
+        let doctorsList = []
+
+        if(doctorsIds && doctorsIds.length != 0) {
+            const doctorsSet = new Set(doctorsIds)
+            const doctorsUniqueList = [...doctorsSet]
+
+            doctorsList = await UserModel.find({ _id: { $in: doctorsUniqueList } })
+
+            if(doctorsList.length == 0) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'doctor Id is not registered',
-                    field: 'doctorId'
+                    message: 'Doctors Ids is not registered',
+                    field: 'doctorsIds'
                 })
             }
-        }
+        }   
 
         const patientData = { ...request.body }
 
@@ -73,13 +78,19 @@ const addPatient = async (request, response) => {
         const newPatient = await patientObj.save()
 
         let newClinicPatient
-        let newClinicPatientDoctor
+        let newClinicPatientDoctorList
 
-        if(clinicId && doctorId) {
+        if(clinicId && doctorsList.length != 0) {
 
-            const clinicPatientDoctorData = { patientId: newPatient._id, clinicId, doctorId }
-            const clinicPatientDoctorObj = new ClinicPatientDoctorModel(clinicPatientDoctorData)
-            newClinicPatientDoctor = await clinicPatientDoctorObj.save()
+            const clinicPatientDoctorList = doctorsList.map(doctor => {
+                return {
+                    patientId: newPatient._id,
+                    clinicId,
+                    doctorId: doctor._id
+                }
+            })
+
+            newClinicPatientDoctorList = await ClinicPatientDoctorModel.insertMany(clinicPatientDoctorList)
 
             const clinicPatientData = { patientId: newPatient._id, clinicId }
             const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
@@ -105,7 +116,7 @@ const addPatient = async (request, response) => {
             patient: newPatient,
             card: newCard,
             clinicPatient: newClinicPatient,
-            clinicPatientDoctor: newClinicPatientDoctor
+            clinicPatientDoctorList: newClinicPatientDoctorList
         })
 
     } catch(error) {

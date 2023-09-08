@@ -208,7 +208,7 @@ var getInsurancePoliciesByPatientId = function getInsurancePoliciesByPatientId(r
 };
 
 var getClinicPatientActiveInsurancePolicy = function getClinicPatientActiveInsurancePolicy(request, response) {
-  var _request$params, patientId, clinicId, insurancePolicyList;
+  var _request$params, patientId, clinicId, insurancePolicyList, insurancePolicy, insuranceCompany;
 
   return regeneratorRuntime.async(function getClinicPatientActiveInsurancePolicy$(_context4) {
     while (1) {
@@ -228,13 +228,37 @@ var getClinicPatientActiveInsurancePolicy = function getClinicPatientActiveInsur
 
         case 4:
           insurancePolicyList = _context4.sent;
+
+          if (!(insurancePolicyList.length != 0)) {
+            _context4.next = 12;
+            break;
+          }
+
+          insurancePolicy = insurancePolicyList[0];
+          _context4.next = 9;
+          return regeneratorRuntime.awrap(InsuranceModel.findById(insurancePolicy.insuranceCompanyId));
+
+        case 9:
+          insuranceCompany = _context4.sent;
+
+          if (insuranceCompany.isActive) {
+            _context4.next = 12;
+            break;
+          }
+
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            insurancePolicy: []
+          }));
+
+        case 12:
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
             insurancePolicy: insurancePolicyList
           }));
 
-        case 8:
-          _context4.prev = 8;
+        case 15:
+          _context4.prev = 15;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -243,12 +267,12 @@ var getClinicPatientActiveInsurancePolicy = function getClinicPatientActiveInsur
             error: _context4.t0.message
           }));
 
-        case 12:
+        case 19:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 15]]);
 };
 
 var getInsurancePoliciesByInsuranceCompanyId = function getInsurancePoliciesByInsuranceCompanyId(request, response) {
@@ -453,8 +477,20 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
           }));
 
         case 17:
-          if (clinic) {
+          if (insuranceCompany.isActive) {
             _context7.next = 19;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Insurance company is blocked'],
+            field: 'insuranceCompanyId'
+          }));
+
+        case 19:
+          if (clinic) {
+            _context7.next = 21;
             break;
           }
 
@@ -464,9 +500,9 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'clinic'
           }));
 
-        case 19:
+        case 21:
           if (patient) {
-            _context7.next = 21;
+            _context7.next = 23;
             break;
           }
 
@@ -476,17 +512,17 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'patientId'
           }));
 
-        case 21:
-          _context7.next = 23;
+        case 23:
+          _context7.next = 25;
           return regeneratorRuntime.awrap(ClinicPatientModel.find({
             patientId: patientId
           }));
 
-        case 23:
+        case 25:
           clinicPatientList = _context7.sent;
 
           if (!(clinicPatientList.length == 0)) {
-            _context7.next = 26;
+            _context7.next = 28;
             break;
           }
 
@@ -496,13 +532,13 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'patientId'
           }));
 
-        case 26:
+        case 28:
           todayDate = new Date();
           insuranceCompanyStartDate = new Date(insuranceCompany.startDate);
           insuranceCompanyEndDate = new Date(insuranceCompany.endDate);
 
           if (!(insuranceCompanyEndDate < todayDate)) {
-            _context7.next = 31;
+            _context7.next = 33;
             break;
           }
 
@@ -512,12 +548,12 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'insuranceCompanyId'
           }));
 
-        case 31:
+        case 33:
           insurancePolicyStartDate = new Date(startDate);
           insurancePolicyEndDate = new Date(endDate);
 
           if (!(insuranceCompanyStartDate > insurancePolicyStartDate)) {
-            _context7.next = 35;
+            _context7.next = 37;
             break;
           }
 
@@ -527,9 +563,9 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'startDate'
           }));
 
-        case 35:
+        case 37:
           if (!(insuranceCompanyEndDate < insurancePolicyEndDate)) {
-            _context7.next = 37;
+            _context7.next = 39;
             break;
           }
 
@@ -539,8 +575,8 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'endDate'
           }));
 
-        case 37:
-          _context7.next = 39;
+        case 39:
+          _context7.next = 41;
           return regeneratorRuntime.awrap(InsurancePolicyModel.find({
             patientId: patientId,
             clinicId: clinicId,
@@ -550,11 +586,11 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             }
           }));
 
-        case 39:
+        case 41:
           patientInsurancePolicy = _context7.sent;
 
           if (!(patientInsurancePolicy.length != 0)) {
-            _context7.next = 42;
+            _context7.next = 44;
             break;
           }
 
@@ -564,7 +600,7 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             field: 'patientId'
           }));
 
-        case 42:
+        case 44:
           insurancePolicyData = {
             insuranceCompanyId: insuranceCompanyId,
             clinicId: clinicId,
@@ -576,10 +612,10 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             endDate: endDate
           };
           insurancePolicyObj = new InsurancePolicyModel(insurancePolicyData);
-          _context7.next = 46;
+          _context7.next = 48;
           return regeneratorRuntime.awrap(insurancePolicyObj.save());
 
-        case 46:
+        case 48:
           newInsurancePolicy = _context7.sent;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
@@ -587,8 +623,8 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             insurancePolicy: newInsurancePolicy
           }));
 
-        case 50:
-          _context7.prev = 50;
+        case 52:
+          _context7.prev = 52;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -597,12 +633,12 @@ var addInsurancePolicy = function addInsurancePolicy(request, response) {
             error: _context7.t0.message
           }));
 
-        case 54:
+        case 56:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 50]]);
+  }, null, null, [[0, 52]]);
 };
 
 var deleteInsurancePolicy = function deleteInsurancePolicy(request, response) {

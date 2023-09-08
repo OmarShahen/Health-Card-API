@@ -42,6 +42,10 @@ var InsuranceModel = require('../models/InsuranceModel');
 
 var InsurancePolicyModel = require('../models/InsurancePolicyModel');
 
+var FolderModel = require('../models/file-storage/FolderModel');
+
+var FileModel = require('../models/file-storage/FileModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1255,6 +1259,124 @@ var verifyInsurancePolicyId = function verifyInsurancePolicyId(request, response
   }, null, null, [[0, 12]]);
 };
 
+var verifyFolderId = function verifyFolderId(request, response, next) {
+  var folderId, folder;
+  return regeneratorRuntime.async(function verifyFolderId$(_context22) {
+    while (1) {
+      switch (_context22.prev = _context22.next) {
+        case 0:
+          _context22.prev = 0;
+          folderId = request.params.folderId;
+
+          if (utils.isObjectId(folderId)) {
+            _context22.next = 4;
+            break;
+          }
+
+          return _context22.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid folder Id format',
+            field: 'folderId'
+          }));
+
+        case 4:
+          _context22.next = 6;
+          return regeneratorRuntime.awrap(FolderModel.findById(folderId));
+
+        case 6:
+          folder = _context22.sent;
+
+          if (folder) {
+            _context22.next = 9;
+            break;
+          }
+
+          return _context22.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Folder Id does not exist',
+            field: 'folderId'
+          }));
+
+        case 9:
+          return _context22.abrupt("return", next());
+
+        case 12:
+          _context22.prev = 12;
+          _context22.t0 = _context22["catch"](0);
+          console.error(_context22.t0);
+          return _context22.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context22.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context22.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyFileId = function verifyFileId(request, response, next) {
+  var fileId, file;
+  return regeneratorRuntime.async(function verifyFileId$(_context23) {
+    while (1) {
+      switch (_context23.prev = _context23.next) {
+        case 0:
+          _context23.prev = 0;
+          fileId = request.params.fileId;
+
+          if (utils.isObjectId(fileId)) {
+            _context23.next = 4;
+            break;
+          }
+
+          return _context23.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid file Id format',
+            field: 'fileId'
+          }));
+
+        case 4:
+          _context23.next = 6;
+          return regeneratorRuntime.awrap(FileModel.findById(fileId));
+
+        case 6:
+          file = _context23.sent;
+
+          if (file) {
+            _context23.next = 9;
+            break;
+          }
+
+          return _context23.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'File Id does not exist',
+            field: 'fileId'
+          }));
+
+        case 9:
+          return _context23.abrupt("return", next());
+
+        case 12:
+          _context23.prev = 12;
+          _context23.t0 = _context23["catch"](0);
+          console.error(_context23.t0);
+          return _context23.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context23.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context23.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1276,5 +1398,7 @@ module.exports = {
   verifyCardId: verifyCardId,
   verifySubscriptionId: verifySubscriptionId,
   verifyInsuranceId: verifyInsuranceId,
-  verifyInsurancePolicyId: verifyInsurancePolicyId
+  verifyInsurancePolicyId: verifyInsurancePolicyId,
+  verifyFolderId: verifyFolderId,
+  verifyFileId: verifyFileId
 };

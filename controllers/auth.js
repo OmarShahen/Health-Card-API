@@ -7,6 +7,7 @@ const ClinicModel = require('../models/ClinicModel')
 const CounterModel = require('../models/CounterModel')
 const ClinicRequestModel = require('../models/ClinicRequestModel')
 const SpecialityModel = require('../models/SpecialityModel')
+const InvoiceModel = require('../models/InvoiceModel')
 const EmailVerificationModel = require('../models/EmailVerificationModel')
 const { generateVerificationCode } = require('../utils/random-number')
 const utils = require('../utils/utils')
@@ -512,6 +513,15 @@ const sendUserDeleteAccountVerificationCode = async (request, response) => {
             return response.status(400).json({
                 accepted: false,
                 message: translations[request.query.lang]['Your account is with a role that cannot be deleted'],
+                field: 'userId'
+            })
+        }
+
+        const invoices = await InvoiceModel.find({ creatorId: userId })
+        if(invoices.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Data registered with the account',
                 field: 'userId'
             })
         }

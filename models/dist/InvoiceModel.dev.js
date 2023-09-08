@@ -23,6 +23,11 @@ var InvoiceSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  creatorId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
+  services: [],
   totalCost: {
     type: Number,
     required: true,

@@ -52,4 +52,11 @@ router.put(
     (request, response) => insurancesController.updateInsurance(request, response)
 )
 
+router.patch(
+    '/v1/insurances/:insuranceId/status',
+    authorization.allPermission,
+    verifyInsuranceId,
+    (request, response) => insurancesController.updateInsuranceStatus(request, response)
+)
+
 module.exports = router
