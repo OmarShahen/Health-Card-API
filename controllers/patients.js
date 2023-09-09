@@ -149,7 +149,7 @@ const updatePatient = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Patient updated successfully!',
+            message: translations[request.query.lang]['Patient updated successfully!'],
             patient: updatedPatient
         })
 

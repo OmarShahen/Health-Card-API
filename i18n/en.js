@@ -128,7 +128,8 @@ module.exports = {
     "Added file successfully!": "Added file successfully!",
     "Deleted file successfully!": "Deleted file successfully!",
     "Updated file name successfully!": "Updated file name successfully!",
-    "Updated file pinning status successfully!": "Updated file pinning status successfully!"
+    "Updated file pinning status successfully!": "Updated file pinning status successfully!",
+    "Patient updated successfully!": "Patient updated successfully!"
 
 
 }   

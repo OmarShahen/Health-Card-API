@@ -298,7 +298,7 @@ var updatePatient = function updatePatient(request, response) {
           updatedPatient = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Patient updated successfully!',
+            message: translations[request.query.lang]['Patient updated successfully!'],
             patient: updatedPatient
           }));
 

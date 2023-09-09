@@ -124,5 +124,6 @@ module.exports = {
     "Added file successfully!": "تم اضافة الملف بنجاح",
     "Deleted file successfully!": "تم مسح الملف بنجاح",
     "Updated file name successfully!": "تم تعديل اسم الملف بنجاح",
-    "Updated file pinning status successfully!": "تم تعديل حالة تثبيت الملف بنجاح"
+    "Updated file pinning status successfully!": "تم تعديل حالة تثبيت الملف بنجاح",
+    "Patient updated successfully!": "تم تحديث الحالة بنجاح"
 }   
