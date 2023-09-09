@@ -30,6 +30,8 @@ var _require2 = require('date-fns'),
 
 var translations = require('../i18n/index');
 
+var mongoose = require('mongoose');
+
 var addAppointment = function addAppointment(request, response) {
   var dataValidation, lang, _request$body, patientId, clinicId, doctorId, serviceId, status, reservationTime, isSendMail, todayDate, patientPromise, clinicPromise, doctorPromise, _ref, _ref2, patient, clinic, doctor, serviceList, appointment, appointmentData, appointmentObj, newAppointment, mailData, mailStatus;
 
@@ -488,29 +490,78 @@ var getAppointmentsByPatientId = function getAppointmentsByPatientId(request, re
   }, null, null, [[0, 10]]);
 };
 
-var getAppointmentsByClinicIdAndStatus = function getAppointmentsByClinicIdAndStatus(request, response) {
-  var _request$params, clinicId, status, _utils$statsQueryGene4, searchQuery, appointments;
+var getClinicAppointmentsByPatientId = function getClinicAppointmentsByPatientId(request, response) {
+  var _request$params, clinicId, patientId, _utils$statsQueryGene4, searchQuery, appointments;
 
-  return regeneratorRuntime.async(function getAppointmentsByClinicIdAndStatus$(_context5) {
+  return regeneratorRuntime.async(function getClinicAppointmentsByPatientId$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          _request$params = request.params, clinicId = _request$params.clinicId, status = _request$params.status;
-          _utils$statsQueryGene4 = utils.statsQueryGenerator('clinicId', clinicId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene4.searchQuery;
-          searchQuery.status = status;
+          _request$params = request.params, clinicId = _request$params.clinicId, patientId = _request$params.patientId;
+          _utils$statsQueryGene4 = utils.statsQueryGenerator('patientId', patientId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene4.searchQuery;
+          searchQuery.clinicId = mongoose.Types.ObjectId(clinicId);
           _context5.next = 6;
-          return regeneratorRuntime.awrap(AppointmentModel.find(searchQuery));
+          return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
+            $match: searchQuery
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'doctorId',
+              foreignField: '_id',
+              as: 'doctor'
+            }
+          }, {
+            $lookup: {
+              from: 'patients',
+              localField: 'patientId',
+              foreignField: '_id',
+              as: 'patient'
+            }
+          }, {
+            $lookup: {
+              from: 'services',
+              localField: 'serviceId',
+              foreignField: '_id',
+              as: 'service'
+            }
+          }, {
+            $lookup: {
+              from: 'clinics',
+              localField: 'clinicId',
+              foreignField: '_id',
+              as: 'clinic'
+            }
+          }, {
+            $project: {
+              'doctor.password': 0
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }]));
 
         case 6:
           appointments = _context5.sent;
+          appointments.forEach(function (appointment) {
+            appointment.patient = appointment.patient[0];
+            appointment.doctor = appointment.doctor[0];
+            appointment.clinic = appointment.clinic[0];
+            appointment.service = appointment.service[0];
+            var todayDate = new Date();
+
+            if (todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
+              appointment.status = 'EXPIRED';
+            }
+          });
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             appointments: appointments
           }));
 
-        case 10:
-          _context5.prev = 10;
+        case 11:
+          _context5.prev = 11;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -519,24 +570,24 @@ var getAppointmentsByClinicIdAndStatus = function getAppointmentsByClinicIdAndSt
             error: _context5.t0.message
           }));
 
-        case 14:
+        case 15:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 10]]);
+  }, null, null, [[0, 11]]);
 };
 
-var getAppointmentsByDoctorIdAndStatus = function getAppointmentsByDoctorIdAndStatus(request, response) {
-  var _request$params2, userId, status, _utils$statsQueryGene5, searchQuery, appointments;
+var getAppointmentsByClinicIdAndStatus = function getAppointmentsByClinicIdAndStatus(request, response) {
+  var _request$params2, clinicId, status, _utils$statsQueryGene5, searchQuery, appointments;
 
-  return regeneratorRuntime.async(function getAppointmentsByDoctorIdAndStatus$(_context6) {
+  return regeneratorRuntime.async(function getAppointmentsByClinicIdAndStatus$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          _request$params2 = request.params, userId = _request$params2.userId, status = _request$params2.status;
-          _utils$statsQueryGene5 = utils.statsQueryGenerator('doctorId', userId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene5.searchQuery;
+          _request$params2 = request.params, clinicId = _request$params2.clinicId, status = _request$params2.status;
+          _utils$statsQueryGene5 = utils.statsQueryGenerator('clinicId', clinicId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene5.searchQuery;
           searchQuery.status = status;
           _context6.next = 6;
           return regeneratorRuntime.awrap(AppointmentModel.find(searchQuery));
@@ -566,42 +617,81 @@ var getAppointmentsByDoctorIdAndStatus = function getAppointmentsByDoctorIdAndSt
   }, null, null, [[0, 10]]);
 };
 
-var updateAppointmentStatus = function updateAppointmentStatus(request, response) {
-  var appointmentId, lang, status, dataValidation, appointment, todayDate, updatedAppointment;
-  return regeneratorRuntime.async(function updateAppointmentStatus$(_context7) {
+var getAppointmentsByDoctorIdAndStatus = function getAppointmentsByDoctorIdAndStatus(request, response) {
+  var _request$params3, userId, status, _utils$statsQueryGene6, searchQuery, appointments;
+
+  return regeneratorRuntime.async(function getAppointmentsByDoctorIdAndStatus$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
+          _request$params3 = request.params, userId = _request$params3.userId, status = _request$params3.status;
+          _utils$statsQueryGene6 = utils.statsQueryGenerator('doctorId', userId, request.query, 'reservationTime'), searchQuery = _utils$statsQueryGene6.searchQuery;
+          searchQuery.status = status;
+          _context7.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.find(searchQuery));
+
+        case 6:
+          appointments = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            appointments: appointments
+          }));
+
+        case 10:
+          _context7.prev = 10;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 14:
+        case "end":
+          return _context7.stop();
+      }
+    }
+  }, null, null, [[0, 10]]);
+};
+
+var updateAppointmentStatus = function updateAppointmentStatus(request, response) {
+  var appointmentId, lang, status, dataValidation, appointment, todayDate, updatedAppointment;
+  return regeneratorRuntime.async(function updateAppointmentStatus$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
           appointmentId = request.params.appointmentId;
           lang = request.query.lang;
           status = request.body.status;
           dataValidation = appointmentValidation.updateAppointmentStatus(request.body);
 
           if (dataValidation.isAccepted) {
-            _context7.next = 7;
+            _context8.next = 7;
             break;
           }
 
-          return _context7.abrupt("return", response.status(400).json({
+          return _context8.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
           }));
 
         case 7:
-          _context7.next = 9;
+          _context8.next = 9;
           return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 9:
-          appointment = _context7.sent;
+          appointment = _context8.sent;
 
           if (!(appointment.status == status)) {
-            _context7.next = 12;
+            _context8.next = 12;
             break;
           }
 
-          return _context7.abrupt("return", response.status(400).json({
+          return _context8.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[lang]['Appointment is already in this state'],
             field: 'status'
@@ -611,18 +701,18 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
           todayDate = new Date();
 
           if (!(appointment.reservationTime < todayDate)) {
-            _context7.next = 15;
+            _context8.next = 15;
             break;
           }
 
-          return _context7.abrupt("return", response.status(400).json({
+          return _context8.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[lang]['Appointment date has passed'],
             field: 'reservationDate'
           }));
 
         case 15:
-          _context7.next = 17;
+          _context8.next = 17;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
             status: status
           }, {
@@ -630,53 +720,15 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
           }));
 
         case 17:
-          updatedAppointment = _context7.sent;
-          return _context7.abrupt("return", response.status(200).json({
+          updatedAppointment = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[lang]['Updated appointment status successfully!'],
             appointment: updatedAppointment
           }));
 
         case 21:
-          _context7.prev = 21;
-          _context7.t0 = _context7["catch"](0);
-          console.error(_context7.t0);
-          return _context7.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context7.t0.message
-          }));
-
-        case 25:
-        case "end":
-          return _context7.stop();
-      }
-    }
-  }, null, null, [[0, 21]]);
-};
-
-var deleteAppointment = function deleteAppointment(request, response) {
-  var lang, appointmentId, deletedAppointment;
-  return regeneratorRuntime.async(function deleteAppointment$(_context8) {
-    while (1) {
-      switch (_context8.prev = _context8.next) {
-        case 0:
-          _context8.prev = 0;
-          lang = request.query.lang;
-          appointmentId = request.params.appointmentId;
-          _context8.next = 5;
-          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndDelete(appointmentId));
-
-        case 5:
-          deletedAppointment = _context8.sent;
-          return _context8.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[lang]['Deleted appointment successfully!'],
-            appointment: deletedAppointment
-          }));
-
-        case 9:
-          _context8.prev = 9;
+          _context8.prev = 21;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -685,9 +737,47 @@ var deleteAppointment = function deleteAppointment(request, response) {
             error: _context8.t0.message
           }));
 
-        case 13:
+        case 25:
         case "end":
           return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 21]]);
+};
+
+var deleteAppointment = function deleteAppointment(request, response) {
+  var lang, appointmentId, deletedAppointment;
+  return regeneratorRuntime.async(function deleteAppointment$(_context9) {
+    while (1) {
+      switch (_context9.prev = _context9.next) {
+        case 0:
+          _context9.prev = 0;
+          lang = request.query.lang;
+          appointmentId = request.params.appointmentId;
+          _context9.next = 5;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndDelete(appointmentId));
+
+        case 5:
+          deletedAppointment = _context9.sent;
+          return _context9.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[lang]['Deleted appointment successfully!'],
+            appointment: deletedAppointment
+          }));
+
+        case 9:
+          _context9.prev = 9;
+          _context9.t0 = _context9["catch"](0);
+          console.error(_context9.t0);
+          return _context9.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context9.t0.message
+          }));
+
+        case 13:
+        case "end":
+          return _context9.stop();
       }
     }
   }, null, null, [[0, 9]]);
@@ -698,6 +788,7 @@ module.exports = {
   getAppointmentsByDoctorId: getAppointmentsByDoctorId,
   getAppointmentsByClinicId: getAppointmentsByClinicId,
   getAppointmentsByPatientId: getAppointmentsByPatientId,
+  getClinicAppointmentsByPatientId: getClinicAppointmentsByPatientId,
   getAppointmentsByClinicIdAndStatus: getAppointmentsByClinicIdAndStatus,
   getAppointmentsByDoctorIdAndStatus: getAppointmentsByDoctorIdAndStatus,
   updateAppointmentStatus: updateAppointmentStatus,

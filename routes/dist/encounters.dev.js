@@ -7,7 +7,8 @@ var encountersController = require('../controllers/encounters');
 var _require = require('../middlewares/verify-routes-params'),
     verifyPatientId = _require.verifyPatientId,
     verifyUserId = _require.verifyUserId,
-    verifyEncounterId = _require.verifyEncounterId;
+    verifyEncounterId = _require.verifyEncounterId,
+    verifyClinicId = _require.verifyClinicId;
 
 var _require2 = require('../middlewares/verify-clinic-mode'),
     verifyClinicEncounters = _require2.verifyClinicEncounters;
@@ -21,6 +22,9 @@ router.post('/v1/encounters', authorization.allPermission, function (request, re
 });
 router.get('/v1/encounters/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return encountersController.getPatientEncounters(request, response);
+});
+router.get('/v1/encounters/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
+  return encountersController.getClinicPatientEncounters(request, response);
 });
 router.get('/v1/encounters/doctors/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return encountersController.getDoctorEncounters(request, response);

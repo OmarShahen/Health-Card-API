@@ -33,6 +33,14 @@ router.get(
 )
 
 router.get(
+    '/v1/appointments/clinics/:clinicId/patients/:patientId',
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId, 
+    (request, response) => appointmentsController.getClinicAppointmentsByPatientId(request, response)
+)
+
+router.get(
     '/v1/appointments/clinics/:clinicId/status/:status',
     authorization.allPermission,
     verifyClinicId,

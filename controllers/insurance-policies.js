@@ -160,6 +160,71 @@ const getInsurancePoliciesByPatientId = async (request, response) => {
     }
 }
 
+const getClinicInsurancePoliciesByPatientId = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+
+        const insurancePolicies = await InsurancePolicyModel.aggregate([
+            {
+                $match: { 
+                    patientId: mongoose.Types.ObjectId(patientId),
+                    clinicId: mongoose.Types.ObjectId(clinicId)
+                }
+            },
+            {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        insurancePolicies.forEach(insurancePolicy => {
+            insurancePolicy.insuranceCompany = insurancePolicy.insuranceCompany[0]
+            insurancePolicy.clinic = insurancePolicy.clinic[0]
+            insurancePolicy.patient = insurancePolicy.patient[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            insurancePolicies
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getClinicPatientActiveInsurancePolicy = async (request, response) => {
 
     try {
@@ -651,6 +716,7 @@ module.exports = {
     getInsurancePoliciesByOwnerId,
     getInsurancePoliciesByPatientId,
     getInsurancePoliciesByInsuranceCompanyId,
+    getClinicInsurancePoliciesByPatientId,
     deleteInsurancePolicy,
     updateInsurancePolicyStatus,
     updateInsurancePolicy,

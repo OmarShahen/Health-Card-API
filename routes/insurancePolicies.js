@@ -40,6 +40,14 @@ router.get(
 )
 
 router.get(
+    '/v1/insurance-policies/clinics/:clinicId/patients/:patientId/all',
+    authorization.allPermission,
+    verifyPatientId,
+    verifyClinicId,
+    (request, response) => insurancePoliciesController.getClinicInsurancePoliciesByPatientId(request, response)
+)
+
+router.get(
     '/v1/insurance-policies/insurances/:insuranceId',
     authorization.allPermission,
     verifyInsuranceId,

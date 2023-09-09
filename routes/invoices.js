@@ -33,6 +33,14 @@ router.get(
 )
 
 router.get(
+    '/v1/invoices/clinics/:clinicId/patients/:patientId', 
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId, 
+    (request, response) => invoicesController.getClinicInvoicesByPatientId(request, response)
+)
+
+router.get(
     '/v1/invoices/owners/:userId', 
     authorization.allPermission,
     verifyUserId, 

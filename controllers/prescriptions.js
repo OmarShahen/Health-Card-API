@@ -350,6 +350,82 @@ const getPatientPrescriptions = async (request, response) => {
     }
 }
 
+const getClinicPatientPrescriptions = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
+
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+        searchQuery.clinicId = mongoose.Types.ObjectId(clinicId)
+
+        const prescriptions = await PrescriptionModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0,
+                    'patient.doctors': 0,
+                    'doctor.password': 0
+                }
+            }
+        ])
+
+        prescriptions.forEach(prescription => {
+            prescription.doctor = prescription.doctor[0]
+            prescription.patient = prescription.patient[0]
+            prescription.clinic = prescription.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            prescriptions
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deletePrescription = async (request, response) => {
 
     try {
@@ -527,6 +603,51 @@ const getPatientLastPrescriptionByCardUUID = async (request, response) => {
     }
 }
 
+const getClinicPatientDrugs = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
+
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+        searchQuery.clinicId = mongoose.Types.ObjectId(clinicId)
+
+        const prescriptions = await PrescriptionModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    medicines: 1
+                }
+            }
+        ])
+
+        const drugs = formatPrescriptionsDrugs(prescriptions)
+
+        return response.status(200).json({
+            accepted: true,
+            drugs
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getPatientDrugs = async (request, response) => {
 
     try {
@@ -571,17 +692,17 @@ const getPatientDrugs = async (request, response) => {
     }
 }
 
-
-
 module.exports = { 
     addPrescription,
     getDoctorPrescriptions, 
     getClinicPrescriptions,
     getPatientPrescriptions, 
+    getClinicPatientPrescriptions,
     getPrescription, 
     ratePrescription, 
     getPatientLastPrescriptionByCardUUID,
     deletePrescription,
     getPatientDrugs,
+    getClinicPatientDrugs,
     updatePrescription
 }

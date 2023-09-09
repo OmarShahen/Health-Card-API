@@ -396,6 +396,68 @@ const getInvoicesByPatientId = async (request, response) => {
     }
 }
 
+const getClinicInvoicesByPatientId = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+        searchQuery.clinicId = mongoose.Types.ObjectId(clinicId)
+
+        const invoices = await InvoiceModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'insurances',
+                    localField: 'insuranceCompanyId',
+                    foreignField: '_id',
+                    as: 'insuranceCompany'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0
+                }
+            }
+        ])
+
+        invoices.forEach(invoice => {
+            invoice.patient = invoice.patient[0]
+            invoice.insuranceCompany = invoice.insuranceCompany.length != 0 ? invoice.insuranceCompany[0] : null
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            invoices
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const addInvoice = async (request, response) => {
 
     try {
@@ -756,6 +818,7 @@ module.exports = {
     updateInvoice,
     deleteInvoice,
     getInvoicesByClinicId,
+    getClinicInvoicesByPatientId,
     getInvoicesByInsuranceCompanyId,
     getInvoicesByOwnerId,
     getInvoicesByPatientId,

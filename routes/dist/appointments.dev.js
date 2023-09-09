@@ -27,6 +27,9 @@ router.get('/v1/appointments/clinics/:clinicId', authorization.allPermission, ve
 router.get('/v1/appointments/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return appointmentsController.getAppointmentsByPatientId(request, response);
 });
+router.get('/v1/appointments/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
+  return appointmentsController.getClinicAppointmentsByPatientId(request, response);
+});
 router.get('/v1/appointments/clinics/:clinicId/status/:status', authorization.allPermission, verifyClinicId, function (request, response) {
   return appointmentsController.getAppointmentsByClinicIdAndStatus(request, response);
 });

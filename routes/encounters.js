@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const encountersController = require('../controllers/encounters')
-const { verifyPatientId, verifyUserId, verifyEncounterId } = require('../middlewares/verify-routes-params')
+const { verifyPatientId, verifyUserId, verifyEncounterId, verifyClinicId } = require('../middlewares/verify-routes-params')
 const { verifyClinicEncounters } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 const actionAccess = require('../middlewares/verify-action-access')
@@ -16,6 +16,14 @@ router.get(
     authorization.allPermission,
     verifyPatientId, 
     (request, response) => encountersController.getPatientEncounters(request, response)
+)
+
+router.get(
+    '/v1/encounters/clinics/:clinicId/patients/:patientId', 
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId, 
+    (request, response) => encountersController.getClinicPatientEncounters(request, response)
 )
 
 router.get(

@@ -30,6 +30,9 @@ router.get('/v1/prescriptions/doctors/:doctorId', authorization.allPermission, v
 router.get('/v1/prescriptions/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return prescriptionsController.getPatientPrescriptions(request, response);
 });
+router.get('/v1/prescriptions/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
+  return prescriptionsController.getClinicPatientPrescriptions(request, response);
+});
 router.get('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, function (request, response) {
   return prescriptionsController.getPrescription(request, response);
 });
@@ -48,6 +51,9 @@ router["delete"]('/v1/prescriptions/:prescriptionId', authorization.allPermissio
 });
 router.get('/v1/prescriptions/patients/:patientId/drugs', authorization.allPermission, verifyPatientId, function (request, response) {
   return prescriptionsController.getPatientDrugs(request, response);
+});
+router.get('/v1/prescriptions/clinics/:clinicId/patients/:patientId/drugs', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
+  return prescriptionsController.getClinicPatientDrugs(request, response);
 });
 router.put('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, actionAccess.verifyDoctorActionAccess, function (request, response) {
   return prescriptionsController.updatePrescription(request, response);

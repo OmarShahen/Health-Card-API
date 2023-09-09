@@ -35,6 +35,14 @@ router.get(
 )
 
 router.get(
+    '/v1/prescriptions/clinics/:clinicId/patients/:patientId', 
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId, 
+    (request, response) => prescriptionsController.getClinicPatientPrescriptions(request, response)
+)
+
+router.get(
     '/v1/prescriptions/:prescriptionId', 
     authorization.allPermission,
     verifyPrescriptionId, 
@@ -68,6 +76,14 @@ router.get(
     authorization.allPermission,
     verifyPatientId,
     (request, response) => prescriptionsController.getPatientDrugs(request, response)
+)
+
+router.get(
+    '/v1/prescriptions/clinics/:clinicId/patients/:patientId/drugs',
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId,
+    (request, response) => prescriptionsController.getClinicPatientDrugs(request, response)
 )
 
 router.put(

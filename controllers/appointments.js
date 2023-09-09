@@ -8,6 +8,8 @@ const utils = require('../utils/utils')
 const { sendAppointmentEmail } = require('../mails/appointment')
 const { format } = require('date-fns')
 const translations = require('../i18n/index')
+const mongoose = require('mongoose')
+
 
 const addAppointment = async (request, response) => {
 
@@ -397,6 +399,89 @@ const getAppointmentsByPatientId = async (request, response) => {
     }
 }
 
+const getClinicAppointmentsByPatientId = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query, 'reservationTime')
+        searchQuery.clinicId = mongoose.Types.ObjectId(clinicId)       
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'services',
+                    localField: 'serviceId',
+                    foreignField: '_id',
+                    as: 'service'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.patient = appointment.patient[0]
+            appointment.doctor = appointment.doctor[0]
+            appointment.clinic = appointment.clinic[0]
+            appointment.service = appointment.service[0]
+            const todayDate = new Date()
+
+            if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
+                appointment.status = 'EXPIRED'
+            }
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 const getAppointmentsByClinicIdAndStatus = async (request, response) => {
 
@@ -539,6 +624,7 @@ module.exports = {
     getAppointmentsByDoctorId, 
     getAppointmentsByClinicId,
     getAppointmentsByPatientId,
+    getClinicAppointmentsByPatientId,
     getAppointmentsByClinicIdAndStatus,
     getAppointmentsByDoctorIdAndStatus,
     updateAppointmentStatus, 

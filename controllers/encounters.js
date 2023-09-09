@@ -234,6 +234,81 @@ const getPatientEncounters = async (request, response) => {
     }
 }
 
+const getClinicPatientEncounters = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+        let { query } = request.query
+
+        query = query ? query : ''
+
+        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query)
+        searchQuery.clinicId = mongoose.Types.ObjectId(clinicId)
+
+        const encounters = await EncounterModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0,
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0
+                }
+            }
+        ])
+        
+        encounters.forEach(encounter => {
+            encounter.doctor = encounter.doctor[0]
+            encounter.patient = encounter.patient[0]
+            encounter.clinic = encounter.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            encounters
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getDoctorEncounters = async (request, response) => {
 
     try {
@@ -416,6 +491,7 @@ module.exports = {
     addEncounter, 
     deleteEncounter, 
     getPatientEncounters, 
+    getClinicPatientEncounters,
     getDoctorEncounters,
     getEncounter,
     updateEncounter

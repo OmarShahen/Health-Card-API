@@ -833,67 +833,57 @@ var getHomeFoldersByPatientId = function getHomeFoldersByPatientId(request, resp
   }, null, null, [[0, 9]]);
 };
 
-var deleteFolder = function deleteFolder(request, response) {
-  var folderId, filesList, foldersList, deletedFolder;
-  return regeneratorRuntime.async(function deleteFolder$(_context11) {
+var getClinicHomeFoldersByPatientId = function getClinicHomeFoldersByPatientId(request, response) {
+  var _request$params2, clinicId, patientId, folders;
+
+  return regeneratorRuntime.async(function getClinicHomeFoldersByPatientId$(_context11) {
     while (1) {
       switch (_context11.prev = _context11.next) {
         case 0:
           _context11.prev = 0;
-          folderId = request.params.folderId;
+          _request$params2 = request.params, clinicId = _request$params2.clinicId, patientId = _request$params2.patientId;
           _context11.next = 4;
-          return regeneratorRuntime.awrap(FileModel.find({
-            folderId: folderId
-          }));
+          return regeneratorRuntime.awrap(FolderModel.aggregate([{
+            $match: {
+              patientId: mongoose.Types.ObjectId(patientId),
+              clinicId: mongoose.Types.ObjectId(clinicId),
+              parentFolderId: {
+                $exists: false
+              }
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'creatorId',
+              foreignField: '_id',
+              as: 'creator'
+            }
+          }, {
+            $lookup: {
+              from: 'clinics',
+              localField: 'clinicId',
+              foreignField: '_id',
+              as: 'clinic'
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }]));
 
         case 4:
-          filesList = _context11.sent;
-
-          if (!(filesList.length != 0)) {
-            _context11.next = 7;
-            break;
-          }
-
-          return _context11.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['Folder contains files'],
-            field: 'folderId'
-          }));
-
-        case 7:
-          _context11.next = 9;
-          return regeneratorRuntime.awrap(FolderModel.find({
-            parentFolderId: folderId
+          folders = _context11.sent;
+          folders.forEach(function (folder) {
+            folder.creator = folder.creator[0];
+            folder.clinic = folder.clinic[0];
+          });
+          return _context11.abrupt("return", response.status(200).json({
+            accepted: true,
+            folders: folders
           }));
 
         case 9:
-          foldersList = _context11.sent;
-
-          if (!(foldersList.length != 0)) {
-            _context11.next = 12;
-            break;
-          }
-
-          return _context11.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['Folder contains folders'],
-            field: 'folderId'
-          }));
-
-        case 12:
-          _context11.next = 14;
-          return regeneratorRuntime.awrap(FolderModel.findByIdAndDelete(folderId));
-
-        case 14:
-          deletedFolder = _context11.sent;
-          return _context11.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Deleted folder successfully!'],
-            folder: deletedFolder
-          }));
-
-        case 18:
-          _context11.prev = 18;
+          _context11.prev = 9;
           _context11.t0 = _context11["catch"](0);
           console.error(_context11.t0);
           return _context11.abrupt("return", response.status(500).json({
@@ -902,9 +892,86 @@ var deleteFolder = function deleteFolder(request, response) {
             error: _context11.t0.message
           }));
 
-        case 22:
+        case 13:
         case "end":
           return _context11.stop();
+      }
+    }
+  }, null, null, [[0, 9]]);
+};
+
+var deleteFolder = function deleteFolder(request, response) {
+  var folderId, filesList, foldersList, deletedFolder;
+  return regeneratorRuntime.async(function deleteFolder$(_context12) {
+    while (1) {
+      switch (_context12.prev = _context12.next) {
+        case 0:
+          _context12.prev = 0;
+          folderId = request.params.folderId;
+          _context12.next = 4;
+          return regeneratorRuntime.awrap(FileModel.find({
+            folderId: folderId
+          }));
+
+        case 4:
+          filesList = _context12.sent;
+
+          if (!(filesList.length != 0)) {
+            _context12.next = 7;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Folder contains files'],
+            field: 'folderId'
+          }));
+
+        case 7:
+          _context12.next = 9;
+          return regeneratorRuntime.awrap(FolderModel.find({
+            parentFolderId: folderId
+          }));
+
+        case 9:
+          foldersList = _context12.sent;
+
+          if (!(foldersList.length != 0)) {
+            _context12.next = 12;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Folder contains folders'],
+            field: 'folderId'
+          }));
+
+        case 12:
+          _context12.next = 14;
+          return regeneratorRuntime.awrap(FolderModel.findByIdAndDelete(folderId));
+
+        case 14:
+          deletedFolder = _context12.sent;
+          return _context12.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Deleted folder successfully!'],
+            folder: deletedFolder
+          }));
+
+        case 18:
+          _context12.prev = 18;
+          _context12.t0 = _context12["catch"](0);
+          console.error(_context12.t0);
+          return _context12.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context12.t0.message
+          }));
+
+        case 22:
+        case "end":
+          return _context12.stop();
       }
     }
   }, null, null, [[0, 18]]);
@@ -921,5 +988,6 @@ module.exports = {
   getFoldersByCreatorId: getFoldersByCreatorId,
   getFolderById: getFolderById,
   getHomeFoldersByPatientId: getHomeFoldersByPatientId,
-  getClinicsStaffsFoldersByClinicId: getClinicsStaffsFoldersByClinicId
+  getClinicsStaffsFoldersByClinicId: getClinicsStaffsFoldersByClinicId,
+  getClinicHomeFoldersByPatientId: getClinicHomeFoldersByPatientId
 };

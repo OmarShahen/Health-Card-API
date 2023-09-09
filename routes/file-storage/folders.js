@@ -37,13 +37,13 @@ router.get(
     (request, response) => foldersController.getFoldersByCreatorId(request, response)
 )
 
-router.get(
+/*router.get(
     '/v1/folders/clinics/:clinicId/patients/:patientId',
     authorization.allPermission,
     verifyClinicId,
     verifyPatientId,
     (request, response) => foldersController.getFolderByPatientIdAndClinicId(request, response)
-)
+)*/
 
 router.get(
     '/v1/folders/:folderId',
@@ -58,6 +58,14 @@ router.get(
     verifyClinicId,
     verifyPatientId,
     (request, response) => foldersController.getClinicsStaffsFoldersByClinicId(request, response)
+)
+
+router.get(
+    '/v1/folders/clinics/:clinicId/patients/:patientId',
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId,
+    (request, response) => foldersController.getClinicHomeFoldersByPatientId(request, response)
 )
 
 router.post(

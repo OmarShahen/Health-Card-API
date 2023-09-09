@@ -31,6 +31,9 @@ router.get('/v1/insurance-policies/patients/:patientId', authorization.allPermis
 router.get('/v1/insurance-policies/patients/:patientId/clinics/:clinicId', authorization.allPermission, verifyPatientId, verifyClinicId, function (request, response) {
   return insurancePoliciesController.getClinicPatientActiveInsurancePolicy(request, response);
 });
+router.get('/v1/insurance-policies/clinics/:clinicId/patients/:patientId/all', authorization.allPermission, verifyPatientId, verifyClinicId, function (request, response) {
+  return insurancePoliciesController.getClinicInsurancePoliciesByPatientId(request, response);
+});
 router.get('/v1/insurance-policies/insurances/:insuranceId', authorization.allPermission, verifyInsuranceId, function (request, response) {
   return insurancePoliciesController.getInsurancePoliciesByInsuranceCompanyId(request, response);
 });

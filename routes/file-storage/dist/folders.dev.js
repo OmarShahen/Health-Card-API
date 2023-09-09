@@ -27,14 +27,22 @@ router.get('/v1/folders/parent-folder/:folderId', authorization.allPermission, v
 router.get('/v1/folders/creators/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return foldersController.getFoldersByCreatorId(request, response);
 });
-router.get('/v1/folders/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
-  return foldersController.getFolderByPatientIdAndClinicId(request, response);
-});
+/*router.get(
+    '/v1/folders/clinics/:clinicId/patients/:patientId',
+    authorization.allPermission,
+    verifyClinicId,
+    verifyPatientId,
+    (request, response) => foldersController.getFolderByPatientIdAndClinicId(request, response)
+)*/
+
 router.get('/v1/folders/:folderId', authorization.allPermission, verifyFolderId, function (request, response) {
   return foldersController.getFolderById(request, response);
 });
 router.get('/v1/folders/clinics/:clinicId/patients/:patientId/staffs', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
   return foldersController.getClinicsStaffsFoldersByClinicId(request, response);
+});
+router.get('/v1/folders/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
+  return foldersController.getClinicHomeFoldersByPatientId(request, response);
 });
 router.post('/v1/folders', authorization.allPermission, function (request, response) {
   return foldersController.addFolder(request, response);

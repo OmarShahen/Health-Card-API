@@ -28,6 +28,9 @@ router.get('/v1/invoices/clinics/:clinicId', authorization.allPermission, verify
 router.get('/v1/invoices/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return invoicesController.getInvoicesByPatientId(request, response);
 });
+router.get('/v1/invoices/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
+  return invoicesController.getClinicInvoicesByPatientId(request, response);
+});
 router.get('/v1/invoices/owners/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return invoicesController.getInvoicesByOwnerId(request, response);
 });

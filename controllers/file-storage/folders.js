@@ -573,6 +573,63 @@ const getHomeFoldersByPatientId = async (request, response) => {
     }
 }
 
+const getClinicHomeFoldersByPatientId = async (request, response) => {
+
+    try {
+
+        const { clinicId, patientId } = request.params
+
+        const folders = await FolderModel.aggregate([
+            {
+                $match: { 
+                    patientId: mongoose.Types.ObjectId(patientId),
+                    clinicId: mongoose.Types.ObjectId(clinicId),
+                    parentFolderId: { $exists: false }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'creatorId',
+                    foreignField: '_id',
+                    as: 'creator'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        folders.forEach(folder => {
+            folder.creator = folder.creator[0]
+            folder.clinic = folder.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            folders
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deleteFolder = async (request, response) => {
 
     try {
@@ -628,5 +685,6 @@ module.exports = {
     getFoldersByCreatorId,
     getFolderById,
     getHomeFoldersByPatientId,
-    getClinicsStaffsFoldersByClinicId
+    getClinicsStaffsFoldersByClinicId,
+    getClinicHomeFoldersByPatientId
 }
