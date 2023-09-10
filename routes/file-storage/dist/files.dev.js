@@ -11,12 +11,15 @@ var _require = require('../../middlewares/verify-routes-params'),
     verifyFolderId = _require.verifyFolderId,
     verifyUserId = _require.verifyUserId;
 
+var _require2 = require('../../middlewares/verify-clinic-mode'),
+    verifyClinicFiles = _require2.verifyClinicFiles;
+
 var authorization = require('../../middlewares/verify-permission');
 
 router.get('/v1/files', authorization.allPermission, function (request, response) {
   return filesController.getFiles(request, response);
 });
-router.post('/v1/files', authorization.allPermission, function (request, response) {
+router.post('/v1/files', authorization.allPermission, verifyClinicFiles, function (request, response) {
   return filesController.addFile(request, response);
 });
 router.get('/v1/files/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {

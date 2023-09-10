@@ -8,6 +8,7 @@ const ClinicPatientDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicRequestModel = require('../models/ClinicRequestModel')
 const ServiceModel = require('../models/ServiceModel')
 const UserModel = require('../models/UserModel')
+const FolderModel = require('../models/file-storage/FolderModel')
 const utils = require('../utils/utils')
 const config = require('../config/config')
 
@@ -615,6 +616,116 @@ const verifyClinicAddOwnerRequest = async (request, response, next) => {
     }
 }
 
+const verifyClinicFolders = async (request, response, next) => {
+
+    try {
+
+        const { clinicId } = request.body
+
+        if(!utils.isObjectId(clinicId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Clinic Id does not exist',
+                field: 'clinicId'
+            })
+        }
+
+        const clinic = await ClinicModel.findById(clinicId)
+
+        if(!clinic) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Clinic Id does not exist',
+                field: 'clinicId'
+            })
+        }
+
+        if(clinic.mode == 'TEST') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'passed testing mode limit in folders',
+                field: 'mode'
+            })
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyClinicFiles = async (request, response, next) => {
+
+    try {
+
+        const { folderId } = request.body
+
+        if(!utils.isObjectId(folderId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Folder Id does not exist',
+                field: 'folderId'
+            })
+        }
+
+        const folder = await FolderModel.findById(folderId)
+
+        if(!folder) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Folder Id does not exist',
+                field: 'folderId'
+            })
+        }
+
+        const clinic = await ClinicModel.findById(folder.clinicId)
+
+        if(clinic.mode == 'TEST') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'passed testing mode limit in files',
+                field: 'mode'
+            })
+        }
+
+        const todayDate = new Date()
+
+        if(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'clinic is deactivated due to subscription expiration',
+                field: 'activeUntilDate'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicEncounters, 
     verifyClinicPrescriptions, 
@@ -626,5 +737,7 @@ module.exports = {
     verifyClinicStaffRequest,
     verifyClinicAddDoctorRequest,
     verifyClinicAddDoctorRequest,
-    verifyClinicAddOwnerRequest
+    verifyClinicAddOwnerRequest,
+    verifyClinicFolders,
+    verifyClinicFiles
 }

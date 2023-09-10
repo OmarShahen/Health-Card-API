@@ -18,7 +18,7 @@ var authorization = require('../middlewares/verify-permission');
 
 var actionAccess = require('../middlewares/verify-action-access');
 
-router.post('/v1/prescriptions', authorization.allPermission, function (request, response) {
+router.post('/v1/prescriptions', authorization.allPermission, verifyClinicPrescriptions, function (request, response) {
   return prescriptionsController.addPrescription(request, response);
 });
 router.get('/v1/prescriptions/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {

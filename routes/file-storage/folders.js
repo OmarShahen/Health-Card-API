@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const foldersController = require('../../controllers/file-storage/folders')
 const { verifyFolderId, verifyPatientId, verifyClinicId, verifyUserId } = require('../../middlewares/verify-routes-params')
+const { verifyClinicFolders } = require('../../middlewares/verify-clinic-mode')
 const authorization = require('../../middlewares/verify-permission')
 
 router.get(
@@ -71,12 +72,14 @@ router.get(
 router.post(
     '/v1/folders',
     authorization.allPermission,
+    verifyClinicFolders,
     (request, response) => foldersController.addFolder(request, response)
 )
 
 router.post(
     '/v1/folders/patients',
     authorization.allPermission,
+    verifyClinicFolders,
     (request, response) => foldersController.addPatientFolder(request, response)
 )
 

@@ -10,6 +10,9 @@ var _require = require('../../middlewares/verify-routes-params'),
     verifyClinicId = _require.verifyClinicId,
     verifyUserId = _require.verifyUserId;
 
+var _require2 = require('../../middlewares/verify-clinic-mode'),
+    verifyClinicFolders = _require2.verifyClinicFolders;
+
 var authorization = require('../../middlewares/verify-permission');
 
 router.get('/v1/folders', authorization.allPermission, function (request, response) {
@@ -44,10 +47,10 @@ router.get('/v1/folders/clinics/:clinicId/patients/:patientId/staffs', authoriza
 router.get('/v1/folders/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
   return foldersController.getClinicHomeFoldersByPatientId(request, response);
 });
-router.post('/v1/folders', authorization.allPermission, function (request, response) {
+router.post('/v1/folders', authorization.allPermission, verifyClinicFolders, function (request, response) {
   return foldersController.addFolder(request, response);
 });
-router.post('/v1/folders/patients', authorization.allPermission, function (request, response) {
+router.post('/v1/folders/patients', authorization.allPermission, verifyClinicFolders, function (request, response) {
   return foldersController.addPatientFolder(request, response);
 });
 router.patch('/v1/folders/:folderId/name', authorization.allPermission, verifyFolderId, function (request, response) {

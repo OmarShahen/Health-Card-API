@@ -8,6 +8,7 @@ const actionAccess = require('../middlewares/verify-action-access')
 router.post(
     '/v1/encounters', 
     authorization.allPermission,
+    verifyClinicEncounters,
     (request, response) => encountersController.addEncounter(request, response)
 )
 

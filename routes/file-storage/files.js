@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const filesController = require('../../controllers/file-storage/files')
 const { verifyFileId, verifyPatientId, verifyClinicId, verifyFolderId, verifyUserId } = require('../../middlewares/verify-routes-params')
+const { verifyClinicFiles } = require('../../middlewares/verify-clinic-mode')
 const authorization = require('../../middlewares/verify-permission')
 
 router.get(
@@ -12,6 +13,7 @@ router.get(
 router.post(
     '/v1/files',
     authorization.allPermission,
+    verifyClinicFiles,
     (request, response) => filesController.addFile(request, response)
 )
 

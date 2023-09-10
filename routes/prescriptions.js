@@ -9,6 +9,7 @@ const actionAccess = require('../middlewares/verify-action-access')
 router.post(
     '/v1/prescriptions', 
     authorization.allPermission,
+    verifyClinicPrescriptions,
     (request, response) => prescriptionsController.addPrescription(request, response)
 )
 
