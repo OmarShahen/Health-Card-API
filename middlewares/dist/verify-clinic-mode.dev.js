@@ -521,14 +521,14 @@ var verifyClinicServices = function verifyClinicServices(request, response, next
 };
 
 var verifyClinicPatients = function verifyClinicPatients(request, response, next) {
-  var _request$body, clinicId, _cardId, clinic, patients, todayDate;
+  var _request$body, clinicId, cardId, clinic, patients, todayDate;
 
   return regeneratorRuntime.async(function verifyClinicPatients$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          _request$body = request.body, clinicId = _request$body.clinicId, _cardId = _request$body.cardId;
+          _request$body = request.body, clinicId = _request$body.clinicId, cardId = _request$body.cardId;
 
           if (utils.isObjectId(clinicId)) {
             _context6.next = 4;
@@ -561,7 +561,7 @@ var verifyClinicPatients = function verifyClinicPatients(request, response, next
 
         case 9:
           if (!(clinic.mode == 'TEST')) {
-            _context6.next = 17;
+            _context6.next = 15;
             break;
           }
 
@@ -585,22 +585,10 @@ var verifyClinicPatients = function verifyClinicPatients(request, response, next
           }));
 
         case 15:
-          if ([18101851, 18101852, 18101853].includes(_cardId)) {
-            _context6.next = 17;
-            break;
-          }
-
-          return _context6.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'patient card ID is not included in testing mode',
-            field: 'mode'
-          }));
-
-        case 17:
           todayDate = new Date();
 
           if (!(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate))) {
-            _context6.next = 20;
+            _context6.next = 18;
             break;
           }
 
@@ -610,11 +598,11 @@ var verifyClinicPatients = function verifyClinicPatients(request, response, next
             field: 'activeUntilDate'
           }));
 
-        case 20:
+        case 18:
           return _context6.abrupt("return", next());
 
-        case 23:
-          _context6.prev = 23;
+        case 21:
+          _context6.prev = 21;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -623,12 +611,12 @@ var verifyClinicPatients = function verifyClinicPatients(request, response, next
             error: _context6.t0.message
           }));
 
-        case 27:
+        case 25:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 23]]);
+  }, null, null, [[0, 21]]);
 };
 
 var verifyClinicPatientsDoctors = function verifyClinicPatientsDoctors(request, response, next) {
@@ -701,7 +689,7 @@ var verifyClinicPatientsDoctors = function verifyClinicPatientsDoctors(request, 
 
         case 16:
           if (!(clinic.mode == 'TEST')) {
-            _context7.next = 24;
+            _context7.next = 22;
             break;
           }
 
@@ -726,22 +714,10 @@ var verifyClinicPatientsDoctors = function verifyClinicPatientsDoctors(request, 
           }));
 
         case 22:
-          if ([18101851, 18101852, 18101853].includes(cardId)) {
-            _context7.next = 24;
-            break;
-          }
-
-          return _context7.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'patient card ID is not included in testing mode',
-            field: 'mode'
-          }));
-
-        case 24:
           todayDate = new Date();
 
           if (!(clinic.mode != 'TEST' && (!clinic.activeUntilDate || new Date(clinic.activeUntilDate) < todayDate))) {
-            _context7.next = 27;
+            _context7.next = 25;
             break;
           }
 
@@ -751,11 +727,11 @@ var verifyClinicPatientsDoctors = function verifyClinicPatientsDoctors(request, 
             field: 'activeUntilDate'
           }));
 
-        case 27:
+        case 25:
           return _context7.abrupt("return", next());
 
-        case 30:
-          _context7.prev = 30;
+        case 28:
+          _context7.prev = 28;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -764,12 +740,12 @@ var verifyClinicPatientsDoctors = function verifyClinicPatientsDoctors(request, 
             error: _context7.t0.message
           }));
 
-        case 34:
+        case 32:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 30]]);
+  }, null, null, [[0, 28]]);
 };
 
 var verifyClinicStaffRequest = function verifyClinicStaffRequest(request, response, next) {

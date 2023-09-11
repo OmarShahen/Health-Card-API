@@ -331,14 +331,6 @@ const verifyClinicPatients = async (request, response, next) => {
                     field: 'mode'
                 })
             }
-
-            if(![18101851, 18101852, 18101853].includes(cardId)) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'patient card ID is not included in testing mode',
-                    field: 'mode'
-                })
-            }
         }
 
         const todayDate = new Date()
@@ -410,14 +402,6 @@ const verifyClinicPatientsDoctors = async (request, response, next) => {
                 return response.status(400).json({
                     accepted: false,
                     message: 'passed testing mode limit in patients',
-                    field: 'mode'
-                })
-            }
-
-            if(![18101851, 18101852, 18101853].includes(cardId)) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'patient card ID is not included in testing mode',
                     field: 'mode'
                 })
             }
