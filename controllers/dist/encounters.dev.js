@@ -126,7 +126,7 @@ var addEncounter = function addEncounter(request, response) {
         case 26:
           _context.next = 28;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
-            name: 'encounter'
+            name: "".concat(clinic._id, "-encounter")
           }, {
             $inc: {
               value: 1
@@ -156,7 +156,7 @@ var addEncounter = function addEncounter(request, response) {
 
           _context.next = 33;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
-            name: 'prescription'
+            name: "".concat(clinic._id, "-prescription")
           }, {
             $inc: {
               value: 1

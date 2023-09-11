@@ -112,7 +112,7 @@ var signup = function signup(doctorData) {
     message: 'Date of birth',
     field: 'dateOfBirth'
   };
-  if (!validator.isDateValid(dateOfBirth)) return {
+  if (!validator.isDateTimeValid(dateOfBirth)) return {
     isAccepted: false,
     message: 'Date of birth format is invalid',
     field: 'dateOfBirth'

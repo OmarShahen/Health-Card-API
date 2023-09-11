@@ -33,7 +33,6 @@ const signup = (doctorData) => {
 
     const { firstName, lastName, email, roles, gender, dateOfBirth, password, speciality } = doctorData
 
-
     if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
 
     if(!validator.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
@@ -61,7 +60,7 @@ const signup = (doctorData) => {
 
     if(!dateOfBirth) return { isAccepted: false, message: 'Date of birth', field: 'dateOfBirth' } 
 
-    if(!validator.isDateValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
+    if(!validator.isDateTimeValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
 
     if(roles.includes('DOCTOR')) {
         

@@ -71,7 +71,7 @@ const addEncounter= async (request, response) => {
         }
 
         const counter = await CounterModel.findOneAndUpdate(
-            { name: 'encounter' },
+            { name: `${clinic._id}-encounter` },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
@@ -91,7 +91,7 @@ const addEncounter= async (request, response) => {
 
         if(medicines && medicines.length != 0) {
             const counter = await CounterModel.findOneAndUpdate(
-                { name: 'prescription' },
+                { name: `${clinic._id}-prescription` },
                 { $inc: { value: 1 } },
                 { new: true, upsert: true }
             )

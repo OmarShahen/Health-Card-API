@@ -147,30 +147,31 @@ var userSignup = function userSignup(request, response) {
             userId: counter.value,
             password: userPassword
           });
+          userData._id = undefined;
           userObj = new UserModel(userData);
-          _context.next = 26;
+          _context.next = 27;
           return regeneratorRuntime.awrap(userObj.save());
 
-        case 26:
+        case 27:
           newUser = _context.sent;
           verificationCode = generateVerificationCode();
-          _context.next = 30;
+          _context.next = 31;
           return regeneratorRuntime.awrap(sendVerificationCode({
             receiverEmail: email,
             verificationCode: verificationCode
           }));
 
-        case 30:
+        case 31:
           mailData = _context.sent;
           emailVerificationData = {
             userId: newUser._id,
             code: verificationCode
           };
           emailVerificationObj = new EmailVerificationModel(emailVerificationData);
-          _context.next = 35;
+          _context.next = 36;
           return regeneratorRuntime.awrap(emailVerificationObj.save());
 
-        case 35:
+        case 36:
           newEmailVerification = _context.sent;
           newUser.password = undefined;
           return _context.abrupt("return", response.status(200).json((_response$status$json = {
@@ -179,8 +180,8 @@ var userSignup = function userSignup(request, response) {
             mailSuccess: mailData.isSent
           }, _defineProperty(_response$status$json, "message", mailData.isSent ? 'email is sent successfully!' : translations[request.query.lang]['There was a problem sending your email']), _defineProperty(_response$status$json, "user", newUser), _defineProperty(_response$status$json, "emailVerification", newEmailVerification), _response$status$json)));
 
-        case 40:
-          _context.prev = 40;
+        case 41:
+          _context.prev = 41;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -189,12 +190,12 @@ var userSignup = function userSignup(request, response) {
             error: _context.t0.message
           }));
 
-        case 44:
+        case 45:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 40]]);
+  }, null, null, [[0, 41]]);
 };
 
 var userLogin = function userLogin(request, response) {

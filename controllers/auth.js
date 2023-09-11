@@ -62,7 +62,8 @@ const userSignup = async (request, response) => {
         request.body.speciality = specialitiesList.map(special => special._id)
 
         const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
-        const userData = { ...request.body, userId: counter.value, password: userPassword }
+        let userData = { ...request.body, userId: counter.value, password: userPassword }
+        userData._id = undefined
 
         const userObj = new UserModel(userData)
         const newUser = await userObj.save()

@@ -129,16 +129,7 @@ const addClinic = async (request, response) => {
         if(ownerClinics.length == 0 || !owner.roles.includes('OWNER')) {
             await UserModel.findByIdAndUpdate(ownerId, { $push: { roles: 'OWNER' } }, { new: true })
         }
-
-        if(mode == 'TEST') {
-            const testPatients = await getTestModePatients(newClinic._id)
-            await ClinicPatientModel.insertMany(testPatients)
-
-            if(owner.roles.includes('DOCTOR')) {
-                testPatients.forEach(patient => patient.doctorId = owner._id)
-                await ClinicPatientDoctorModel.insertMany(testPatients)
-            }
-        }
+        
         
         return response.status(200).json({
             accepted: true,

@@ -5,8 +5,7 @@ var mongoose = require('mongoose');
 var EncounterSchema = new mongoose.Schema({
   encounterId: {
     type: Number,
-    required: true,
-    unique: true
+    required: true
   },
   doctorId: {
     type: mongoose.Types.ObjectId,
