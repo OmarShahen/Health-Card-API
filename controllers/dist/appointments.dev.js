@@ -33,7 +33,7 @@ var translations = require('../i18n/index');
 var mongoose = require('mongoose');
 
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, lang, _request$body, patientId, clinicId, doctorId, serviceId, status, reservationTime, isSendMail, todayDate, patientPromise, clinicPromise, doctorPromise, _ref, _ref2, patient, clinic, doctor, serviceList, appointment, appointmentData, appointmentObj, newAppointment, mailData, mailStatus;
+  var dataValidation, lang, _request$body, patientId, clinicId, doctorId, serviceId, status, reservationTime, isSendMail, todayDate, patientPromise, clinicPromise, doctorPromise, _ref, _ref2, patient, clinic, doctor, serviceList, appointment, appointmentData, appointmentObj, newAppointment, reservationDateTime, appointmentDateTime, mailData, mailStatus;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -182,28 +182,37 @@ var addAppointment = function addAppointment(request, response) {
 
         case 41:
           newAppointment = _context.sent;
+          reservationDateTime = newAppointment.reservationTime;
+          appointmentDateTime = reservationDateTime.toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric'
+          });
           mailData = {
             receiverEmail: doctor.email,
             appointmentData: {
               clinicName: clinic.name,
               clinicCity: utils.capitalizeFirstLetter(clinic.city),
               serviceName: serviceId ? serviceList[0].name : 'Issue',
-              appointmentDate: format(new Date(newAppointment.reservationTime), 'EEEE, MMMM d, yyyy h:mm a')
+              appointmentDate: appointmentDateTime
             }
           };
 
           if (!isSendMail) {
-            _context.next = 47;
+            _context.next = 49;
             break;
           }
 
-          _context.next = 46;
+          _context.next = 48;
           return regeneratorRuntime.awrap(sendAppointmentEmail(mailData));
 
-        case 46:
+        case 48:
           mailStatus = _context.sent;
 
-        case 47:
+        case 49:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[lang]['Registered appointment successfully!'],
@@ -211,8 +220,8 @@ var addAppointment = function addAppointment(request, response) {
             mailStatus: mailStatus
           }));
 
-        case 50:
-          _context.prev = 50;
+        case 52:
+          _context.prev = 52;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -221,12 +230,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 54:
+        case 56:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 50]]);
+  }, null, null, [[0, 52]]);
 };
 
 var getAppointmentsByDoctorId = function getAppointmentsByDoctorId(request, response) {

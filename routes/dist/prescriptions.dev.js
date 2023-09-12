@@ -30,6 +30,9 @@ router.get('/v1/prescriptions/doctors/:doctorId', authorization.allPermission, v
 router.get('/v1/prescriptions/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return prescriptionsController.getPatientPrescriptions(request, response);
 });
+router.get('/v1/prescriptions/:prescriptionId/patients/:patientId', verifyPrescriptionId, verifyPatientId, function (request, response) {
+  return prescriptionsController.getPatientPrescription(request, response);
+});
 router.get('/v1/prescriptions/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {
   return prescriptionsController.getClinicPatientPrescriptions(request, response);
 });

@@ -92,7 +92,6 @@ const addAppointment = async (request, response) => {
             }
         }
 
-
         const appointment = await AppointmentModel.find({ doctorId, reservationTime })
         if(appointment.length != 0) {
             return response.status(400).json({
@@ -114,13 +113,25 @@ const addAppointment = async (request, response) => {
         const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()
 
+        let reservationDateTime = newAppointment.reservationTime
+
+        const appointmentDateTime = reservationDateTime.toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+          })
+
+
         const mailData = {
             receiverEmail: doctor.email,
             appointmentData: {
                 clinicName: clinic.name,
                 clinicCity: utils.capitalizeFirstLetter(clinic.city),
                 serviceName: serviceId ? serviceList[0].name : 'Issue',
-                appointmentDate: format(new Date(newAppointment.reservationTime), 'EEEE, MMMM d, yyyy h:mm a')
+                appointmentDate: appointmentDateTime
             }
 
         }

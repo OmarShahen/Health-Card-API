@@ -3,8 +3,8 @@
 module.exports = {
   WEB_FORGOT_PASSWORD_URL: "https://barbels-f6774.web.app/reset-password",
   PORT: process.env.PORT,
-  DB_URL: process.env.PROD_DB_URL,
-  //DB_URL: process.env.DB_URL,
+  //DB_URL: process.env.PROD_DB_URL,
+  DB_URL: process.env.DB_URL,
   PAYMOB_HMAC: process.env.PAYMOB_HMAC,
   PAYMOB_API_KEYS: process.env.PAYMOB_API_KEYS,
   MAX_FILE_SIZE: 25 * 1000000,

@@ -18,6 +18,7 @@ const { calculateServicesTotalCost } = require('./calculateServicesTotalCost')
 const { isRolesValid } = require('./roles')
 const { capitalizeFirstLetter, concatenateHmacString } = require('./formatString')
 const { isValidURL } = require('./validateURL')
+const { getTime } = require('./format-time')
 
 module.exports = {
     isRolesValid,
@@ -45,5 +46,6 @@ module.exports = {
     isListUnique,
     calculateServicesTotalCost,
     capitalizeFirstLetter,
-    concatenateHmacString
+    concatenateHmacString,
+    getTime
 }

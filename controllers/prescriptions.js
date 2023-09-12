@@ -350,6 +350,87 @@ const getPatientPrescriptions = async (request, response) => {
     }
 }
 
+const getPatientPrescription = async (request, response) => {
+
+    try {
+
+        const { patientId, prescriptionId } = request.params
+
+        const searchQuery = {
+            _id: mongoose.Types.ObjectId(prescriptionId),
+            patientId: mongoose.Types.ObjectId(patientId)
+        }
+
+        const prescriptions = await PrescriptionModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'patient.healthHistory': 0,
+                    'patient.emergencyContacts': 0,
+                    'patient.doctors': 0,
+                    'doctor.password': 0
+                }
+            }
+        ])
+
+        prescriptions.forEach(prescription => {
+            prescription.doctor = prescription.doctor[0]
+            prescription.patient = prescription.patient[0]
+            prescription.clinic = prescription.clinic[0]
+        })
+
+        let prescription = null
+
+        if(prescriptions.length != 0) {
+            prescription = prescriptions[0]
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            prescription
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getClinicPatientPrescriptions = async (request, response) => {
 
     try {
@@ -697,6 +778,7 @@ module.exports = {
     getDoctorPrescriptions, 
     getClinicPrescriptions,
     getPatientPrescriptions, 
+    getPatientPrescription,
     getClinicPatientPrescriptions,
     getPrescription, 
     ratePrescription, 

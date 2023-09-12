@@ -31,7 +31,7 @@ const checkRoles = (roles) => {
 
 const signup = (doctorData) => {
 
-    const { firstName, lastName, email, roles, gender, dateOfBirth, password, speciality } = doctorData
+    const { firstName, lastName, email, roles, gender, dateOfBirth, timeZone, password, speciality } = doctorData
 
     if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
 
@@ -59,6 +59,8 @@ const signup = (doctorData) => {
     if(!config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
 
     if(!dateOfBirth) return { isAccepted: false, message: 'Date of birth', field: 'dateOfBirth' } 
+
+    if(timeZone && typeof timeZone != 'string') return { isAccepted: false, message: 'time zone format is invalid', field: 'timeZone' }
 
     if(!validator.isDateTimeValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
 

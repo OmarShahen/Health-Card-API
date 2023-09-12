@@ -44,6 +44,9 @@ var UserSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
+  timeZone: {
+    type: String
+  },
   speciality: [],
   roles: [],
   isVerified: {

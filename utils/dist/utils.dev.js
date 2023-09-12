@@ -66,6 +66,9 @@ var _require19 = require('./formatString'),
 var _require20 = require('./validateURL'),
     isValidURL = _require20.isValidURL;
 
+var _require21 = require('./format-time'),
+    getTime = _require21.getTime;
+
 module.exports = {
   isRolesValid: isRolesValid,
   isNameValid: isNameValid,
@@ -92,5 +95,6 @@ module.exports = {
   isListUnique: isListUnique,
   calculateServicesTotalCost: calculateServicesTotalCost,
   capitalizeFirstLetter: capitalizeFirstLetter,
-  concatenateHmacString: concatenateHmacString
+  concatenateHmacString: concatenateHmacString,
+  getTime: getTime
 };

@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     gender: { type: String, required: true, enum: config.GENDER },
     dateOfBirth: { type: Date, required: true },
+    timeZone: { type: String },
     speciality: [],
     roles: [],
     isVerified: { type: Boolean, required: true, default: false },

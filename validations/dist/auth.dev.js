@@ -48,6 +48,7 @@ var signup = function signup(doctorData) {
       roles = doctorData.roles,
       gender = doctorData.gender,
       dateOfBirth = doctorData.dateOfBirth,
+      timeZone = doctorData.timeZone,
       password = doctorData.password,
       speciality = doctorData.speciality;
   if (!firstName) return {
@@ -111,6 +112,11 @@ var signup = function signup(doctorData) {
     isAccepted: false,
     message: 'Date of birth',
     field: 'dateOfBirth'
+  };
+  if (timeZone && typeof timeZone != 'string') return {
+    isAccepted: false,
+    message: 'time zone format is invalid',
+    field: 'timeZone'
   };
   if (!validator.isDateTimeValid(dateOfBirth)) return {
     isAccepted: false,

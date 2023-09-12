@@ -36,6 +36,13 @@ router.get(
 )
 
 router.get(
+    '/v1/prescriptions/:prescriptionId/patients/:patientId',
+    verifyPrescriptionId,
+    verifyPatientId,
+    (request, response) => prescriptionsController.getPatientPrescription(request, response)
+)
+
+router.get(
     '/v1/prescriptions/clinics/:clinicId/patients/:patientId', 
     authorization.allPermission,
     verifyClinicId,
