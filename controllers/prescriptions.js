@@ -9,6 +9,7 @@ const ClinicModel = require('../models/ClinicModel')
 const config = require('../config/config')
 const utils = require('../utils/utils')
 const translations = require('../i18n/index')
+const whatsapp = require('../APIs/whatsapp/send-prescription')
 
 const formatPrescriptionsDrugs = (prescriptions) => {
     let drugs = []
@@ -773,6 +774,48 @@ const getPatientDrugs = async (request, response) => {
     }
 }
 
+const sendPrescriptionThroughWhatsapp = async (request, response) => {
+
+    try {
+
+        const { prescriptionId } = request.params
+
+        const prescription = await PrescriptionModel.findById(prescriptionId)
+
+        const doctorPromise = UserModel.findById(prescription.doctorId)
+        const patientPromise = PatientModel.findById(prescription.patientId)
+
+        const [doctor, patient] = await Promise.all([doctorPromise, patientPromise])
+
+        const patientPhone = `${patient.countryCode}${patient.phone}`
+        const doctorName = `${doctor.firstName} ${doctor.lastName}`
+        const prescriptionURL = `patients/${prescription.patientId}/prescriptions/${prescription._id}`
+
+        const message = await whatsapp.sendPrescription(patientPhone, 'ar', doctorName, prescriptionURL)
+
+        if(!message.isSent) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['There was a problem sending your prescription'],
+                field: 'prescriptionId'
+            })
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Prescription is sent successfully']
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addPrescription,
     getDoctorPrescriptions, 
@@ -786,5 +829,6 @@ module.exports = {
     deletePrescription,
     getPatientDrugs,
     getClinicPatientDrugs,
-    updatePrescription
+    updatePrescription,
+    sendPrescriptionThroughWhatsapp
 }

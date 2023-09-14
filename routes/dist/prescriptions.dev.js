@@ -61,4 +61,7 @@ router.get('/v1/prescriptions/clinics/:clinicId/patients/:patientId/drugs', auth
 router.put('/v1/prescriptions/:prescriptionId', authorization.allPermission, verifyPrescriptionId, actionAccess.verifyDoctorActionAccess, function (request, response) {
   return prescriptionsController.updatePrescription(request, response);
 });
+router.post('/v1/prescriptions/:prescriptionId/send/whatsapp', authorization.allPermission, verifyPrescriptionId, function (request, response) {
+  return prescriptionsController.sendPrescriptionThroughWhatsapp(request, response);
+});
 module.exports = router;

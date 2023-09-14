@@ -8,43 +8,35 @@ const whatsappRequest = axios.create({
     }
 })
 
-const sendOfferMessage = async (phone, languageCode, clubImage, clubName, memberName, message) => {
+const sendPrescription = async (phone, languageCode, doctorName, prescriptionURL) => {
 
     const requestBody = {
         messaging_product: "whatsapp",
         to: phone,
         type: "template",
         template: {
-            name: config.WHATSAPP.OFFER_MESSAGE_TEMPLATE,
+            name: config.WHATSAPP.CREATE_PRESCRIPTION,
             language: {
                 code: languageCode
             },
             components: [
                 {
-                    type: "header",
-                    parameters: [
-                        {
-                            type: "image",
-                            image: {
-                                link: `${clubImage}`
-                            }
-                        }
-                    ]
-                },
-                {
                     type: "body",
                     parameters: [
                         {
                             type: "text",
-                            text: memberName
-                        },
+                            text: doctorName
+                        }
+                    ]
+                },
+                {
+                    type: "button",
+                    sub_type: "url",
+                    index: "0",
+                    parameters: [
                         {
                             type: "text",
-                            text: clubName
-                        },
-                        {
-                            type: "text",
-                            text: `${message}`
+                            text: prescriptionURL
                         }
                     ]
                 }
@@ -55,13 +47,10 @@ const sendOfferMessage = async (phone, languageCode, clubImage, clubName, member
     
 
     try {
-
         const sendMessage = await whatsappRequest.post(`/${config.WHATSAPP.PHONE_NUMBER_ID}/messages`, requestBody)
-
         return { isSent: true }
 
     } catch(error) {
-
         console.error(error.response)
         return { isSent: false }
     }
@@ -69,4 +58,4 @@ const sendOfferMessage = async (phone, languageCode, clubImage, clubName, member
 }
 
 
-module.exports = { sendOfferMessage }
+module.exports = { sendPrescription }

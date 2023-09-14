@@ -125,5 +125,7 @@ module.exports = {
     "Deleted file successfully!": "تم مسح الملف بنجاح",
     "Updated file name successfully!": "تم تعديل اسم الملف بنجاح",
     "Updated file pinning status successfully!": "تم تعديل حالة تثبيت الملف بنجاح",
-    "Patient updated successfully!": "تم تحديث الحالة بنجاح"
+    "Patient updated successfully!": "تم تحديث الحالة بنجاح",
+    "There was a problem sending your prescription": "يوجد مشكلة في ارسال الروشتة",
+    "Prescription is sent successfully": "تم ارسال الروشتة بنجاح"
 }   

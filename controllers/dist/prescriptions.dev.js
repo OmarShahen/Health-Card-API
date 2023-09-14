@@ -36,6 +36,8 @@ var utils = require('../utils/utils');
 
 var translations = require('../i18n/index');
 
+var whatsapp = require('../APIs/whatsapp/send-prescription');
+
 var formatPrescriptionsDrugs = function formatPrescriptionsDrugs(prescriptions) {
   var drugs = [];
 
@@ -982,6 +984,74 @@ var getPatientDrugs = function getPatientDrugs(request, response) {
   }, null, null, [[0, 12]]);
 };
 
+var sendPrescriptionThroughWhatsapp = function sendPrescriptionThroughWhatsapp(request, response) {
+  var prescriptionId, prescription, doctorPromise, patientPromise, _ref3, _ref4, doctor, patient, patientPhone, doctorName, prescriptionURL, message;
+
+  return regeneratorRuntime.async(function sendPrescriptionThroughWhatsapp$(_context14) {
+    while (1) {
+      switch (_context14.prev = _context14.next) {
+        case 0:
+          _context14.prev = 0;
+          prescriptionId = request.params.prescriptionId;
+          _context14.next = 4;
+          return regeneratorRuntime.awrap(PrescriptionModel.findById(prescriptionId));
+
+        case 4:
+          prescription = _context14.sent;
+          doctorPromise = UserModel.findById(prescription.doctorId);
+          patientPromise = PatientModel.findById(prescription.patientId);
+          _context14.next = 9;
+          return regeneratorRuntime.awrap(Promise.all([doctorPromise, patientPromise]));
+
+        case 9:
+          _ref3 = _context14.sent;
+          _ref4 = _slicedToArray(_ref3, 2);
+          doctor = _ref4[0];
+          patient = _ref4[1];
+          patientPhone = "".concat(patient.countryCode).concat(patient.phone);
+          doctorName = "".concat(doctor.firstName, " ").concat(doctor.lastName);
+          prescriptionURL = "patients/".concat(prescription.patientId, "/prescriptions/").concat(prescription._id);
+          _context14.next = 18;
+          return regeneratorRuntime.awrap(whatsapp.sendPrescription(patientPhone, 'ar', doctorName, prescriptionURL));
+
+        case 18:
+          message = _context14.sent;
+
+          if (message.isSent) {
+            _context14.next = 21;
+            break;
+          }
+
+          return _context14.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['There was a problem sending your prescription'],
+            field: 'prescriptionId'
+          }));
+
+        case 21:
+          return _context14.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Prescription is sent successfully']
+          }));
+
+        case 24:
+          _context14.prev = 24;
+          _context14.t0 = _context14["catch"](0);
+          console.error(_context14.t0);
+          return _context14.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context14.t0.message
+          }));
+
+        case 28:
+        case "end":
+          return _context14.stop();
+      }
+    }
+  }, null, null, [[0, 24]]);
+};
+
 module.exports = {
   addPrescription: addPrescription,
   getDoctorPrescriptions: getDoctorPrescriptions,
@@ -995,5 +1065,6 @@ module.exports = {
   deletePrescription: deletePrescription,
   getPatientDrugs: getPatientDrugs,
   getClinicPatientDrugs: getClinicPatientDrugs,
-  updatePrescription: updatePrescription
+  updatePrescription: updatePrescription,
+  sendPrescriptionThroughWhatsapp: sendPrescriptionThroughWhatsapp
 };

@@ -102,4 +102,11 @@ router.put(
     (request, response) => prescriptionsController.updatePrescription(request, response) 
 )
 
+router.post(
+    '/v1/prescriptions/:prescriptionId/send/whatsapp',
+    authorization.allPermission,
+    verifyPrescriptionId,
+    (request, response) => prescriptionsController.sendPrescriptionThroughWhatsapp(request, response) 
+)
+
 module.exports = router
