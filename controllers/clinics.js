@@ -8,6 +8,7 @@ const mongoose = require('mongoose')
 const ClinicDoctorModel = require('../models/ClinicDoctorModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
 const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
+const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
 const PatientModel = require('../models/PatientModel')
 const translations = require('../i18n/index')
 
@@ -22,16 +23,6 @@ const isClinicsInTestMode = (clinics) => {
     return false
 }
 
-const getTestModePatients = async (clinicId) => {
-
-    const patients = await PatientModel.find({ cardId: { $in: [18101851, 18101852, 18101853] }})
-
-    const clinicPatients =  patients.map(patient => {
-        return { clinicId, patientId: patient._id }
-    })   
-
-    return clinicPatients
-}
 
 const addClinic = async (request, response) => {
 
@@ -46,7 +37,7 @@ const addClinic = async (request, response) => {
             })
         }
 
-        const { ownerId, name, speciality, city, country } = request.body
+        const { ownerId, name, speciality, phone, countryCode, city, country } = request.body
 
         const owner = await UserModel.findById(ownerId)
         if(!owner) {
@@ -107,6 +98,8 @@ const addClinic = async (request, response) => {
             mode,
             ownerId,
             speciality: specialitiesList.map(special => special._id),
+            phone,
+            countryCode,
             name,
             city,
             country,
@@ -164,7 +157,7 @@ const updateClinic = async (request, response) => {
 
         const { user } = request
         const { clinicId } = request.params
-        const { name, speciality, city, country } = request.body
+        const { name, speciality, phone, countryCode, city, country } = request.body
 
         const clinicOwnerList = await ClinicOwnerModel.find({ ownerId: user._id, clinicId })
         if(clinicOwnerList.length == 0) {
@@ -188,6 +181,8 @@ const updateClinic = async (request, response) => {
         const clinicData = {
             speciality: specialitiesList.map(special => special._id),
             name,
+            phone,
+            countryCode,
             city,
             country,
         }
@@ -221,7 +216,12 @@ const getClinics = async (request, response) => {
                     from: 'specialities',
                     localField: 'speciality',
                     foreignField: '_id',
-                    as: 'specialitiesTest'
+                    as: 'speciality'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
                 }
             }
         ])
@@ -416,6 +416,86 @@ const getClinicsByPatientId = async (request, response) => {
     }
 }
 
+const getFollowupServiceActiveSubscribedClinics = async (request, response) => {
+
+    try {
+
+        const subscriptionList = await ClinicSubscriptionModel
+        .find({ isActive: true, endDate: { $gt: Date.now() } })
+
+        const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
+        
+        const uniqueClinicIdsSet = new Set(clinicsIds)
+        const uniqueClinicIdsList = [...uniqueClinicIdsSet]
+
+        const clinics = await ClinicModel.find({ _id: { $in: uniqueClinicIdsList } })
+
+        return response.status(200).json({
+            accepted: true,
+            clinics
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getFollowupServiceSubscribedClinics = async (request, response) => {
+
+    try {
+
+        const subscriptionList = await ClinicSubscriptionModel.find()
+
+        const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
+        
+        const uniqueClinicIdsSet = new Set(clinicsIds)
+        const uniqueClinicIdsList = [...uniqueClinicIdsSet]
+
+        const clinics = await ClinicModel.find({ _id: { $in: uniqueClinicIdsList } })
+
+        return response.status(200).json({
+            accepted: true,
+            clinics
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const deleteClinic = async (request, response) => {
+
+    try {
+
+        const { clinicId } = request.params
+
+        const deletedClinic = await ClinicModel.findByIdAndDelete(clinicId)
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Deleted clinic successfully!',
+            clinic: deletedClinic
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 module.exports = { 
     addClinic, 
@@ -424,5 +504,8 @@ module.exports = {
     getClinicsByDoctorId, 
     getClinicsByPatientId,
     getClinic,
-    getClinicsStaffsByOwnerId
+    getClinicsStaffsByOwnerId,
+    getFollowupServiceActiveSubscribedClinics,
+    getFollowupServiceSubscribedClinics,
+    deleteClinic
 }

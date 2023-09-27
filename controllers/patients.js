@@ -10,6 +10,7 @@ const ClinicModel = require('../models/ClinicModel')
 const utils = require('../utils/utils')
 const CardModel = require('../models/CardModel')
 const translations = require('../i18n/index')
+const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
 
 const addPatient = async (request, response) => {
 
@@ -376,12 +377,6 @@ const getPatientsByClinicId = async (request, response) => {
             },
             {
                 $sort: { createdAt: -1 }
-            },
-            {
-                $project: {
-                    patient: 1,
-                    createdAt: 1
-                }
             }
         ])
 
@@ -399,6 +394,77 @@ const getPatientsByClinicId = async (request, response) => {
     } catch(error) {
         console.error(error)
         return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getFollowupRegisteredClinicsPatients = async (request, response) => {
+
+    try {
+
+        const subscriptionList = await ClinicSubscriptionModel
+        .find({ isActive: true, endDate: { $gt: Date.now() } })
+
+        const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
+        
+        const uniqueClinicIdsSet = new Set(clinicsIds)
+        const uniqueClinicIdsList = [...uniqueClinicIdsSet]
+
+        const patients = await ClinicPatientModel.aggregate([
+            {
+                $match: {
+                    clinicId: { $in: uniqueClinicIdsList }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'survey.doneById',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+
+        patients.forEach(patient => {
+            patient.member = patient.member[0]
+            patient.patient = patient.patient[0]
+            patient.clinic = patient.clinic[0]
+            patient.patient.emergencyContacts = undefined
+            patient.patient.healthHistory = undefined
+        })
+        
+
+        return response.status(200).json({
+            accepted: true,
+            patients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(400).json({
             accepted: false,
             message: 'internal server error',
             error: error.message
@@ -763,5 +829,6 @@ module.exports = {
     getDoctorsByPatientId,
     deleteEmergencyContactOfPatient,
     updateEmergencyContactOfPatient,
-    deleteDoctorFromPatient
+    deleteDoctorFromPatient,
+    getFollowupRegisteredClinicsPatients
 }

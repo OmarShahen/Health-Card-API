@@ -74,6 +74,8 @@ var addClinic = function addClinic(clinicData) {
   var name = clinicData.name,
       ownerId = clinicData.ownerId,
       speciality = clinicData.speciality,
+      phone = clinicData.phone,
+      countryCode = clinicData.countryCode,
       city = clinicData.city,
       country = clinicData.country;
   if (!ownerId) return {
@@ -111,6 +113,16 @@ var addClinic = function addClinic(clinicData) {
     message: 'Speciality values is invalid',
     field: 'speciality'
   };
+  if (phone && typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Phone number format is invalid',
+    field: 'phone'
+  };
+  if (countryCode && typeof countryCode != 'number') return {
+    isAccepted: false,
+    message: 'Country code format is invalid',
+    field: 'countryCode'
+  };
   if (!city) return {
     isAccepted: false,
     message: 'City is required',
@@ -141,6 +153,8 @@ var addClinic = function addClinic(clinicData) {
 var updateClinic = function updateClinic(clinicData) {
   var name = clinicData.name,
       speciality = clinicData.speciality,
+      phone = clinicData.phone,
+      countryCode = clinicData.countryCode,
       city = clinicData.city,
       country = clinicData.country;
   if (!name) return {
@@ -167,6 +181,16 @@ var updateClinic = function updateClinic(clinicData) {
     isAccepted: false,
     message: 'Speciality values is invalid',
     field: 'speciality'
+  };
+  if (phone && typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Phone number format is invalid',
+    field: 'phone'
+  };
+  if (countryCode && typeof countryCode != 'number') return {
+    isAccepted: false,
+    message: 'Country code format is invalid',
+    field: 'countryCode'
   };
   if (!city) return {
     isAccepted: false,

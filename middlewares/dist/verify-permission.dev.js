@@ -116,7 +116,7 @@ var ownerPermission = function ownerPermission(request, response, next) {
 
 var allPermission = function allPermission(request, response, next) {
   try {
-    var authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR'];
+    var authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR', 'EMPLOYEE'];
     verifyToken(request, response, function () {
       var roles = request.user.roles;
 

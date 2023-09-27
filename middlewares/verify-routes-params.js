@@ -21,6 +21,7 @@ const InsuranceModel = require('../models/InsuranceModel')
 const InsurancePolicyModel = require('../models/InsurancePolicyModel')
 const FolderModel = require('../models/file-storage/FolderModel')
 const FileModel = require('../models/file-storage/FileModel')
+const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -810,6 +811,41 @@ const verifyFileId = async (request, response, next) => {
     }
 }
 
+const verifyClinicSubscriptionId = async (request, response, next) => {
+
+    try {
+
+        const { clinicSubscriptionId } = request.params
+
+        if(!utils.isObjectId(clinicSubscriptionId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid clinic subscription Id format',
+                field: 'clinicSubscriptionId'
+            })
+        }
+
+        const clinicSubscription = await ClinicSubscriptionModel.findById(clinicSubscriptionId)
+        if(!clinicSubscription) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Clinic subscription Id does not exist',
+                field: 'clinicSubscriptionId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -833,5 +869,6 @@ module.exports = {
     verifyInsuranceId,
     verifyInsurancePolicyId,
     verifyFolderId,
-    verifyFileId
+    verifyFileId,
+    verifyClinicSubscriptionId
 }

@@ -64,4 +64,10 @@ router.put('/v1/prescriptions/:prescriptionId', authorization.allPermission, ver
 router.post('/v1/prescriptions/:prescriptionId/send/whatsapp', authorization.allPermission, verifyPrescriptionId, function (request, response) {
   return prescriptionsController.sendPrescriptionThroughWhatsapp(request, response);
 });
+router.get('/v1/prescriptions/followup-service/clinics-subscriptions/active', authorization.allPermission, function (request, response) {
+  return prescriptionsController.getFollowupRegisteredClinicsPrescriptions(request, response);
+});
+router.patch('/v1/prescriptions/:prescriptionId/survey', authorization.allPermission, verifyPrescriptionId, function (request, response) {
+  return prescriptionsController.updatePrescriptionSurvey(request, response);
+});
 module.exports = router;

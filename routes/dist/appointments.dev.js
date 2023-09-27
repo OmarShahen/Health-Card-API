@@ -42,4 +42,10 @@ router.patch('/v1/appointments/:appointmentId/status', authorization.allPermissi
 router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.deleteAppointment(request, response);
 });
+router.post('/v1/appointments/:appointmentId/reminder/send', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.sendAppointmentReminder(request, response);
+});
+router.get('/v1/appointments/followup-service/clinics-subscriptions/active', authorization.allPermission, function (request, response) {
+  return appointmentsController.getFollowupRegisteredClinicsAppointments(request, response);
+});
 module.exports = router;

@@ -38,7 +38,7 @@ const checkAddress = (addressData) => {
 
 const addClinic = (clinicData) => {
 
-    const { name, ownerId, speciality, city, country } = clinicData
+    const { name, ownerId, speciality, phone, countryCode, city, country } = clinicData
 
     if(!ownerId) return { isAccepted: false, message: 'owner Id is required', field: 'ownerId' }
 
@@ -53,7 +53,11 @@ const addClinic = (clinicData) => {
     if(!Array.isArray(speciality)) return { isAccepted: false, message: 'Speciality must be a list', field: 'speciality' }    
 
     if(!checkSpecialities(speciality)) return { isAccepted: false, message: 'Speciality values is invalid', field: 'speciality' }
+
+    if(phone && typeof phone != 'number') return { isAccepted: false, message: 'Phone number format is invalid', field: 'phone' }
     
+    if(countryCode && typeof countryCode != 'number') return { isAccepted: false, message: 'Country code format is invalid', field: 'countryCode' }
+
     if(!city) return { isAccepted: false, message: 'City is required', field: 'city' }
 
     if(typeof city != 'string') return { isAccepted: false, message: 'City formate is invalid', field: 'city' }
@@ -69,7 +73,7 @@ const addClinic = (clinicData) => {
 
 const updateClinic = (clinicData) => {
 
-    const { name, speciality, city, country } = clinicData
+    const { name, speciality, phone, countryCode, city, country } = clinicData
 
     if(!name) return { isAccepted: false, message: 'Name is required', field: 'name' }
 
@@ -81,6 +85,10 @@ const updateClinic = (clinicData) => {
 
     if(!checkSpecialities(speciality)) return { isAccepted: false, message: 'Speciality values is invalid', field: 'speciality' }
     
+    if(phone && typeof phone != 'number') return { isAccepted: false, message: 'Phone number format is invalid', field: 'phone' }
+    
+    if(countryCode && typeof countryCode != 'number') return { isAccepted: false, message: 'Country code format is invalid', field: 'countryCode' }
+
     if(!city) return { isAccepted: false, message: 'City is required', field: 'city' }
 
     if(typeof city != 'string') return { isAccepted: false, message: 'City formate is invalid', field: 'city' }

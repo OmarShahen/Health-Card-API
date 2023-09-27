@@ -46,6 +46,8 @@ var FolderModel = require('../models/file-storage/FolderModel');
 
 var FileModel = require('../models/file-storage/FileModel');
 
+var ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1377,6 +1379,65 @@ var verifyFileId = function verifyFileId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyClinicSubscriptionId = function verifyClinicSubscriptionId(request, response, next) {
+  var clinicSubscriptionId, clinicSubscription;
+  return regeneratorRuntime.async(function verifyClinicSubscriptionId$(_context24) {
+    while (1) {
+      switch (_context24.prev = _context24.next) {
+        case 0:
+          _context24.prev = 0;
+          clinicSubscriptionId = request.params.clinicSubscriptionId;
+
+          if (utils.isObjectId(clinicSubscriptionId)) {
+            _context24.next = 4;
+            break;
+          }
+
+          return _context24.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid clinic subscription Id format',
+            field: 'clinicSubscriptionId'
+          }));
+
+        case 4:
+          _context24.next = 6;
+          return regeneratorRuntime.awrap(ClinicSubscriptionModel.findById(clinicSubscriptionId));
+
+        case 6:
+          clinicSubscription = _context24.sent;
+
+          if (clinicSubscription) {
+            _context24.next = 9;
+            break;
+          }
+
+          return _context24.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Clinic subscription Id does not exist',
+            field: 'clinicSubscriptionId'
+          }));
+
+        case 9:
+          return _context24.abrupt("return", next());
+
+        case 12:
+          _context24.prev = 12;
+          _context24.t0 = _context24["catch"](0);
+          console.error(_context24.t0);
+          return _context24.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context24.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context24.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1400,5 +1461,6 @@ module.exports = {
   verifyInsuranceId: verifyInsuranceId,
   verifyInsurancePolicyId: verifyInsurancePolicyId,
   verifyFolderId: verifyFolderId,
-  verifyFileId: verifyFileId
+  verifyFileId: verifyFileId,
+  verifyClinicSubscriptionId: verifyClinicSubscriptionId
 };

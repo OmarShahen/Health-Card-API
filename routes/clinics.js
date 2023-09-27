@@ -51,5 +51,23 @@ router.get(
     (request, response) => clinicsController.getClinicsByPatientId(request, response)
 )
 
+router.get(
+    '/v1/clinics/followup-service/clinics-subscriptions/active',
+    authorization.allPermission,
+    (request, response) => clinicsController.getFollowupServiceActiveSubscribedClinics(request, response)
+)
+
+router.get(
+    '/v1/clinics/followup-service/clinics-subscriptions/all',
+    authorization.allPermission,
+    (request, response) => clinicsController.getFollowupServiceSubscribedClinics(request, response)
+)
+
+router.delete(
+    '/v1/clinics/:clinicId',
+    authorization.ownerPermission,
+    verifyClinicId,
+    (request, response) => clinicsController.deleteClinic(request, response)
+)
 
 module.exports = router

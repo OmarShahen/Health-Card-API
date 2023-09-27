@@ -109,4 +109,18 @@ router.post(
     (request, response) => prescriptionsController.sendPrescriptionThroughWhatsapp(request, response) 
 )
 
+router.get(
+    '/v1/prescriptions/followup-service/clinics-subscriptions/active',
+    authorization.allPermission,
+    (request, response) => prescriptionsController.getFollowupRegisteredClinicsPrescriptions(request, response)
+)
+
+
+router.patch(
+    '/v1/prescriptions/:prescriptionId/survey',
+    authorization.allPermission,
+    verifyPrescriptionId,
+    (request, response) => prescriptionsController.updatePrescriptionSurvey(request, response)
+)
+
 module.exports = router

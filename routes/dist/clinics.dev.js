@@ -33,4 +33,13 @@ router.get('/v1/clinics/:clinicId', authorization.allPermission, verifyClinicId,
 router.get('/v1/clinics/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return clinicsController.getClinicsByPatientId(request, response);
 });
+router.get('/v1/clinics/followup-service/clinics-subscriptions/active', authorization.allPermission, function (request, response) {
+  return clinicsController.getFollowupServiceActiveSubscribedClinics(request, response);
+});
+router.get('/v1/clinics/followup-service/clinics-subscriptions/all', authorization.allPermission, function (request, response) {
+  return clinicsController.getFollowupServiceSubscribedClinics(request, response);
+});
+router["delete"]('/v1/clinics/:clinicId', authorization.ownerPermission, verifyClinicId, function (request, response) {
+  return clinicsController.deleteClinic(request, response);
+});
 module.exports = router;

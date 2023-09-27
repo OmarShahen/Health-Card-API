@@ -68,4 +68,17 @@ router.delete(
     (request, response)=> appointmentsController.deleteAppointment(request, response)
 )
 
+router.post(
+    '/v1/appointments/:appointmentId/reminder/send',
+    authorization.allPermission,
+    verifyAppointmentId,
+    (request, response)=> appointmentsController.sendAppointmentReminder(request, response)
+)
+
+router.get(
+    '/v1/appointments/followup-service/clinics-subscriptions/active',
+    authorization.allPermission,
+    (request, response) => appointmentsController.getFollowupRegisteredClinicsAppointments(request, response)
+)
+
 module.exports = router

@@ -229,10 +229,63 @@ const addClinicPatientByCardId = async (request, response) => {
     }
 }
 
+const setClinicPatientSurveyed = async (request, response) => {
+
+    try {
+
+        const { clinicPatientId } = request.params
+        const { isSurveyed } = request.body
+
+        if(typeof isSurveyed != 'boolean') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid is surveyed format',
+                field: 'isSurveyed'
+            })
+        }
+
+        let surveyData = {
+            survey: {
+                isDone: isSurveyed,
+                doneById: null,
+                doneDate: null
+            }
+        }
+
+        if(isSurveyed) {
+            surveyData = {
+                survey: {
+                    isDone: isSurveyed,
+                    doneById: request.user._id,
+                    doneDate: new Date()
+                }
+            }
+        }
+
+        const updatedPatientClinic = await ClinicPatientModel
+        .findByIdAndUpdate(clinicPatientId, surveyData, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Clinic patient is surveyed successfully!',
+            clinicPatient: updatedPatientClinic
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getClinicsPatients,
     getClinicPatientsByClinicId,
     addClinicPatient, 
     deleteClinicPatient, 
-    addClinicPatientByCardId 
+    addClinicPatientByCardId,
+    setClinicPatientSurveyed
 }

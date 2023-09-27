@@ -149,7 +149,7 @@ const allPermission = (request, response, next) => {
 
     try {
 
-        const authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR']
+        const authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR', 'EMPLOYEE']
 
         verifyToken(request, response, () => {
 

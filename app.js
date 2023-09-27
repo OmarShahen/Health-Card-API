@@ -47,6 +47,9 @@ app.use('/api', require('./routes/insurancePolicies'))
 app.use('/api', require('./routes/file-storage/folders'))
 app.use('/api', require('./routes/file-storage/files'))
 
+app.use('/api', require('./routes/followup-service/clinics-subscriptions'))
+app.use('/api', require('./routes/followup-service/patients-surveys'))
+
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))

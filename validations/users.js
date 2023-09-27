@@ -101,6 +101,40 @@ const registerStaffToClinic = (clinicData) => {
     return { isAccepted: true, message: 'data is valid', data: clinicData }
 }
 
+const addEmployeeUser = (userData) => {
+
+    const { firstName, lastName, email, password, countryCode, phone, gender } = userData
+
+    if(!firstName) return { isAccepted: false, message: 'First name is required', field: 'firstName' }
+
+    if(!utils.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
+
+    if(!lastName) return { isAccepted: false, message: 'Last name is required', field: 'lastName' }
+
+    if(!utils.isNameValid(lastName)) return { isAccepted: false, message: 'Invalid name formate', field: 'lastName' }
+
+    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
+
+    if(!utils.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
+
+    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
+
+    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Country code format is invalid', field: 'countryCode' }
+
+    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
+
+    if(typeof phone != 'number') return { isAccepted: false, message: 'Phone format is invalid', field: 'phone' }
+
+    if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
+
+    if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
+
+    if(!config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
+
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+} 
+
 
 module.exports = { 
     updateUser, 
@@ -108,5 +142,6 @@ module.exports = {
     updateUserPassword, 
     verifyAndUpdateUserPassword,
     updateUserSpeciality,
-    registerStaffToClinic
+    registerStaffToClinic,
+    addEmployeeUser
 }

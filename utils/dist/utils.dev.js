@@ -24,8 +24,8 @@ var _require7 = require('./validateCountryCodes'),
 var _require8 = require('./validateDatePeriod'),
     isDatePeriodValid = _require8.isDatePeriodValid;
 
-var _require9 = require('./calculateExpirationDate'),
-    calculateExpirationDate = _require9.calculateExpirationDate;
+var _require9 = require('./expirationDate'),
+    getTreatmentExpirationDate = _require9.getTreatmentExpirationDate;
 
 var _require10 = require('./validateWhatsappLanguage'),
     isWhatsappLanguageValid = _require10.isWhatsappLanguageValid;
@@ -82,7 +82,7 @@ module.exports = {
   isCountryCodeValid: isCountryCodeValid,
   isDatePeriodValid: isDatePeriodValid,
   generateVerificationCode: generateVerificationCode,
-  calculateExpirationDate: calculateExpirationDate,
+  getTreatmentExpirationDate: getTreatmentExpirationDate,
   isWhatsappLanguageValid: isWhatsappLanguageValid,
   isDateValid: isDateValid,
   isBirthYearValid: isBirthYearValid,

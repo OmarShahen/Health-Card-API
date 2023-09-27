@@ -41,14 +41,18 @@ var UserSchema = new mongoose.Schema({
     "enum": config.GENDER
   },
   dateOfBirth: {
-    type: Date,
-    required: true
+    type: Date
   },
   timeZone: {
-    type: String
+    type: String,
+    "default": "Africa/Cairo"
   },
   speciality: [],
   roles: [],
+  isEmployee: {
+    type: Boolean,
+    "default": false
+  },
   isVerified: {
     type: Boolean,
     required: true,

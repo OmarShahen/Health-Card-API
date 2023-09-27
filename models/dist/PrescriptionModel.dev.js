@@ -8,8 +8,7 @@ var _require = require('./MedicineModel'),
 var PrescriptionSchema = new mongoose.Schema({
   prescriptionId: {
     type: Number,
-    required: true,
-    unique: true
+    required: true
   },
   clinicId: {
     type: mongoose.Types.ObjectId,
@@ -24,7 +23,22 @@ var PrescriptionSchema = new mongoose.Schema({
     required: true
   },
   medicines: [MedicineSchema],
-  notes: []
+  treatmentEndDate: {
+    type: Date
+  },
+  notes: [],
+  survey: {
+    isDone: {
+      type: Boolean,
+      "default": false
+    },
+    doneById: {
+      type: mongoose.Types.ObjectId
+    },
+    doneDate: {
+      type: Date
+    }
+  }
 }, {
   timestamps: true
 });

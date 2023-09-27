@@ -127,5 +127,7 @@ module.exports = {
     "Updated file pinning status successfully!": "تم تعديل حالة تثبيت الملف بنجاح",
     "Patient updated successfully!": "تم تحديث الحالة بنجاح",
     "There was a problem sending your prescription": "يوجد مشكلة في ارسال الروشتة",
-    "Prescription is sent successfully": "تم ارسال الروشتة بنجاح"
+    "Prescription is sent successfully": "تم ارسال الروشتة بنجاح",
+    "Clinic phone number is not registered": "رقم هاتف العيادة غير مسجل",
+    "There was a problem sending the message": "هناك مشكلة في ارسال الرسالة"
 }   

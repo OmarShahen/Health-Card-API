@@ -12,10 +12,11 @@ const UserSchema = new mongoose.Schema({
     phone: { type: Number },
     password: { type: String, required: true },
     gender: { type: String, required: true, enum: config.GENDER },
-    dateOfBirth: { type: Date, required: true },
-    timeZone: { type: String },
+    dateOfBirth: { type: Date },
+    timeZone: { type: String, default: "Africa/Cairo" },
     speciality: [],
     roles: [],
+    isEmployee: { type: Boolean, default: false },
     isVerified: { type: Boolean, required: true, default: false },
     lastLoginDate: { type: Date },
     resetPassword: {

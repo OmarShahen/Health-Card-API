@@ -398,10 +398,82 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(request, respon
   }, null, null, [[0, 40]]);
 };
 
+var setClinicPatientSurveyed = function setClinicPatientSurveyed(request, response) {
+  var clinicPatientId, isSurveyed, surveyData, updatedPatientClinic;
+  return regeneratorRuntime.async(function setClinicPatientSurveyed$(_context6) {
+    while (1) {
+      switch (_context6.prev = _context6.next) {
+        case 0:
+          _context6.prev = 0;
+          clinicPatientId = request.params.clinicPatientId;
+          isSurveyed = request.body.isSurveyed;
+
+          if (!(typeof isSurveyed != 'boolean')) {
+            _context6.next = 5;
+            break;
+          }
+
+          return _context6.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid is surveyed format',
+            field: 'isSurveyed'
+          }));
+
+        case 5:
+          surveyData = {
+            survey: {
+              isDone: isSurveyed,
+              doneById: null,
+              doneDate: null
+            }
+          };
+
+          if (isSurveyed) {
+            surveyData = {
+              survey: {
+                isDone: isSurveyed,
+                doneById: request.user._id,
+                doneDate: new Date()
+              }
+            };
+          }
+
+          _context6.next = 9;
+          return regeneratorRuntime.awrap(ClinicPatientModel.findByIdAndUpdate(clinicPatientId, surveyData, {
+            "new": true
+          }));
+
+        case 9:
+          updatedPatientClinic = _context6.sent;
+          return _context6.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Clinic patient is surveyed successfully!',
+            clinicPatient: updatedPatientClinic
+          }));
+
+        case 13:
+          _context6.prev = 13;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context6.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context6.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
 module.exports = {
   getClinicsPatients: getClinicsPatients,
   getClinicPatientsByClinicId: getClinicPatientsByClinicId,
   addClinicPatient: addClinicPatient,
   deleteClinicPatient: deleteClinicPatient,
-  addClinicPatientByCardId: addClinicPatientByCardId
+  addClinicPatientByCardId: addClinicPatientByCardId,
+  setClinicPatientSurveyed: setClinicPatientSurveyed
 };

@@ -38,4 +38,11 @@ router.delete(
     (request, response) => clinicsPatientsController.deleteClinicPatient(request, response)
 )
 
+router.patch(
+    '/v1/clinics-patients/:clinicPatientId/survey',
+    authorization.allPermission,
+    verifyClinicPatientId,
+    (request, response) => clinicsPatientsController.setClinicPatientSurveyed(request, response)
+)
+
 module.exports = router

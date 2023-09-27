@@ -93,4 +93,10 @@ router.delete(
     (request, response) => patientsController.deleteDoctorFromPatient(request, response)
 )
 
+router.get(
+    '/v1/patients/followup-service/clinics-subscriptions/active',
+    authorization.allPermission,
+    (request, response) => patientsController.getFollowupRegisteredClinicsPatients(request, response)
+)
+
 module.exports = router

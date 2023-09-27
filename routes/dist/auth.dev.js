@@ -15,6 +15,9 @@ router.post('/v1/auth/signup', function (request, response) {
 router.post('/v1/auth/login', function (request, response) {
   return authController.userLogin(request, response);
 });
+router.post('/v1/auth/employee/login', function (request, response) {
+  return authController.userEmployeeLogin(request, response);
+});
 router.post('/v1/auth/verify/personal-info', function (request, response) {
   return authController.verifyPersonalInfo(request, response);
 });

@@ -2,6 +2,7 @@ const config = require('../config/config')
 const UserModel = require('../models/UserModel')
 const ClinicModel = require('../models/ClinicModel')
 const ClinicOwnerModel = require('../models/ClinicOwnerModel')
+const CounterModel = require('../models/CounterModel')
 const userValidation = require('../validations/users')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
@@ -25,6 +26,30 @@ const getUser = async (request, response) => {
             accepted: true,
             user,
             token: token
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getAppUsers = async (request, response) => {
+
+    try {
+
+        const users = await UserModel
+        .find({ roles: { $nin: ['EMPLOYEE'] }, isVerified: true })
+        .select({ password: 0 })
+        .sort({ lastLoginDate: -1, createdAt: -1 })
+
+        return response.status(200).json({
+            accepted: true,
+            users,
         })
 
     } catch(error) {
@@ -480,8 +505,69 @@ const getUserMode = async (request, response) => {
     }
 }
 
+const addEmployeeUser = async (request, response) => {
+
+    try {
+
+        const dataValidation = userValidation.addEmployeeUser(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { email, password } = request.body
+
+        const emailList = await UserModel.find({ email, isVerified: true })
+
+        if(emailList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Email is already registered',
+                field: 'email'
+            })
+        }
+
+        const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'user' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
+        const userData = { 
+            userId: counter.value,
+            isEmployee: true, 
+            isVerified: true, 
+            ...request.body,
+            password: userPassword,
+            roles: ['EMPLOYEE'],
+        }
+        const userObj = new UserModel(userData)
+        const newUser = await userObj.save()
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'User with employee roles is added successfully!',
+            user: newUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getUser,
+    getAppUsers,
     getUserSpeciality,
     updateUser, 
     updateUserSpeciality,
@@ -490,5 +576,6 @@ module.exports = {
     verifyAndUpdateUserPassword,
     deleteUser,
     registerStaffToClinic,
-    getUserMode
+    getUserMode,
+    addEmployeeUser
 }

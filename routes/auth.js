@@ -7,6 +7,8 @@ router.post('/v1/auth/signup', (request, response) => authController.userSignup(
 
 router.post('/v1/auth/login', (request, response) => authController.userLogin(request, response))
 
+router.post('/v1/auth/employee/login', (request, response) => authController.userEmployeeLogin(request, response))
+
 router.post('/v1/auth/verify/personal-info', (request, response) => authController.verifyPersonalInfo(request, response))
 
 router.post('/v1/auth/verify/demographic-info', (request, response) => authController.verifyDemographicInfo(request, response))

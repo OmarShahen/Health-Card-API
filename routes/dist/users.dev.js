@@ -12,6 +12,9 @@ var authorization = require('../middlewares/verify-permission');
 router.get('/v1/users/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.getUser(request, response);
 });
+router.get('/v1/users/roles/app', authorization.allPermission, function (request, response) {
+  return usersController.getAppUsers(request, response);
+});
 router.get('/v1/users/:userId/speciality', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.getUserSpeciality(request, response);
 });
@@ -38,5 +41,8 @@ router.patch('/v1/users/:userId/clinics', authorization.allPermission, verifyUse
 });
 router.get('/v1/users/:userId/mode', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.getUserMode(request, response);
+});
+router.post('/v1/users/employee', authorization.allPermission, function (request, response) {
+  return usersController.addEmployeeUser(request, response);
 });
 module.exports = router;

@@ -27,8 +27,8 @@ module.exports = {
         LANGUAGES: ['en', 'ar'],
         PHONE_NUMBER_ID: 116167051586801,
         CREATE_PATIENT: 'create_patient',
-        CREATE_PRESCRIPTION: 'create_prescription'
-        
+        CREATE_PRESCRIPTION: 'create_prescription',
+        SEND_APPOINTMENT_REMINDER: 'appointment_reminder'
     },
     RATES: ['LIKE', 'DISLIKE', 'LOVE'],
     DOSGAE_TYPES: [

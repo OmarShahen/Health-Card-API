@@ -28,4 +28,7 @@ router.post('/v1/clinics-patients/card-ID', authorization.allPermission, verifyC
 router["delete"]('/v1/clinics-patients/:clinicPatientId', authorization.allPermission, verifyClinicPatientId, function (request, response) {
   return clinicsPatientsController.deleteClinicPatient(request, response);
 });
+router.patch('/v1/clinics-patients/:clinicPatientId/survey', authorization.allPermission, verifyClinicPatientId, function (request, response) {
+  return clinicsPatientsController.setClinicPatientSurveyed(request, response);
+});
 module.exports = router;

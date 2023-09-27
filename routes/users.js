@@ -12,6 +12,12 @@ router.get(
 )
 
 router.get(
+    '/v1/users/roles/app',
+    authorization.allPermission, 
+    (request, response) => usersController.getAppUsers(request, response)
+)
+
+router.get(
     '/v1/users/:userId/speciality',
     authorization.allPermission,
     verifyUserId, 
@@ -72,6 +78,12 @@ router.get(
     authorization.allPermission,
     verifyUserId,
     (request, response) => usersController.getUserMode(request, response)
+)
+
+router.post(
+    '/v1/users/employee',
+    authorization.allPermission,
+    (request, response) => usersController.addEmployeeUser(request, response)
 )
 
 module.exports = router

@@ -131,7 +131,9 @@ module.exports = {
     "Updated file pinning status successfully!": "Updated file pinning status successfully!",
     "Patient updated successfully!": "Patient updated successfully!",
     "There was a problem sending your prescription": "There was a problem sending your prescription",
-    "Prescription is sent successfully": "Prescription is sent successfully"
+    "Prescription is sent successfully": "Prescription is sent successfully",
+    "Clinic phone number is not registered": "Clinic phone number is not registered",
+    "There was a problem sending the message": "There was a problem sending the message"
 
 
 }   

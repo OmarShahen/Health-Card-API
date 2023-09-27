@@ -1,5 +1,13 @@
 "use strict";
 
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
@@ -19,6 +27,8 @@ var mongoose = require('mongoose');
 var PrescriptionModel = require('../models/PrescriptionModel');
 
 var PatientModel = require('../models/PatientModel');
+
+var ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel');
 
 var UserModel = require('../models/UserModel');
 
@@ -56,7 +66,7 @@ var formatPrescriptionsDrugs = function formatPrescriptionsDrugs(prescriptions) 
 };
 
 var addPrescription = function addPrescription(request, response) {
-  var dataValidation, _request$body, doctorId, patientId, clinicId, medicines, registrationDate, notes, patientPromise, doctorPromise, clinicPromise, _ref, _ref2, doctor, patient, clinic, doctorPatientAccessList, counter, prescriptionData, prescriptionObj, newPrescription;
+  var dataValidation, _request$body, doctorId, patientId, clinicId, medicines, registrationDate, notes, patientPromise, doctorPromise, clinicPromise, _ref, _ref2, doctor, patient, clinic, doctorPatientAccessList, treatmentEndDate, counter, prescriptionData, prescriptionObj, newPrescription;
 
   return regeneratorRuntime.async(function addPrescription$(_context) {
     while (1) {
@@ -149,7 +159,8 @@ var addPrescription = function addPrescription(request, response) {
           }));
 
         case 26:
-          _context.next = 28;
+          treatmentEndDate = utils.getTreatmentExpirationDate(medicines, new Date());
+          _context.next = 29;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: "".concat(clinic._id, "-prescription")
           }, {
@@ -161,7 +172,7 @@ var addPrescription = function addPrescription(request, response) {
             upsert: true
           }));
 
-        case 28:
+        case 29:
           counter = _context.sent;
           prescriptionData = {
             prescriptionId: counter.value,
@@ -169,14 +180,15 @@ var addPrescription = function addPrescription(request, response) {
             patientId: patient._id,
             doctorId: doctorId,
             medicines: medicines,
+            treatmentEndDate: treatmentEndDate,
             notes: notes,
             createdAt: registrationDate
           };
           prescriptionObj = new PrescriptionModel(prescriptionData);
-          _context.next = 33;
+          _context.next = 34;
           return regeneratorRuntime.awrap(prescriptionObj.save());
 
-        case 33:
+        case 34:
           newPrescription = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
@@ -184,8 +196,8 @@ var addPrescription = function addPrescription(request, response) {
             prescription: newPrescription
           }));
 
-        case 37:
-          _context.prev = 37;
+        case 38:
+          _context.prev = 38;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -194,12 +206,12 @@ var addPrescription = function addPrescription(request, response) {
             error: _context.t0.message
           }));
 
-        case 41:
+        case 42:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 37]]);
+  }, null, null, [[0, 38]]);
 };
 
 var getDoctorPrescriptions = function getDoctorPrescriptions(request, response) {
@@ -730,7 +742,7 @@ var getPrescription = function getPrescription(request, response) {
 };
 
 var updatePrescription = function updatePrescription(request, response) {
-  var prescriptionId, dataValidation, _request$body2, medicines, notes, updateData, updatedPrescription;
+  var prescriptionId, dataValidation, _request$body2, medicines, notes, prescription, treatmentEndDate, updateData, updatedPrescription;
 
   return regeneratorRuntime.async(function updatePrescription$(_context9) {
     while (1) {
@@ -753,16 +765,23 @@ var updatePrescription = function updatePrescription(request, response) {
 
         case 5:
           _request$body2 = request.body, medicines = _request$body2.medicines, notes = _request$body2.notes;
+          _context9.next = 8;
+          return regeneratorRuntime.awrap(PrescriptionModel.findById(prescriptionId));
+
+        case 8:
+          prescription = _context9.sent;
+          treatmentEndDate = utils.getTreatmentExpirationDate(medicines, prescription.createdAt);
           updateData = {
             medicines: medicines,
-            notes: notes
+            notes: notes,
+            treatmentEndDate: treatmentEndDate
           };
-          _context9.next = 9;
+          _context9.next = 13;
           return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndUpdate(prescriptionId, updateData, {
             "new": true
           }));
 
-        case 9:
+        case 13:
           updatedPrescription = _context9.sent;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
@@ -770,8 +789,8 @@ var updatePrescription = function updatePrescription(request, response) {
             prescription: updatedPrescription
           }));
 
-        case 13:
-          _context9.prev = 13;
+        case 17:
+          _context9.prev = 17;
           _context9.t0 = _context9["catch"](0);
           console.error(_context9.t0);
           return _context9.abrupt("return", response.status(500).json({
@@ -780,12 +799,12 @@ var updatePrescription = function updatePrescription(request, response) {
             error: _context9.t0.message
           }));
 
-        case 17:
+        case 21:
         case "end":
           return _context9.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 17]]);
 };
 
 var ratePrescription = function ratePrescription(request, response) {
@@ -1052,6 +1071,193 @@ var sendPrescriptionThroughWhatsapp = function sendPrescriptionThroughWhatsapp(r
   }, null, null, [[0, 24]]);
 };
 
+var getFollowupRegisteredClinicsPrescriptions = function getFollowupRegisteredClinicsPrescriptions(request, response) {
+  var subscriptionList, clinicsIds, uniqueClinicIdsSet, uniqueClinicIdsList, prescriptions;
+  return regeneratorRuntime.async(function getFollowupRegisteredClinicsPrescriptions$(_context15) {
+    while (1) {
+      switch (_context15.prev = _context15.next) {
+        case 0:
+          _context15.prev = 0;
+          _context15.next = 3;
+          return regeneratorRuntime.awrap(ClinicSubscriptionModel.find({
+            isActive: true,
+            endDate: {
+              $gt: Date.now()
+            }
+          }));
+
+        case 3:
+          subscriptionList = _context15.sent;
+          clinicsIds = subscriptionList.map(function (subscription) {
+            return subscription.clinicId;
+          });
+          uniqueClinicIdsSet = new Set(clinicsIds);
+          uniqueClinicIdsList = _toConsumableArray(uniqueClinicIdsSet);
+          _context15.next = 9;
+          return regeneratorRuntime.awrap(PrescriptionModel.aggregate([{
+            $match: {
+              clinicId: {
+                $in: uniqueClinicIdsList
+              }
+            }
+          }, {
+            $lookup: {
+              from: 'patients',
+              localField: 'patientId',
+              foreignField: '_id',
+              as: 'patient'
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'doctorId',
+              foreignField: '_id',
+              as: 'doctor'
+            }
+          }, {
+            $lookup: {
+              from: 'clinics',
+              localField: 'clinicId',
+              foreignField: '_id',
+              as: 'clinic'
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'survey.doneById',
+              foreignField: '_id',
+              as: 'member'
+            }
+          }, {
+            $project: {
+              'member.password': 0
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }]));
+
+        case 9:
+          prescriptions = _context15.sent;
+          prescriptions.forEach(function (prescription) {
+            prescription.patient = prescription.patient[0];
+            prescription.clinic = prescription.clinic[0];
+            prescription.doctor = prescription.doctor[0];
+            prescription.member = prescription.member[0];
+          });
+          return _context15.abrupt("return", response.status(200).json({
+            accepted: true,
+            prescriptions: prescriptions
+          }));
+
+        case 14:
+          _context15.prev = 14;
+          _context15.t0 = _context15["catch"](0);
+          console.error(_context15.t0);
+          return _context15.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context15.t0.message
+          }));
+
+        case 18:
+        case "end":
+          return _context15.stop();
+      }
+    }
+  }, null, null, [[0, 14]]);
+};
+
+var updatePrescriptionSurvey = function updatePrescriptionSurvey(request, response) {
+  var prescriptionId, isSurveyed, prescription, surveyData, updatedPrescription;
+  return regeneratorRuntime.async(function updatePrescriptionSurvey$(_context16) {
+    while (1) {
+      switch (_context16.prev = _context16.next) {
+        case 0:
+          _context16.prev = 0;
+          prescriptionId = request.params.prescriptionId;
+          isSurveyed = request.body.isSurveyed;
+
+          if (!(typeof isSurveyed != 'boolean')) {
+            _context16.next = 5;
+            break;
+          }
+
+          return _context16.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid is surveyed format',
+            field: 'isSurveyed'
+          }));
+
+        case 5:
+          _context16.next = 7;
+          return regeneratorRuntime.awrap(PrescriptionModel.findById(prescriptionId));
+
+        case 7:
+          prescription = _context16.sent;
+
+          if (!(isSurveyed && prescription.treatmentEndDate && new Date(prescription.treatmentEndDate) > new Date())) {
+            _context16.next = 10;
+            break;
+          }
+
+          return _context16.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Treatment date did not pass',
+            field: 'prescriptionId'
+          }));
+
+        case 10:
+          surveyData = {
+            survey: {
+              isDone: isSurveyed,
+              doneById: null,
+              doneDate: null
+            }
+          };
+
+          if (isSurveyed) {
+            surveyData = {
+              survey: {
+                isDone: isSurveyed,
+                doneById: request.user._id,
+                doneDate: new Date()
+              }
+            };
+          }
+
+          _context16.next = 14;
+          return regeneratorRuntime.awrap(PrescriptionModel.findByIdAndUpdate(prescriptionId, surveyData, {
+            "new": true
+          }));
+
+        case 14:
+          updatedPrescription = _context16.sent;
+          return _context16.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Prescription is surveyed successfully!',
+            prescription: updatedPrescription
+          }));
+
+        case 18:
+          _context16.prev = 18;
+          _context16.t0 = _context16["catch"](0);
+          console.error(_context16.t0);
+          return _context16.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context16.t0.message
+          }));
+
+        case 22:
+        case "end":
+          return _context16.stop();
+      }
+    }
+  }, null, null, [[0, 18]]);
+};
+
 module.exports = {
   addPrescription: addPrescription,
   getDoctorPrescriptions: getDoctorPrescriptions,
@@ -1066,5 +1272,7 @@ module.exports = {
   getPatientDrugs: getPatientDrugs,
   getClinicPatientDrugs: getClinicPatientDrugs,
   updatePrescription: updatePrescription,
-  sendPrescriptionThroughWhatsapp: sendPrescriptionThroughWhatsapp
+  sendPrescriptionThroughWhatsapp: sendPrescriptionThroughWhatsapp,
+  getFollowupRegisteredClinicsPrescriptions: getFollowupRegisteredClinicsPrescriptions,
+  updatePrescriptionSurvey: updatePrescriptionSurvey
 };

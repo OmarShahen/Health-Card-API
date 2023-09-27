@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const PrescriptionModel = require('../models/PrescriptionModel')
 const PatientModel = require('../models/PatientModel')
+const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
 const UserModel = require('../models/UserModel')
 const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const CounterModel = require('../models/CounterModel')
@@ -85,6 +86,8 @@ const addPrescription = async (request, response) => {
             })
         }
 
+        const treatmentEndDate = utils.getTreatmentExpirationDate(medicines, new Date())
+
         const counter = await CounterModel.findOneAndUpdate(
             { name: `${clinic._id}-prescription` },
             { $inc: { value: 1 } },
@@ -97,6 +100,7 @@ const addPrescription = async (request, response) => {
             patientId: patient._id,
             doctorId,
             medicines,
+            treatmentEndDate,
             notes,
             createdAt: registrationDate
         }
@@ -607,7 +611,11 @@ const updatePrescription = async (request, response) => {
 
         const { medicines, notes } = request.body
 
-        const updateData = { medicines, notes }
+        const prescription = await PrescriptionModel.findById(prescriptionId)
+
+        const treatmentEndDate = utils.getTreatmentExpirationDate(medicines, prescription.createdAt)
+
+        const updateData = { medicines, notes, treatmentEndDate }
 
         const updatedPrescription = await PrescriptionModel
         .findByIdAndUpdate(prescriptionId, updateData, { new: true })
@@ -816,6 +824,151 @@ const sendPrescriptionThroughWhatsapp = async (request, response) => {
     }
 }
 
+const getFollowupRegisteredClinicsPrescriptions = async (request, response) => {
+
+    try {
+
+        const subscriptionList = await ClinicSubscriptionModel
+        .find({ isActive: true, endDate: { $gt: Date.now() } })
+
+        const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
+        
+        const uniqueClinicIdsSet = new Set(clinicsIds)
+        const uniqueClinicIdsList = [...uniqueClinicIdsSet]
+
+        const prescriptions = await PrescriptionModel.aggregate([
+            {
+                $match: {
+                    clinicId: { $in: uniqueClinicIdsList }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'survey.doneById',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $project: {
+                    'member.password': 0
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+
+        prescriptions.forEach(prescription => {
+            prescription.patient = prescription.patient[0]
+            prescription.clinic = prescription.clinic[0]
+            prescription.doctor = prescription.doctor[0]
+            prescription.member = prescription.member[0]
+        })
+        
+
+        return response.status(200).json({
+            accepted: true,
+            prescriptions
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(400).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updatePrescriptionSurvey = async (request, response) => {
+
+    try {
+
+        const { prescriptionId } = request.params
+        const { isSurveyed } = request.body
+
+        if(typeof isSurveyed != 'boolean') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid is surveyed format',
+                field: 'isSurveyed'
+            })
+        }
+
+        const prescription = await PrescriptionModel.findById(prescriptionId)
+
+        if(isSurveyed && prescription.treatmentEndDate && new Date(prescription.treatmentEndDate) > new Date()) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Treatment date did not pass',
+                field: 'prescriptionId'
+            })
+        }
+
+        let surveyData = {
+            survey: {
+                isDone: isSurveyed,
+                doneById: null,
+                doneDate: null
+            }
+        }
+
+        if(isSurveyed) {
+            surveyData = {
+                survey: {
+                    isDone: isSurveyed,
+                    doneById: request.user._id,
+                    doneDate: new Date()
+                }
+            }
+        }
+
+        const updatedPrescription = await PrescriptionModel
+        .findByIdAndUpdate(prescriptionId, surveyData, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Prescription is surveyed successfully!',
+            prescription: updatedPrescription
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addPrescription,
     getDoctorPrescriptions, 
@@ -830,5 +983,7 @@ module.exports = {
     getPatientDrugs,
     getClinicPatientDrugs,
     updatePrescription,
-    sendPrescriptionThroughWhatsapp
+    sendPrescriptionThroughWhatsapp,
+    getFollowupRegisteredClinicsPrescriptions,
+    updatePrescriptionSurvey
 }

@@ -19,6 +19,12 @@ var ClinicSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  phone: {
+    type: Number
+  },
+  countryCode: {
+    type: Number
+  },
   speciality: [],
   city: {
     type: String,

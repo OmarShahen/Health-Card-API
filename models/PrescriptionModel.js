@@ -9,7 +9,13 @@ const PrescriptionSchema = new mongoose.Schema({
     doctorId: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },
     medicines: [MedicineSchema],
-    notes: []
+    treatmentEndDate: { type: Date },
+    notes: [],
+    survey: {
+        isDone: { type: Boolean, default: false },
+        doneById: { type: mongoose.Types.ObjectId },
+        doneDate: { type: Date }
+    }
 
 }, { timestamps: true })
 

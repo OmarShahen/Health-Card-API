@@ -6,7 +6,7 @@ const { isPhoneValid } = require('./validatePhone')
 const { isAdminRole } = require('./validateRoles')
 const { isCountryCodeValid } = require('./validateCountryCodes')
 const { isDatePeriodValid } = require('./validateDatePeriod')
-const { calculateExpirationDate } = require('./calculateExpirationDate')
+const { getTreatmentExpirationDate } = require('./expirationDate')
 const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
 const { isDateValid, isBirthYearValid, isDateTimeValid } = require('./validateDate')
 const { generateVerificationCode } = require('./random-number')
@@ -33,7 +33,7 @@ module.exports = {
     isCountryCodeValid,
     isDatePeriodValid,
     generateVerificationCode,
-    calculateExpirationDate,
+    getTreatmentExpirationDate,
     isWhatsappLanguageValid,
     isDateValid,
     isBirthYearValid,

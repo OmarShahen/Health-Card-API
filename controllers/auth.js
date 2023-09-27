@@ -162,6 +162,71 @@ const userLogin = async (request, response) => {
     }
 }
 
+const userEmployeeLogin = async (request, response) => {
+
+    try {
+
+        const dataValidation = authValidation.login(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { email, password } = request.body
+
+        const userList = await UserModel
+        .find({ email, isverified: true, isEmployee: true, roles: { $in: ['EMPLOYEE'] } })
+
+        if(userList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['Email is not registered'],
+                field: 'email'
+            })
+        }
+
+        const user = userList[0]
+
+        if(!bcrypt.compareSync(password, user.password)) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['Incorrect password'],
+                field: 'password'
+            })
+        }
+
+        const formattedUser = { ...user._doc }
+
+        const updatedUser = await UserModel.findByIdAndUpdate(user._id, { lastLoginDate: new Date() }, { new: true })
+
+        if(user.roles.includes('STAFF')) {
+            const userClinic = await ClinicModel.findById(user.clinicId)
+            formattedUser.clinic = userClinic
+        }
+
+        updatedUser.password = undefined
+
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+
+        return response.status(200).json({
+            accepted: true,
+            token: token,
+            user: updatedUser,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const verifyEmailVerificationCode = async (request, response) => {
 
     try {
@@ -735,6 +800,7 @@ const resetPassword = async (request, response) => {
 module.exports = {
     userSignup,
     userLogin,
+    userEmployeeLogin,
     verifyEmailVerificationCode,
     verifyPersonalInfo,
     verifyDemographicInfo,

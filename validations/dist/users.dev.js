@@ -182,11 +182,92 @@ var registerStaffToClinic = function registerStaffToClinic(clinicData) {
   };
 };
 
+var addEmployeeUser = function addEmployeeUser(userData) {
+  var firstName = userData.firstName,
+      lastName = userData.lastName,
+      email = userData.email,
+      password = userData.password,
+      countryCode = userData.countryCode,
+      phone = userData.phone,
+      gender = userData.gender;
+  if (!firstName) return {
+    isAccepted: false,
+    message: 'First name is required',
+    field: 'firstName'
+  };
+  if (!utils.isNameValid(firstName)) return {
+    isAccepted: false,
+    message: 'Invalid name formate',
+    field: 'firstName'
+  };
+  if (!lastName) return {
+    isAccepted: false,
+    message: 'Last name is required',
+    field: 'lastName'
+  };
+  if (!utils.isNameValid(lastName)) return {
+    isAccepted: false,
+    message: 'Invalid name formate',
+    field: 'lastName'
+  };
+  if (!email) return {
+    isAccepted: false,
+    message: 'Email is required',
+    field: 'email'
+  };
+  if (!utils.isEmailValid(email)) return {
+    isAccepted: false,
+    message: 'Email formate is invalid',
+    field: 'email'
+  };
+  if (!countryCode) return {
+    isAccepted: false,
+    message: 'Country code is required',
+    field: 'countryCode'
+  };
+  if (typeof countryCode != 'number') return {
+    isAccepted: false,
+    message: 'Country code format is invalid',
+    field: 'countryCode'
+  };
+  if (!phone) return {
+    isAccepted: false,
+    message: 'Phone is required',
+    field: 'phone'
+  };
+  if (typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Phone format is invalid',
+    field: 'phone'
+  };
+  if (!password) return {
+    isAccepted: false,
+    message: 'Password is required',
+    field: 'password'
+  };
+  if (!gender) return {
+    isAccepted: false,
+    message: 'Gender is required',
+    field: 'gender'
+  };
+  if (!config.GENDER.includes(gender)) return {
+    isAccepted: false,
+    message: 'Invalid gender',
+    field: 'gender'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
 module.exports = {
   updateUser: updateUser,
   updateUserEmail: updateUserEmail,
   updateUserPassword: updateUserPassword,
   verifyAndUpdateUserPassword: verifyAndUpdateUserPassword,
   updateUserSpeciality: updateUserSpeciality,
-  registerStaffToClinic: registerStaffToClinic
+  registerStaffToClinic: registerStaffToClinic,
+  addEmployeeUser: addEmployeeUser
 };

@@ -3,9 +3,11 @@ const PatientModel = require('../models/PatientModel')
 const UserModel = require('../models/UserModel')
 const ServiceModel = require('../models/ServiceModel')
 const appointmentValidation = require('../validations/appointments')
+const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
 const ClinicModel = require('../models/ClinicModel')
 const utils = require('../utils/utils')
 const { sendAppointmentEmail } = require('../mails/appointment')
+const whatsappAppointmentReminder = require('../APIs/whatsapp/send-appointment-reminder')
 const { format } = require('date-fns')
 const translations = require('../i18n/index')
 const mongoose = require('mongoose')
@@ -36,14 +38,14 @@ const addAppointment = async (request, response) => {
             isSendMail
         } = request.body
 
-        const todayDate = new Date() 
+        /*const todayDate = new Date() 
         if(todayDate > new Date(reservationTime)) {
             return response.status(400).json({
                 accepted: false,
                 message: translations[lang]['Reservation time has passed'],
                 field: 'reservationTime'
             })
-        }
+        }*/
 
         const patientPromise = PatientModel.findById(patientId)
         const clinicPromise = ClinicModel.findById(clinicId)
@@ -211,7 +213,7 @@ const getAppointmentsByDoctorId = async (request, response) => {
             },
             {
                 $sort: {
-                    createdAt: -1
+                    reservationTime: 1
                 }
             }
         ])
@@ -221,11 +223,11 @@ const getAppointmentsByDoctorId = async (request, response) => {
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
             appointment.service = appointment.service[0]
-            const todayDate = new Date()
+            /*const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
                 appointment.status = 'EXPIRED'
-            }
+            }*/
         })
 
         return response.status(200).json({
@@ -295,7 +297,7 @@ const getAppointmentsByClinicId = async (request, response) => {
             },
             {
                 $sort: {
-                    createdAt: -1
+                    reservationTime: 1
                 }
             }
         ])
@@ -305,11 +307,11 @@ const getAppointmentsByClinicId = async (request, response) => {
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
             appointment.service = appointment.service[0]
-            const todayDate = new Date()
+            /*const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
                 appointment.status = 'EXPIRED'
-            }
+            }*/
         })
 
         return response.status(200).json({
@@ -388,11 +390,11 @@ const getAppointmentsByPatientId = async (request, response) => {
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
             appointment.service = appointment.service[0]
-            const todayDate = new Date()
+            /*const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
                 appointment.status = 'EXPIRED'
-            }
+            }*/
         })
 
         return response.status(200).json({
@@ -472,11 +474,11 @@ const getClinicAppointmentsByPatientId = async (request, response) => {
             appointment.doctor = appointment.doctor[0]
             appointment.clinic = appointment.clinic[0]
             appointment.service = appointment.service[0]
-            const todayDate = new Date()
+            /*const todayDate = new Date()
 
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
                 appointment.status = 'EXPIRED'
-            }
+            }*/
         })
 
         return response.status(200).json({
@@ -577,14 +579,14 @@ const updateAppointmentStatus = async (request, response) => {
             })
         }
 
-        const todayDate = new Date()
+        /*const todayDate = new Date()
         if(appointment.reservationTime < todayDate) {
             return response.status(400).json({
                 accepted: false,
                 message: translations[lang]['Appointment date has passed'],
                 field: 'reservationDate'
             })
-        }
+        }*/
 
         const updatedAppointment = await AppointmentModel
         .findByIdAndUpdate(appointmentId, { status }, { new: true })
@@ -630,6 +632,156 @@ const deleteAppointment = async (request, response) => {
     }
 }
 
+const sendAppointmentReminder = async (request, response) => {
+
+    try {
+
+        const { appointmentId } = request.params
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        const { patientId, clinicId } = appointment
+
+        const patientPromise = PatientModel.findById(patientId)
+        const clinicPromise = ClinicModel.findById(clinicId)
+
+        const [patient, clinic] = await Promise.all([patientPromise, clinicPromise])
+
+        if(!clinic.phone) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['Clinic phone number is not registered'],
+                field: 'appointmentId'
+            })
+        }
+
+        const patientPhone = `${patient.countryCode}${patient.phone}`
+
+        const messageBody = {
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            appointmentDate: format(new Date(appointment.reservationTime), 'yyyy/MM/dd'),
+            appointmentTime: format(new Date(appointment.reservationTime), 'HH:mm a'),
+            clinicName: clinic.name,
+            clinicPhone: `${clinic.countryCode}${clinic.phone}`,
+        }
+        
+
+        const messageSent = await whatsappAppointmentReminder.sendAppointmentReminder(patientPhone, 'ar', messageBody)
+
+        if(!messageSent.isSent) {
+            return response.status(400).json({
+                accepted: false,
+                message: translations[request.query.lang]['There was a problem sending the message'],
+                field: 'appointmentId'
+            })
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Reminder sent successfully!',
+            appointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getFollowupRegisteredClinicsAppointments = async (request, response) => {
+
+    try {
+
+        const subscriptionList = await ClinicSubscriptionModel
+        .find({ isActive: true, endDate: { $gt: Date.now() } })
+
+        const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
+        
+        const uniqueClinicIdsSet = new Set(clinicsIds)
+        const uniqueClinicIdsList = [...uniqueClinicIdsSet]
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: {
+                    clinicId: { $in: uniqueClinicIdsList }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'services',
+                    localField: 'serviceId',
+                    foreignField: '_id',
+                    as: 'service'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.patient = appointment.patient[0]
+            appointment.doctor = appointment.doctor[0]
+            appointment.clinic = appointment.clinic[0]
+            appointment.service = appointment.service[0]
+            const todayDate = new Date()
+
+            if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
+                appointment.status = 'EXPIRED'
+            }
+        })
+        
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(400).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addAppointment, 
     getAppointmentsByDoctorId, 
@@ -639,5 +791,7 @@ module.exports = {
     getAppointmentsByClinicIdAndStatus,
     getAppointmentsByDoctorIdAndStatus,
     updateAppointmentStatus, 
-    deleteAppointment 
+    deleteAppointment,
+    sendAppointmentReminder,
+    getFollowupRegisteredClinicsAppointments
 }
