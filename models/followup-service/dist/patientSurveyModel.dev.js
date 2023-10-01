@@ -20,7 +20,14 @@ var PatientSurveySchema = new mongoose.Schema({
     required: true
   },
   overallExperience: {
-    type: String
+    type: Number
+  },
+  callDuration: {
+    type: Number
+  },
+  recordedBy: {
+    type: String,
+    "default": 'CALL'
   },
   waiting: {
     timeWaited: {
@@ -33,7 +40,7 @@ var PatientSurveySchema = new mongoose.Schema({
       type: Boolean
     },
     waitingSatisfaction: {
-      type: String
+      type: Number
     }
   },
   environment: {
@@ -54,13 +61,13 @@ var PatientSurveySchema = new mongoose.Schema({
   },
   healthcareProvider: {
     attentiveness: {
-      type: String
+      type: Number
     },
     isAddressedAdequately: {
       type: Boolean
     },
-    isTreatmentExplainedClearly: {
-      type: Boolean
+    treatmentExplanation: {
+      type: Number
     },
     isMedicalHistoryAsked: {
       type: Boolean

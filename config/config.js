@@ -21,6 +21,7 @@ module.exports = {
     SALT_ROUNDS: Number.parseInt(process.env.SALT_ROUNDS),
     SECRET_KEY: process.env.SECRET_KEY,
     LANGUAGES: ['en', 'ar'],
+    SCHEDULING_WAYS: ['PHONE-CALL', 'IN-PERSON', 'ONLINE'],
     WHATSAPP:{
         BASE_URL: 'https://graph.facebook.com/v17.0',
         TOKEN: process.env.WHATSAPP_TOKEN,

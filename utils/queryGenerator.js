@@ -1,12 +1,14 @@
 const mongoose = require('mongoose')
 
-const statsQueryGenerator = (entityIdKey, entityIdValue, datesQuery, dateField='createdAt') => {
+const statsQueryGenerator = (entityIdKey='none', entityIdValue=0, datesQuery, dateField='createdAt') => {
 
     const { from, to, until, specific } = datesQuery
         
         let searchQuery = {}
 
-        if(typeof entityIdValue == 'string') {
+        if(entityIdKey == 'none') {
+            
+        } else if(typeof entityIdValue == 'string') {
             searchQuery[entityIdKey] = mongoose.Types.ObjectId(entityIdValue)
 
         } else if(typeof entityIdValue == 'object') {

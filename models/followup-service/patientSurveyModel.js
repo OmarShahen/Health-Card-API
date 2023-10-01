@@ -6,12 +6,14 @@ const PatientSurveySchema = new mongoose.Schema({
     doneById: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
-    overallExperience: { type: String },
+    overallExperience: { type: Number },
+    callDuration: { type: Number },
+    recordedBy: { type: String, default: 'CALL' },
     waiting: {
         timeWaited: { type: Number },
         isDelayHappened: { type: Boolean },
         isDelayInformed: { type: Boolean },
-        waitingSatisfaction: { type: String }
+        waitingSatisfaction: { type: Number }
     },
     environment: {
         isClean: { type: Boolean },
@@ -22,9 +24,9 @@ const PatientSurveySchema = new mongoose.Schema({
         isResponsive: { type: Boolean }
     },
     healthcareProvider: {
-        attentiveness: { type: String },
+        attentiveness: { type: Number },
         isAddressedAdequately: { type: Boolean },
-        isTreatmentExplainedClearly: { type: Boolean },
+        treatmentExplanation: { type: Number },
         isMedicalHistoryAsked: { type: Boolean }
     },
     appointments: {
