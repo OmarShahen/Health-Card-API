@@ -725,6 +725,13 @@ var getFollowupRegisteredClinicsPatients = function getFollowupRegisteredClinics
             }
           }, {
             $lookup: {
+              from: 'specialities',
+              localField: 'clinic.speciality',
+              foreignField: '_id',
+              as: 'speciality'
+            }
+          }, {
+            $lookup: {
               from: 'users',
               localField: 'survey.doneById',
               foreignField: '_id',
