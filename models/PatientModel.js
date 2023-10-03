@@ -9,7 +9,7 @@ const PatientSchema = new mongoose.Schema({
     cardId: { type: Number },
     cardUUID: { type: String },
     firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
+    lastName: { type: String },
     socialStatus: { type: String },
     email: { type: String },
     countryCode: { type: Number, required: true },

@@ -74,9 +74,7 @@ const addPatient = (patientData) => {
 
     if(!utils.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
 
-    if(!lastName) return { isAccepted: false, message: 'Last name is required', field: 'lastName' }
-
-    if(!utils.isNameValid(lastName)) return { isAccepted: false, message: 'Invalid name formate', field: 'lastName' }
+    if(lastName && !utils.isNameValid(lastName)) return { isAccepted: false, message: 'Invalid name formate', field: 'lastName' }
 
     if(socialStatus && typeof socialStatus != 'string') return { isAccepted: false, message: 'Invalid social status value', field: 'socialStatus' }
 
