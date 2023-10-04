@@ -49,7 +49,7 @@ var translations = require('../i18n/index');
 var ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel');
 
 var addPatient = function addPatient(request, response) {
-  var dataValidation, _request$body, cardId, cvc, clinicId, doctorsIds, card, clinic, doctorsList, doctorsSet, doctorsUniqueList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctorList, clinicPatientDoctorList, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, newCard, cardData, cardObj;
+  var dataValidation, _request$body, cardId, cvc, clinicId, doctorsIds, lastVisitDate, card, clinic, doctorsList, doctorsSet, doctorsUniqueList, patientData, counter, patientObj, newPatient, newClinicPatient, newClinicPatientDoctorList, clinicPatientDoctorList, clinicPatientData, clinicPatientObj, _clinicPatientData, _clinicPatientObj, newCard, cardData, cardObj;
 
   return regeneratorRuntime.async(function addPatient$(_context) {
     while (1) {
@@ -70,7 +70,7 @@ var addPatient = function addPatient(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorsIds = _request$body.doctorsIds;
+          _request$body = request.body, cardId = _request$body.cardId, cvc = _request$body.cvc, clinicId = _request$body.clinicId, doctorsIds = _request$body.doctorsIds, lastVisitDate = _request$body.lastVisitDate;
 
           if (!cardId) {
             _context.next = 11;
@@ -193,7 +193,8 @@ var addPatient = function addPatient(request, response) {
           newClinicPatientDoctorList = _context.sent;
           clinicPatientData = {
             patientId: newPatient._id,
-            clinicId: clinicId
+            clinicId: clinicId,
+            lastVisitDate: lastVisitDate
           };
           clinicPatientObj = new ClinicPatientModel(clinicPatientData);
           _context.next = 44;
@@ -212,7 +213,8 @@ var addPatient = function addPatient(request, response) {
 
           _clinicPatientData = {
             patientId: newPatient._id,
-            clinicId: clinicId
+            clinicId: clinicId,
+            lastVisitDate: lastVisitDate
           };
           _clinicPatientObj = new ClinicPatientModel(_clinicPatientData);
           _context.next = 52;

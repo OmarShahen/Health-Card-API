@@ -11,6 +11,9 @@ var ClinicPatientSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  lastVisitDate: {
+    type: Date
+  },
   survey: {
     isDone: {
       type: Boolean,

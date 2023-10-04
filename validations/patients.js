@@ -55,6 +55,7 @@ const addPatient = (patientData) => {
         dateOfBirth, 
         bloodGroup, 
         weight, 
+        lastVisitDate,
         emergencyContacts, 
         healthHistory 
     } = patientData
@@ -97,6 +98,8 @@ const addPatient = (patientData) => {
     if(bloodGroup && !config.BLOOD_GROUPS.includes(bloodGroup)) return { isAccepted: false, message: 'Invalid blood group', field: 'bloodGroup' }
 
     if(weight && typeof weight != 'number') return { isAccepted: false, message: 'Weight must be a number', field: 'weight' }
+
+    if(lastVisitDate && !utils.isDateValid(lastVisitDate)) return { isAccepted: false, message: 'Last visit date format is invalid', field: 'lastVisitDate' }
 
     //if(!emergencyContacts) return { isAccepted: false, message: 'Emergency contacts is required', field: 'emergencyContacts' }
     

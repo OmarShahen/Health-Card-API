@@ -25,7 +25,7 @@ const addPatient = async (request, response) => {
             })
         }
 
-        const { cardId, cvc, clinicId, doctorsIds } = request.body
+        const { cardId, cvc, clinicId, doctorsIds, lastVisitDate } = request.body
 
         if(cardId) {
             const card = await PatientModel.find({ cardId })
@@ -93,12 +93,12 @@ const addPatient = async (request, response) => {
 
             newClinicPatientDoctorList = await ClinicPatientDoctorModel.insertMany(clinicPatientDoctorList)
 
-            const clinicPatientData = { patientId: newPatient._id, clinicId }
+            const clinicPatientData = { patientId: newPatient._id, clinicId, lastVisitDate }
             const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
             newClinicPatient = await clinicPatientObj.save()
 
         } else if(clinicId) {
-            const clinicPatientData = { patientId: newPatient._id, clinicId }
+            const clinicPatientData = { patientId: newPatient._id, clinicId, lastVisitDate }
             const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
             newClinicPatient = await clinicPatientObj.save()
         }
