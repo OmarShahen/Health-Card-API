@@ -19,6 +19,9 @@ var PatientSurveySchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  arrivalMethodId: {
+    type: mongoose.Types.ObjectId
+  },
   overallExperience: {
     type: Number
   },

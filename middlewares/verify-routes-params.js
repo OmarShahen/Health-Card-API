@@ -23,7 +23,7 @@ const FolderModel = require('../models/file-storage/FolderModel')
 const FileModel = require('../models/file-storage/FileModel')
 const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
 const PatientSurveyModel = require('../models/followup-service/patientSurveyModel')
-
+const ArrivalMethodModel = require('../models/ArrivalMethodModel')
 
 const verifyClinicId = async (request, response, next) => {
 
@@ -882,6 +882,41 @@ const verifyPatientSurveyId = async (request, response, next) => {
     }
 }
 
+const verifyArrivalMethodId = async (request, response, next) => {
+
+    try {
+
+        const { arrivalMethodId } = request.params
+
+        if(!utils.isObjectId(arrivalMethodId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid arrival method Id format',
+                field: 'arrivalMethodId'
+            })
+        }
+
+        const arrivalMethod = await ArrivalMethodModel.findById(arrivalMethodId)
+        if(!arrivalMethod) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Arrival Method Id does not exist',
+                field: 'arrivalMethodId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -907,5 +942,6 @@ module.exports = {
     verifyFolderId,
     verifyFileId,
     verifyClinicSubscriptionId,
-    verifyPatientSurveyId
+    verifyPatientSurveyId,
+    verifyArrivalMethodId
 }

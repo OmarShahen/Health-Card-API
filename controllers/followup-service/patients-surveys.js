@@ -3,6 +3,7 @@ const CallModel = require('../../models/followup-service/CallModel')
 const CounterModel = require('../../models/CounterModel')
 const UserModel = require('../../models/UserModel')
 const PatientModel = require('../../models/PatientModel')
+const ArrivalMethodModel = require('../../models/ArrivalMethodModel')
 const ClinicModel = require('../../models/ClinicModel')
 const ClinicPatientModel = require('../../models/ClinicPatientModel')
 const patientValidator = require('../../validations/followup-service/patients-surveys')
@@ -305,6 +306,7 @@ const addPatientSurvey = async (request, response) => {
         }
 
         const { 
+            arrivalMethodId,
             doneById, 
             patientId, 
             clinicId, 
@@ -328,11 +330,20 @@ const addPatientSurvey = async (request, response) => {
             appointmentsSchedulingWay,
         } = request.body
 
+        const arrivalMethodPromise = ArrivalMethodModel.findById(arrivalMethodId)
         const memberPromise = UserModel.findById(doneById)
         const patientPromise = PatientModel.findById(patientId)
         const clinicPromise = ClinicModel.findById(clinicId)
 
-        const [member, patient, clinic] = await Promise.all([memberPromise, patientPromise, clinicPromise])
+        const [arrivalMethod, member, patient, clinic] = await Promise.all([arrivalMethodPromise, memberPromise, patientPromise, clinicPromise])
+
+        if(!arrivalMethod) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Arrival method ID does not exist',
+                field: 'arrivalMethodId'
+            })
+        }
 
         if(!member) {
             return response.status(400).json({
@@ -369,6 +380,7 @@ const addPatientSurvey = async (request, response) => {
             doneById,
             patientId,
             clinicId,
+            arrivalMethodId,
             overallExperience,
             callDuration,
             waiting: {
@@ -478,6 +490,7 @@ const updatePatientSurvey = async (request, response) => {
         }
 
         const { 
+            arrivalMethodId,
             overallExperience,
             callDuration,
             waitingTimeWaited,
@@ -498,7 +511,17 @@ const updatePatientSurvey = async (request, response) => {
             appointmentsSchedulingWay,
         } = request.body 
 
+        const arrivalMethod = await ArrivalMethodModel.findById(arrivalMethodId)
+        if(!arrivalMethod) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Arrival method ID is not registered',
+                field: 'arrivalMethodId'
+            })
+        }
+
         const patientSurveyData = {
+            arrivalMethodId,
             overallExperience,
             callDuration,
             waiting: {
@@ -629,6 +652,14 @@ const getPatientSurveyById = async (request, response) => {
             }
           },
           {
+            $lookup: {
+                from: 'arrivalmethods',
+                localField: 'arrivalMethodId',
+                foreignField: '_id',
+                as: 'arrivalMethod'
+            }
+          },
+          {
             $project: {
                 'member.password': 0,
                 'patient.healthHistory': 0,
@@ -641,6 +672,7 @@ const getPatientSurveyById = async (request, response) => {
             patientSurvey.patient = patientSurvey.patient[0]
             patientSurvey.clinic = patientSurvey.clinic[0]
             patientSurvey.member = patientSurvey.member[0]
+            patientSurvey.arrivalMethod = patientSurvey.arrivalMethod[0]
         })
 
         return response.status(200).json({

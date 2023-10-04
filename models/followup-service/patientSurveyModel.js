@@ -6,6 +6,7 @@ const PatientSurveySchema = new mongoose.Schema({
     doneById: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
+    arrivalMethodId: { type: mongoose.Types.ObjectId },
     overallExperience: { type: Number },
     callDuration: { type: Number },
     recordedBy: { type: String, default: 'CALL' },

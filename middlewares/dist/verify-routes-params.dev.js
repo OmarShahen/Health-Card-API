@@ -50,6 +50,8 @@ var ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscrip
 
 var PatientSurveyModel = require('../models/followup-service/patientSurveyModel');
 
+var ArrivalMethodModel = require('../models/ArrivalMethodModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1499,6 +1501,65 @@ var verifyPatientSurveyId = function verifyPatientSurveyId(request, response, ne
   }, null, null, [[0, 12]]);
 };
 
+var verifyArrivalMethodId = function verifyArrivalMethodId(request, response, next) {
+  var arrivalMethodId, arrivalMethod;
+  return regeneratorRuntime.async(function verifyArrivalMethodId$(_context26) {
+    while (1) {
+      switch (_context26.prev = _context26.next) {
+        case 0:
+          _context26.prev = 0;
+          arrivalMethodId = request.params.arrivalMethodId;
+
+          if (utils.isObjectId(arrivalMethodId)) {
+            _context26.next = 4;
+            break;
+          }
+
+          return _context26.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid arrival method Id format',
+            field: 'arrivalMethodId'
+          }));
+
+        case 4:
+          _context26.next = 6;
+          return regeneratorRuntime.awrap(ArrivalMethodModel.findById(arrivalMethodId));
+
+        case 6:
+          arrivalMethod = _context26.sent;
+
+          if (arrivalMethod) {
+            _context26.next = 9;
+            break;
+          }
+
+          return _context26.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Arrival Method Id does not exist',
+            field: 'arrivalMethodId'
+          }));
+
+        case 9:
+          return _context26.abrupt("return", next());
+
+        case 12:
+          _context26.prev = 12;
+          _context26.t0 = _context26["catch"](0);
+          console.error(_context26.t0);
+          return _context26.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context26.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context26.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1524,5 +1585,6 @@ module.exports = {
   verifyFolderId: verifyFolderId,
   verifyFileId: verifyFileId,
   verifyClinicSubscriptionId: verifyClinicSubscriptionId,
-  verifyPatientSurveyId: verifyPatientSurveyId
+  verifyPatientSurveyId: verifyPatientSurveyId,
+  verifyArrivalMethodId: verifyArrivalMethodId
 };

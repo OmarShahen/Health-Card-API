@@ -5,7 +5,8 @@ var utils = require('../../utils/utils');
 var config = require('../../config/config');
 
 var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
-  var doneById = patientSurveyData.doneById,
+  var arrivalMethodId = patientSurveyData.arrivalMethodId,
+      doneById = patientSurveyData.doneById,
       patientId = patientSurveyData.patientId,
       clinicId = patientSurveyData.clinicId,
       overallExperience = patientSurveyData.overallExperience,
@@ -26,6 +27,16 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
       appointmentsIsSchedulingEasy = patientSurveyData.appointmentsIsSchedulingEasy,
       appointmentsIsReminderSent = patientSurveyData.appointmentsIsReminderSent,
       appointmentsSchedulingWay = patientSurveyData.appointmentsSchedulingWay;
+  if (!arrivalMethodId) return {
+    isAccepted: false,
+    message: 'Arrival method is required',
+    field: 'arrivalMethodId'
+  };
+  if (!utils.isObjectId(arrivalMethodId)) return {
+    isAccepted: false,
+    message: 'Invalid arrival method ID format',
+    field: 'arrivalMethodId'
+  };
   if (!clinicId) return {
     isAccepted: false,
     message: 'Clinic ID is required',

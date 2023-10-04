@@ -413,11 +413,13 @@ const getFollowupRegisteredClinicsPatients = async (request, response) => {
         const uniqueClinicIdsSet = new Set(clinicsIds)
         const uniqueClinicIdsList = [...uniqueClinicIdsSet]
 
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
+
+        searchQuery.clinicId = { $in: uniqueClinicIdsList }
+
         const patients = await ClinicPatientModel.aggregate([
             {
-                $match: {
-                    clinicId: { $in: uniqueClinicIdsList }
-                }
+                $match: searchQuery
             },
             {
                 $lookup: {

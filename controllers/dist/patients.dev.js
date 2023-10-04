@@ -681,7 +681,8 @@ var getPatientsByClinicId = function getPatientsByClinicId(request, response) {
 };
 
 var getFollowupRegisteredClinicsPatients = function getFollowupRegisteredClinicsPatients(request, response) {
-  var subscriptionList, clinicsIds, uniqueClinicIdsSet, uniqueClinicIdsList, patients;
+  var subscriptionList, clinicsIds, uniqueClinicIdsSet, uniqueClinicIdsList, _utils$statsQueryGene2, searchQuery, patients;
+
   return regeneratorRuntime.async(function getFollowupRegisteredClinicsPatients$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
@@ -702,13 +703,13 @@ var getFollowupRegisteredClinicsPatients = function getFollowupRegisteredClinics
           });
           uniqueClinicIdsSet = new Set(clinicsIds);
           uniqueClinicIdsList = _toConsumableArray(uniqueClinicIdsSet);
-          _context8.next = 9;
+          _utils$statsQueryGene2 = utils.statsQueryGenerator('none', 0, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
+          searchQuery.clinicId = {
+            $in: uniqueClinicIdsList
+          };
+          _context8.next = 11;
           return regeneratorRuntime.awrap(ClinicPatientModel.aggregate([{
-            $match: {
-              clinicId: {
-                $in: uniqueClinicIdsList
-              }
-            }
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'patients',
@@ -743,7 +744,7 @@ var getFollowupRegisteredClinicsPatients = function getFollowupRegisteredClinics
             }
           }]));
 
-        case 9:
+        case 11:
           patients = _context8.sent;
           patients.forEach(function (patient) {
             patient.member = patient.member[0];
@@ -757,8 +758,8 @@ var getFollowupRegisteredClinicsPatients = function getFollowupRegisteredClinics
             patients: patients
           }));
 
-        case 14:
-          _context8.prev = 14;
+        case 16:
+          _context8.prev = 16;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(400).json({
@@ -767,16 +768,16 @@ var getFollowupRegisteredClinicsPatients = function getFollowupRegisteredClinics
             error: _context8.t0.message
           }));
 
-        case 18:
+        case 20:
         case "end":
           return _context8.stop();
       }
     }
-  }, null, null, [[0, 14]]);
+  }, null, null, [[0, 16]]);
 };
 
 var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
-  var userId, _utils$statsQueryGene2, searchQuery, patients;
+  var userId, _utils$statsQueryGene3, searchQuery, patients;
 
   return regeneratorRuntime.async(function getPatientsByDoctorId$(_context9) {
     while (1) {
@@ -784,7 +785,7 @@ var getPatientsByDoctorId = function getPatientsByDoctorId(request, response) {
         case 0:
           _context9.prev = 0;
           userId = request.params.userId;
-          _utils$statsQueryGene2 = utils.statsQueryGenerator('doctorId', userId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
+          _utils$statsQueryGene3 = utils.statsQueryGenerator('doctorId', userId, request.query), searchQuery = _utils$statsQueryGene3.searchQuery;
           _context9.next = 5;
           return regeneratorRuntime.awrap(ClinicPatientDoctorModel.aggregate([{
             $match: searchQuery

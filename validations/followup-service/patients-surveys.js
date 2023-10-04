@@ -4,6 +4,7 @@ const config = require('../../config/config')
 const addPatientSurvey = (patientSurveyData) => {
 
     const { 
+        arrivalMethodId,
         doneById, 
         patientId, 
         clinicId, 
@@ -26,6 +27,10 @@ const addPatientSurvey = (patientSurveyData) => {
         appointmentsIsReminderSent,
         appointmentsSchedulingWay,
     } = patientSurveyData
+
+    if(!arrivalMethodId) return { isAccepted: false, message: 'Arrival method is required', field: 'arrivalMethodId' }
+
+    if(!utils.isObjectId(arrivalMethodId)) return { isAccepted: false, message: 'Invalid arrival method ID format', field: 'arrivalMethodId' }
 
     if(!clinicId) return { isAccepted: false, message: 'Clinic ID is required', field: 'clinicId' }
 
