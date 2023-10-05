@@ -3,6 +3,7 @@ const mongoose = require('mongoose')
 const ClinicPatientSchema = new mongoose.Schema({
     patientId: { type: mongoose.Types.ObjectId, required: true },
     clinicId: { type: mongoose.Types.ObjectId, required: true },
+    registeredById: { type: mongoose.Types.ObjectId },
     lastVisitDate: { type: Date },
     survey: {
         isDone: { type: Boolean, default: false },

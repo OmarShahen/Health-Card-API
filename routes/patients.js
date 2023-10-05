@@ -99,4 +99,11 @@ router.get(
     (request, response) => patientsController.getFollowupRegisteredClinicsPatients(request, response)
 )
 
+router.get(
+    '/v1/patients/registered-by/:userId',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => patientsController.getPatientsByRegisteredById(request, response)
+)
+
 module.exports = router

@@ -93,12 +93,12 @@ const addPatient = async (request, response) => {
 
             newClinicPatientDoctorList = await ClinicPatientDoctorModel.insertMany(clinicPatientDoctorList)
 
-            const clinicPatientData = { patientId: newPatient._id, clinicId, lastVisitDate }
+            const clinicPatientData = { patientId: newPatient._id, clinicId, lastVisitDate, registeredById: request.user._id }
             const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
             newClinicPatient = await clinicPatientObj.save()
 
         } else if(clinicId) {
-            const clinicPatientData = { patientId: newPatient._id, clinicId, lastVisitDate }
+            const clinicPatientData = { patientId: newPatient._id, clinicId, lastVisitDate, registeredById: request.user._id }
             const clinicPatientObj = new ClinicPatientModel(clinicPatientData)
             newClinicPatient = await clinicPatientObj.save()
         }
@@ -594,6 +594,61 @@ const getDoctorsByPatientId = async (request, response) => {
     }
 }
 
+const getPatientsByRegisteredById = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('registeredById', userId, request.query)
+
+        const patients = await ClinicPatientModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+
+        patients.forEach(patient => {
+            patient.patient = patient.patient[0]
+            patient.clinic = patient.clinic[0]
+            patient.patient.emergencyContacts = undefined
+            patient.patient.healthHistory = undefined
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            patients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const addEmergencyContactToPatient = async (request, response) => {
 
     try {
@@ -837,6 +892,7 @@ module.exports = {
     getPatientsByClinicId,
     getPatientsByDoctorId,
     getDoctorsByPatientId,
+    getPatientsByRegisteredById,
     deleteEmergencyContactOfPatient,
     updateEmergencyContactOfPatient,
     deleteDoctorFromPatient,

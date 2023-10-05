@@ -11,6 +11,9 @@ var ClinicPatientSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  registeredById: {
+    type: mongoose.Types.ObjectId
+  },
   lastVisitDate: {
     type: Date
   },

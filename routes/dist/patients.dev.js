@@ -57,4 +57,7 @@ router["delete"]('/v1/patients/:patientId/doctors/:doctorId', authorization.allP
 router.get('/v1/patients/followup-service/clinics-subscriptions/active', authorization.allPermission, function (request, response) {
   return patientsController.getFollowupRegisteredClinicsPatients(request, response);
 });
+router.get('/v1/patients/registered-by/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+  return patientsController.getPatientsByRegisteredById(request, response);
+});
 module.exports = router;
