@@ -40,30 +40,24 @@ var TreatmentSurveySchema = new mongoose.Schema({
   },
   experiencedSideEffects: [],
   isMedicationTookAsPrescribed: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   isDosagesMissed: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   isTakingOtherOutterMedication: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   isThereChallengesObtainingMedication: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   challengesObtainingMedication: [],
   isThereChallengesTakingMedication: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   challengesTakingMedication: [],
   isThereProblemRemebering: {
-    type: Boolean,
-    required: true
+    type: Boolean
   },
   isNewSymptomsOccured: {
     type: Boolean,

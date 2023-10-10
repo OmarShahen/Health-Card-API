@@ -87,22 +87,22 @@ var addTreatmentSurvey = function addTreatmentSurvey(treatmentSurveyData) {
     message: 'Experienced side effects format is invalid',
     field: 'experiencedSideEffects'
   };
-  if (typeof isMedicationTookAsPrescribed != 'boolean') return {
+  if (isMedicationTookAsPrescribed && typeof isMedicationTookAsPrescribed != 'boolean') return {
     isAccepted: false,
     message: 'Is medication took as prescribed format is invalid',
     field: 'isMedicationTookAsPrescribed'
   };
-  if (typeof isDosagesMissed != 'boolean') return {
+  if (isDosagesMissed && typeof isDosagesMissed != 'boolean') return {
     isAccepted: false,
     message: 'Is dosages missed format is invalid',
     field: 'isDosagesMissed'
   };
-  if (typeof isTakingOtherOutterMedication != 'boolean') return {
+  if (isTakingOtherOutterMedication && typeof isTakingOtherOutterMedication != 'boolean') return {
     isAccepted: false,
     message: 'Is taking other outter medication format is invalid',
     field: 'isTakingOtherOutterMedication'
   };
-  if (typeof isThereChallengesObtainingMedication != 'boolean') return {
+  if (isThereChallengesObtainingMedication && typeof isThereChallengesObtainingMedication != 'boolean') return {
     isAccepted: false,
     message: 'Is there challenges obtaining medication format is invalid',
     field: 'isThereChallengesObtainingMedication'
@@ -117,7 +117,7 @@ var addTreatmentSurvey = function addTreatmentSurvey(treatmentSurveyData) {
     message: 'Challenges obtaining medication value format is invalid',
     field: 'challengesObtainingMedication'
   };
-  if (typeof isThereChallengesTakingMedication != 'boolean') return {
+  if (isThereChallengesTakingMedication && typeof isThereChallengesTakingMedication != 'boolean') return {
     isAccepted: false,
     message: 'Is there challenges taking medication format is invalid',
     field: 'isThereChallengesTakingMedication'
@@ -132,7 +132,7 @@ var addTreatmentSurvey = function addTreatmentSurvey(treatmentSurveyData) {
     message: 'Challenges taking medication value format is invalid',
     field: 'challengesTakingMedication'
   };
-  if (typeof isThereProblemRemebering != 'boolean') return {
+  if (isThereProblemRemebering && typeof isThereProblemRemebering != 'boolean') return {
     isAccepted: false,
     message: 'Is there problem remebering format is invalid',
     field: 'isThereProblemRemebering'
@@ -195,22 +195,22 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(treatmentSurveyData) 
     message: 'Experienced side effects format is invalid',
     field: 'experiencedSideEffects'
   };
-  if (typeof isMedicationTookAsPrescribed != 'boolean') return {
+  if (isMedicationTookAsPrescribed && typeof isMedicationTookAsPrescribed != 'boolean') return {
     isAccepted: false,
     message: 'Is medication took as prescribed format is invalid',
     field: 'isMedicationTookAsPrescribed'
   };
-  if (typeof isDosagesMissed != 'boolean') return {
+  if (isDosagesMissed && typeof isDosagesMissed != 'boolean') return {
     isAccepted: false,
     message: 'Is dosages missed format is invalid',
     field: 'isDosagesMissed'
   };
-  if (typeof isTakingOtherOutterMedication != 'boolean') return {
+  if (isTakingOtherOutterMedication && typeof isTakingOtherOutterMedication != 'boolean') return {
     isAccepted: false,
     message: 'Is taking other outter medication format is invalid',
     field: 'isTakingOtherOutterMedication'
   };
-  if (typeof isThereChallengesObtainingMedication != 'boolean') return {
+  if (isThereChallengesObtainingMedication && typeof isThereChallengesObtainingMedication != 'boolean') return {
     isAccepted: false,
     message: 'Is there challenges obtaining medication format is invalid',
     field: 'isThereChallengesObtainingMedication'
@@ -240,12 +240,12 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(treatmentSurveyData) 
     message: 'Challenges taking medication value format is invalid',
     field: 'challengesTakingMedication'
   };
-  if (typeof isThereProblemRemebering != 'boolean') return {
+  if (isThereProblemRemebering && typeof isThereProblemRemebering != 'boolean') return {
     isAccepted: false,
     message: 'Is there problem remebering format is invalid',
     field: 'isThereProblemRemebering'
   };
-  if (typeof isNewSymptomsOccured != 'boolean') return {
+  if (isNewSymptomsOccured && typeof isNewSymptomsOccured != 'boolean') return {
     isAccepted: false,
     message: 'Is new symptoms occured format is invalid',
     field: 'isNewSymptomsOccured'

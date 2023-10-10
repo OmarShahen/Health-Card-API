@@ -56,25 +56,25 @@ const addTreatmentSurvey = (treatmentSurveyData) => {
 
     if(experiencedSideEffects && !Array.isArray(experiencedSideEffects)) return { isAccepted: false, message: 'Experienced side effects format is invalid', field: 'experiencedSideEffects' }
 
-    if(typeof isMedicationTookAsPrescribed != 'boolean') return { isAccepted: false, message: 'Is medication took as prescribed format is invalid', field: 'isMedicationTookAsPrescribed' }
+    if(isMedicationTookAsPrescribed && typeof isMedicationTookAsPrescribed != 'boolean') return { isAccepted: false, message: 'Is medication took as prescribed format is invalid', field: 'isMedicationTookAsPrescribed' }
 
-    if(typeof isDosagesMissed != 'boolean') return { isAccepted: false, message: 'Is dosages missed format is invalid', field: 'isDosagesMissed' }
+    if(isDosagesMissed && typeof isDosagesMissed != 'boolean') return { isAccepted: false, message: 'Is dosages missed format is invalid', field: 'isDosagesMissed' }
 
-    if(typeof isTakingOtherOutterMedication != 'boolean') return { isAccepted: false, message: 'Is taking other outter medication format is invalid', field: 'isTakingOtherOutterMedication' }
+    if(isTakingOtherOutterMedication && typeof isTakingOtherOutterMedication != 'boolean') return { isAccepted: false, message: 'Is taking other outter medication format is invalid', field: 'isTakingOtherOutterMedication' }
 
-    if(typeof isThereChallengesObtainingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges obtaining medication format is invalid', field: 'isThereChallengesObtainingMedication' }
+    if(isThereChallengesObtainingMedication && typeof isThereChallengesObtainingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges obtaining medication format is invalid', field: 'isThereChallengesObtainingMedication' }
 
     if(challengesObtainingMedication && !Array.isArray(challengesObtainingMedication)) return { isAccepted: false, message: 'Challenges obtaining medication format is invalid', field: 'challengesObtainingMedication' }
 
     if(challengesObtainingMedication && challengesObtainingMedication.length != 0 && !checkListIds(challengesObtainingMedication)) return { isAccepted: false, message: 'Challenges obtaining medication value format is invalid', field: 'challengesObtainingMedication' }
 
-    if(typeof isThereChallengesTakingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges taking medication format is invalid', field: 'isThereChallengesTakingMedication' }
+    if(isThereChallengesTakingMedication && typeof isThereChallengesTakingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges taking medication format is invalid', field: 'isThereChallengesTakingMedication' }
 
     if(challengesTakingMedication && !Array.isArray(challengesTakingMedication)) return { isAccepted: false, message: 'Challenges taking medication format is invalid', field: 'challengesTakingMedication' }
 
     if(challengesTakingMedication && challengesTakingMedication.length != 0 && !checkListIds(challengesTakingMedication)) return { isAccepted: false, message: 'Challenges taking medication value format is invalid', field: 'challengesTakingMedication' }
 
-    if(typeof isThereProblemRemebering != 'boolean') return { isAccepted: false, message: 'Is there problem remebering format is invalid', field: 'isThereProblemRemebering' }
+    if(isThereProblemRemebering && typeof isThereProblemRemebering != 'boolean') return { isAccepted: false, message: 'Is there problem remebering format is invalid', field: 'isThereProblemRemebering' }
 
     if(typeof isNewSymptomsOccured != 'boolean') return { isAccepted: false, message: 'Is new symptoms occured format is invalid', field: 'isNewSymptomsOccured' }
 
@@ -115,13 +115,13 @@ const updateTreatmentSurvey = (treatmentSurveyData) => {
 
     if(experiencedSideEffects && !Array.isArray(experiencedSideEffects)) return { isAccepted: false, message: 'Experienced side effects format is invalid', field: 'experiencedSideEffects' }
 
-    if(typeof isMedicationTookAsPrescribed != 'boolean') return { isAccepted: false, message: 'Is medication took as prescribed format is invalid', field: 'isMedicationTookAsPrescribed' }
+    if(isMedicationTookAsPrescribed && typeof isMedicationTookAsPrescribed != 'boolean') return { isAccepted: false, message: 'Is medication took as prescribed format is invalid', field: 'isMedicationTookAsPrescribed' }
 
-    if(typeof isDosagesMissed != 'boolean') return { isAccepted: false, message: 'Is dosages missed format is invalid', field: 'isDosagesMissed' }
+    if(isDosagesMissed && typeof isDosagesMissed != 'boolean') return { isAccepted: false, message: 'Is dosages missed format is invalid', field: 'isDosagesMissed' }
 
-    if(typeof isTakingOtherOutterMedication != 'boolean') return { isAccepted: false, message: 'Is taking other outter medication format is invalid', field: 'isTakingOtherOutterMedication' }
+    if(isTakingOtherOutterMedication && typeof isTakingOtherOutterMedication != 'boolean') return { isAccepted: false, message: 'Is taking other outter medication format is invalid', field: 'isTakingOtherOutterMedication' }
 
-    if(typeof isThereChallengesObtainingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges obtaining medication format is invalid', field: 'isThereChallengesObtainingMedication' }
+    if(isThereChallengesObtainingMedication && typeof isThereChallengesObtainingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges obtaining medication format is invalid', field: 'isThereChallengesObtainingMedication' }
 
     if(challengesObtainingMedication && !Array.isArray(challengesObtainingMedication)) return { isAccepted: false, message: 'Challenges obtaining medication format is invalid', field: 'challengesObtainingMedication' }
 
@@ -133,9 +133,9 @@ const updateTreatmentSurvey = (treatmentSurveyData) => {
 
     if(challengesTakingMedication && challengesTakingMedication.length != 0 && !checkListIds(challengesTakingMedication)) return { isAccepted: false, message: 'Challenges taking medication value format is invalid', field: 'challengesTakingMedication' }
 
-    if(typeof isThereProblemRemebering != 'boolean') return { isAccepted: false, message: 'Is there problem remebering format is invalid', field: 'isThereProblemRemebering' }
+    if(isThereProblemRemebering && typeof isThereProblemRemebering != 'boolean') return { isAccepted: false, message: 'Is there problem remebering format is invalid', field: 'isThereProblemRemebering' }
 
-    if(typeof isNewSymptomsOccured != 'boolean') return { isAccepted: false, message: 'Is new symptoms occured format is invalid', field: 'isNewSymptomsOccured' }
+    if(isNewSymptomsOccured && typeof isNewSymptomsOccured != 'boolean') return { isAccepted: false, message: 'Is new symptoms occured format is invalid', field: 'isNewSymptomsOccured' }
 
     if(newSymptomsOccured && !Array.isArray(newSymptomsOccured)) return { isAccepted: false, message: 'New symptoms occured format is invalid', field: 'newSymptomsOccured' }
 
