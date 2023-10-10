@@ -7,6 +7,7 @@ const CallModel = require('../../models/followup-service/CallModel')
 const CounterModel = require('../../models/CounterModel')
 const treatmentSurveyValidation = require('../../validations/followup-service/treatments-surveys')
 const utils = require('../../utils/utils')
+const mongoose = require('mongoose')
 
 
 const getTreatmentsSurveys = async (request, response) => {
@@ -220,6 +221,89 @@ const getTreatmentsSurveysByClinicId = async (request, response) => {
     }
 }
 
+const getTreatmentSurveyById = async (request, response) => {
+
+    try {
+
+        const { treatmentSurveyId } = request.params
+
+        const treatmentSurveyList = await TreatmentSurveyModel.aggregate([
+          {
+            $match: {
+                _id: mongoose.Types.ObjectId(treatmentSurveyId)
+            }
+          },
+          {
+            $lookup: {
+                from: 'patients',
+                localField: 'patientId',
+                foreignField: '_id',
+                as: 'patient'
+            },
+          },
+          {
+            $lookup: {
+                from: 'clinics',
+                localField: 'clinicId',
+                foreignField: '_id',
+                as: 'clinic'
+            }
+          },
+          {
+            $lookup: {
+                from: 'users',
+                localField: 'doneById',
+                foreignField: '_id',
+                as: 'member'
+            }
+          },
+          {
+            $lookup: {
+                from: 'medicationchallenges',
+                localField: 'challengesTakingMedication',
+                foreignField: '_id',
+                as: 'challengesTakingMedication'
+            }
+          },
+          {
+            $lookup: {
+                from: 'medicationchallenges',
+                localField: 'challengesObtainingMedication',
+                foreignField: '_id',
+                as: 'challengesObtainingMedication'
+            }
+          },
+          {
+            $project: {
+                'member.password': 0,
+                'patient.healthHistory': 0,
+                'patient.emergencyContacts': 0
+            }
+          }
+        ])
+
+        treatmentSurveyList.forEach(treatmentSurvey => {
+            treatmentSurvey.patient = treatmentSurvey.patient[0]
+            treatmentSurvey.clinic = treatmentSurvey.clinic[0]
+            treatmentSurvey.member = treatmentSurvey.member[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            treatmentSurvey: treatmentSurveyList[0]
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
 const addTreatmentSurvey = async (request, response) => {
 
     try {
@@ -233,7 +317,26 @@ const addTreatmentSurvey = async (request, response) => {
             })
         }
 
-        const { clinicId, patientId, doneById, callDuration, challengesTakingMedication, challengesObtainingMedication } = request.body
+        const {
+            clinicId,
+            doneById,
+            patientId,
+            callDuration,
+            improvement,
+            isOverallHealthChanged,
+            isExperiencedSideEffects,
+            experiencedSideEffects,
+            isMedicationTookAsPrescribed,
+            isDosagesMissed,
+            isTakingOtherOutterMedication,
+            isThereChallengesObtainingMedication,
+            challengesObtainingMedication,
+            isThereChallengesTakingMedication,
+            challengesTakingMedication,
+            isThereProblemRemebering,
+            isNewSymptomsOccured,
+            newSymptomsOccured,
+        } = request.body
 
         const memberPromise = UserModel.findById(doneById)
         const patientPromise = PatientModel.findById(patientId)
@@ -293,7 +396,28 @@ const addTreatmentSurvey = async (request, response) => {
             { new: true, upsert: true }
         )
 
-        const treatmentSurveyData = { treatmentSurveyId: counter.value, ...request.body }
+        const treatmentSurveyData = {
+            treatmentSurveyId: counter.value,
+            clinicId,
+            doneById,
+            patientId,
+            callDuration,
+            improvement,
+            isOverallHealthChanged,
+            isExperiencedSideEffects,
+            experiencedSideEffects,
+            isMedicationTookAsPrescribed,
+            isDosagesMissed,
+            isTakingOtherOutterMedication,
+            isThereChallengesObtainingMedication,
+            challengesObtainingMedication: challengesObtainingMedication.map(challenge => mongoose.Types.ObjectId(challenge)),
+            isThereChallengesTakingMedication,
+            challengesTakingMedication: challengesTakingMedication.map(challenge => mongoose.Types.ObjectId(challenge)),
+            isThereProblemRemebering,
+            isNewSymptomsOccured,
+            newSymptomsOccured,
+        }
+
         const TreatmentSurveyObj = new TreatmentSurveyModel(treatmentSurveyData)
         const newTreatmentSurvey = await TreatmentSurveyObj.save()
 
@@ -341,7 +465,23 @@ const updateTreatmentSurvey = async (request, response) => {
     try {
 
         const { treatmentSurveyId } = request.params
-        const { challengesTakingMedication, challengesObtainingMedication } = request.body
+        const {
+            callDuration,
+            improvement,
+            isOverallHealthChanged,
+            isExperiencedSideEffects,
+            experiencedSideEffects,
+            isMedicationTookAsPrescribed,
+            isDosagesMissed,
+            isTakingOtherOutterMedication,
+            isThereChallengesObtainingMedication,
+            challengesObtainingMedication,
+            isThereChallengesTakingMedication,
+            challengesTakingMedication,
+            isThereProblemRemebering,
+            isNewSymptomsOccured,
+            newSymptomsOccured,
+        } = request.body
 
         const dataValidation = treatmentSurveyValidation.updateTreatmentSurvey(request.body)
         if(!dataValidation.isAccepted) {
@@ -374,7 +514,25 @@ const updateTreatmentSurvey = async (request, response) => {
             }
         }
 
-        const updatedTreatmentSurvey = await TreatmentSurveyModel.findByIdAndUpdate(treatmentSurveyId, request.body, { new: true })
+        const treatmentSurveyData = {
+            callDuration,
+            improvement,
+            isOverallHealthChanged,
+            isExperiencedSideEffects,
+            experiencedSideEffects,
+            isMedicationTookAsPrescribed,
+            isDosagesMissed,
+            isTakingOtherOutterMedication,
+            isThereChallengesObtainingMedication,
+            challengesObtainingMedication: challengesObtainingMedication.map(challenge => mongoose.Types.ObjectId(challenge)),
+            isThereChallengesTakingMedication,
+            challengesTakingMedication: challengesTakingMedication.map(challenge => mongoose.Types.ObjectId(challenge)),
+            isThereProblemRemebering,
+            isNewSymptomsOccured,
+            newSymptomsOccured,
+        }
+
+        const updatedTreatmentSurvey = await TreatmentSurveyModel.findByIdAndUpdate(treatmentSurveyId, treatmentSurveyData, { new: true })
         
         return response.status(200).json({
             accepted: true,
@@ -423,6 +581,7 @@ module.exports = {
     getTreatmentsSurveys, 
     getTreatmentsSurveysByPatientId,
     getTreatmentsSurveysByClinicId,
+    getTreatmentSurveyById,
     addTreatmentSurvey, 
     updateTreatmentSurvey,
     deleteTreatmentSurvey 

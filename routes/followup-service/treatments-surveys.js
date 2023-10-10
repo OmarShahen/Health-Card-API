@@ -10,6 +10,13 @@ router.get(
 )
 
 router.get(
+    '/v1/treatments-surveys/:treatmentSurveyId',
+    authorization.allPermission,
+    verifyTreatmentSurveyId,
+    (request, response) => treatmentsSurveysController.getTreatmentSurveyById(request, response)
+)
+
+router.get(
     '/v1/treatments-surveys/patients/:patientId',
     authorization.allPermission,
     verifyPatientId,

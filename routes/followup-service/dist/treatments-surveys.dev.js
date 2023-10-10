@@ -15,6 +15,9 @@ var _require = require('../../middlewares/verify-routes-params'),
 router.get('/v1/treatments-surveys', authorization.allPermission, function (request, response) {
   return treatmentsSurveysController.getTreatmentsSurveys(request, response);
 });
+router.get('/v1/treatments-surveys/:treatmentSurveyId', authorization.allPermission, verifyTreatmentSurveyId, function (request, response) {
+  return treatmentsSurveysController.getTreatmentSurveyById(request, response);
+});
 router.get('/v1/treatments-surveys/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
   return treatmentsSurveysController.getTreatmentsSurveysByPatientId(request, response);
 });
