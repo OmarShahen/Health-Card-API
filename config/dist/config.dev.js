@@ -24,6 +24,7 @@ module.exports = {
   SECRET_KEY: process.env.SECRET_KEY,
   LANGUAGES: ['en', 'ar'],
   SCHEDULING_WAYS: ['PHONE-CALL', 'IN-PERSON', 'ONLINE'],
+  MEDICATION_CHALLENGES_CATEGORY: ['TAKE', 'OBTAIN'],
   WHATSAPP: {
     BASE_URL: 'https://graph.facebook.com/v17.0',
     TOKEN: process.env.WHATSAPP_TOKEN,

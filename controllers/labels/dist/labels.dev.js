@@ -1,30 +1,30 @@
 "use strict";
 
-var ArrivalMethodModel = require('../models/ArrivalMethodModel');
+var LabelModel = require('../../models/labels/LabelModel');
 
-var ClinicPatientModel = require('../models/ClinicPatientModel');
+var ClinicPatientModel = require('../../models/ClinicPatientModel');
 
-var PatientSurveyModel = require('../models/followup-service/PatientSurveyModel');
+var labelValidation = require('../../validations/labels/labels');
 
-var arrivalMethodValidation = require('../validations/arrival-methods');
+var mongoose = require('mongoose');
 
-var getArrivalMethods = function getArrivalMethods(request, response) {
-  var arrivalMethods;
-  return regeneratorRuntime.async(function getArrivalMethods$(_context) {
+var getLabels = function getLabels(request, response) {
+  var labels;
+  return regeneratorRuntime.async(function getLabels$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
           _context.next = 3;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.find().sort({
+          return regeneratorRuntime.awrap(LabelModel.find().sort({
             createdAt: -1
           }));
 
         case 3:
-          arrivalMethods = _context.sent;
+          labels = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            arrivalMethods: arrivalMethods
+            labels: labels
           }));
 
         case 7:
@@ -45,14 +45,14 @@ var getArrivalMethods = function getArrivalMethods(request, response) {
   }, null, null, [[0, 7]]);
 };
 
-var addArrivalMethod = function addArrivalMethod(request, response) {
-  var dataValidation, name, arrivalMethodsList, arrivalMethodData, arrivalMethodObj, newArrivalMethod;
-  return regeneratorRuntime.async(function addArrivalMethod$(_context2) {
+var addLabel = function addLabel(request, response) {
+  var dataValidation, name, labelsList, labelData, labelObj, newLabel;
+  return regeneratorRuntime.async(function addLabel$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          dataValidation = arrivalMethodValidation.addArrivalMethod(request.body);
+          dataValidation = labelValidation.addLabel(request.body);
 
           if (dataValidation.isAccepted) {
             _context2.next = 4;
@@ -68,38 +68,38 @@ var addArrivalMethod = function addArrivalMethod(request, response) {
         case 4:
           name = request.body.name;
           _context2.next = 7;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.find({
+          return regeneratorRuntime.awrap(LabelModel.find({
             name: name
           }));
 
         case 7:
-          arrivalMethodsList = _context2.sent;
+          labelsList = _context2.sent;
 
-          if (!(arrivalMethodsList.length != 0)) {
+          if (!(labelsList.length != 0)) {
             _context2.next = 10;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Arrival name is already registered',
+            message: 'Label name is already registered',
             field: 'name'
           }));
 
         case 10:
-          arrivalMethodData = {
+          labelData = {
             name: name
           };
-          arrivalMethodObj = new ArrivalMethodModel(arrivalMethodData);
+          labelObj = new LabelModel(labelData);
           _context2.next = 14;
-          return regeneratorRuntime.awrap(arrivalMethodObj.save());
+          return regeneratorRuntime.awrap(labelObj.save());
 
         case 14:
-          newArrivalMethod = _context2.sent;
+          newLabel = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'New arrival method is added successfully!',
-            arrivalMethod: newArrivalMethod
+            message: 'New label is added successfully!',
+            label: newLabel
           }));
 
         case 18:
@@ -120,14 +120,14 @@ var addArrivalMethod = function addArrivalMethod(request, response) {
   }, null, null, [[0, 18]]);
 };
 
-var updateArrivalMethod = function updateArrivalMethod(request, response) {
-  var dataValidation, arrivalMethodId, name, arrivalMethod, nameList, arrivalMethodData, updatedArrivalMethod;
-  return regeneratorRuntime.async(function updateArrivalMethod$(_context3) {
+var updateLabel = function updateLabel(request, response) {
+  var dataValidation, labelId, name, label, nameList, labelData, updatedLabel;
+  return regeneratorRuntime.async(function updateLabel$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          dataValidation = arrivalMethodValidation.updateArrivalMethod(request.body);
+          dataValidation = labelValidation.updateLabel(request.body);
 
           if (dataValidation.isAccepted) {
             _context3.next = 4;
@@ -141,21 +141,21 @@ var updateArrivalMethod = function updateArrivalMethod(request, response) {
           }));
 
         case 4:
-          arrivalMethodId = request.params.arrivalMethodId;
+          labelId = request.params.labelId;
           name = request.body.name;
           _context3.next = 8;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.findById(arrivalMethodId));
+          return regeneratorRuntime.awrap(LabelModel.findById(labelId));
 
         case 8:
-          arrivalMethod = _context3.sent;
+          label = _context3.sent;
 
-          if (!(name != arrivalMethod.name)) {
+          if (!(name != label.name)) {
             _context3.next = 15;
             break;
           }
 
           _context3.next = 12;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.find({
+          return regeneratorRuntime.awrap(LabelModel.find({
             name: name
           }));
 
@@ -169,25 +169,25 @@ var updateArrivalMethod = function updateArrivalMethod(request, response) {
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Arrival method name is already registered',
+            message: 'Label name is already registered',
             field: 'name'
           }));
 
         case 15:
-          arrivalMethodData = {
+          labelData = {
             name: name
           };
           _context3.next = 18;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.findByIdAndUpdate(arrivalMethodId, arrivalMethodData, {
+          return regeneratorRuntime.awrap(LabelModel.findByIdAndUpdate(labelId, labelData, {
             "new": true
           }));
 
         case 18:
-          updatedArrivalMethod = _context3.sent;
+          updatedLabel = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated arrival method successfully!',
-            arrivalMethod: updatedArrivalMethod
+            message: 'Updated label successfully!',
+            label: updatedLabel
           }));
 
         case 22:
@@ -208,43 +208,43 @@ var updateArrivalMethod = function updateArrivalMethod(request, response) {
   }, null, null, [[0, 22]]);
 };
 
-var deleteArrivalMethod = function deleteArrivalMethod(request, response) {
-  var arrivalMethodId, patientsSurveysList, deletedArrivalMethod;
-  return regeneratorRuntime.async(function deleteArrivalMethod$(_context4) {
+var deleteLabel = function deleteLabel(request, response) {
+  var labelId, clinicsPatientsList, deletedLabel;
+  return regeneratorRuntime.async(function deleteLabel$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          arrivalMethodId = request.params.arrivalMethodId;
+          labelId = request.params.labelId;
           _context4.next = 4;
-          return regeneratorRuntime.awrap(PatientSurveyModel.find({
-            arrivalMethodId: arrivalMethodId
+          return regeneratorRuntime.awrap(ClinicPatientModel.find({
+            labels: mongoose.Types.ObjectId(labelId)
           }));
 
         case 4:
-          patientsSurveysList = _context4.sent;
+          clinicsPatientsList = _context4.sent;
 
-          if (!(patientsSurveysList.length != 0)) {
+          if (!(clinicsPatientsList.length != 0)) {
             _context4.next = 7;
             break;
           }
 
           return _context4.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Arrival method is registered with patients surveys',
-            field: 'arrivalMethodId'
+            message: 'Label is registered with entities',
+            field: 'labelId'
           }));
 
         case 7:
           _context4.next = 9;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.findByIdAndDelete(arrivalMethodId));
+          return regeneratorRuntime.awrap(LabelModel.findByIdAndDelete(labelId));
 
         case 9:
-          deletedArrivalMethod = _context4.sent;
+          deletedLabel = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted arrival method successfully!',
-            arrivalMethod: deletedArrivalMethod
+            message: 'Deleted label successfully!',
+            label: deletedLabel
           }));
 
         case 13:
@@ -266,8 +266,8 @@ var deleteArrivalMethod = function deleteArrivalMethod(request, response) {
 };
 
 module.exports = {
-  getArrivalMethods: getArrivalMethods,
-  addArrivalMethod: addArrivalMethod,
-  updateArrivalMethod: updateArrivalMethod,
-  deleteArrivalMethod: deleteArrivalMethod
+  getLabels: getLabels,
+  addLabel: addLabel,
+  updateLabel: updateLabel,
+  deleteLabel: deleteLabel
 };

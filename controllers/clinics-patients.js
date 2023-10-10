@@ -2,8 +2,11 @@ const ClinicPatientModel = require('../models/ClinicPatientModel')
 const clinicPatientValidation = require('../validations/clinics-patients')
 const PatientModel = require('../models/PatientModel')
 const ClinicModel = require('../models/ClinicModel')
+const LabelModel = require('../models/labels/LabelModel')
 const CardModel = require('../models/CardModel')
 const translations = require('../i18n/index')
+const mongoose = require('mongoose')
+
 
 const getClinicsPatients = async (request, response) => {
 
@@ -281,11 +284,103 @@ const setClinicPatientSurveyed = async (request, response) => {
     }
 }
 
+
+const addClinicPatientLabel = async (request, response) => {
+
+    try {
+
+        const dataValidation = clinicPatientValidation.addPatientClinicLabel(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { clinicPatientId } = request.params
+        const { labelId } = request.body
+
+        const label = await LabelModel.findById(labelId)
+        if(!label) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Label ID does not exist',
+                field: 'labelId'
+            })
+        }
+
+        const clinicPatientsLabelList = await ClinicPatientModel.find({ _id: clinicPatientId, labels: { $in: [label._id] } })
+        if(clinicPatientsLabelList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Label is already registered with patient',
+                field: 'labelId'
+            })
+        }
+
+        const updatedClinicPatient = await ClinicPatientModel
+        .findByIdAndUpdate(clinicPatientId, { $push: { labels: label._id } }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Added label to patient successfully!',
+            clinicPatient: updatedClinicPatient
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const removeClinicPatientLabel = async (request, response) => {
+
+    try {
+
+        const { clinicPatientId, labelId } = request.params
+
+        const clinicPatientsLabelList = await ClinicPatientModel
+        .find({ _id: clinicPatientId, labels: { $in: [mongoose.Types.ObjectId(labelId)] } })
+
+        if(clinicPatientsLabelList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Label is not registered with patient',
+                field: 'labelId'
+            })
+        }
+
+        const updatedClinicPatient = await ClinicPatientModel
+        .findByIdAndUpdate(clinicPatientId, { $pull: { labels: mongoose.Types.ObjectId(labelId) } }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Removed label from patient successfully!',
+            clinicPatient: updatedClinicPatient
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getClinicsPatients,
     getClinicPatientsByClinicId,
     addClinicPatient, 
     deleteClinicPatient, 
     addClinicPatientByCardId,
-    setClinicPatientSurveyed
+    setClinicPatientSurveyed,
+    addClinicPatientLabel,
+    removeClinicPatientLabel
 }

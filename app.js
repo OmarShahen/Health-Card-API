@@ -50,6 +50,9 @@ app.use('/api', require('./routes/arrival-methods'))
 
 app.use('/api', require('./routes/followup-service/clinics-subscriptions'))
 app.use('/api', require('./routes/followup-service/patients-surveys'))
+app.use('/api', require('./routes/followup-service/treatments-surveys'))
+app.use('/api', require('./routes/labels/labels'))
+app.use('/api', require('./routes/medication-challenges/medication-challenges'))
 
 
 db()

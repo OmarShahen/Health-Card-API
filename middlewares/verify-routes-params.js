@@ -22,8 +22,12 @@ const InsurancePolicyModel = require('../models/InsurancePolicyModel')
 const FolderModel = require('../models/file-storage/FolderModel')
 const FileModel = require('../models/file-storage/FileModel')
 const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
-const PatientSurveyModel = require('../models/followup-service/patientSurveyModel')
+const PatientSurveyModel = require('../models/followup-service/PatientSurveyModel')
 const ArrivalMethodModel = require('../models/ArrivalMethodModel')
+const LabelModel = require('../models/labels/LabelModel')
+const TreatmentSurveyModel = require('../models/followup-service/TreatmentSurveyModel')
+const MedicationChallengeModel = require('../models/medication-challenges/MedicationChallenges')
+
 
 const verifyClinicId = async (request, response, next) => {
 
@@ -917,6 +921,113 @@ const verifyArrivalMethodId = async (request, response, next) => {
     }
 }
 
+const verifyLabelId = async (request, response, next) => {
+
+    try {
+
+        const { labelId } = request.params
+
+        if(!utils.isObjectId(labelId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid label Id format',
+                field: 'labelId'
+            })
+        }
+
+        const label = await LabelModel.findById(labelId)
+        if(!label) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Label ID does not exist',
+                field: 'labelId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyTreatmentSurveyId = async (request, response, next) => {
+
+    try {
+
+        const { treatmentSurveyId } = request.params
+
+        if(!utils.isObjectId(treatmentSurveyId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid treatment survey Id format',
+                field: 'treatmentSurveyId'
+            })
+        }
+
+        const treatmentSurvey = await TreatmentSurveyModel.findById(treatmentSurveyId)
+        if(!treatmentSurvey) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Treatment survey ID does not exist',
+                field: 'treatmentSurveyId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyMedicationChallengeId = async (request, response, next) => {
+
+    try {
+
+        const { medicationChallengeId } = request.params
+
+        if(!utils.isObjectId(medicationChallengeId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid medication challenge ID format',
+                field: 'medicationChallengeId'
+            })
+        }
+
+        const medicationChallenge = await MedicationChallengeModel.findById(medicationChallengeId)
+        if(!medicationChallenge) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Medication challenge ID does not exist',
+                field: 'medicationChallengeId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -943,5 +1054,8 @@ module.exports = {
     verifyFileId,
     verifyClinicSubscriptionId,
     verifyPatientSurveyId,
-    verifyArrivalMethodId
+    verifyArrivalMethodId,
+    verifyLabelId,
+    verifyTreatmentSurveyId,
+    verifyMedicationChallengeId
 }

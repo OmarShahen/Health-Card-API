@@ -1,6 +1,6 @@
 const ArrivalMethodModel = require('../models/ArrivalMethodModel')
 const ClinicPatientModel = require('../models/ClinicPatientModel')
-const PatientSurveyModel = require('../models/followup-service/patientSurveyModel')
+const PatientSurveyModel = require('../models/followup-service/PatientSurveyModel')
 const arrivalMethodValidation = require('../validations/arrival-methods')
 
 const getArrivalMethods = async (request, response) => {

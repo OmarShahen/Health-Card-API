@@ -48,9 +48,15 @@ var FileModel = require('../models/file-storage/FileModel');
 
 var ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel');
 
-var PatientSurveyModel = require('../models/followup-service/patientSurveyModel');
+var PatientSurveyModel = require('../models/followup-service/PatientSurveyModel');
 
 var ArrivalMethodModel = require('../models/ArrivalMethodModel');
+
+var LabelModel = require('../models/labels/LabelModel');
+
+var TreatmentSurveyModel = require('../models/followup-service/TreatmentSurveyModel');
+
+var MedicationChallengeModel = require('../models/medication-challenges/MedicationChallenges');
 
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
@@ -1560,6 +1566,183 @@ var verifyArrivalMethodId = function verifyArrivalMethodId(request, response, ne
   }, null, null, [[0, 12]]);
 };
 
+var verifyLabelId = function verifyLabelId(request, response, next) {
+  var labelId, label;
+  return regeneratorRuntime.async(function verifyLabelId$(_context27) {
+    while (1) {
+      switch (_context27.prev = _context27.next) {
+        case 0:
+          _context27.prev = 0;
+          labelId = request.params.labelId;
+
+          if (utils.isObjectId(labelId)) {
+            _context27.next = 4;
+            break;
+          }
+
+          return _context27.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid label Id format',
+            field: 'labelId'
+          }));
+
+        case 4:
+          _context27.next = 6;
+          return regeneratorRuntime.awrap(LabelModel.findById(labelId));
+
+        case 6:
+          label = _context27.sent;
+
+          if (label) {
+            _context27.next = 9;
+            break;
+          }
+
+          return _context27.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Label ID does not exist',
+            field: 'labelId'
+          }));
+
+        case 9:
+          return _context27.abrupt("return", next());
+
+        case 12:
+          _context27.prev = 12;
+          _context27.t0 = _context27["catch"](0);
+          console.error(_context27.t0);
+          return _context27.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context27.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context27.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyTreatmentSurveyId = function verifyTreatmentSurveyId(request, response, next) {
+  var treatmentSurveyId, treatmentSurvey;
+  return regeneratorRuntime.async(function verifyTreatmentSurveyId$(_context28) {
+    while (1) {
+      switch (_context28.prev = _context28.next) {
+        case 0:
+          _context28.prev = 0;
+          treatmentSurveyId = request.params.treatmentSurveyId;
+
+          if (utils.isObjectId(treatmentSurveyId)) {
+            _context28.next = 4;
+            break;
+          }
+
+          return _context28.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid treatment survey Id format',
+            field: 'treatmentSurveyId'
+          }));
+
+        case 4:
+          _context28.next = 6;
+          return regeneratorRuntime.awrap(TreatmentSurveyModel.findById(treatmentSurveyId));
+
+        case 6:
+          treatmentSurvey = _context28.sent;
+
+          if (treatmentSurvey) {
+            _context28.next = 9;
+            break;
+          }
+
+          return _context28.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Treatment survey ID does not exist',
+            field: 'treatmentSurveyId'
+          }));
+
+        case 9:
+          return _context28.abrupt("return", next());
+
+        case 12:
+          _context28.prev = 12;
+          _context28.t0 = _context28["catch"](0);
+          console.error(_context28.t0);
+          return _context28.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context28.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context28.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyMedicationChallengeId = function verifyMedicationChallengeId(request, response, next) {
+  var medicationChallengeId, medicationChallenge;
+  return regeneratorRuntime.async(function verifyMedicationChallengeId$(_context29) {
+    while (1) {
+      switch (_context29.prev = _context29.next) {
+        case 0:
+          _context29.prev = 0;
+          medicationChallengeId = request.params.medicationChallengeId;
+
+          if (utils.isObjectId(medicationChallengeId)) {
+            _context29.next = 4;
+            break;
+          }
+
+          return _context29.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid medication challenge ID format',
+            field: 'medicationChallengeId'
+          }));
+
+        case 4:
+          _context29.next = 6;
+          return regeneratorRuntime.awrap(MedicationChallengeModel.findById(medicationChallengeId));
+
+        case 6:
+          medicationChallenge = _context29.sent;
+
+          if (medicationChallenge) {
+            _context29.next = 9;
+            break;
+          }
+
+          return _context29.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Medication challenge ID does not exist',
+            field: 'medicationChallengeId'
+          }));
+
+        case 9:
+          return _context29.abrupt("return", next());
+
+        case 12:
+          _context29.prev = 12;
+          _context29.t0 = _context29["catch"](0);
+          console.error(_context29.t0);
+          return _context29.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context29.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context29.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1586,5 +1769,8 @@ module.exports = {
   verifyFileId: verifyFileId,
   verifyClinicSubscriptionId: verifyClinicSubscriptionId,
   verifyPatientSurveyId: verifyPatientSurveyId,
-  verifyArrivalMethodId: verifyArrivalMethodId
+  verifyArrivalMethodId: verifyArrivalMethodId,
+  verifyLabelId: verifyLabelId,
+  verifyTreatmentSurveyId: verifyTreatmentSurveyId,
+  verifyMedicationChallengeId: verifyMedicationChallengeId
 };

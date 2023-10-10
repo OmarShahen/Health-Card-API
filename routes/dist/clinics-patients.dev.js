@@ -6,7 +6,8 @@ var clinicsPatientsController = require('../controllers/clinics-patients');
 
 var _require = require('../middlewares/verify-routes-params'),
     verifyClinicPatientId = _require.verifyClinicPatientId,
-    verifyClinicId = _require.verifyClinicId;
+    verifyClinicId = _require.verifyClinicId,
+    verifyLabelId = _require.verifyLabelId;
 
 var _require2 = require('../middlewares/verify-clinic-mode'),
     verifyClinicPatients = _require2.verifyClinicPatients;
@@ -30,5 +31,11 @@ router["delete"]('/v1/clinics-patients/:clinicPatientId', authorization.allPermi
 });
 router.patch('/v1/clinics-patients/:clinicPatientId/survey', authorization.allPermission, verifyClinicPatientId, function (request, response) {
   return clinicsPatientsController.setClinicPatientSurveyed(request, response);
+});
+router.post('/v1/clinics-patients/:clinicPatientId/labels', authorization.allPermission, verifyClinicPatientId, function (request, response) {
+  return clinicsPatientsController.addClinicPatientLabel(request, response);
+});
+router["delete"]('/v1/clinics-patients/:clinicPatientId/labels/:labelId', authorization.allPermission, verifyClinicPatientId, verifyLabelId, function (request, response) {
+  return clinicsPatientsController.removeClinicPatientLabel(request, response);
 });
 module.exports = router;

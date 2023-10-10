@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const clinicsPatientsController = require('../controllers/clinics-patients')
-const { verifyClinicPatientId, verifyClinicId } = require('../middlewares/verify-routes-params')
+const { verifyClinicPatientId, verifyClinicId, verifyLabelId } = require('../middlewares/verify-routes-params')
 const { verifyClinicPatients } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
@@ -43,6 +43,21 @@ router.patch(
     authorization.allPermission,
     verifyClinicPatientId,
     (request, response) => clinicsPatientsController.setClinicPatientSurveyed(request, response)
+)
+
+router.post(
+    '/v1/clinics-patients/:clinicPatientId/labels',
+    authorization.allPermission,
+    verifyClinicPatientId,
+    (request, response) => clinicsPatientsController.addClinicPatientLabel(request, response)
+)
+
+router.delete(
+    '/v1/clinics-patients/:clinicPatientId/labels/:labelId',
+    authorization.allPermission,
+    verifyClinicPatientId,
+    verifyLabelId,
+    (request, response) => clinicsPatientsController.removeClinicPatientLabel(request, response)
 )
 
 module.exports = router

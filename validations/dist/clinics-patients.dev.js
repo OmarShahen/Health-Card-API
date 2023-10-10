@@ -79,7 +79,27 @@ var addClinicPatientByCardId = function addClinicPatientByCardId(clinicPatientDa
   };
 };
 
+var addPatientClinicLabel = function addPatientClinicLabel(clinicPatientData) {
+  var labelId = clinicPatientData.labelId;
+  if (!labelId) return {
+    isAccepted: false,
+    message: 'Label ID is required',
+    field: 'labelId'
+  };
+  if (!utils.isObjectId(labelId)) return {
+    isAccepted: false,
+    message: 'Label ID format is invalid',
+    field: 'labelId'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: clinicPatientData
+  };
+};
+
 module.exports = {
   addClinicPatient: addClinicPatient,
-  addClinicPatientByCardId: addClinicPatientByCardId
+  addClinicPatientByCardId: addClinicPatientByCardId,
+  addPatientClinicLabel: addPatientClinicLabel
 };

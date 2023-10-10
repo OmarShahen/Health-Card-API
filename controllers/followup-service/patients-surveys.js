@@ -1,4 +1,4 @@
-const PatientSurveyModel = require('../../models/followup-service/patientSurveyModel')
+const PatientSurveyModel = require('../../models/followup-service/PatientSurveyModel')
 const CallModel = require('../../models/followup-service/CallModel')
 const CounterModel = require('../../models/CounterModel')
 const UserModel = require('../../models/UserModel')

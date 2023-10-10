@@ -16,9 +16,13 @@ var PatientModel = require('../models/PatientModel');
 
 var ClinicModel = require('../models/ClinicModel');
 
+var LabelModel = require('../models/labels/LabelModel');
+
 var CardModel = require('../models/CardModel');
 
 var translations = require('../i18n/index');
+
+var mongoose = require('mongoose');
 
 var getClinicsPatients = function getClinicsPatients(request, response) {
   var clinicsPatients;
@@ -469,11 +473,179 @@ var setClinicPatientSurveyed = function setClinicPatientSurveyed(request, respon
   }, null, null, [[0, 13]]);
 };
 
+var addClinicPatientLabel = function addClinicPatientLabel(request, response) {
+  var dataValidation, clinicPatientId, labelId, label, clinicPatientsLabelList, updatedClinicPatient;
+  return regeneratorRuntime.async(function addClinicPatientLabel$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          dataValidation = clinicPatientValidation.addPatientClinicLabel(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context7.next = 4;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          clinicPatientId = request.params.clinicPatientId;
+          labelId = request.body.labelId;
+          _context7.next = 8;
+          return regeneratorRuntime.awrap(LabelModel.findById(labelId));
+
+        case 8:
+          label = _context7.sent;
+
+          if (label) {
+            _context7.next = 11;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Label ID does not exist',
+            field: 'labelId'
+          }));
+
+        case 11:
+          _context7.next = 13;
+          return regeneratorRuntime.awrap(ClinicPatientModel.find({
+            _id: clinicPatientId,
+            labels: {
+              $in: [label._id]
+            }
+          }));
+
+        case 13:
+          clinicPatientsLabelList = _context7.sent;
+
+          if (!(clinicPatientsLabelList.length != 0)) {
+            _context7.next = 16;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Label is already registered with patient',
+            field: 'labelId'
+          }));
+
+        case 16:
+          _context7.next = 18;
+          return regeneratorRuntime.awrap(ClinicPatientModel.findByIdAndUpdate(clinicPatientId, {
+            $push: {
+              labels: label._id
+            }
+          }, {
+            "new": true
+          }));
+
+        case 18:
+          updatedClinicPatient = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Added label to patient successfully!',
+            clinicPatient: updatedClinicPatient
+          }));
+
+        case 22:
+          _context7.prev = 22;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 26:
+        case "end":
+          return _context7.stop();
+      }
+    }
+  }, null, null, [[0, 22]]);
+};
+
+var removeClinicPatientLabel = function removeClinicPatientLabel(request, response) {
+  var _request$params, clinicPatientId, labelId, clinicPatientsLabelList, updatedClinicPatient;
+
+  return regeneratorRuntime.async(function removeClinicPatientLabel$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          _request$params = request.params, clinicPatientId = _request$params.clinicPatientId, labelId = _request$params.labelId;
+          _context8.next = 4;
+          return regeneratorRuntime.awrap(ClinicPatientModel.find({
+            _id: clinicPatientId,
+            labels: {
+              $in: [mongoose.Types.ObjectId(labelId)]
+            }
+          }));
+
+        case 4:
+          clinicPatientsLabelList = _context8.sent;
+
+          if (!(clinicPatientsLabelList.length == 0)) {
+            _context8.next = 7;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Label is not registered with patient',
+            field: 'labelId'
+          }));
+
+        case 7:
+          _context8.next = 9;
+          return regeneratorRuntime.awrap(ClinicPatientModel.findByIdAndUpdate(clinicPatientId, {
+            $pull: {
+              labels: mongoose.Types.ObjectId(labelId)
+            }
+          }, {
+            "new": true
+          }));
+
+        case 9:
+          updatedClinicPatient = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Removed label from patient successfully!',
+            clinicPatient: updatedClinicPatient
+          }));
+
+        case 13:
+          _context8.prev = 13;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
 module.exports = {
   getClinicsPatients: getClinicsPatients,
   getClinicPatientsByClinicId: getClinicPatientsByClinicId,
   addClinicPatient: addClinicPatient,
   deleteClinicPatient: deleteClinicPatient,
   addClinicPatientByCardId: addClinicPatientByCardId,
-  setClinicPatientSurveyed: setClinicPatientSurveyed
+  setClinicPatientSurveyed: setClinicPatientSurveyed,
+  addClinicPatientLabel: addClinicPatientLabel,
+  removeClinicPatientLabel: removeClinicPatientLabel
 };

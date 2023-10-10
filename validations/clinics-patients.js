@@ -39,5 +39,15 @@ const addClinicPatientByCardId = (clinicPatientData) => {
     
 }
 
+const addPatientClinicLabel = (clinicPatientData) => {
 
-module.exports = { addClinicPatient, addClinicPatientByCardId }
+    const { labelId } = clinicPatientData
+
+    if(!labelId) return { isAccepted: false, message: 'Label ID is required', field: 'labelId' }
+    
+    if(!utils.isObjectId(labelId)) return { isAccepted: false, message: 'Label ID format is invalid', field: 'labelId' }    
+
+    return { isAccepted: true, message: 'data is valid', data: clinicPatientData }
+}
+
+module.exports = { addClinicPatient, addClinicPatientByCardId, addPatientClinicLabel }

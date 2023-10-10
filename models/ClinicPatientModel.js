@@ -5,6 +5,7 @@ const ClinicPatientSchema = new mongoose.Schema({
     clinicId: { type: mongoose.Types.ObjectId, required: true },
     registeredById: { type: mongoose.Types.ObjectId },
     lastVisitDate: { type: Date },
+    labels: [],
     survey: {
         isDone: { type: Boolean, default: false },
         doneById: { type: mongoose.Types.ObjectId },
