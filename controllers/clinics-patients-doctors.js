@@ -6,6 +6,7 @@ const UserModel = require('../models/UserModel')
 const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const CardModel = require('../models/CardModel')
 const translations = require('../i18n/index')
+const mongoose = require('mongoose')
 
 
 const getClinicsPatientsDoctors = async (request, response) => {
@@ -29,6 +30,66 @@ const getClinicsPatientsDoctors = async (request, response) => {
     }
 }
 
+const searchDoctorsPatients = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        let { firstName } = request.query
+
+        firstName = firstName ? firstName : ''
+
+        const patients = await ClinicPatientDoctorModel.aggregate([
+            {
+                $match: { doctorId: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'patient.firstName': { $regex: firstName, $options: 'i' } },
+                    ]
+                }
+            },
+            {
+                $limit: 10
+            }
+        ])
+
+        patients.map(patient => {
+            patient.patient = patient.patient[0]
+            patient.clinic = patient.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            patients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 const addClinicPatientDoctor = async (request, response) => {
 
@@ -252,6 +313,7 @@ const deleteClinicPatientDoctor = async (request, response) => {
 
 module.exports = { 
     getClinicsPatientsDoctors, 
+    searchDoctorsPatients,
     addClinicPatientDoctor, 
     addClinicPatientDoctorByCardId, 
     deleteClinicPatientDoctor 

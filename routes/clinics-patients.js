@@ -17,6 +17,13 @@ router.get(
     (request, response) => clinicsPatientsController.getClinicPatientsByClinicId(request, response)
 )
 
+router.get(
+    '/v1/clinics-patients/clinics/:clinicId/search',
+    authorization.allPermission,
+    verifyClinicId,
+    (request, response) => clinicsPatientsController.searchClinicsPatients(request, response)
+)
+
 router.post(
     '/v1/clinics-patients',
     authorization.allPermission,

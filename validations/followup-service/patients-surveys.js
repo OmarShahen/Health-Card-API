@@ -9,6 +9,8 @@ const addPatientSurvey = (patientSurveyData) => {
         patientId, 
         clinicId, 
         overallExperience,
+        serviceIdeaRate,
+        serviceIdeaComment,
         callDuration,
         waitingTimeWaited,
         waitingIsDelayHappened,
@@ -47,6 +49,12 @@ const addPatientSurvey = (patientSurveyData) => {
     if(typeof overallExperience != 'number') 
         return { isAccepted: false, message: 'Overall experience format is invalid', field: 'overallExperience' }
     
+    if(serviceIdeaRate && typeof serviceIdeaRate != 'number')
+        return { isAccepted: false, message: 'Service idea rate format is invalid', field: 'serviceIdeaRate' }
+
+    if(serviceIdeaComment && typeof serviceIdeaComment != 'string')
+        return { isAccepted: false, message: 'Service idea comment format is invalid', field: 'serviceIdeaComment' }
+
     if(callDuration && typeof callDuration != 'number') 
         return { isAccepted: false, message: 'Call duration format is invalid', field: 'callDuration' }
 
@@ -108,7 +116,10 @@ const addPatientSurvey = (patientSurveyData) => {
 const updatePatientSurvey = (patientSurveyData) => {
 
     const { 
+        arrivalMethodId,
         overallExperience,
+        serviceIdeaRate,
+        serviceIdeaComment,
         callDuration,
         waitingTimeWaited,
         waitingIsDelayHappened,
@@ -129,8 +140,17 @@ const updatePatientSurvey = (patientSurveyData) => {
     } = patientSurveyData
 
 
+    if(arrivalMethodId && !utils.isObjectId(arrivalMethodId))
+        return { isAccepted: false, message: 'Arrival method format is invalid is required', field: 'arrivalMethodId' }
+
     if(typeof overallExperience != 'number') 
         return { isAccepted: false, message: 'Overall experience format is invalid', field: 'overallExperience' }
+
+    if(serviceIdeaRate && typeof serviceIdeaRate != 'number')
+        return { isAccepted: false, message: 'Service idea rate format is invalid', field: 'serviceIdeaRate' }
+
+    if(serviceIdeaComment && typeof serviceIdeaComment != 'string')
+        return { isAccepted: false, message: 'Service idea comment format is invalid', field: 'serviceIdeaComment' }
 
     if(callDuration && typeof callDuration != 'number') 
         return { isAccepted: false, message: 'Call duration format is invalid', field: 'callDuration' }

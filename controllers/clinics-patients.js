@@ -29,6 +29,56 @@ const getClinicsPatients = async (request, response) => {
     }
 }
 
+const searchClinicsPatients = async (request, response) => {
+
+    try {
+
+        const { clinicId } = request.params
+        let { firstName } = request.query
+
+        firstName = firstName ? firstName : ''
+
+        const patients = await ClinicPatientModel.aggregate([
+            {
+                $match: { clinicId: mongoose.Types.ObjectId(clinicId) }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $match: {
+                    $or: [
+                        { 'patient.firstName': { $regex: firstName, $options: 'i' } },
+                    ]
+                }
+            },
+            {
+                $limit: 10
+            }
+        ])
+
+        patients.map(patient => patient.patient = patient.patient[0])
+
+        return response.status(200).json({
+            accepted: true,
+            patients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getClinicPatientsByClinicId = async (request, response) => {
 
     try {
@@ -377,6 +427,7 @@ const removeClinicPatientLabel = async (request, response) => {
 module.exports = { 
     getClinicsPatients,
     getClinicPatientsByClinicId,
+    searchClinicsPatients,
     addClinicPatient, 
     deleteClinicPatient, 
     addClinicPatientByCardId,

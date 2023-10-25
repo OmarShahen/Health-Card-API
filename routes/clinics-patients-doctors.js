@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const clinicsPatientsDoctorsController = require('../controllers/clinics-patients-doctors')
-const { verifyClinicPatientDoctorId } = require('../middlewares/verify-routes-params')
+const { verifyClinicPatientDoctorId, verifyUserId } = require('../middlewares/verify-routes-params')
 const { verifyClinicPatients } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
@@ -9,6 +9,13 @@ router.get(
     '/v1/clinics-patients-doctors',
     authorization.allPermission,
     (request, response) => clinicsPatientsDoctorsController.getClinicsPatientsDoctors(request, response)
+)
+
+router.get(
+    '/v1/clinics-patients-doctors/doctors/:userId/search',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => clinicsPatientsDoctorsController.searchDoctorsPatients(request, response)
 )
 
 router.post(

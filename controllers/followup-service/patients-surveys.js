@@ -311,6 +311,8 @@ const addPatientSurvey = async (request, response) => {
             patientId, 
             clinicId, 
             overallExperience,
+            serviceIdeaRate,
+            serviceIdeaComment,
             callDuration,
             waitingTimeWaited,
             waitingIsDelayHappened,
@@ -382,6 +384,8 @@ const addPatientSurvey = async (request, response) => {
             clinicId,
             arrivalMethodId,
             overallExperience,
+            serviceIdeaRate,
+            serviceIdeaComment,
             callDuration,
             waiting: {
                 timeWaited: waitingTimeWaited,
@@ -492,6 +496,8 @@ const updatePatientSurvey = async (request, response) => {
         const { 
             arrivalMethodId,
             overallExperience,
+            serviceIdeaRate,
+            serviceIdeaComment,
             callDuration,
             waitingTimeWaited,
             waitingIsDelayHappened,
@@ -523,6 +529,8 @@ const updatePatientSurvey = async (request, response) => {
         const patientSurveyData = {
             arrivalMethodId,
             overallExperience,
+            serviceIdeaRate,
+            serviceIdeaComment,
             callDuration,
             waiting: {
                 timeWaited: waitingTimeWaited,

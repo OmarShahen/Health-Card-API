@@ -20,6 +20,9 @@ router.get('/v1/clinics-patients', authorization.allPermission, function (reques
 router.get('/v1/clinics-patients/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return clinicsPatientsController.getClinicPatientsByClinicId(request, response);
 });
+router.get('/v1/clinics-patients/clinics/:clinicId/search', authorization.allPermission, verifyClinicId, function (request, response) {
+  return clinicsPatientsController.searchClinicsPatients(request, response);
+});
 router.post('/v1/clinics-patients', authorization.allPermission, verifyClinicPatients, function (request, response) {
   return clinicsPatientsController.addClinicPatient(request, response);
 });

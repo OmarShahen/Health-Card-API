@@ -25,6 +25,12 @@ var PatientSurveySchema = new mongoose.Schema({
   overallExperience: {
     type: Number
   },
+  serviceIdeaRate: {
+    type: Number
+  },
+  serviceIdeaComment: {
+    type: String
+  },
   callDuration: {
     type: Number
   },

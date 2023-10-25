@@ -8,6 +8,8 @@ const PatientSurveySchema = new mongoose.Schema({
     clinicId: { type: mongoose.Types.ObjectId, required: true },
     arrivalMethodId: { type: mongoose.Types.ObjectId },
     overallExperience: { type: Number },
+    serviceIdeaRate: { type: Number },
+    serviceIdeaComment: { type: String },
     callDuration: { type: Number },
     recordedBy: { type: String, default: 'CALL' },
     waiting: {

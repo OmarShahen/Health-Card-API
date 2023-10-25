@@ -10,6 +10,8 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
       patientId = patientSurveyData.patientId,
       clinicId = patientSurveyData.clinicId,
       overallExperience = patientSurveyData.overallExperience,
+      serviceIdeaRate = patientSurveyData.serviceIdeaRate,
+      serviceIdeaComment = patientSurveyData.serviceIdeaComment,
       callDuration = patientSurveyData.callDuration,
       waitingTimeWaited = patientSurveyData.waitingTimeWaited,
       waitingIsDelayHappened = patientSurveyData.waitingIsDelayHappened,
@@ -71,6 +73,16 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
     isAccepted: false,
     message: 'Overall experience format is invalid',
     field: 'overallExperience'
+  };
+  if (serviceIdeaRate && typeof serviceIdeaRate != 'number') return {
+    isAccepted: false,
+    message: 'Service idea rate format is invalid',
+    field: 'serviceIdeaRate'
+  };
+  if (serviceIdeaComment && typeof serviceIdeaComment != 'string') return {
+    isAccepted: false,
+    message: 'Service idea comment format is invalid',
+    field: 'serviceIdeaComment'
   };
   if (callDuration && typeof callDuration != 'number') return {
     isAccepted: false,
@@ -170,7 +182,10 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
 };
 
 var updatePatientSurvey = function updatePatientSurvey(patientSurveyData) {
-  var overallExperience = patientSurveyData.overallExperience,
+  var arrivalMethodId = patientSurveyData.arrivalMethodId,
+      overallExperience = patientSurveyData.overallExperience,
+      serviceIdeaRate = patientSurveyData.serviceIdeaRate,
+      serviceIdeaComment = patientSurveyData.serviceIdeaComment,
       callDuration = patientSurveyData.callDuration,
       waitingTimeWaited = patientSurveyData.waitingTimeWaited,
       waitingIsDelayHappened = patientSurveyData.waitingIsDelayHappened,
@@ -188,10 +203,25 @@ var updatePatientSurvey = function updatePatientSurvey(patientSurveyData) {
       appointmentsIsSchedulingEasy = patientSurveyData.appointmentsIsSchedulingEasy,
       appointmentsIsReminderSent = patientSurveyData.appointmentsIsReminderSent,
       appointmentsSchedulingWay = patientSurveyData.appointmentsSchedulingWay;
+  if (arrivalMethodId && !utils.isObjectId(arrivalMethodId)) return {
+    isAccepted: false,
+    message: 'Arrival method format is invalid is required',
+    field: 'arrivalMethodId'
+  };
   if (typeof overallExperience != 'number') return {
     isAccepted: false,
     message: 'Overall experience format is invalid',
     field: 'overallExperience'
+  };
+  if (serviceIdeaRate && typeof serviceIdeaRate != 'number') return {
+    isAccepted: false,
+    message: 'Service idea rate format is invalid',
+    field: 'serviceIdeaRate'
+  };
+  if (serviceIdeaComment && typeof serviceIdeaComment != 'string') return {
+    isAccepted: false,
+    message: 'Service idea comment format is invalid',
+    field: 'serviceIdeaComment'
   };
   if (callDuration && typeof callDuration != 'number') return {
     isAccepted: false,
