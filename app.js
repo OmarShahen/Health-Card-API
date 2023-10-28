@@ -54,6 +54,9 @@ app.use('/api', require('./routes/followup-service/treatments-surveys'))
 app.use('/api', require('./routes/labels/labels'))
 app.use('/api', require('./routes/medication-challenges/medication-challenges'))
 
+app.use('/api', require('./routes/CRM/leads'))
+app.use('/api', require('./routes/CRM/meetings'))
+
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))

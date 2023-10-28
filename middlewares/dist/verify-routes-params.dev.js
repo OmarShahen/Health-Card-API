@@ -58,6 +58,10 @@ var TreatmentSurveyModel = require('../models/followup-service/TreatmentSurveyMo
 
 var MedicationChallengeModel = require('../models/medication-challenges/MedicationChallenges');
 
+var LeadModel = require('../models/CRM/LeadModel');
+
+var MeetingModel = require('../models/CRM/MeetingModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1743,6 +1747,124 @@ var verifyMedicationChallengeId = function verifyMedicationChallengeId(request, 
   }, null, null, [[0, 12]]);
 };
 
+var verifyLeadId = function verifyLeadId(request, response, next) {
+  var leadId, lead;
+  return regeneratorRuntime.async(function verifyLeadId$(_context30) {
+    while (1) {
+      switch (_context30.prev = _context30.next) {
+        case 0:
+          _context30.prev = 0;
+          leadId = request.params.leadId;
+
+          if (utils.isObjectId(leadId)) {
+            _context30.next = 4;
+            break;
+          }
+
+          return _context30.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid lead ID format',
+            field: 'leadId'
+          }));
+
+        case 4:
+          _context30.next = 6;
+          return regeneratorRuntime.awrap(LeadModel.findById(leadId));
+
+        case 6:
+          lead = _context30.sent;
+
+          if (lead) {
+            _context30.next = 9;
+            break;
+          }
+
+          return _context30.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Lead ID does not exist',
+            field: 'leadId'
+          }));
+
+        case 9:
+          return _context30.abrupt("return", next());
+
+        case 12:
+          _context30.prev = 12;
+          _context30.t0 = _context30["catch"](0);
+          console.error(_context30.t0);
+          return _context30.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context30.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context30.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyMeetingId = function verifyMeetingId(request, response, next) {
+  var meetingId, meeting;
+  return regeneratorRuntime.async(function verifyMeetingId$(_context31) {
+    while (1) {
+      switch (_context31.prev = _context31.next) {
+        case 0:
+          _context31.prev = 0;
+          meetingId = request.params.meetingId;
+
+          if (utils.isObjectId(meetingId)) {
+            _context31.next = 4;
+            break;
+          }
+
+          return _context31.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid meeting ID format',
+            field: 'meetingId'
+          }));
+
+        case 4:
+          _context31.next = 6;
+          return regeneratorRuntime.awrap(MeetingModel.findById(meetingId));
+
+        case 6:
+          meeting = _context31.sent;
+
+          if (meeting) {
+            _context31.next = 9;
+            break;
+          }
+
+          return _context31.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Meeting ID does not exist',
+            field: 'meetingId'
+          }));
+
+        case 9:
+          return _context31.abrupt("return", next());
+
+        case 12:
+          _context31.prev = 12;
+          _context31.t0 = _context31["catch"](0);
+          console.error(_context31.t0);
+          return _context31.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context31.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context31.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1772,5 +1894,7 @@ module.exports = {
   verifyArrivalMethodId: verifyArrivalMethodId,
   verifyLabelId: verifyLabelId,
   verifyTreatmentSurveyId: verifyTreatmentSurveyId,
-  verifyMedicationChallengeId: verifyMedicationChallengeId
+  verifyMedicationChallengeId: verifyMedicationChallengeId,
+  verifyLeadId: verifyLeadId,
+  verifyMeetingId: verifyMeetingId
 };

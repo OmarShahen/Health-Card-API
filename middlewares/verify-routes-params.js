@@ -27,6 +27,8 @@ const ArrivalMethodModel = require('../models/ArrivalMethodModel')
 const LabelModel = require('../models/labels/LabelModel')
 const TreatmentSurveyModel = require('../models/followup-service/TreatmentSurveyModel')
 const MedicationChallengeModel = require('../models/medication-challenges/MedicationChallenges')
+const LeadModel = require('../models/CRM/LeadModel')
+const MeetingModel = require('../models/CRM/MeetingModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -1026,7 +1028,75 @@ const verifyMedicationChallengeId = async (request, response, next) => {
     }
 }
 
+const verifyLeadId = async (request, response, next) => {
 
+    try {
+
+        const { leadId } = request.params
+
+        if(!utils.isObjectId(leadId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid lead ID format',
+                field: 'leadId'
+            })
+        }
+
+        const lead = await LeadModel.findById(leadId)
+        if(!lead) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Lead ID does not exist',
+                field: 'leadId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyMeetingId = async (request, response, next) => {
+
+    try {
+
+        const { meetingId } = request.params
+
+        if(!utils.isObjectId(meetingId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid meeting ID format',
+                field: 'meetingId'
+            })
+        }
+
+        const meeting = await MeetingModel.findById(meetingId)
+        if(!meeting) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Meeting ID does not exist',
+                field: 'meetingId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 module.exports = { 
     verifyClinicId, 
@@ -1057,5 +1127,7 @@ module.exports = {
     verifyArrivalMethodId,
     verifyLabelId,
     verifyTreatmentSurveyId,
-    verifyMedicationChallengeId
+    verifyMedicationChallengeId,
+    verifyLeadId,
+    verifyMeetingId
 }

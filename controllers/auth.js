@@ -270,6 +270,7 @@ const verifyEmailVerificationCode = async (request, response) => {
         })
     }
 }
+
 const verifyPersonalInfo = async (request, response) => {
 
     try {
