@@ -43,6 +43,11 @@ var UserSchema = new mongoose.Schema({
   dateOfBirth: {
     type: Date
   },
+  lang: {
+    type: String,
+    "default": 'ar',
+    "enum": config.LANGUAGES
+  },
   timeZone: {
     type: String,
     "default": "Africa/Cairo"

@@ -8,20 +8,26 @@ const TreatmentSurveySchema = new mongoose.Schema({
     clinicId: { type: mongoose.Types.ObjectId, required: true },
     recordedBy: { type: String, default: 'CALL' },
     callDuration: { type: Number },
+
     improvement: { type: Number, required: true },
     isOverallHealthChanged: { type: Boolean, required: true },
+
     isExperiencedSideEffects: { type: Boolean, required: true },
     experiencedSideEffects: [],
+    isNewSymptomsOccured: { type: Boolean, required: true },
+    newSymptomsOccured: [],
+
     isMedicationTookAsPrescribed: { type: Boolean },
     isDosagesMissed: { type: Boolean },
+
     isTakingOtherOutterMedication: { type: Boolean },
     isThereChallengesObtainingMedication: { type: Boolean },
+
     challengesObtainingMedication: [],
     isThereChallengesTakingMedication: { type: Boolean },
     challengesTakingMedication: [],
     isThereProblemRemebering: { type: Boolean },
-    isNewSymptomsOccured: { type: Boolean, required: true },
-    newSymptomsOccured: [],
+
 
 }, { timestamps: true })
 

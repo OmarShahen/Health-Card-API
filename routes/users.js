@@ -46,6 +46,13 @@ router.patch(
 )
 
 router.patch(
+    '/v1/users/:userId/language',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => usersController.updateUserLanguage(request, response)
+)
+
+router.patch(
     '/v1/users/:userId/password',
     authorization.allPermission,
     verifyUserId, 

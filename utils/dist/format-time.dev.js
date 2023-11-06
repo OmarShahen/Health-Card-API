@@ -6,6 +6,11 @@ var getTime = function getTime(dateTimeValue, timeZone) {
   });
 };
 
+var getAge = function getAge(dateOfBirth) {
+  return new Date().getFullYear() - new Date(dateOfBirth).getFullYear();
+};
+
 module.exports = {
-  getTime: getTime
+  getTime: getTime,
+  getAge: getAge
 };

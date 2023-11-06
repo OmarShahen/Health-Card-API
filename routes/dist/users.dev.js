@@ -27,6 +27,9 @@ router.put('/v1/users/:userId/speciality', authorization.allPermission, verifyUs
 router.patch('/v1/users/:userId/email', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.updateUserEmail(request, response);
 });
+router.patch('/v1/users/:userId/language', authorization.allPermission, verifyUserId, function (request, response) {
+  return usersController.updateUserLanguage(request, response);
+});
 router.patch('/v1/users/:userId/password', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.updateUserPassword(request, response);
 });

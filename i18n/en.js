@@ -133,7 +133,8 @@ module.exports = {
     "There was a problem sending your prescription": "There was a problem sending your prescription",
     "Prescription is sent successfully": "Prescription is sent successfully",
     "Clinic phone number is not registered": "Clinic phone number is not registered",
-    "There was a problem sending the message": "There was a problem sending the message"
+    "There was a problem sending the message": "There was a problem sending the message",
+    "Updated language successfully!": "Updated language successfully!"
 
 
 }   

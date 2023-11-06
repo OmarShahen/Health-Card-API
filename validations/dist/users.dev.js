@@ -114,6 +114,25 @@ var updateUserEmail = function updateUserEmail(userData) {
   };
 };
 
+var updateUserLanguage = function updateUserLanguage(userData) {
+  var lang = userData.lang;
+  if (!lang) return {
+    isAccepted: false,
+    message: 'language is required',
+    field: 'lang'
+  };
+  if (!config.LANGUAGES.includes(lang)) return {
+    isAccepted: false,
+    message: 'invalid lang format',
+    field: 'lang'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
 var updateUserPassword = function updateUserPassword(userData) {
   var password = userData.password;
   if (!password) return {
@@ -266,6 +285,7 @@ module.exports = {
   updateUser: updateUser,
   updateUserEmail: updateUserEmail,
   updateUserPassword: updateUserPassword,
+  updateUserLanguage: updateUserLanguage,
   verifyAndUpdateUserPassword: verifyAndUpdateUserPassword,
   updateUserSpeciality: updateUserSpeciality,
   registerStaffToClinic: registerStaffToClinic,

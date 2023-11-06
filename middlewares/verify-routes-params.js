@@ -29,6 +29,7 @@ const TreatmentSurveyModel = require('../models/followup-service/TreatmentSurvey
 const MedicationChallengeModel = require('../models/medication-challenges/MedicationChallenges')
 const LeadModel = require('../models/CRM/LeadModel')
 const MeetingModel = require('../models/CRM/MeetingModel')
+const CommentModel = require('../models/followup-service/CommentModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -1098,6 +1099,41 @@ const verifyMeetingId = async (request, response, next) => {
     }
 }
 
+const verifyCommentId = async (request, response, next) => {
+
+    try {
+
+        const { commentId } = request.params
+
+        if(!utils.isObjectId(commentId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid comment ID format',
+                field: 'commentId'
+            })
+        }
+
+        const comment = await CommentModel.findById(commentId)
+        if(!comment) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Comment ID does not exist',
+                field: 'commentId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -1129,5 +1165,6 @@ module.exports = {
     verifyTreatmentSurveyId,
     verifyMedicationChallengeId,
     verifyLeadId,
-    verifyMeetingId
+    verifyMeetingId,
+    verifyCommentId
 }

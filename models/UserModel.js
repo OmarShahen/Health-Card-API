@@ -13,6 +13,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     gender: { type: String, required: true, enum: config.GENDER },
     dateOfBirth: { type: Date },
+    lang: { type: String, default: 'ar', enum: config.LANGUAGES },
     timeZone: { type: String, default: "Africa/Cairo" },
     speciality: [],
     roles: [],

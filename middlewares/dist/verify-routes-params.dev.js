@@ -62,6 +62,8 @@ var LeadModel = require('../models/CRM/LeadModel');
 
 var MeetingModel = require('../models/CRM/MeetingModel');
 
+var CommentModel = require('../models/followup-service/CommentModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1865,6 +1867,65 @@ var verifyMeetingId = function verifyMeetingId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyCommentId = function verifyCommentId(request, response, next) {
+  var commentId, comment;
+  return regeneratorRuntime.async(function verifyCommentId$(_context32) {
+    while (1) {
+      switch (_context32.prev = _context32.next) {
+        case 0:
+          _context32.prev = 0;
+          commentId = request.params.commentId;
+
+          if (utils.isObjectId(commentId)) {
+            _context32.next = 4;
+            break;
+          }
+
+          return _context32.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid comment ID format',
+            field: 'commentId'
+          }));
+
+        case 4:
+          _context32.next = 6;
+          return regeneratorRuntime.awrap(CommentModel.findById(commentId));
+
+        case 6:
+          comment = _context32.sent;
+
+          if (comment) {
+            _context32.next = 9;
+            break;
+          }
+
+          return _context32.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Comment ID does not exist',
+            field: 'commentId'
+          }));
+
+        case 9:
+          return _context32.abrupt("return", next());
+
+        case 12:
+          _context32.prev = 12;
+          _context32.t0 = _context32["catch"](0);
+          console.error(_context32.t0);
+          return _context32.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context32.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context32.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1896,5 +1957,6 @@ module.exports = {
   verifyTreatmentSurveyId: verifyTreatmentSurveyId,
   verifyMedicationChallengeId: verifyMedicationChallengeId,
   verifyLeadId: verifyLeadId,
-  verifyMeetingId: verifyMeetingId
+  verifyMeetingId: verifyMeetingId,
+  verifyCommentId: verifyCommentId
 };

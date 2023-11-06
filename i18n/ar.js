@@ -129,5 +129,6 @@ module.exports = {
     "There was a problem sending your prescription": "يوجد مشكلة في ارسال الروشتة",
     "Prescription is sent successfully": "تم ارسال الروشتة بنجاح",
     "Clinic phone number is not registered": "رقم هاتف العيادة غير مسجل",
-    "There was a problem sending the message": "هناك مشكلة في ارسال الرسالة"
+    "There was a problem sending the message": "هناك مشكلة في ارسال الرسالة",
+    "Updated language successfully!": "تم تحديث اللغه بنجاح"
 }   

@@ -63,6 +63,17 @@ const updateUserEmail = (userData) => {
     return { isAccepted: true, message: 'data is valid', data: userData }
 }
 
+const updateUserLanguage = (userData) => {
+
+    const { lang } = userData
+
+    if(!lang) return { isAccepted: false, message: 'language is required', field: 'lang' }
+
+    if(!config.LANGUAGES.includes(lang)) return { isAccepted: false, message: 'invalid lang format', field: 'lang' }
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+}
+
 const updateUserPassword = (userData) => {
 
     const { password } = userData
@@ -139,7 +150,8 @@ const addEmployeeUser = (userData) => {
 module.exports = { 
     updateUser, 
     updateUserEmail, 
-    updateUserPassword, 
+    updateUserPassword,
+    updateUserLanguage,
     verifyAndUpdateUserPassword,
     updateUserSpeciality,
     registerStaffToClinic,

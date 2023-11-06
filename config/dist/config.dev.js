@@ -3,8 +3,8 @@
 module.exports = {
   WEB_FORGOT_PASSWORD_URL: "https://barbels-f6774.web.app/reset-password",
   PORT: process.env.PORT,
-  //DB_URL: process.env.PROD_DB_URL,
-  DB_URL: process.env.DB_URL,
+  DB_URL: process.env.PROD_DB_URL,
+  //DB_URL: process.env.DB_URL,
   PAYMOB_HMAC: process.env.PAYMOB_HMAC,
   PAYMOB_API_KEYS: process.env.PAYMOB_API_KEYS,
   MAX_FILE_SIZE: 25 * 1000000,
@@ -37,9 +37,10 @@ module.exports = {
   RATES: ['LIKE', 'DISLIKE', 'LOVE'],
   DOSGAE_TYPES: ['tablet', 'capsule', 'powder', 'lotion', 'gargle', 'drops', 'ointment', 'cream', 'injections', 'suppository', 'transdermal patch', 'inhaler', 'pessary', 'enema', 'sachet'],
   TIME_UNIT: ['day', 'week', 'month'],
-  APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING'],
+  APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING', 'RESCHEDULED'],
   INVOICE_STATUS: ['DRAFT', 'PENDING', 'PAID', 'PARTIALLY_PAID', 'OVER_DUE', 'VOID', 'REFUNDED'],
   PAYMENT_METHOD: ['CASH', 'CHECK', 'CREDIT_OR_DEBIT', 'ONLINE', 'MOBILE'],
   INSURANCE_POLICY_TYPE: ['HEALTH', 'LIFE', 'AUTO'],
-  INSURANCE_POLICY_STATUS: ['ACTIVE', 'INACTIVE']
+  INSURANCE_POLICY_STATUS: ['ACTIVE', 'INACTIVE'],
+  COMMENT_TYPES: ['COMPLIMENT', 'ISSUE']
 };
