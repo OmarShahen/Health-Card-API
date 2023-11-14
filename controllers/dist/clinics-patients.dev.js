@@ -10,6 +10,8 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 var ClinicPatientModel = require('../models/ClinicPatientModel');
 
+var ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel');
+
 var clinicPatientValidation = require('../validations/clinics-patients');
 
 var PatientModel = require('../models/PatientModel');
@@ -702,6 +704,65 @@ var removeClinicPatientLabel = function removeClinicPatientLabel(request, respon
   }, null, null, [[0, 13]]);
 };
 
+var convertDoctorPatientsToClinicPatients = function convertDoctorPatientsToClinicPatients(request, response) {
+  var _request$params2, clinicId, userId, clinicPatientsDoctor, clinicPatients, sizes, insertedClinicPatients;
+
+  return regeneratorRuntime.async(function convertDoctorPatientsToClinicPatients$(_context10) {
+    while (1) {
+      switch (_context10.prev = _context10.next) {
+        case 0:
+          _context10.prev = 0;
+          _request$params2 = request.params, clinicId = _request$params2.clinicId, userId = _request$params2.userId;
+          _context10.next = 4;
+          return regeneratorRuntime.awrap(ClinicPatientDoctorModel.find({
+            clinicId: clinicId,
+            doctorId: userId
+          }));
+
+        case 4:
+          clinicPatientsDoctor = _context10.sent;
+          clinicPatients = clinicPatientsDoctor.map(function (patient) {
+            var clinicPatient = {
+              clinicId: patient.clinicId,
+              patientId: patient.patientId,
+              createdAt: patient.createdAt
+            };
+            return clinicPatient;
+          });
+          sizes = {
+            clinicPatientsSize: clinicPatients.length,
+            clinicPatientsDoctorSize: clinicPatientsDoctor.length
+          };
+          console.log(sizes);
+          _context10.next = 10;
+          return regeneratorRuntime.awrap(ClinicPatientModel.insertMany(clinicPatients));
+
+        case 10:
+          insertedClinicPatients = _context10.sent;
+          return _context10.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Converted successfully!',
+            clinicPatients: insertedClinicPatients
+          }));
+
+        case 14:
+          _context10.prev = 14;
+          _context10.t0 = _context10["catch"](0);
+          console.error(_context10.t0);
+          return _context10.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context10.t0.message
+          }));
+
+        case 18:
+        case "end":
+          return _context10.stop();
+      }
+    }
+  }, null, null, [[0, 14]]);
+};
+
 module.exports = {
   getClinicsPatients: getClinicsPatients,
   getClinicPatientsByClinicId: getClinicPatientsByClinicId,
@@ -711,5 +772,6 @@ module.exports = {
   addClinicPatientByCardId: addClinicPatientByCardId,
   setClinicPatientSurveyed: setClinicPatientSurveyed,
   addClinicPatientLabel: addClinicPatientLabel,
-  removeClinicPatientLabel: removeClinicPatientLabel
+  removeClinicPatientLabel: removeClinicPatientLabel,
+  convertDoctorPatientsToClinicPatients: convertDoctorPatientsToClinicPatients
 };

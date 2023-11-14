@@ -1,4 +1,5 @@
 const ClinicPatientModel = require('../models/ClinicPatientModel')
+const ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel')
 const clinicPatientValidation = require('../validations/clinics-patients')
 const PatientModel = require('../models/PatientModel')
 const ClinicModel = require('../models/ClinicModel')
@@ -424,6 +425,49 @@ const removeClinicPatientLabel = async (request, response) => {
     }
 }
 
+const convertDoctorPatientsToClinicPatients = async (request, response) => {
+
+    try {
+
+        const { clinicId, userId } = request.params
+
+        const clinicPatientsDoctor = await ClinicPatientDoctorModel.find({ clinicId, doctorId: userId })
+
+        const clinicPatients = clinicPatientsDoctor.map(patient => {
+            const clinicPatient = {
+                clinicId: patient.clinicId,
+                patientId: patient.patientId,
+                createdAt: patient.createdAt
+            }
+
+            return clinicPatient
+        })
+
+        const sizes = {
+            clinicPatientsSize: clinicPatients.length,
+            clinicPatientsDoctorSize: clinicPatientsDoctor.length
+        }
+
+        console.log(sizes)
+
+        const insertedClinicPatients = await ClinicPatientModel.insertMany(clinicPatients)
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Converted successfully!',
+            clinicPatients: insertedClinicPatients
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getClinicsPatients,
     getClinicPatientsByClinicId,
@@ -433,5 +477,6 @@ module.exports = {
     addClinicPatientByCardId,
     setClinicPatientSurveyed,
     addClinicPatientLabel,
-    removeClinicPatientLabel
+    removeClinicPatientLabel,
+    convertDoctorPatientsToClinicPatients
 }

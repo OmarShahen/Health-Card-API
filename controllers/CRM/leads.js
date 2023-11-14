@@ -3,6 +3,7 @@ const SpecialityModel = require('../../models/SpecialityModel')
 const CounterModel = require('../../models/CounterModel')
 const leadValidation = require('../../validations/CRM/leads')
 const utils = require('../../utils/utils')
+const mongoose = require('mongoose')
 
 
 const getLeads = async (request, response) => {
@@ -35,6 +36,43 @@ const getLeads = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             leads
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getLeadById = async (request, response) => {
+
+    try {
+
+        const { leadId } = request.params
+
+        const leads = await LeadModel.aggregate([
+            {
+                $match: { _id: mongoose.Types.ObjectId(leadId) }
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'specialityId',
+                    foreignField: '_id',
+                    as: 'speciality'
+                }
+            }
+        ])
+
+        leads.forEach(lead => lead.speciality = lead.speciality[0])
+
+        return response.status(200).json({
+            accepted: true,
+            lead: leads[0]
         })
 
     } catch(error) {
@@ -315,4 +353,11 @@ const deleteLead = async (request, response) => {
     }
 }
 
-module.exports = { getLeads, searchLeads, addLead, updateLead, deleteLead }
+module.exports = { 
+    getLeads,
+    getLeadById,
+    searchLeads, 
+    addLead, 
+    updateLead, 
+    deleteLead 
+}

@@ -1,28 +1,32 @@
 "use strict";
 
-var MeetingModel = require('../../models/CRM/MeetingModel');
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var StageModel = require('../../models/CRM/StageModel');
 
 var LeadModel = require('../../models/CRM/LeadModel');
 
 var CounterModel = require('../../models/CounterModel');
 
-var meetingsValidation = require('../../validations/CRM/meetings');
+var stageValidation = require('../../validations/CRM/stages');
 
 var utils = require('../../utils/utils');
 
-var mongoose = require('mongoose');
+var getStages = function getStages(request, response) {
+  var _utils$statsQueryGene, searchQuery, stages;
 
-var getMeetings = function getMeetings(request, response) {
-  var _utils$statsQueryGene, searchQuery, meetings;
-
-  return regeneratorRuntime.async(function getMeetings$(_context) {
+  return regeneratorRuntime.async(function getStages$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
           _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
           _context.next = 4;
-          return regeneratorRuntime.awrap(MeetingModel.aggregate([{
+          return regeneratorRuntime.awrap(StageModel.aggregate([{
             $match: searchQuery
           }, {
             $lookup: {
@@ -31,16 +35,20 @@ var getMeetings = function getMeetings(request, response) {
               foreignField: '_id',
               as: 'lead'
             }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
           }]));
 
         case 4:
-          meetings = _context.sent;
-          meetings.forEach(function (meeting) {
-            return meeting.lead = meeting.lead[0];
+          stages = _context.sent;
+          stages.forEach(function (stage) {
+            return stage.lead = stage.lead[0];
           });
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            meetings: meetings
+            stages: stages
           }));
 
         case 9:
@@ -61,19 +69,19 @@ var getMeetings = function getMeetings(request, response) {
   }, null, null, [[0, 9]]);
 };
 
-var getMeetingsByLeadId = function getMeetingsByLeadId(request, response) {
-  var leadId, meetings;
-  return regeneratorRuntime.async(function getMeetingsByLeadId$(_context2) {
+var getStagesByLeadId = function getStagesByLeadId(request, response) {
+  var leadId, _utils$statsQueryGene2, searchQuery, stages;
+
+  return regeneratorRuntime.async(function getStagesByLeadId$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
           leadId = request.params.leadId;
-          _context2.next = 4;
-          return regeneratorRuntime.awrap(MeetingModel.aggregate([{
-            $match: {
-              leadId: mongoose.Types.ObjectId(leadId)
-            }
+          _utils$statsQueryGene2 = utils.statsQueryGenerator('leadId', leadId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
+          _context2.next = 5;
+          return regeneratorRuntime.awrap(StageModel.aggregate([{
+            $match: searchQuery
           }, {
             $lookup: {
               from: 'leads',
@@ -81,20 +89,24 @@ var getMeetingsByLeadId = function getMeetingsByLeadId(request, response) {
               foreignField: '_id',
               as: 'lead'
             }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
           }]));
 
-        case 4:
-          meetings = _context2.sent;
-          meetings.forEach(function (meeting) {
-            return meeting.lead = meeting.lead[0];
+        case 5:
+          stages = _context2.sent;
+          stages.forEach(function (stage) {
+            return stage.lead = stage.lead[0];
           });
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
-            meetings: meetings
+            stages: stages
           }));
 
-        case 9:
-          _context2.prev = 9;
+        case 10:
+          _context2.prev = 10;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -103,23 +115,22 @@ var getMeetingsByLeadId = function getMeetingsByLeadId(request, response) {
             error: _context2.t0.message
           }));
 
-        case 13:
+        case 14:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 10]]);
 };
 
-var addMeeting = function addMeeting(request, response) {
-  var dataValidation, _request$body, leadId, status, reservationTime, lead, counter, meetingData, meetingObj, newMeeting;
-
-  return regeneratorRuntime.async(function addMeeting$(_context3) {
+var addStage = function addStage(request, response) {
+  var dataValidation, leadId, lead, counter, stageData, stageObj, newStage;
+  return regeneratorRuntime.async(function addStage$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          dataValidation = meetingsValidation.addMeeting(request.body);
+          dataValidation = stageValidation.addStage(request.body);
 
           if (dataValidation.isAccepted) {
             _context3.next = 4;
@@ -133,7 +144,7 @@ var addMeeting = function addMeeting(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, leadId = _request$body.leadId, status = _request$body.status, reservationTime = _request$body.reservationTime;
+          leadId = request.body.leadId;
           _context3.next = 7;
           return regeneratorRuntime.awrap(LeadModel.findById(leadId));
 
@@ -147,14 +158,14 @@ var addMeeting = function addMeeting(request, response) {
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Lead ID does not exist',
+            message: 'Lead ID is not registered',
             field: 'leadId'
           }));
 
         case 10:
           _context3.next = 12;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
-            name: 'meeting'
+            name: 'Stage'
           }, {
             $inc: {
               value: 1
@@ -166,22 +177,19 @@ var addMeeting = function addMeeting(request, response) {
 
         case 12:
           counter = _context3.sent;
-          meetingData = {
-            meetingId: counter.value,
-            leadId: leadId,
-            status: status,
-            reservationTime: reservationTime
-          };
-          meetingObj = new MeetingModel(meetingData);
+          stageData = _objectSpread({
+            stageId: counter.value
+          }, request.body);
+          stageObj = new StageModel(stageData);
           _context3.next = 17;
-          return regeneratorRuntime.awrap(meetingObj.save());
+          return regeneratorRuntime.awrap(stageObj.save());
 
         case 17:
-          newMeeting = _context3.sent;
+          newStage = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added new meeting successfully!',
-            meeting: newMeeting
+            message: 'Stage is added successfully!',
+            stage: newStage
           }));
 
         case 21:
@@ -202,14 +210,15 @@ var addMeeting = function addMeeting(request, response) {
   }, null, null, [[0, 21]]);
 };
 
-var updateMeetingStatus = function updateMeetingStatus(request, response) {
-  var dataValidation, meetingId, status, updatedMeeting;
-  return regeneratorRuntime.async(function updateMeetingStatus$(_context4) {
+var updateStage = function updateStage(request, response) {
+  var dataValidation, stageId, _request$body, stage, note, updatedStage;
+
+  return regeneratorRuntime.async(function updateStage$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          dataValidation = meetingsValidation.updateMeetingStatus(request.body);
+          dataValidation = stageValidation.updateStage(request.body);
 
           if (dataValidation.isAccepted) {
             _context4.next = 4;
@@ -223,21 +232,22 @@ var updateMeetingStatus = function updateMeetingStatus(request, response) {
           }));
 
         case 4:
-          meetingId = request.params.meetingId;
-          status = request.body.status;
+          stageId = request.params.stageId;
+          _request$body = request.body, stage = _request$body.stage, note = _request$body.note;
           _context4.next = 8;
-          return regeneratorRuntime.awrap(MeetingModel.findByIdAndUpdate(meetingId, {
-            status: status
+          return regeneratorRuntime.awrap(StageModel.findByIdAndUpdate(stageId, {
+            stage: stage,
+            note: note
           }, {
             "new": true
           }));
 
         case 8:
-          updatedMeeting = _context4.sent;
+          updatedStage = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated meeting successfully!',
-            meeting: updatedMeeting
+            message: 'Stage is updated successfully!',
+            stage: updatedStage
           }));
 
         case 12:
@@ -258,23 +268,23 @@ var updateMeetingStatus = function updateMeetingStatus(request, response) {
   }, null, null, [[0, 12]]);
 };
 
-var deleteMeeting = function deleteMeeting(request, response) {
-  var meetingId, deletedMeeting;
-  return regeneratorRuntime.async(function deleteMeeting$(_context5) {
+var deleteStage = function deleteStage(request, response) {
+  var stageId, deletedStage;
+  return regeneratorRuntime.async(function deleteStage$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          meetingId = request.params.meetingId;
+          stageId = request.params.stageId;
           _context5.next = 4;
-          return regeneratorRuntime.awrap(MeetingModel.findByIdAndDelete(meetingId));
+          return regeneratorRuntime.awrap(StageModel.findByIdAndDelete(stageId));
 
         case 4:
-          deletedMeeting = _context5.sent;
+          deletedStage = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted meeting successfully!',
-            meeting: deletedMeeting
+            message: 'Deleted stage successfully!',
+            stage: deletedStage
           }));
 
         case 8:
@@ -296,9 +306,9 @@ var deleteMeeting = function deleteMeeting(request, response) {
 };
 
 module.exports = {
-  getMeetings: getMeetings,
-  getMeetingsByLeadId: getMeetingsByLeadId,
-  addMeeting: addMeeting,
-  updateMeetingStatus: updateMeetingStatus,
-  deleteMeeting: deleteMeeting
+  getStages: getStages,
+  getStagesByLeadId: getStagesByLeadId,
+  addStage: addStage,
+  updateStage: updateStage,
+  deleteStage: deleteStage
 };

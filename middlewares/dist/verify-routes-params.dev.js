@@ -64,6 +64,12 @@ var MeetingModel = require('../models/CRM/MeetingModel');
 
 var CommentModel = require('../models/followup-service/CommentModel');
 
+var StageModel = require('../models/CRM/StageModel');
+
+var MessageTemplateModel = require('../models/CRM/MessageTemplateModel');
+
+var MessageSentModel = require('../models/CRM/MessageSentModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -1926,6 +1932,183 @@ var verifyCommentId = function verifyCommentId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyStageId = function verifyStageId(request, response, next) {
+  var stageId, stage;
+  return regeneratorRuntime.async(function verifyStageId$(_context33) {
+    while (1) {
+      switch (_context33.prev = _context33.next) {
+        case 0:
+          _context33.prev = 0;
+          stageId = request.params.stageId;
+
+          if (utils.isObjectId(stageId)) {
+            _context33.next = 4;
+            break;
+          }
+
+          return _context33.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid stage ID format',
+            field: 'stageId'
+          }));
+
+        case 4:
+          _context33.next = 6;
+          return regeneratorRuntime.awrap(StageModel.findById(stageId));
+
+        case 6:
+          stage = _context33.sent;
+
+          if (stage) {
+            _context33.next = 9;
+            break;
+          }
+
+          return _context33.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Stage ID does not exist',
+            field: 'stageId'
+          }));
+
+        case 9:
+          return _context33.abrupt("return", next());
+
+        case 12:
+          _context33.prev = 12;
+          _context33.t0 = _context33["catch"](0);
+          console.error(_context33.t0);
+          return _context33.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context33.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context33.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyMessageTemplateId = function verifyMessageTemplateId(request, response, next) {
+  var messageTemplateId, messageTemplate;
+  return regeneratorRuntime.async(function verifyMessageTemplateId$(_context34) {
+    while (1) {
+      switch (_context34.prev = _context34.next) {
+        case 0:
+          _context34.prev = 0;
+          messageTemplateId = request.params.messageTemplateId;
+
+          if (utils.isObjectId(messageTemplateId)) {
+            _context34.next = 4;
+            break;
+          }
+
+          return _context34.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid message template ID format',
+            field: 'messageTemplateId'
+          }));
+
+        case 4:
+          _context34.next = 6;
+          return regeneratorRuntime.awrap(MessageTemplateModel.findById(messageTemplateId));
+
+        case 6:
+          messageTemplate = _context34.sent;
+
+          if (messageTemplate) {
+            _context34.next = 9;
+            break;
+          }
+
+          return _context34.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Message template ID does not exist',
+            field: 'messageTemplateId'
+          }));
+
+        case 9:
+          return _context34.abrupt("return", next());
+
+        case 12:
+          _context34.prev = 12;
+          _context34.t0 = _context34["catch"](0);
+          console.error(_context34.t0);
+          return _context34.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context34.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context34.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var verifyMessageSentId = function verifyMessageSentId(request, response, next) {
+  var messageSentId, messageSent;
+  return regeneratorRuntime.async(function verifyMessageSentId$(_context35) {
+    while (1) {
+      switch (_context35.prev = _context35.next) {
+        case 0:
+          _context35.prev = 0;
+          messageSentId = request.params.messageSentId;
+
+          if (utils.isObjectId(messageSentId)) {
+            _context35.next = 4;
+            break;
+          }
+
+          return _context35.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid message sent ID format',
+            field: 'messageSentId'
+          }));
+
+        case 4:
+          _context35.next = 6;
+          return regeneratorRuntime.awrap(MessageSentModel.findById(messageSentId));
+
+        case 6:
+          messageSent = _context35.sent;
+
+          if (messageSent) {
+            _context35.next = 9;
+            break;
+          }
+
+          return _context35.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Message sent ID does not exist',
+            field: 'messageSentId'
+          }));
+
+        case 9:
+          return _context35.abrupt("return", next());
+
+        case 12:
+          _context35.prev = 12;
+          _context35.t0 = _context35["catch"](0);
+          console.error(_context35.t0);
+          return _context35.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context35.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context35.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -1958,5 +2141,8 @@ module.exports = {
   verifyMedicationChallengeId: verifyMedicationChallengeId,
   verifyLeadId: verifyLeadId,
   verifyMeetingId: verifyMeetingId,
-  verifyCommentId: verifyCommentId
+  verifyCommentId: verifyCommentId,
+  verifyStageId: verifyStageId,
+  verifyMessageTemplateId: verifyMessageTemplateId,
+  verifyMessageSentId: verifyMessageSentId
 };

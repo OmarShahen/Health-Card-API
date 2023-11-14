@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
+const functions = require('firebase-functions')
 //const Bree = require('bree')
 
 const morgan = require('morgan')
@@ -57,6 +58,9 @@ app.use('/api', require('./routes/followup-service/comments'))
 
 app.use('/api', require('./routes/CRM/leads'))
 app.use('/api', require('./routes/CRM/meetings'))
+app.use('/api', require('./routes/CRM/stages'))
+app.use('/api', require('./routes/CRM/messagesTemplates'))
+app.use('/api', require('./routes/CRM/messagesSent'))
 
 app.use('/api', require('./routes/analytics'))
 
@@ -75,4 +79,3 @@ app.get('/', (request, response) => {
 
 
 http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
-

@@ -10,7 +10,14 @@ router.get(
 )
 
 router.get(
-    '/v1/crm/leads/search',
+    '/v1/crm/leads/:leadId',
+    authorization.allPermission,
+    verifyLeadId,
+    (request, response) => leadsController.getLeadById(request, response)
+)
+
+router.get(
+    '/v1/crm/leads/name/search',
     authorization.allPermission,
     (request, response) => leadsController.searchLeads(request, response)
 )

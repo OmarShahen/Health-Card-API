@@ -12,7 +12,10 @@ var _require = require('../../middlewares/verify-routes-params'),
 router.get('/v1/crm/leads', authorization.allPermission, function (request, response) {
   return leadsController.getLeads(request, response);
 });
-router.get('/v1/crm/leads/search', authorization.allPermission, function (request, response) {
+router.get('/v1/crm/leads/:leadId', authorization.allPermission, verifyLeadId, function (request, response) {
+  return leadsController.getLeadById(request, response);
+});
+router.get('/v1/crm/leads/name/search', authorization.allPermission, function (request, response) {
   return leadsController.searchLeads(request, response);
 });
 router.post('/v1/crm/leads', authorization.allPermission, function (request, response) {

@@ -407,7 +407,7 @@ const getFollowupRegisteredClinicsPatients = async (request, response) => {
 
         const subscriptionList = await ClinicSubscriptionModel
         .find({ isActive: true, endDate: { $gt: Date.now() } })
-
+        
         const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
         
         const uniqueClinicIdsSet = new Set(clinicsIds)
@@ -465,7 +465,6 @@ const getFollowupRegisteredClinicsPatients = async (request, response) => {
             patient.patient.emergencyContacts = undefined
             patient.patient.healthHistory = undefined
         })
-        
 
         return response.status(200).json({
             accepted: true,

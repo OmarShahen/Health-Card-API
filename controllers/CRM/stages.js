@@ -1,18 +1,16 @@
-const MeetingModel = require('../../models/CRM/MeetingModel')
+const StageModel = require('../../models/CRM/StageModel')
 const LeadModel = require('../../models/CRM/LeadModel')
 const CounterModel = require('../../models/CounterModel')
-const meetingsValidation = require('../../validations/CRM/meetings')
+const stageValidation = require('../../validations/CRM/stages')
 const utils = require('../../utils/utils')
-const mongoose = require('mongoose')
 
-
-const getMeetings = async (request, response) => {
+const getStages = async (request, response) => {
 
     try {
 
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
-
-        const meetings = await MeetingModel.aggregate([
+        
+        const stages = await StageModel.aggregate([
             {
                 $match: searchQuery
             },
@@ -23,14 +21,19 @@ const getMeetings = async (request, response) => {
                     foreignField: '_id',
                     as: 'lead'
                 }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
             }
         ])
 
-        meetings.forEach(meeting => meeting.lead = meeting.lead[0])
+        stages.forEach(stage => stage.lead = stage.lead[0])        
 
         return response.status(200).json({
             accepted: true,
-            meetings
+            stages
         })
 
     } catch(error) {
@@ -43,15 +46,17 @@ const getMeetings = async (request, response) => {
     }
 }
 
-const getMeetingsByLeadId = async (request, response) => {
+const getStagesByLeadId = async (request, response) => {
 
     try {
 
         const { leadId } = request.params
 
-        const meetings = await MeetingModel.aggregate([
+        const { searchQuery } = utils.statsQueryGenerator('leadId', leadId, request.query)
+        
+        const stages = await StageModel.aggregate([
             {
-                $match: { leadId: mongoose.Types.ObjectId(leadId) }
+                $match: searchQuery
             },
             {
                 $lookup: {
@@ -60,14 +65,19 @@ const getMeetingsByLeadId = async (request, response) => {
                     foreignField: '_id',
                     as: 'lead'
                 }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
             }
         ])
 
-        meetings.forEach(meeting => meeting.lead = meeting.lead[0])
+        stages.forEach(stage => stage.lead = stage.lead[0])        
 
         return response.status(200).json({
             accepted: true,
-            meetings
+            stages
         })
 
     } catch(error) {
@@ -80,11 +90,11 @@ const getMeetingsByLeadId = async (request, response) => {
     }
 }
 
-const addMeeting = async (request, response) => {
+const addStage = async (request, response) => {
 
     try {
-
-        const dataValidation = meetingsValidation.addMeeting(request.body)
+        
+        const dataValidation = stageValidation.addStage(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -92,39 +102,32 @@ const addMeeting = async (request, response) => {
                 field: dataValidation.field
             })
         }
-        
-        const { leadId, status, reservationTime } = request.body
+
+        const { leadId } = request.body
 
         const lead = await LeadModel.findById(leadId)
         if(!lead) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Lead ID does not exist',
+                message: 'Lead ID is not registered',
                 field: 'leadId'
             })
         }
-        
 
         const counter = await CounterModel.findOneAndUpdate(
-            { name: 'meeting' },
+            { name: 'Stage' },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
 
-        const meetingData = {
-            meetingId: counter.value,
-            leadId,
-            status,
-            reservationTime
-        }
-
-        const meetingObj = new MeetingModel(meetingData)
-        const newMeeting = await meetingObj.save()
+        const stageData = { stageId: counter.value, ...request.body }
+        const stageObj = new StageModel(stageData)
+        const newStage = await stageObj.save()
 
         return response.status(200).json({
             accepted: true,
-            message: 'Added new meeting successfully!',
-            meeting: newMeeting
+            message: 'Stage is added successfully!',
+            stage: newStage
         })
 
     } catch(error) {
@@ -137,11 +140,11 @@ const addMeeting = async (request, response) => {
     }
 }
 
-const updateMeetingStatus = async (request, response) => {
+const updateStage = async (request, response) => {
 
     try {
-
-        const dataValidation = meetingsValidation.updateMeetingStatus(request.body)
+        
+        const dataValidation = stageValidation.updateStage(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -149,16 +152,16 @@ const updateMeetingStatus = async (request, response) => {
                 field: dataValidation.field
             })
         }
-        
-        const { meetingId } = request.params
-        const { status } = request.body
-        
-        const updatedMeeting = await MeetingModel.findByIdAndUpdate(meetingId, { status }, { new: true })
+
+        const { stageId } = request.params
+        const { stage, note } = request.body
+
+        const updatedStage = await StageModel.findByIdAndUpdate(stageId, { stage, note }, { new: true })
 
         return response.status(200).json({
             accepted: true,
-            message: 'Updated meeting successfully!',
-            meeting: updatedMeeting
+            message: 'Stage is updated successfully!',
+            stage: updatedStage
         })
 
     } catch(error) {
@@ -171,18 +174,18 @@ const updateMeetingStatus = async (request, response) => {
     }
 }
 
-const deleteMeeting = async (request, response) => {
+const deleteStage = async (request, response) => {
 
     try {
-
-        const { meetingId } = request.params
         
-        const deletedMeeting = await MeetingModel.findByIdAndDelete(meetingId)
+        const { stageId } = request.params    
+        
+        const deletedStage = await StageModel.findByIdAndDelete(stageId)
 
         return response.status(200).json({
             accepted: true,
-            message: 'Deleted meeting successfully!',
-            meeting: deletedMeeting
+            message: 'Deleted stage successfully!',
+            stage: deletedStage
         })
 
     } catch(error) {
@@ -195,4 +198,11 @@ const deleteMeeting = async (request, response) => {
     }
 }
 
-module.exports = { getMeetings, getMeetingsByLeadId, addMeeting, updateMeetingStatus, deleteMeeting }
+
+module.exports = { 
+    getStages, 
+    getStagesByLeadId,
+    addStage, 
+    updateStage,
+    deleteStage 
+}

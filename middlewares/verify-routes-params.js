@@ -30,6 +30,9 @@ const MedicationChallengeModel = require('../models/medication-challenges/Medica
 const LeadModel = require('../models/CRM/LeadModel')
 const MeetingModel = require('../models/CRM/MeetingModel')
 const CommentModel = require('../models/followup-service/CommentModel')
+const StageModel = require('../models/CRM/StageModel')
+const MessageTemplateModel = require('../models/CRM/MessageTemplateModel')
+const MessageSentModel = require('../models/CRM/MessageSentModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -1134,6 +1137,111 @@ const verifyCommentId = async (request, response, next) => {
     }
 }
 
+const verifyStageId = async (request, response, next) => {
+
+    try {
+
+        const { stageId } = request.params
+
+        if(!utils.isObjectId(stageId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid stage ID format',
+                field: 'stageId'
+            })
+        }
+
+        const stage = await StageModel.findById(stageId)
+        if(!stage) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Stage ID does not exist',
+                field: 'stageId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyMessageTemplateId = async (request, response, next) => {
+
+    try {
+
+        const { messageTemplateId } = request.params
+
+        if(!utils.isObjectId(messageTemplateId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid message template ID format',
+                field: 'messageTemplateId'
+            })
+        }
+
+        const messageTemplate = await MessageTemplateModel.findById(messageTemplateId)
+        if(!messageTemplate) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Message template ID does not exist',
+                field: 'messageTemplateId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const verifyMessageSentId = async (request, response, next) => {
+
+    try {
+
+        const { messageSentId } = request.params
+
+        if(!utils.isObjectId(messageSentId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid message sent ID format',
+                field: 'messageSentId'
+            })
+        }
+
+        const messageSent = await MessageSentModel.findById(messageSentId)
+        if(!messageSent) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Message sent ID does not exist',
+                field: 'messageSentId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -1166,5 +1274,8 @@ module.exports = {
     verifyMedicationChallengeId,
     verifyLeadId,
     verifyMeetingId,
-    verifyCommentId
+    verifyCommentId,
+    verifyStageId,
+    verifyMessageTemplateId,
+    verifyMessageSentId
 }

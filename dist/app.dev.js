@@ -6,7 +6,9 @@ var app = express();
 
 var dotenv = require('dotenv').config();
 
-var config = require('./config/config'); //const Bree = require('bree')
+var config = require('./config/config');
+
+var functions = require('firebase-functions'); //const Bree = require('bree')
 
 
 var morgan = require('morgan');
@@ -62,6 +64,9 @@ app.use('/api', require('./routes/medication-challenges/medication-challenges'))
 app.use('/api', require('./routes/followup-service/comments'));
 app.use('/api', require('./routes/CRM/leads'));
 app.use('/api', require('./routes/CRM/meetings'));
+app.use('/api', require('./routes/CRM/stages'));
+app.use('/api', require('./routes/CRM/messagesTemplates'));
+app.use('/api', require('./routes/CRM/messagesSent'));
 app.use('/api', require('./routes/analytics'));
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
