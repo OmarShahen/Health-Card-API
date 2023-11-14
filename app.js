@@ -2,7 +2,6 @@ const express = require('express')
 const app = express()
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
-const functions = require('firebase-functions')
 //const Bree = require('bree')
 
 const morgan = require('morgan')

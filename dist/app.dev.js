@@ -6,9 +6,7 @@ var app = express();
 
 var dotenv = require('dotenv').config();
 
-var config = require('./config/config');
-
-var functions = require('firebase-functions'); //const Bree = require('bree')
+var config = require('./config/config'); //const Bree = require('bree')
 
 
 var morgan = require('morgan');
