@@ -15,8 +15,9 @@ var morgan = require('morgan');
 
 var db = require('./config/database');
 
-var cors = require('cors'); //const http = require('http').Server(app)
+var cors = require('cors');
 
+var http = require('http').Server(app);
 
 var _require = require('./middlewares/language'),
     verifyLanguage = _require.verifyLanguage;
@@ -61,23 +62,21 @@ app.use('/api', require('./routes/followup-service/treatments-surveys'));
 app.use('/api', require('./routes/labels/labels'));
 app.use('/api', require('./routes/medication-challenges/medication-challenges'));
 app.use('/api', require('./routes/followup-service/comments'));
-app.use('/api', require('./routes/values'));
 app.use('/api', require('./routes/CRM/leads'));
 app.use('/api', require('./routes/CRM/meetings'));
 app.use('/api', require('./routes/CRM/stages'));
 app.use('/api', require('./routes/CRM/messagesTemplates'));
 app.use('/api', require('./routes/CRM/messagesSent'));
 app.use('/api', require('./routes/analytics'));
-db().then(function (data) {
-  return console.log('Mongo is up and running... ;)');
-})["catch"](function (error) {
-  return console.error(error);
-});
+/*db()
+.then(data => console.log('Mongo is up and running... ;)'))
+.catch(error => console.error(error))
+*/
+
 app.get('/', function (request, response) {
   return response.status(200).json({
     message: "welcome to RA'AYA"
   });
-});
-app.listen(config.PORT, function () {
-  return console.log("server started on port ".concat(config.PORT, " [HEALTH CARD-APP]"));
-}); // exports.app = functions.https.onRequest(app)
+}); //http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
+
+exports.app = functions.https.onRequest(app);

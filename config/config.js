@@ -1,7 +1,7 @@
 module.exports = {
 
     WEB_FORGOT_PASSWORD_URL: `https://barbels-f6774.web.app/reset-password`,
-    PORT: process.env.PORT,
+    PORT: process.env.APP_PORT,
     DB_URL: process.env.PROD_DB_URL,
     //DB_URL: process.env.DB_URL,
     PAYMOB_HMAC: process.env.PAYMOB_HMAC,
@@ -44,5 +44,6 @@ module.exports = {
     PAYMENT_METHOD: ['CASH', 'CHECK', 'CREDIT_OR_DEBIT', 'ONLINE', 'MOBILE'],
     INSURANCE_POLICY_TYPE: ['HEALTH', 'LIFE', 'AUTO'],
     INSURANCE_POLICY_STATUS: ['ACTIVE', 'INACTIVE'],
-    COMMENT_TYPES: ['COMPLIMENT', 'ISSUE']
+    COMMENT_TYPES: ['COMPLIMENT', 'ISSUE'],
+    VALUES_ENTITY: ['LEADS', 'STAGES', 'MESSAGES']
 }

@@ -33,6 +33,7 @@ const CommentModel = require('../models/followup-service/CommentModel')
 const StageModel = require('../models/CRM/StageModel')
 const MessageTemplateModel = require('../models/CRM/MessageTemplateModel')
 const MessageSentModel = require('../models/CRM/MessageSentModel')
+const ValueModel = require('../models/ValueModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -1242,6 +1243,41 @@ const verifyMessageSentId = async (request, response, next) => {
     }
 }
 
+const verifyValueId = async (request, response, next) => {
+
+    try {
+
+        const { valueId } = request.params
+
+        if(!utils.isObjectId(valueId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid value ID format',
+                field: 'valueId'
+            })
+        }
+
+        const value = await ValueModel.findById(valueId)
+        if(!value) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Value ID does not exist',
+                field: 'valueId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -1277,5 +1313,6 @@ module.exports = {
     verifyCommentId,
     verifyStageId,
     verifyMessageTemplateId,
-    verifyMessageSentId
+    verifyMessageSentId,
+    verifyValueId
 }

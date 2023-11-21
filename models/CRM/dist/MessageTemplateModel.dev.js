@@ -7,15 +7,15 @@ var MessageTemplateSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  categoryId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
   name: {
     type: String,
     required: true
   },
   description: {
-    type: String,
-    required: true
-  },
-  category: {
     type: String,
     required: true
   }

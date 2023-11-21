@@ -8,6 +8,8 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 var MessageTemplateModel = require('../../models/CRM/MessageTemplateModel');
 
+var ValueModel = require('../../models/ValueModel');
+
 var CounterModel = require('../../models/CounterModel');
 
 var MessageTemplateValidation = require('../../validations/CRM/messagesTemplates');
@@ -24,19 +26,33 @@ var getMessagesTemplates = function getMessagesTemplates(request, response) {
           _context.prev = 0;
           _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
           _context.next = 4;
-          return regeneratorRuntime.awrap(MessageTemplateModel.find(searchQuery).sort({
-            createdAt: -1
-          }));
+          return regeneratorRuntime.awrap(MessageTemplateModel.aggregate([{
+            $match: searchQuery
+          }, {
+            $lookup: {
+              from: 'values',
+              localField: 'categoryId',
+              foreignField: '_id',
+              as: 'category'
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }]));
 
         case 4:
           messagesTemplates = _context.sent;
+          messagesTemplates.forEach(function (message) {
+            return message.category = message.category[0];
+          });
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             messagesTemplates: messagesTemplates
           }));
 
-        case 8:
-          _context.prev = 8;
+        case 9:
+          _context.prev = 9;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -45,16 +61,16 @@ var getMessagesTemplates = function getMessagesTemplates(request, response) {
             error: _context.t0.message
           }));
 
-        case 12:
+        case 13:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 9]]);
 };
 
 var addMessageTemplate = function addMessageTemplate(request, response) {
-  var dataValidation, _request$body, name, category, messageTemplateList, counter, messageTemplateData, messageTemplateObj, newMessageTemplate;
+  var dataValidation, _request$body, name, categoryId, category, messageTemplateList, counter, messageTemplateData, messageTemplateObj, newMessageTemplate;
 
   return regeneratorRuntime.async(function addMessageTemplate$(_context2) {
     while (1) {
@@ -75,18 +91,36 @@ var addMessageTemplate = function addMessageTemplate(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, name = _request$body.name, category = _request$body.category;
+          _request$body = request.body, name = _request$body.name, categoryId = _request$body.categoryId;
           _context2.next = 7;
-          return regeneratorRuntime.awrap(MessageTemplateModel.find({
-            name: name,
-            category: category
-          }));
+          return regeneratorRuntime.awrap(ValueModel.findById(categoryId));
 
         case 7:
+          category = _context2.sent;
+
+          if (category) {
+            _context2.next = 10;
+            break;
+          }
+
+          return _context2.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Category ID is not registered',
+            field: 'categoryId'
+          }));
+
+        case 10:
+          _context2.next = 12;
+          return regeneratorRuntime.awrap(MessageTemplateModel.find({
+            name: name,
+            categoryId: categoryId
+          }));
+
+        case 12:
           messageTemplateList = _context2.sent;
 
           if (!(messageTemplateList.length != 0)) {
-            _context2.next = 10;
+            _context2.next = 15;
             break;
           }
 
@@ -96,8 +130,8 @@ var addMessageTemplate = function addMessageTemplate(request, response) {
             field: 'name'
           }));
 
-        case 10:
-          _context2.next = 12;
+        case 15:
+          _context2.next = 17;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'MessageTemplate'
           }, {
@@ -109,16 +143,16 @@ var addMessageTemplate = function addMessageTemplate(request, response) {
             upsert: true
           }));
 
-        case 12:
+        case 17:
           counter = _context2.sent;
           messageTemplateData = _objectSpread({
             messageTemplateId: counter.value
           }, request.body);
           messageTemplateObj = new MessageTemplateModel(messageTemplateData);
-          _context2.next = 17;
+          _context2.next = 22;
           return regeneratorRuntime.awrap(messageTemplateObj.save());
 
-        case 17:
+        case 22:
           newMessageTemplate = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
@@ -126,8 +160,8 @@ var addMessageTemplate = function addMessageTemplate(request, response) {
             messageTemplate: newMessageTemplate
           }));
 
-        case 21:
-          _context2.prev = 21;
+        case 26:
+          _context2.prev = 26;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -136,16 +170,16 @@ var addMessageTemplate = function addMessageTemplate(request, response) {
             error: _context2.t0.message
           }));
 
-        case 25:
+        case 30:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 21]]);
+  }, null, null, [[0, 26]]);
 };
 
 var updateMessageTemplate = function updateMessageTemplate(request, response) {
-  var dataValidation, messageTemplateId, _request$body2, name, category, messageTemplate, messageTemplateList, updatedMessageTemplate;
+  var dataValidation, messageTemplateId, _request$body2, name, categoryId, messageTemplate, messageTemplateList, updatedMessageTemplate;
 
   return regeneratorRuntime.async(function updateMessageTemplate$(_context3) {
     while (1) {
@@ -167,7 +201,7 @@ var updateMessageTemplate = function updateMessageTemplate(request, response) {
 
         case 4:
           messageTemplateId = request.params.messageTemplateId;
-          _request$body2 = request.body, name = _request$body2.name, category = _request$body2.category;
+          _request$body2 = request.body, name = _request$body2.name, categoryId = _request$body2.categoryId;
           _context3.next = 8;
           return regeneratorRuntime.awrap(MessageTemplateModel.findById(messageTemplateId));
 
@@ -182,7 +216,7 @@ var updateMessageTemplate = function updateMessageTemplate(request, response) {
           _context3.next = 12;
           return regeneratorRuntime.awrap(MessageTemplateModel.find({
             name: name,
-            category: category
+            categoryId: categoryId
           }));
 
         case 12:

@@ -70,6 +70,8 @@ var MessageTemplateModel = require('../models/CRM/MessageTemplateModel');
 
 var MessageSentModel = require('../models/CRM/MessageSentModel');
 
+var ValueModel = require('../models/ValueModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -2109,6 +2111,65 @@ var verifyMessageSentId = function verifyMessageSentId(request, response, next) 
   }, null, null, [[0, 12]]);
 };
 
+var verifyValueId = function verifyValueId(request, response, next) {
+  var valueId, value;
+  return regeneratorRuntime.async(function verifyValueId$(_context36) {
+    while (1) {
+      switch (_context36.prev = _context36.next) {
+        case 0:
+          _context36.prev = 0;
+          valueId = request.params.valueId;
+
+          if (utils.isObjectId(valueId)) {
+            _context36.next = 4;
+            break;
+          }
+
+          return _context36.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid value ID format',
+            field: 'valueId'
+          }));
+
+        case 4:
+          _context36.next = 6;
+          return regeneratorRuntime.awrap(ValueModel.findById(valueId));
+
+        case 6:
+          value = _context36.sent;
+
+          if (value) {
+            _context36.next = 9;
+            break;
+          }
+
+          return _context36.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Value ID does not exist',
+            field: 'valueId'
+          }));
+
+        case 9:
+          return _context36.abrupt("return", next());
+
+        case 12:
+          _context36.prev = 12;
+          _context36.t0 = _context36["catch"](0);
+          console.error(_context36.t0);
+          return _context36.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context36.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context36.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -2144,5 +2205,6 @@ module.exports = {
   verifyCommentId: verifyCommentId,
   verifyStageId: verifyStageId,
   verifyMessageTemplateId: verifyMessageTemplateId,
-  verifyMessageSentId: verifyMessageSentId
+  verifyMessageSentId: verifyMessageSentId,
+  verifyValueId: verifyValueId
 };

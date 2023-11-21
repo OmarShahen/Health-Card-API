@@ -1,9 +1,11 @@
 "use strict";
 
+var utils = require('../../utils/utils');
+
 var addMessageTemplate = function addMessageTemplate(messageTemplateData) {
   var name = messageTemplateData.name,
-      description = messageTemplateData.description,
-      category = messageTemplateData.category;
+      categoryId = messageTemplateData.categoryId,
+      description = messageTemplateData.description;
   if (!name) return {
     isAccepted: false,
     message: 'Name is required',
@@ -24,15 +26,15 @@ var addMessageTemplate = function addMessageTemplate(messageTemplateData) {
     message: 'Description format is invalid',
     field: 'description'
   };
-  if (!category) return {
+  if (!categoryId) return {
     isAccepted: false,
-    message: 'Category is required',
-    field: 'category'
+    message: 'Category ID is required',
+    field: 'categoryId'
   };
-  if (typeof category != 'string') return {
+  if (!utils.isObjectId(categoryId)) return {
     isAccepted: false,
-    message: 'Category format is invalid',
-    field: 'category'
+    message: 'Category ID format is invalid',
+    field: 'categoryId'
   };
   return {
     isAccepted: true,
@@ -44,7 +46,7 @@ var addMessageTemplate = function addMessageTemplate(messageTemplateData) {
 var updateMessageTemplate = function updateMessageTemplate(messageTemplateData) {
   var name = messageTemplateData.name,
       description = messageTemplateData.description,
-      category = messageTemplateData.category;
+      categoryId = messageTemplateData.categoryId;
   if (!name) return {
     isAccepted: false,
     message: 'Name is required',
@@ -65,15 +67,15 @@ var updateMessageTemplate = function updateMessageTemplate(messageTemplateData) 
     message: 'Description format is invalid',
     field: 'description'
   };
-  if (!category) return {
+  if (!categoryId) return {
     isAccepted: false,
-    message: 'Category is required',
-    field: 'category'
+    message: 'Category ID is required',
+    field: 'categoryId'
   };
-  if (typeof category != 'string') return {
+  if (!utils.isObjectId(categoryId)) return {
     isAccepted: false,
-    message: 'Category format is invalid',
-    field: 'category'
+    message: 'Category ID format is invalid',
+    field: 'categoryId'
   };
   return {
     isAccepted: true,

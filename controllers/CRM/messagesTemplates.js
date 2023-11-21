@@ -1,7 +1,9 @@
 const MessageTemplateModel = require('../../models/CRM/MessageTemplateModel')
+const ValueModel = require('../../models/ValueModel')
 const CounterModel = require('../../models/CounterModel')
 const MessageTemplateValidation = require('../../validations/CRM/messagesTemplates')
 const utils = require('../../utils/utils')
+
 
 const getMessagesTemplates = async (request, response) => {
 
@@ -9,9 +11,26 @@ const getMessagesTemplates = async (request, response) => {
 
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
 
-        const messagesTemplates = await MessageTemplateModel
-        .find(searchQuery)
-        .sort({ createdAt: -1 })
+        const messagesTemplates = await MessageTemplateModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'values',
+                    localField: 'categoryId',
+                    foreignField: '_id',
+                    as: 'category'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        messagesTemplates.forEach(message => message.category = message.category[0])
 
         return response.status(200).json({
             accepted: true,
@@ -41,9 +60,18 @@ const addMessageTemplate = async (request, response) => {
             })
         }
 
-        const { name, category } = request.body
+        const { name, categoryId } = request.body
 
-        const messageTemplateList = await MessageTemplateModel.find({ name, category })
+        const category = await ValueModel.findById(categoryId)
+        if(!category) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Category ID is not registered',
+                field: 'categoryId'
+            })
+        }
+
+        const messageTemplateList = await MessageTemplateModel.find({ name, categoryId })
         if(messageTemplateList.length != 0) {
             return response.status(400).json({
                 accepted: false,
@@ -92,11 +120,11 @@ const updateMessageTemplate = async (request, response) => {
         }
 
         const { messageTemplateId } = request.params
-        const { name, category } = request.body
+        const { name, categoryId } = request.body
 
         const messageTemplate = await MessageTemplateModel.findById(messageTemplateId)
         if(messageTemplate.name != name) {
-            const messageTemplateList = await MessageTemplateModel.find({ name, category })
+            const messageTemplateList = await MessageTemplateModel.find({ name, categoryId })
             if(messageTemplateList.length != 0) {
                 return response.status(400).json({
                     accepted: false,

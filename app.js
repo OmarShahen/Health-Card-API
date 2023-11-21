@@ -2,12 +2,13 @@ const express = require('express')
 const app = express()
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
+const functions = require('firebase-functions')
 //const Bree = require('bree')
 
 const morgan = require('morgan')
 const db = require('./config/database')
 const cors = require('cors')
-const http = require('http').Server(app)
+//const http = require('http').Server(app)
 const { verifyLanguage } = require('./middlewares/language')
 
 
@@ -54,6 +55,7 @@ app.use('/api', require('./routes/followup-service/treatments-surveys'))
 app.use('/api', require('./routes/labels/labels'))
 app.use('/api', require('./routes/medication-challenges/medication-challenges'))
 app.use('/api', require('./routes/followup-service/comments'))
+app.use('/api', require('./routes/values'))
 
 app.use('/api', require('./routes/CRM/leads'))
 app.use('/api', require('./routes/CRM/meetings'))
@@ -72,9 +74,11 @@ db()
 app.get('/', (request, response) => {
 
     return response.status(200).json({
-        message: 'welcome to our doctor app'
+        message: `welcome to RA'AYA`
     })
 })
 
 
-http.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
+app.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
+
+exports.app = functions.https.onRequest(app)
