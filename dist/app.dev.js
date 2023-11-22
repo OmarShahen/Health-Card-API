@@ -80,4 +80,5 @@ app.get('/', function (request, response) {
 });
 app.listen(config.PORT, function () {
   return console.log("server started on port ".concat(config.PORT, " [HEALTH CARD-APP]"));
-}); // exports.app = functions.https.onRequest(app)
+});
+exports.app = functions.https.onRequest(app);

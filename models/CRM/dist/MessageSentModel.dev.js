@@ -15,21 +15,25 @@ var MessageSentSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
-  isOpened: {
-    type: Boolean,
+  platform: {
+    type: String,
     required: true
   },
+  isOpened: {
+    type: Boolean,
+    required: true,
+    "default": false
+  },
   openedDate: {
-    type: Date,
-    required: true
+    type: Date
   },
   isResponded: {
     type: Boolean,
-    required: true
+    required: true,
+    "default": false
   },
   respondedDate: {
-    type: Date,
-    required: true
+    type: Date
   },
   isCTADone: {
     type: Boolean,

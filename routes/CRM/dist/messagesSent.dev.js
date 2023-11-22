@@ -15,6 +15,9 @@ router.get('/v1/crm/messages-sent', authorization.allPermission, function (reque
 router.post('/v1/crm/messages-sent', authorization.allPermission, function (request, response) {
   return messagesSentController.addMessageSent(request, response);
 });
+router.put('/v1/crm/messages-sent/:messageSentId', authorization.allPermission, verifyMessageSentId, function (request, response) {
+  return messagesSentController.updateMessageSent(request, response);
+});
 router["delete"]('/v1/crm/messages-sent/:messageSentId', authorization.allPermission, verifyMessageSentId, function (request, response) {
   return messagesSentController.deleteMessageSent(request, response);
 });

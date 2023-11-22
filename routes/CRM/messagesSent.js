@@ -16,6 +16,13 @@ router.post(
     (request, response) => messagesSentController.addMessageSent(request, response)
 )
 
+router.put(
+    '/v1/crm/messages-sent/:messageSentId',
+    authorization.allPermission,
+    verifyMessageSentId,
+    (request, response) => messagesSentController.updateMessageSent(request, response)
+)
+
 router.delete(
     '/v1/crm/messages-sent/:messageSentId',
     authorization.allPermission,

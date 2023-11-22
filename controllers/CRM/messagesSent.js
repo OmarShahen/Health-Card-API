@@ -33,7 +33,7 @@ const getMessagesSent = async (request, response) => {
                 }
             },
             {
-                $sort: { createdAt: -1 }
+                $sort: { updatedAt: -1 }
             }
         ])
 
@@ -107,6 +107,49 @@ const addMessageSent = async (request, response) => {
             accepted: true,
             message: 'Message Sent is created successfully!',
             messageSent: newMessageSent
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateMessageSent = async (request, response) => {
+
+    try {
+
+        const dataValidation = messageSentValidation.updateMessageSent(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { messageSentId } = request.params
+        const { isOpened, isResponded } = request.body
+
+        if(!isOpened) {
+            request.body.openedDate = null
+        }
+
+        if(!isResponded) {
+            request.body.respondedDate = null
+        }
+       
+        const updatedMessageSent = await MessageSentModel
+        .findByIdAndUpdate(messageSentId, request.body, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Message Sent is updated successfully!',
+            messageSent: updatedMessageSent
         })
 
     } catch(error) {
@@ -250,7 +293,8 @@ const updateMessageSentRespond = async (request, response) => {
 
 module.exports = { 
     getMessagesSent, 
-    addMessageSent, 
+    addMessageSent,
+    updateMessageSent,
     deleteMessageSent,
     updateMessageSentCTA,
     updateMessageSentOpen,

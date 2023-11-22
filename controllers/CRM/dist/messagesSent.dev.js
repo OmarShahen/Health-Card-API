@@ -54,7 +54,7 @@ var getMessagesSent = function getMessagesSent(request, response) {
             }
           }, {
             $sort: {
-              createdAt: -1
+              updatedAt: -1
             }
           }]));
 
@@ -192,27 +192,54 @@ var addMessageSent = function addMessageSent(request, response) {
   }, null, null, [[0, 28]]);
 };
 
-var deleteMessageSent = function deleteMessageSent(request, response) {
-  var messageSentId, deletedMessageSent;
-  return regeneratorRuntime.async(function deleteMessageSent$(_context3) {
+var updateMessageSent = function updateMessageSent(request, response) {
+  var dataValidation, messageSentId, _request$body2, isOpened, isResponded, updatedMessageSent;
+
+  return regeneratorRuntime.async(function updateMessageSent$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          messageSentId = request.params.messageSentId;
-          _context3.next = 4;
-          return regeneratorRuntime.awrap(MessageSentModel.findByIdAndDelete(messageSentId));
+          dataValidation = messageSentValidation.updateMessageSent(request.body);
 
-        case 4:
-          deletedMessageSent = _context3.sent;
-          return _context3.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'Deleted message sent successfully!',
-            messageSent: deletedMessageSent
+          if (dataValidation.isAccepted) {
+            _context3.next = 4;
+            break;
+          }
+
+          return _context3.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
-        case 8:
-          _context3.prev = 8;
+        case 4:
+          messageSentId = request.params.messageSentId;
+          _request$body2 = request.body, isOpened = _request$body2.isOpened, isResponded = _request$body2.isResponded;
+
+          if (!isOpened) {
+            request.body.openedDate = null;
+          }
+
+          if (!isResponded) {
+            request.body.respondedDate = null;
+          }
+
+          _context3.next = 10;
+          return regeneratorRuntime.awrap(MessageSentModel.findByIdAndUpdate(messageSentId, request.body, {
+            "new": true
+          }));
+
+        case 10:
+          updatedMessageSent = _context3.sent;
+          return _context3.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Message Sent is updated successfully!',
+            messageSent: updatedMessageSent
+          }));
+
+        case 14:
+          _context3.prev = 14;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -221,54 +248,35 @@ var deleteMessageSent = function deleteMessageSent(request, response) {
             error: _context3.t0.message
           }));
 
-        case 12:
+        case 18:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 14]]);
 };
 
-var updateMessageSentCTA = function updateMessageSentCTA(request, response) {
-  var dataValidation, messageSentId, isCTADone, updatedMessageSent;
-  return regeneratorRuntime.async(function updateMessageSentCTA$(_context4) {
+var deleteMessageSent = function deleteMessageSent(request, response) {
+  var messageSentId, deletedMessageSent;
+  return regeneratorRuntime.async(function deleteMessageSent$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          dataValidation = messageSentValidation.updateMessageSentCTA(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context4.next = 4;
-            break;
-          }
-
-          return _context4.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
+          messageSentId = request.params.messageSentId;
+          _context4.next = 4;
+          return regeneratorRuntime.awrap(MessageSentModel.findByIdAndDelete(messageSentId));
 
         case 4:
-          messageSentId = request.params.messageSentId;
-          isCTADone = request.body.isCTADone;
-          _context4.next = 8;
-          return regeneratorRuntime.awrap(MessageSentModel.findByIdAndUpdate(messageSentId, {
-            isCTADone: isCTADone
-          }, {
-            "new": true
+          deletedMessageSent = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Deleted message sent successfully!',
+            messageSent: deletedMessageSent
           }));
 
         case 8:
-          updatedMessageSent = _context4.sent;
-          return _context4.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'Message Sent CTA is updated successfully!',
-            messageSent: updatedMessageSent
-          }));
-
-        case 12:
-          _context4.prev = 12;
+          _context4.prev = 8;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -277,23 +285,22 @@ var updateMessageSentCTA = function updateMessageSentCTA(request, response) {
             error: _context4.t0.message
           }));
 
-        case 16:
+        case 12:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 8]]);
 };
 
-var updateMessageSentOpen = function updateMessageSentOpen(request, response) {
-  var dataValidation, messageSentId, _request$body2, isOpened, openedDate, updatedMessageSent;
-
-  return regeneratorRuntime.async(function updateMessageSentOpen$(_context5) {
+var updateMessageSentCTA = function updateMessageSentCTA(request, response) {
+  var dataValidation, messageSentId, isCTADone, updatedMessageSent;
+  return regeneratorRuntime.async(function updateMessageSentCTA$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          dataValidation = messageSentValidation.updateMessageSentOpen(request.body);
+          dataValidation = messageSentValidation.updateMessageSentCTA(request.body);
 
           if (dataValidation.isAccepted) {
             _context5.next = 4;
@@ -308,11 +315,10 @@ var updateMessageSentOpen = function updateMessageSentOpen(request, response) {
 
         case 4:
           messageSentId = request.params.messageSentId;
-          _request$body2 = request.body, isOpened = _request$body2.isOpened, openedDate = _request$body2.openedDate;
+          isCTADone = request.body.isCTADone;
           _context5.next = 8;
           return regeneratorRuntime.awrap(MessageSentModel.findByIdAndUpdate(messageSentId, {
-            isOpened: isOpened,
-            openedDate: openedDate
+            isCTADone: isCTADone
           }, {
             "new": true
           }));
@@ -321,7 +327,7 @@ var updateMessageSentOpen = function updateMessageSentOpen(request, response) {
           updatedMessageSent = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Message Sent open is updated successfully!',
+            message: 'Message Sent CTA is updated successfully!',
             messageSent: updatedMessageSent
           }));
 
@@ -343,15 +349,15 @@ var updateMessageSentOpen = function updateMessageSentOpen(request, response) {
   }, null, null, [[0, 12]]);
 };
 
-var updateMessageSentRespond = function updateMessageSentRespond(request, response) {
-  var dataValidation, messageSentId, _request$body3, isResponded, respondedDate, updatedMessageSent;
+var updateMessageSentOpen = function updateMessageSentOpen(request, response) {
+  var dataValidation, messageSentId, _request$body3, isOpened, openedDate, updatedMessageSent;
 
-  return regeneratorRuntime.async(function updateMessageSentRespond$(_context6) {
+  return regeneratorRuntime.async(function updateMessageSentOpen$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          dataValidation = messageSentValidation.updateMessageSentRespond(request.body);
+          dataValidation = messageSentValidation.updateMessageSentOpen(request.body);
 
           if (dataValidation.isAccepted) {
             _context6.next = 4;
@@ -366,11 +372,11 @@ var updateMessageSentRespond = function updateMessageSentRespond(request, respon
 
         case 4:
           messageSentId = request.params.messageSentId;
-          _request$body3 = request.body, isResponded = _request$body3.isResponded, respondedDate = _request$body3.respondedDate;
+          _request$body3 = request.body, isOpened = _request$body3.isOpened, openedDate = _request$body3.openedDate;
           _context6.next = 8;
           return regeneratorRuntime.awrap(MessageSentModel.findByIdAndUpdate(messageSentId, {
-            isResponded: isResponded,
-            respondedDate: respondedDate
+            isOpened: isOpened,
+            openedDate: openedDate
           }, {
             "new": true
           }));
@@ -379,7 +385,7 @@ var updateMessageSentRespond = function updateMessageSentRespond(request, respon
           updatedMessageSent = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Message Sent respond is updated successfully!',
+            message: 'Message Sent open is updated successfully!',
             messageSent: updatedMessageSent
           }));
 
@@ -401,9 +407,68 @@ var updateMessageSentRespond = function updateMessageSentRespond(request, respon
   }, null, null, [[0, 12]]);
 };
 
+var updateMessageSentRespond = function updateMessageSentRespond(request, response) {
+  var dataValidation, messageSentId, _request$body4, isResponded, respondedDate, updatedMessageSent;
+
+  return regeneratorRuntime.async(function updateMessageSentRespond$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          dataValidation = messageSentValidation.updateMessageSentRespond(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context7.next = 4;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          messageSentId = request.params.messageSentId;
+          _request$body4 = request.body, isResponded = _request$body4.isResponded, respondedDate = _request$body4.respondedDate;
+          _context7.next = 8;
+          return regeneratorRuntime.awrap(MessageSentModel.findByIdAndUpdate(messageSentId, {
+            isResponded: isResponded,
+            respondedDate: respondedDate
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedMessageSent = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Message Sent respond is updated successfully!',
+            messageSent: updatedMessageSent
+          }));
+
+        case 12:
+          _context7.prev = 12;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context7.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   getMessagesSent: getMessagesSent,
   addMessageSent: addMessageSent,
+  updateMessageSent: updateMessageSent,
   deleteMessageSent: deleteMessageSent,
   updateMessageSentCTA: updateMessageSentCTA,
   updateMessageSentOpen: updateMessageSentOpen,
