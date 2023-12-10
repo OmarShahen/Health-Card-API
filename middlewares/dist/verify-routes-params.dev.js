@@ -72,6 +72,8 @@ var MessageSentModel = require('../models/CRM/MessageSentModel');
 
 var ValueModel = require('../models/ValueModel');
 
+var OpeningTimeModel = require('../models/OpeningTimeModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -2170,6 +2172,65 @@ var verifyValueId = function verifyValueId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyOpeningTimeId = function verifyOpeningTimeId(request, response, next) {
+  var openingTimeId, openingTime;
+  return regeneratorRuntime.async(function verifyOpeningTimeId$(_context37) {
+    while (1) {
+      switch (_context37.prev = _context37.next) {
+        case 0:
+          _context37.prev = 0;
+          openingTimeId = request.params.openingTimeId;
+
+          if (utils.isObjectId(openingTimeId)) {
+            _context37.next = 4;
+            break;
+          }
+
+          return _context37.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid opening ID format',
+            field: 'openingTimeId'
+          }));
+
+        case 4:
+          _context37.next = 6;
+          return regeneratorRuntime.awrap(OpeningTimeModel.findById(openingTimeId));
+
+        case 6:
+          openingTime = _context37.sent;
+
+          if (openingTime) {
+            _context37.next = 9;
+            break;
+          }
+
+          return _context37.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Opening ID does not exist',
+            field: 'openingTimeId'
+          }));
+
+        case 9:
+          return _context37.abrupt("return", next());
+
+        case 12:
+          _context37.prev = 12;
+          _context37.t0 = _context37["catch"](0);
+          console.error(_context37.t0);
+          return _context37.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context37.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context37.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -2206,5 +2267,6 @@ module.exports = {
   verifyStageId: verifyStageId,
   verifyMessageTemplateId: verifyMessageTemplateId,
   verifyMessageSentId: verifyMessageSentId,
-  verifyValueId: verifyValueId
+  verifyValueId: verifyValueId,
+  verifyOpeningTimeId: verifyOpeningTimeId
 };

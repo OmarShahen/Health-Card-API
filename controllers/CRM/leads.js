@@ -1,20 +1,29 @@
 const LeadModel = require('../../models/CRM/LeadModel')
+const StageModel = require('../../models/CRM/StageModel')
 const SpecialityModel = require('../../models/SpecialityModel')
 const CounterModel = require('../../models/CounterModel')
 const leadValidation = require('../../validations/CRM/leads')
 const utils = require('../../utils/utils')
 const mongoose = require('mongoose')
 
-
 const getLeads = async (request, response) => {
 
     try {
 
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
+        const limit = 10
 
         const leads = await LeadModel.aggregate([
             {
                 $match: searchQuery
+            },
+            {
+                $sort: {
+                    updatedAt: -1
+                }
+            },
+            {
+                $limit: limit
             },
             {
                 $lookup: {
@@ -23,18 +32,39 @@ const getLeads = async (request, response) => {
                     foreignField: '_id',
                     as: 'speciality'
                 }
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
             }
         ])
 
         leads.forEach(lead => lead.speciality = lead.speciality[0])
 
+        const totalLeads = await LeadModel.countDocuments(searchQuery)
+        const totalOpened = await LeadModel.countDocuments({ ...searchQuery, status: 'OPENED' })
+        const totalClosed = await LeadModel.countDocuments({ ...searchQuery, status: 'CLOSED' })
+        const totalWon = await LeadModel.countDocuments({ ...searchQuery, status: 'WON' })
+        const totalLost = await LeadModel.countDocuments({ ...searchQuery, status: 'LOST' })
+
+        const totalAmount = await LeadModel.aggregate([
+            {
+                $match: { ...searchQuery, status: 'OPENED' }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalAmount: { $sum: '$value' }
+                }
+            }
+        ])
+
+        const potentialEarnings = totalAmount.length == 0 ? 0 : totalAmount[0].totalAmount
+
         return response.status(200).json({
             accepted: true,
+            totalLeads,
+            totalOpened,
+            totalClosed,
+            totalWon,
+            totalLost,
+            potentialEarnings,
             leads
         })
 
@@ -207,13 +237,28 @@ const addLead = async (request, response) => {
                 phone: clinicPhone
             }
         }
+
         const leadObj = new LeadModel(leadData)
         const newLead = await leadObj.save()
+
+        let newStage
+
+        if(request.body.status == 'OPENED') {
+            const counter = await CounterModel.findOneAndUpdate(
+                { name: 'Stage' },
+                { $inc: { value: 1 } },
+                { new: true, upsert: true }
+            )
+            const stageData = { stageId: counter.value, leadId: newLead._id, stage: request.body.status }
+            const stageObj = new StageModel(stageData)
+            newStage = await stageObj.save()
+        }
 
         return response.status(200).json({
             accepted: true,
             message: 'Added new lead successfully!',
-            lead: newLead
+            lead: newLead,
+            stage: newStage
         })
 
     } catch(error) {

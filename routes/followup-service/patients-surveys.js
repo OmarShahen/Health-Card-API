@@ -24,6 +24,13 @@ router.get(
 )
 
 router.get(
+    '/v1/patients-surveys/owners/:userId',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => patientsSurveysController.getPatientsSurveysByOwnerId(request, response)
+)
+
+router.get(
     '/v1/patients-surveys/members/:userId',
     authorization.allPermission,
     verifyUserId,

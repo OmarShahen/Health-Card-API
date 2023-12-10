@@ -93,7 +93,7 @@ const addMeeting = async (request, response) => {
             })
         }
         
-        const { leadId, status, reservationTime } = request.body
+        const { leadId, status, reservationTime, note } = request.body
 
         const lead = await LeadModel.findById(leadId)
         if(!lead) {
@@ -115,7 +115,8 @@ const addMeeting = async (request, response) => {
             meetingId: counter.value,
             leadId,
             status,
-            reservationTime
+            reservationTime,
+            note
         }
 
         const meetingObj = new MeetingModel(meetingData)
@@ -137,11 +138,11 @@ const addMeeting = async (request, response) => {
     }
 }
 
-const updateMeetingStatus = async (request, response) => {
+const updateMeeting = async (request, response) => {
 
     try {
 
-        const dataValidation = meetingsValidation.updateMeetingStatus(request.body)
+        const dataValidation = meetingsValidation.updateMeeting(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -151,9 +152,9 @@ const updateMeetingStatus = async (request, response) => {
         }
         
         const { meetingId } = request.params
-        const { status } = request.body
+        const { status, note } = request.body
         
-        const updatedMeeting = await MeetingModel.findByIdAndUpdate(meetingId, { status }, { new: true })
+        const updatedMeeting = await MeetingModel.findByIdAndUpdate(meetingId, { status, note }, { new: true })
 
         return response.status(200).json({
             accepted: true,
@@ -195,4 +196,10 @@ const deleteMeeting = async (request, response) => {
     }
 }
 
-module.exports = { getMeetings, getMeetingsByLeadId, addMeeting, updateMeetingStatus, deleteMeeting }
+module.exports = { 
+    getMeetings, 
+    getMeetingsByLeadId, 
+    addMeeting, 
+    updateMeeting, 
+    deleteMeeting 
+}

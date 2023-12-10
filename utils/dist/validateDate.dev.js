@@ -13,15 +13,27 @@ var isDateTimeValid = function isDateTimeValid(dateTime) {
     return false;
   }
 
-  return true; //return moment(dateTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()
+  return true;
 };
 
 var isBirthYearValid = function isBirthYearValid(date) {
   return moment(date, 'YYYY', true).isValid();
 };
 
+var isTimeValid = function isTimeValid(timeString) {
+  var format = 'HH:mm';
+  var time = moment(timeString, format, true);
+
+  if (time.isValid()) {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 module.exports = {
   isDateValid: isDateValid,
   isBirthYearValid: isBirthYearValid,
-  isDateTimeValid: isDateTimeValid
+  isDateTimeValid: isDateTimeValid,
+  isTimeValid: isTimeValid
 };

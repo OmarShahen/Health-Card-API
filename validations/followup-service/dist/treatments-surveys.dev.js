@@ -225,7 +225,7 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(treatmentSurveyData) 
     message: 'Challenges obtaining medication value format is invalid',
     field: 'challengesObtainingMedication'
   };
-  if (typeof isThereChallengesTakingMedication != 'boolean') return {
+  if (isThereChallengesTakingMedication && typeof isThereChallengesTakingMedication != 'boolean') return {
     isAccepted: false,
     message: 'Is there challenges taking medication format is invalid',
     field: 'isThereChallengesTakingMedication'

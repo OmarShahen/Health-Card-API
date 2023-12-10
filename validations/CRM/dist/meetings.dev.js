@@ -7,7 +7,8 @@ var config = require('../../config/config');
 var addMeeting = function addMeeting(meetingData) {
   var leadId = meetingData.leadId,
       status = meetingData.status,
-      reservationTime = meetingData.reservationTime;
+      reservationTime = meetingData.reservationTime,
+      note = meetingData.note;
   if (!leadId) return {
     isAccepted: false,
     message: 'Lead ID is required',
@@ -43,6 +44,11 @@ var addMeeting = function addMeeting(meetingData) {
     message: 'Reservation time format is invalid',
     field: 'reservationTime'
   };
+  if (note && typeof note != 'string') return {
+    isAccepted: false,
+    message: 'Note format is invalid',
+    field: 'note'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -50,8 +56,9 @@ var addMeeting = function addMeeting(meetingData) {
   };
 };
 
-var updateMeetingStatus = function updateMeetingStatus(meetingData) {
-  var status = meetingData.status;
+var updateMeeting = function updateMeeting(meetingData) {
+  var status = meetingData.status,
+      note = meetingData.note;
   if (!status) return {
     isAccepted: false,
     message: 'Status is required',
@@ -67,6 +74,11 @@ var updateMeetingStatus = function updateMeetingStatus(meetingData) {
     message: 'Status value is not registered',
     field: 'status'
   };
+  if (note && typeof note != 'string') return {
+    isAccepted: false,
+    message: 'Note format is invalid',
+    field: 'note'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -76,5 +88,5 @@ var updateMeetingStatus = function updateMeetingStatus(meetingData) {
 
 module.exports = {
   addMeeting: addMeeting,
-  updateMeetingStatus: updateMeetingStatus
+  updateMeeting: updateMeeting
 };

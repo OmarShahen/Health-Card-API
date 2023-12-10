@@ -112,7 +112,7 @@ var getMeetingsByLeadId = function getMeetingsByLeadId(request, response) {
 };
 
 var addMeeting = function addMeeting(request, response) {
-  var dataValidation, _request$body, leadId, status, reservationTime, lead, counter, meetingData, meetingObj, newMeeting;
+  var dataValidation, _request$body, leadId, status, reservationTime, note, lead, counter, meetingData, meetingObj, newMeeting;
 
   return regeneratorRuntime.async(function addMeeting$(_context3) {
     while (1) {
@@ -133,7 +133,7 @@ var addMeeting = function addMeeting(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, leadId = _request$body.leadId, status = _request$body.status, reservationTime = _request$body.reservationTime;
+          _request$body = request.body, leadId = _request$body.leadId, status = _request$body.status, reservationTime = _request$body.reservationTime, note = _request$body.note;
           _context3.next = 7;
           return regeneratorRuntime.awrap(LeadModel.findById(leadId));
 
@@ -170,7 +170,8 @@ var addMeeting = function addMeeting(request, response) {
             meetingId: counter.value,
             leadId: leadId,
             status: status,
-            reservationTime: reservationTime
+            reservationTime: reservationTime,
+            note: note
           };
           meetingObj = new MeetingModel(meetingData);
           _context3.next = 17;
@@ -202,14 +203,15 @@ var addMeeting = function addMeeting(request, response) {
   }, null, null, [[0, 21]]);
 };
 
-var updateMeetingStatus = function updateMeetingStatus(request, response) {
-  var dataValidation, meetingId, status, updatedMeeting;
-  return regeneratorRuntime.async(function updateMeetingStatus$(_context4) {
+var updateMeeting = function updateMeeting(request, response) {
+  var dataValidation, meetingId, _request$body2, status, note, updatedMeeting;
+
+  return regeneratorRuntime.async(function updateMeeting$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          dataValidation = meetingsValidation.updateMeetingStatus(request.body);
+          dataValidation = meetingsValidation.updateMeeting(request.body);
 
           if (dataValidation.isAccepted) {
             _context4.next = 4;
@@ -224,10 +226,11 @@ var updateMeetingStatus = function updateMeetingStatus(request, response) {
 
         case 4:
           meetingId = request.params.meetingId;
-          status = request.body.status;
+          _request$body2 = request.body, status = _request$body2.status, note = _request$body2.note;
           _context4.next = 8;
           return regeneratorRuntime.awrap(MeetingModel.findByIdAndUpdate(meetingId, {
-            status: status
+            status: status,
+            note: note
           }, {
             "new": true
           }));
@@ -299,6 +302,6 @@ module.exports = {
   getMeetings: getMeetings,
   getMeetingsByLeadId: getMeetingsByLeadId,
   addMeeting: addMeeting,
-  updateMeetingStatus: updateMeetingStatus,
+  updateMeeting: updateMeeting,
   deleteMeeting: deleteMeeting
 };

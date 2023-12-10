@@ -19,8 +19,8 @@ router.get('/v1/crm/meetings/leads/:leadId', authorization.allPermission, verify
 router.post('/v1/crm/meetings', authorization.allPermission, function (request, response) {
   return meetingsController.addMeeting(request, response);
 });
-router.patch('/v1/crm/meetings/:meetingId/status', authorization.allPermission, function (request, response) {
-  return meetingsController.updateMeetingStatus(request, response);
+router.put('/v1/crm/meetings/:meetingId', authorization.allPermission, function (request, response) {
+  return meetingsController.updateMeeting(request, response);
 });
 router["delete"]('/v1/crm/meetings/:meetingId', authorization.allPermission, verifyMeetingId, function (request, response) {
   return meetingsController.deleteMeeting(request, response);

@@ -48,6 +48,7 @@ app.use('/api', require('./routes/insurancePolicies'))
 app.use('/api', require('./routes/file-storage/folders'))
 app.use('/api', require('./routes/file-storage/files'))
 app.use('/api', require('./routes/arrival-methods'))
+app.use('/api', require('./routes/opening-times'))
 
 app.use('/api', require('./routes/followup-service/clinics-subscriptions'))
 app.use('/api', require('./routes/followup-service/patients-surveys'))

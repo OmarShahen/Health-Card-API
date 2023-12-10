@@ -29,12 +29,7 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
       appointmentsIsSchedulingEasy = patientSurveyData.appointmentsIsSchedulingEasy,
       appointmentsIsReminderSent = patientSurveyData.appointmentsIsReminderSent,
       appointmentsSchedulingWay = patientSurveyData.appointmentsSchedulingWay;
-  if (!arrivalMethodId) return {
-    isAccepted: false,
-    message: 'Arrival method is required',
-    field: 'arrivalMethodId'
-  };
-  if (!utils.isObjectId(arrivalMethodId)) return {
+  if (arrivalMethodId && !utils.isObjectId(arrivalMethodId)) return {
     isAccepted: false,
     message: 'Invalid arrival method ID format',
     field: 'arrivalMethodId'
@@ -89,87 +84,87 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
     message: 'Call duration format is invalid',
     field: 'callDuration'
   };
-  if (typeof waitingTimeWaited != 'number') return {
+  if (waitingTimeWaited && typeof waitingTimeWaited != 'number') return {
     isAccepted: false,
     message: 'waiting time format is invalid',
     field: 'waitingTimeWaited'
   };
-  if (typeof waitingIsDelayHappened != 'boolean') return {
+  if (waitingIsDelayHappened && typeof waitingIsDelayHappened != 'boolean') return {
     isAccepted: false,
     message: 'waiting is delayed happened format is invalid',
     field: 'waitingIsDelayHappened'
   };
-  if (typeof waitingIsDelayInformed != 'boolean') return {
+  if (waitingIsDelayInformed && typeof waitingIsDelayInformed != 'boolean') return {
     isAccepted: false,
     message: 'waiting is delay informed format is invalid',
     field: 'waitingIsDelayInformed'
   };
-  if (typeof waitingSatisfaction != 'number') return {
+  if (waitingSatisfaction && typeof waitingSatisfaction != 'number') return {
     isAccepted: false,
     message: 'waiting satisfaction format is invalid',
     field: 'waitingSatisfaction'
   };
-  if (typeof environmentIsClean != 'boolean') return {
+  if (environmentIsClean && typeof environmentIsClean != 'boolean') return {
     isAccepted: false,
     message: 'environment is clean format is invalid',
     field: 'environmentIsClean'
   };
-  if (typeof environmentIsComfortable != 'boolean') return {
+  if (environmentIsComfortable && typeof environmentIsComfortable != 'boolean') return {
     isAccepted: false,
     message: 'environment is comfortable format is invalid',
     field: 'environmentIsComfortable'
   };
-  if (typeof staffIsFriendly != 'boolean') return {
+  if (staffIsFriendly && typeof staffIsFriendly != 'boolean') return {
     isAccepted: false,
     message: 'staff is friendly format is invalid',
     field: 'staffIsFriendly'
   };
-  if (typeof staffIsResponsive != 'boolean') return {
+  if (staffIsResponsive && typeof staffIsResponsive != 'boolean') return {
     isAccepted: false,
     message: 'staff is responsive format is invalid',
     field: 'staffIsResponsive'
   };
-  if (typeof healthcareProviderAttentiveness != 'number') return {
+  if (healthcareProviderAttentiveness && typeof healthcareProviderAttentiveness != 'number') return {
     isAccepted: false,
     message: 'healthcare provider attentiveness format is invalid',
     field: 'healthcareProviderAttentiveness'
   };
-  if (typeof healthcareProviderIsAddressedAdequately != 'boolean') return {
+  if (healthcareProviderIsAddressedAdequately && typeof healthcareProviderIsAddressedAdequately != 'boolean') return {
     isAccepted: false,
     message: 'healthcare provider is addressed adequately format is invalid',
     field: 'healthcareProviderIsAddressedAdequately'
   };
-  if (typeof healthcareProviderTreatmentExplanation != 'number') return {
+  if (healthcareProviderTreatmentExplanation && typeof healthcareProviderTreatmentExplanation != 'number') return {
     isAccepted: false,
     message: 'healthcare provider is treatment explained clearly format is invalid',
     field: 'healthcareProviderTreatmentExplanation'
   };
-  if (typeof healthcareProviderIsMedicalHistoryAsked != 'boolean') return {
+  if (healthcareProviderIsMedicalHistoryAsked && typeof healthcareProviderIsMedicalHistoryAsked != 'boolean') return {
     isAccepted: false,
     message: 'healthcare provider is medical history asked format is invalid',
     field: 'healthcareProviderIsMedicalHistoryAsked'
   };
-  if (typeof appointmentsIsConvenientTimeSlotFound != 'boolean') return {
+  if (appointmentsIsConvenientTimeSlotFound && typeof appointmentsIsConvenientTimeSlotFound != 'boolean') return {
     isAccepted: false,
     message: 'appointment is convenient time slot found format is invalid',
     field: 'appointmentsIsConvenientTimeSlotFound'
   };
-  if (typeof appointmentsIsSchedulingEasy != 'boolean') return {
+  if (appointmentsIsSchedulingEasy && typeof appointmentsIsSchedulingEasy != 'boolean') return {
     isAccepted: false,
     message: 'appointment is scheduling easy format is invalid',
     field: 'appointmentsIsSchedulingEasy'
   };
-  if (typeof appointmentsIsReminderSent != 'boolean') return {
+  if (appointmentsIsReminderSent && typeof appointmentsIsReminderSent != 'boolean') return {
     isAccepted: false,
     message: 'appointment is reminder sent format is invalid',
     field: 'appointmentsIsReminderSent'
   };
-  if (typeof appointmentsSchedulingWay != 'string') return {
+  if (appointmentsSchedulingWay && typeof appointmentsSchedulingWay != 'string') return {
     isAccepted: false,
     message: 'appointment scheduling way format is invalid',
     field: 'appointmentsSchedulingWay'
   };
-  if (!config.SCHEDULING_WAYS.includes(appointmentsSchedulingWay)) return {
+  if (appointmentsSchedulingWay && !config.SCHEDULING_WAYS.includes(appointmentsSchedulingWay)) return {
     isAccepted: false,
     message: 'Invalid value for appointment scheduling way',
     field: 'appointmentsSchedulingWay'
@@ -228,87 +223,87 @@ var updatePatientSurvey = function updatePatientSurvey(patientSurveyData) {
     message: 'Call duration format is invalid',
     field: 'callDuration'
   };
-  if (typeof waitingTimeWaited != 'number') return {
+  if (waitingTimeWaited && typeof waitingTimeWaited != 'number') return {
     isAccepted: false,
     message: 'waiting time format is invalid',
     field: 'waitingTimeWaited'
   };
-  if (typeof waitingIsDelayHappened != 'boolean') return {
+  if (waitingIsDelayHappened && typeof waitingIsDelayHappened != 'boolean') return {
     isAccepted: false,
     message: 'waiting is delayed happened format is invalid',
     field: 'waitingIsDelayHappened'
   };
-  if (typeof waitingIsDelayInformed != 'boolean') return {
+  if (waitingIsDelayInformed && typeof waitingIsDelayInformed != 'boolean') return {
     isAccepted: false,
     message: 'waiting is delay informed format is invalid',
     field: 'waitingIsDelayInformed'
   };
-  if (typeof waitingSatisfaction != 'number') return {
+  if (waitingSatisfaction && typeof waitingSatisfaction != 'number') return {
     isAccepted: false,
     message: 'waiting satisfaction format is invalid',
     field: 'waitingSatisfaction'
   };
-  if (typeof environmentIsClean != 'boolean') return {
+  if (environmentIsClean && typeof environmentIsClean != 'boolean') return {
     isAccepted: false,
     message: 'environment is clean format is invalid',
     field: 'environmentIsClean'
   };
-  if (typeof environmentIsComfortable != 'boolean') return {
+  if (environmentIsComfortable && typeof environmentIsComfortable != 'boolean') return {
     isAccepted: false,
     message: 'environment is comfortable format is invalid',
     field: 'environmentIsComfortable'
   };
-  if (typeof staffIsFriendly != 'boolean') return {
+  if (staffIsFriendly && typeof staffIsFriendly != 'boolean') return {
     isAccepted: false,
     message: 'staff is friendly format is invalid',
     field: 'staffIsFriendly'
   };
-  if (typeof staffIsResponsive != 'boolean') return {
+  if (staffIsResponsive && typeof staffIsResponsive != 'boolean') return {
     isAccepted: false,
     message: 'staff is responsive format is invalid',
     field: 'staffIsResponsive'
   };
-  if (typeof healthcareProviderAttentiveness != 'number') return {
+  if (healthcareProviderAttentiveness && typeof healthcareProviderAttentiveness != 'number') return {
     isAccepted: false,
     message: 'healthcare provider attentiveness format is invalid',
     field: 'healthcareProviderAttentiveness'
   };
-  if (typeof healthcareProviderIsAddressedAdequately != 'boolean') return {
+  if (healthcareProviderIsAddressedAdequately && typeof healthcareProviderIsAddressedAdequately != 'boolean') return {
     isAccepted: false,
     message: 'healthcare provider is addressed adequately format is invalid',
     field: 'healthcareProviderIsAddressedAdequately'
   };
-  if (typeof healthcareProviderTreatmentExplanation != 'number') return {
+  if (healthcareProviderTreatmentExplanation && typeof healthcareProviderTreatmentExplanation != 'number') return {
     isAccepted: false,
     message: 'healthcare provider treatment explained clearly format is invalid',
     field: 'healthcareProviderTreatmentExplanation'
   };
-  if (typeof healthcareProviderIsMedicalHistoryAsked != 'boolean') return {
+  if (healthcareProviderIsMedicalHistoryAsked && typeof healthcareProviderIsMedicalHistoryAsked != 'boolean') return {
     isAccepted: false,
     message: 'healthcare provider is medical history asked format is invalid',
     field: 'healthcareProviderIsMedicalHistoryAsked'
   };
-  if (typeof appointmentsIsConvenientTimeSlotFound != 'boolean') return {
+  if (appointmentsIsConvenientTimeSlotFound && typeof appointmentsIsConvenientTimeSlotFound != 'boolean') return {
     isAccepted: false,
     message: 'appointment is convenient time slot found format is invalid',
     field: 'appointmentsIsConvenientTimeSlotFound'
   };
-  if (typeof appointmentsIsSchedulingEasy != 'boolean') return {
+  if (appointmentsIsSchedulingEasy && typeof appointmentsIsSchedulingEasy != 'boolean') return {
     isAccepted: false,
     message: 'appointment is scheduling easy format is invalid',
     field: 'appointmentsIsSchedulingEasy'
   };
-  if (typeof appointmentsIsReminderSent != 'boolean') return {
+  if (appointmentsIsReminderSent && typeof appointmentsIsReminderSent != 'boolean') return {
     isAccepted: false,
     message: 'appointment is reminder sent format is invalid',
     field: 'appointmentsIsReminderSent'
   };
-  if (typeof appointmentsSchedulingWay != 'string') return {
+  if (appointmentsSchedulingWay && typeof appointmentsSchedulingWay != 'string') return {
     isAccepted: false,
     message: 'appointment scheduling way format is invalid',
     field: 'appointmentsSchedulingWay'
   };
-  if (!config.SCHEDULING_WAYS.includes(appointmentsSchedulingWay)) return {
+  if (appointmentsSchedulingWay && !config.SCHEDULING_WAYS.includes(appointmentsSchedulingWay)) return {
     isAccepted: false,
     message: 'Invalid value for appointment scheduling way',
     field: 'appointmentsSchedulingWay'

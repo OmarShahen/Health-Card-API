@@ -24,6 +24,9 @@ router.get('/v1/treatments-surveys/patients/:patientId', authorization.allPermis
 router.get('/v1/treatments-surveys/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return treatmentsSurveysController.getTreatmentsSurveysByClinicId(request, response);
 });
+router.get('/v1/treatments-surveys/owners/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+  return treatmentsSurveysController.getTreatmentsSurveysByOwnerId(request, response);
+});
 router.post('/v1/treatments-surveys', authorization.allPermission, function (request, response) {
   return treatmentsSurveysController.addTreatmentSurvey(request, response);
 });

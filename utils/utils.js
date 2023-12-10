@@ -8,7 +8,7 @@ const { isCountryCodeValid } = require('./validateCountryCodes')
 const { isDatePeriodValid } = require('./validateDatePeriod')
 const { getTreatmentExpirationDate } = require('./expirationDate')
 const { isWhatsappLanguageValid } = require('./validateWhatsappLanguage')
-const { isDateValid, isBirthYearValid, isDateTimeValid } = require('./validateDate')
+const { isDateValid, isBirthYearValid, isDateTimeValid, isTimeValid } = require('./validateDate')
 const { generateVerificationCode } = require('./random-number')
 const { isUUIDValid } = require('./validateUUID')
 const { statsQueryGenerator, growthDatePicker } = require('./queryGenerator')
@@ -48,5 +48,6 @@ module.exports = {
     capitalizeFirstLetter,
     concatenateHmacString,
     getTime,
-    getAge
+    getAge,
+    isTimeValid
 }

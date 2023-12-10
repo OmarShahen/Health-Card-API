@@ -22,10 +22,10 @@ router.post(
     (request, response) => meetingsController.addMeeting(request, response)
 )
 
-router.patch(
-    '/v1/crm/meetings/:meetingId/status',
+router.put(
+    '/v1/crm/meetings/:meetingId',
     authorization.allPermission,
-    (request, response) => meetingsController.updateMeetingStatus(request, response)
+    (request, response) => meetingsController.updateMeeting(request, response)
 )
 
 router.delete(

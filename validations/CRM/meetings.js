@@ -4,7 +4,7 @@ const config = require('../../config/config')
 
 const addMeeting = (meetingData) => {
 
-    const { leadId, status, reservationTime } = meetingData
+    const { leadId, status, reservationTime, note } = meetingData
 
     if(!leadId) return { isAccepted: false, message: 'Lead ID is required', field: 'leadId' }
 
@@ -20,12 +20,14 @@ const addMeeting = (meetingData) => {
 
     if(!utils.isDateTimeValid(reservationTime)) return { isAccepted: false, message: 'Reservation time format is invalid', field: 'reservationTime' }
 
+    if(note && typeof note != 'string') return { isAccepted: false, message: 'Note format is invalid', field: 'note' }
+
     return { isAccepted: true, message: 'data is valid', data: meetingData }
 }
 
-const updateMeetingStatus = (meetingData) => {
+const updateMeeting = (meetingData) => {
 
-    const { status } = meetingData
+    const { status, note } = meetingData
 
     if(!status) return { isAccepted: false, message: 'Status is required', field: 'status' }
     
@@ -33,8 +35,10 @@ const updateMeetingStatus = (meetingData) => {
 
     if(!config.APPOINTMENT_STATUS.includes(status)) return { isAccepted: false, message: 'Status value is not registered', field: 'status' }
 
+    if(note && typeof note != 'string') return { isAccepted: false, message: 'Note format is invalid', field: 'note' }
+
     return { isAccepted: true, message: 'data is valid', data: meetingData }
 }
 
 
-module.exports = { addMeeting, updateMeetingStatus }
+module.exports = { addMeeting, updateMeeting }

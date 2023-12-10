@@ -17,6 +17,9 @@ var MeetingSchema = new mongoose.Schema({
   reservationTime: {
     type: Date,
     required: true
+  },
+  note: {
+    type: String
   }
 }, {
   timestamps: true

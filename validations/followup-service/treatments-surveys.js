@@ -127,7 +127,7 @@ const updateTreatmentSurvey = (treatmentSurveyData) => {
 
     if(challengesObtainingMedication && challengesObtainingMedication.length != 0 && !checkListIds(challengesObtainingMedication)) return { isAccepted: false, message: 'Challenges obtaining medication value format is invalid', field: 'challengesObtainingMedication' }
 
-    if(typeof isThereChallengesTakingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges taking medication format is invalid', field: 'isThereChallengesTakingMedication' }
+    if(isThereChallengesTakingMedication && typeof isThereChallengesTakingMedication != 'boolean') return { isAccepted: false, message: 'Is there challenges taking medication format is invalid', field: 'isThereChallengesTakingMedication' }
 
     if(challengesTakingMedication && !Array.isArray(challengesTakingMedication)) return { isAccepted: false, message: 'Challenges taking medication format is invalid', field: 'challengesTakingMedication' }
 

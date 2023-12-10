@@ -1,6 +1,7 @@
 const TreatmentSurveyModel = require('../../models/followup-service/TreatmentSurveyModel')
 const MedicationChallengeModel = require('../../models/medication-challenges/MedicationChallenges')
 const PatientModel = require('../../models/PatientModel')
+const ClinicOwnerModel = require('../../models/ClinicOwnerModel')
 const ClinicModel = require('../../models/ClinicModel')
 const UserModel = require('../../models/UserModel')
 const CallModel = require('../../models/followup-service/CallModel')
@@ -221,6 +222,84 @@ const getTreatmentsSurveysByClinicId = async (request, response) => {
     }
 }
 
+const getTreatmentsSurveysByOwnerId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const ownerClinics = await ClinicOwnerModel.find({ ownerId: userId })
+
+        const clinics = ownerClinics.map(clinic => clinic.clinicId)
+
+        let { searchQuery } = utils.statsQueryGenerator('temp', userId, request.query)
+        
+        delete searchQuery.temp
+        searchQuery.clinicId = { $in: clinics }
+        
+        const treatmentsSurveys = await TreatmentSurveyModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doneById',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $project: {
+                    'patient.emergencyContacts': 0,
+                    'patient.healthHistory': 0,
+                    'member.password': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        treatmentsSurveys.forEach(treatmentSurvey => {
+            treatmentSurvey.patient = treatmentSurvey.patient[0]
+            treatmentSurvey.member = treatmentSurvey.member[0]
+            treatmentSurvey.clinic = treatmentSurvey.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            treatmentsSurveys
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(400).json({
+            accepted: false,
+            messsage: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getTreatmentSurveyById = async (request, response) => {
 
     try {
@@ -302,7 +381,6 @@ const getTreatmentSurveyById = async (request, response) => {
         })
     }
 }
-
 
 const addTreatmentSurvey = async (request, response) => {
 
@@ -550,7 +628,6 @@ const updateTreatmentSurvey = async (request, response) => {
     }
 }
 
-
 const deleteTreatmentSurvey = async (request, response) => {
 
     try {
@@ -581,6 +658,7 @@ module.exports = {
     getTreatmentsSurveys, 
     getTreatmentsSurveysByPatientId,
     getTreatmentsSurveysByClinicId,
+    getTreatmentsSurveysByOwnerId,
     getTreatmentSurveyById,
     addTreatmentSurvey, 
     updateTreatmentSurvey,

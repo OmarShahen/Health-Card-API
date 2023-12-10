@@ -1,12 +1,26 @@
 const router = require('express').Router()
 const commentsController = require('../../controllers/followup-service/comments')
 const authorization = require('../../middlewares/verify-permission')
-const { verifyCommentId } = require('../../middlewares/verify-routes-params')
+const { verifyCommentId, verifyClinicId, verifyUserId } = require('../../middlewares/verify-routes-params')
 
 router.get(
     '/v1/comments', 
     authorization.allPermission,
     (request, response) => commentsController.getComments(request, response)
+)
+
+router.get(
+    '/v1/comments/clinics/:clinicId', 
+    authorization.allPermission,
+    verifyClinicId,
+    (request, response) => commentsController.getCommentsByClinicId(request, response)
+)
+
+router.get(
+    '/v1/comments/owners/:userId', 
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => commentsController.getCommentsByOwnerId(request, response)
 )
 
 router.post(

@@ -14,6 +14,8 @@ var MedicationChallengeModel = require('../../models/medication-challenges/Medic
 
 var PatientModel = require('../../models/PatientModel');
 
+var ClinicOwnerModel = require('../../models/ClinicOwnerModel');
+
 var ClinicModel = require('../../models/ClinicModel');
 
 var UserModel = require('../../models/UserModel');
@@ -255,15 +257,105 @@ var getTreatmentsSurveysByClinicId = function getTreatmentsSurveysByClinicId(req
   }, null, null, [[0, 10]]);
 };
 
-var getTreatmentSurveyById = function getTreatmentSurveyById(request, response) {
-  var treatmentSurveyId, treatmentSurveyList;
-  return regeneratorRuntime.async(function getTreatmentSurveyById$(_context4) {
+var getTreatmentsSurveysByOwnerId = function getTreatmentsSurveysByOwnerId(request, response) {
+  var userId, ownerClinics, clinics, _utils$statsQueryGene4, searchQuery, treatmentsSurveys;
+
+  return regeneratorRuntime.async(function getTreatmentsSurveysByOwnerId$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          treatmentSurveyId = request.params.treatmentSurveyId;
+          userId = request.params.userId;
           _context4.next = 4;
+          return regeneratorRuntime.awrap(ClinicOwnerModel.find({
+            ownerId: userId
+          }));
+
+        case 4:
+          ownerClinics = _context4.sent;
+          clinics = ownerClinics.map(function (clinic) {
+            return clinic.clinicId;
+          });
+          _utils$statsQueryGene4 = utils.statsQueryGenerator('temp', userId, request.query), searchQuery = _utils$statsQueryGene4.searchQuery;
+          delete searchQuery.temp;
+          searchQuery.clinicId = {
+            $in: clinics
+          };
+          _context4.next = 11;
+          return regeneratorRuntime.awrap(TreatmentSurveyModel.aggregate([{
+            $match: searchQuery
+          }, {
+            $lookup: {
+              from: 'patients',
+              localField: 'patientId',
+              foreignField: '_id',
+              as: 'patient'
+            }
+          }, {
+            $lookup: {
+              from: 'clinics',
+              localField: 'clinicId',
+              foreignField: '_id',
+              as: 'clinic'
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'doneById',
+              foreignField: '_id',
+              as: 'member'
+            }
+          }, {
+            $project: {
+              'patient.emergencyContacts': 0,
+              'patient.healthHistory': 0,
+              'member.password': 0
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }]));
+
+        case 11:
+          treatmentsSurveys = _context4.sent;
+          treatmentsSurveys.forEach(function (treatmentSurvey) {
+            treatmentSurvey.patient = treatmentSurvey.patient[0];
+            treatmentSurvey.member = treatmentSurvey.member[0];
+            treatmentSurvey.clinic = treatmentSurvey.clinic[0];
+          });
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            treatmentsSurveys: treatmentsSurveys
+          }));
+
+        case 16:
+          _context4.prev = 16;
+          _context4.t0 = _context4["catch"](0);
+          console.error(_context4.t0);
+          return _context4.abrupt("return", response.status(400).json({
+            accepted: false,
+            messsage: 'internal server error',
+            error: _context4.t0.message
+          }));
+
+        case 20:
+        case "end":
+          return _context4.stop();
+      }
+    }
+  }, null, null, [[0, 16]]);
+};
+
+var getTreatmentSurveyById = function getTreatmentSurveyById(request, response) {
+  var treatmentSurveyId, treatmentSurveyList;
+  return regeneratorRuntime.async(function getTreatmentSurveyById$(_context5) {
+    while (1) {
+      switch (_context5.prev = _context5.next) {
+        case 0:
+          _context5.prev = 0;
+          treatmentSurveyId = request.params.treatmentSurveyId;
+          _context5.next = 4;
           return regeneratorRuntime.awrap(TreatmentSurveyModel.aggregate([{
             $match: {
               _id: mongoose.Types.ObjectId(treatmentSurveyId)
@@ -312,30 +404,30 @@ var getTreatmentSurveyById = function getTreatmentSurveyById(request, response) 
           }]));
 
         case 4:
-          treatmentSurveyList = _context4.sent;
+          treatmentSurveyList = _context5.sent;
           treatmentSurveyList.forEach(function (treatmentSurvey) {
             treatmentSurvey.patient = treatmentSurvey.patient[0];
             treatmentSurvey.clinic = treatmentSurvey.clinic[0];
             treatmentSurvey.member = treatmentSurvey.member[0];
           });
-          return _context4.abrupt("return", response.status(200).json({
+          return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             treatmentSurvey: treatmentSurveyList[0]
           }));
 
         case 9:
-          _context4.prev = 9;
-          _context4.t0 = _context4["catch"](0);
-          console.error(_context4.t0);
-          return _context4.abrupt("return", response.status(500).json({
+          _context5.prev = 9;
+          _context5.t0 = _context5["catch"](0);
+          console.error(_context5.t0);
+          return _context5.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context4.t0.message
+            error: _context5.t0.message
           }));
 
         case 13:
         case "end":
-          return _context4.stop();
+          return _context5.stop();
       }
     }
   }, null, null, [[0, 9]]);
@@ -344,19 +436,19 @@ var getTreatmentSurveyById = function getTreatmentSurveyById(request, response) 
 var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
   var dataValidation, _request$body, clinicId, doneById, patientId, callDuration, improvement, isOverallHealthChanged, isExperiencedSideEffects, experiencedSideEffects, isMedicationTookAsPrescribed, isDosagesMissed, isTakingOtherOutterMedication, isThereChallengesObtainingMedication, challengesObtainingMedication, isThereChallengesTakingMedication, challengesTakingMedication, isThereProblemRemebering, isNewSymptomsOccured, newSymptomsOccured, memberPromise, patientPromise, clinicPromise, _ref, _ref2, member, patient, clinic, medicationChallenges, _medicationChallenges, counter, treatmentSurveyData, TreatmentSurveyObj, newTreatmentSurvey, newCall, _counter, callData, callObj;
 
-  return regeneratorRuntime.async(function addTreatmentSurvey$(_context5) {
+  return regeneratorRuntime.async(function addTreatmentSurvey$(_context6) {
     while (1) {
-      switch (_context5.prev = _context5.next) {
+      switch (_context6.prev = _context6.next) {
         case 0:
-          _context5.prev = 0;
+          _context6.prev = 0;
           dataValidation = treatmentSurveyValidation.addTreatmentSurvey(request.body);
 
           if (dataValidation.isAccepted) {
-            _context5.next = 4;
+            _context6.next = 4;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -367,22 +459,22 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
           memberPromise = UserModel.findById(doneById);
           patientPromise = PatientModel.findById(patientId);
           clinicPromise = ClinicModel.findById(clinicId);
-          _context5.next = 10;
+          _context6.next = 10;
           return regeneratorRuntime.awrap(Promise.all([memberPromise, patientPromise, clinicPromise]));
 
         case 10:
-          _ref = _context5.sent;
+          _ref = _context6.sent;
           _ref2 = _slicedToArray(_ref, 3);
           member = _ref2[0];
           patient = _ref2[1];
           clinic = _ref2[2];
 
           if (member) {
-            _context5.next = 17;
+            _context6.next = 17;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Member ID does not exist',
             field: 'doneById'
@@ -390,11 +482,11 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
 
         case 17:
           if (patient) {
-            _context5.next = 19;
+            _context6.next = 19;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Patient ID does not exist',
             field: 'patientId'
@@ -402,11 +494,11 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
 
         case 19:
           if (clinic) {
-            _context5.next = 21;
+            _context6.next = 21;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Clinic ID does not exist',
             field: 'clinicId'
@@ -414,11 +506,11 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
 
         case 21:
           if (!(challengesTakingMedication && challengesTakingMedication.length != 0)) {
-            _context5.next = 27;
+            _context6.next = 27;
             break;
           }
 
-          _context5.next = 24;
+          _context6.next = 24;
           return regeneratorRuntime.awrap(MedicationChallengeModel.find({
             _id: {
               $in: challengesTakingMedication
@@ -426,14 +518,14 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
           }));
 
         case 24:
-          medicationChallenges = _context5.sent;
+          medicationChallenges = _context6.sent;
 
           if (!(medicationChallenges.length == 0)) {
-            _context5.next = 27;
+            _context6.next = 27;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Challenges Ids is not valid',
             field: 'challengesTakingMedication'
@@ -441,11 +533,11 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
 
         case 27:
           if (!(challengesObtainingMedication && challengesObtainingMedication.length != 0)) {
-            _context5.next = 33;
+            _context6.next = 33;
             break;
           }
 
-          _context5.next = 30;
+          _context6.next = 30;
           return regeneratorRuntime.awrap(MedicationChallengeModel.find({
             _id: {
               $in: challengesObtainingMedication
@@ -453,21 +545,21 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
           }));
 
         case 30:
-          _medicationChallenges = _context5.sent;
+          _medicationChallenges = _context6.sent;
 
           if (!(_medicationChallenges.length == 0)) {
-            _context5.next = 33;
+            _context6.next = 33;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Challenges Ids is not valid',
             field: 'challengesObtainingMedication'
           }));
 
         case 33:
-          _context5.next = 35;
+          _context6.next = 35;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'TreatmentSurvey'
           }, {
@@ -480,7 +572,7 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
           }));
 
         case 35:
-          counter = _context5.sent;
+          counter = _context6.sent;
           treatmentSurveyData = {
             treatmentSurveyId: counter.value,
             clinicId: clinicId,
@@ -507,19 +599,19 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
             newSymptomsOccured: newSymptomsOccured
           };
           TreatmentSurveyObj = new TreatmentSurveyModel(treatmentSurveyData);
-          _context5.next = 40;
+          _context6.next = 40;
           return regeneratorRuntime.awrap(TreatmentSurveyObj.save());
 
         case 40:
-          newTreatmentSurvey = _context5.sent;
+          newTreatmentSurvey = _context6.sent;
           newCall = {};
 
           if (!callDuration) {
-            _context5.next = 51;
+            _context6.next = 51;
             break;
           }
 
-          _context5.next = 45;
+          _context6.next = 45;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'call'
           }, {
@@ -532,7 +624,7 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
           }));
 
         case 45:
-          _counter = _context5.sent;
+          _counter = _context6.sent;
           callData = {
             callId: _counter.value,
             patientId: patientId,
@@ -542,32 +634,32 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
             duration: callDuration
           };
           callObj = new CallModel(callData);
-          _context5.next = 50;
+          _context6.next = 50;
           return regeneratorRuntime.awrap(callObj.save());
 
         case 50:
-          newCall = _context5.sent;
+          newCall = _context6.sent;
 
         case 51:
-          return _context5.abrupt("return", response.status(200).json({
+          return _context6.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Added treatment survey successfully!',
             treatmentSurvey: newTreatmentSurvey
           }));
 
         case 54:
-          _context5.prev = 54;
-          _context5.t0 = _context5["catch"](0);
-          console.error(_context5.t0);
-          return _context5.abrupt("return", response.status(400).json({
+          _context6.prev = 54;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             messsage: 'internal server error',
-            error: _context5.t0.message
+            error: _context6.t0.message
           }));
 
         case 58:
         case "end":
-          return _context5.stop();
+          return _context6.stop();
       }
     }
   }, null, null, [[0, 54]]);
@@ -576,21 +668,21 @@ var addTreatmentSurvey = function addTreatmentSurvey(request, response) {
 var updateTreatmentSurvey = function updateTreatmentSurvey(request, response) {
   var treatmentSurveyId, _request$body2, callDuration, improvement, isOverallHealthChanged, isExperiencedSideEffects, experiencedSideEffects, isMedicationTookAsPrescribed, isDosagesMissed, isTakingOtherOutterMedication, isThereChallengesObtainingMedication, challengesObtainingMedication, isThereChallengesTakingMedication, challengesTakingMedication, isThereProblemRemebering, isNewSymptomsOccured, newSymptomsOccured, dataValidation, medicationChallenges, _medicationChallenges2, treatmentSurveyData, updatedTreatmentSurvey;
 
-  return regeneratorRuntime.async(function updateTreatmentSurvey$(_context6) {
+  return regeneratorRuntime.async(function updateTreatmentSurvey$(_context7) {
     while (1) {
-      switch (_context6.prev = _context6.next) {
+      switch (_context7.prev = _context7.next) {
         case 0:
-          _context6.prev = 0;
+          _context7.prev = 0;
           treatmentSurveyId = request.params.treatmentSurveyId;
           _request$body2 = request.body, callDuration = _request$body2.callDuration, improvement = _request$body2.improvement, isOverallHealthChanged = _request$body2.isOverallHealthChanged, isExperiencedSideEffects = _request$body2.isExperiencedSideEffects, experiencedSideEffects = _request$body2.experiencedSideEffects, isMedicationTookAsPrescribed = _request$body2.isMedicationTookAsPrescribed, isDosagesMissed = _request$body2.isDosagesMissed, isTakingOtherOutterMedication = _request$body2.isTakingOtherOutterMedication, isThereChallengesObtainingMedication = _request$body2.isThereChallengesObtainingMedication, challengesObtainingMedication = _request$body2.challengesObtainingMedication, isThereChallengesTakingMedication = _request$body2.isThereChallengesTakingMedication, challengesTakingMedication = _request$body2.challengesTakingMedication, isThereProblemRemebering = _request$body2.isThereProblemRemebering, isNewSymptomsOccured = _request$body2.isNewSymptomsOccured, newSymptomsOccured = _request$body2.newSymptomsOccured;
           dataValidation = treatmentSurveyValidation.updateTreatmentSurvey(request.body);
 
           if (dataValidation.isAccepted) {
-            _context6.next = 6;
+            _context7.next = 6;
             break;
           }
 
-          return _context6.abrupt("return", response.status(400).json({
+          return _context7.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -598,11 +690,11 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(request, response) {
 
         case 6:
           if (!(challengesTakingMedication && challengesTakingMedication.length != 0)) {
-            _context6.next = 12;
+            _context7.next = 12;
             break;
           }
 
-          _context6.next = 9;
+          _context7.next = 9;
           return regeneratorRuntime.awrap(MedicationChallengeModel.find({
             _id: {
               $in: challengesTakingMedication
@@ -610,14 +702,14 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(request, response) {
           }));
 
         case 9:
-          medicationChallenges = _context6.sent;
+          medicationChallenges = _context7.sent;
 
           if (!(medicationChallenges.length == 0)) {
-            _context6.next = 12;
+            _context7.next = 12;
             break;
           }
 
-          return _context6.abrupt("return", response.status(400).json({
+          return _context7.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Challenges Ids is not valid',
             field: 'challengesTakingMedication'
@@ -625,11 +717,11 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(request, response) {
 
         case 12:
           if (!(challengesObtainingMedication && challengesObtainingMedication.length != 0)) {
-            _context6.next = 18;
+            _context7.next = 18;
             break;
           }
 
-          _context6.next = 15;
+          _context7.next = 15;
           return regeneratorRuntime.awrap(MedicationChallengeModel.find({
             _id: {
               $in: challengesObtainingMedication
@@ -637,14 +729,14 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(request, response) {
           }));
 
         case 15:
-          _medicationChallenges2 = _context6.sent;
+          _medicationChallenges2 = _context7.sent;
 
           if (!(_medicationChallenges2.length == 0)) {
-            _context6.next = 18;
+            _context7.next = 18;
             break;
           }
 
-          return _context6.abrupt("return", response.status(400).json({
+          return _context7.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Challenges Ids is not valid',
             field: 'challengesObtainingMedication'
@@ -672,58 +764,21 @@ var updateTreatmentSurvey = function updateTreatmentSurvey(request, response) {
             isNewSymptomsOccured: isNewSymptomsOccured,
             newSymptomsOccured: newSymptomsOccured
           };
-          _context6.next = 21;
+          _context7.next = 21;
           return regeneratorRuntime.awrap(TreatmentSurveyModel.findByIdAndUpdate(treatmentSurveyId, treatmentSurveyData, {
             "new": true
           }));
 
         case 21:
-          updatedTreatmentSurvey = _context6.sent;
-          return _context6.abrupt("return", response.status(200).json({
+          updatedTreatmentSurvey = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Updated treatment survey successfully!',
             treatmentSurvey: updatedTreatmentSurvey
           }));
 
         case 25:
-          _context6.prev = 25;
-          _context6.t0 = _context6["catch"](0);
-          console.error(_context6.t0);
-          return _context6.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context6.t0.message
-          }));
-
-        case 29:
-        case "end":
-          return _context6.stop();
-      }
-    }
-  }, null, null, [[0, 25]]);
-};
-
-var deleteTreatmentSurvey = function deleteTreatmentSurvey(request, response) {
-  var treatmentSurveyId, deletedTreatmentSurvey;
-  return regeneratorRuntime.async(function deleteTreatmentSurvey$(_context7) {
-    while (1) {
-      switch (_context7.prev = _context7.next) {
-        case 0:
-          _context7.prev = 0;
-          treatmentSurveyId = request.params.treatmentSurveyId;
-          _context7.next = 4;
-          return regeneratorRuntime.awrap(TreatmentSurveyModel.findByIdAndDelete(treatmentSurveyId));
-
-        case 4:
-          deletedTreatmentSurvey = _context7.sent;
-          return _context7.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'Deleted treatment survey successfully!',
-            treatmentSurvey: deletedTreatmentSurvey
-          }));
-
-        case 8:
-          _context7.prev = 8;
+          _context7.prev = 25;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -732,9 +787,46 @@ var deleteTreatmentSurvey = function deleteTreatmentSurvey(request, response) {
             error: _context7.t0.message
           }));
 
-        case 12:
+        case 29:
         case "end":
           return _context7.stop();
+      }
+    }
+  }, null, null, [[0, 25]]);
+};
+
+var deleteTreatmentSurvey = function deleteTreatmentSurvey(request, response) {
+  var treatmentSurveyId, deletedTreatmentSurvey;
+  return regeneratorRuntime.async(function deleteTreatmentSurvey$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          treatmentSurveyId = request.params.treatmentSurveyId;
+          _context8.next = 4;
+          return regeneratorRuntime.awrap(TreatmentSurveyModel.findByIdAndDelete(treatmentSurveyId));
+
+        case 4:
+          deletedTreatmentSurvey = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Deleted treatment survey successfully!',
+            treatmentSurvey: deletedTreatmentSurvey
+          }));
+
+        case 8:
+          _context8.prev = 8;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 12:
+        case "end":
+          return _context8.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -744,6 +836,7 @@ module.exports = {
   getTreatmentsSurveys: getTreatmentsSurveys,
   getTreatmentsSurveysByPatientId: getTreatmentsSurveysByPatientId,
   getTreatmentsSurveysByClinicId: getTreatmentsSurveysByClinicId,
+  getTreatmentsSurveysByOwnerId: getTreatmentsSurveysByOwnerId,
   getTreatmentSurveyById: getTreatmentSurveyById,
   addTreatmentSurvey: addTreatmentSurvey,
   updateTreatmentSurvey: updateTreatmentSurvey,

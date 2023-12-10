@@ -6,6 +6,7 @@ const PatientModel = require('../../models/PatientModel')
 const ArrivalMethodModel = require('../../models/ArrivalMethodModel')
 const ClinicModel = require('../../models/ClinicModel')
 const ClinicPatientModel = require('../../models/ClinicPatientModel')
+const ClinicOwnerModel = require('../../models/ClinicOwnerModel')
 const patientValidator = require('../../validations/followup-service/patients-surveys')
 const utils = require('../../utils/utils')
 const mongoose = require('mongoose')
@@ -221,6 +222,84 @@ const getPatientsSurveysByClinicId = async (request, response) => {
     }
 }
 
+const getPatientsSurveysByOwnerId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const ownerClinics = await ClinicOwnerModel.find({ ownerId: userId })
+
+        const clinics = ownerClinics.map(clinic => clinic.clinicId)
+
+        let { searchQuery } = utils.statsQueryGenerator('temp', userId, request.query)
+        
+        delete searchQuery.temp
+        searchQuery.clinicId = { $in: clinics }
+        
+        const patientsSurveys = await PatientSurveyModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doneById',
+                    foreignField: '_id',
+                    as: 'member'
+                }
+            },
+            {
+                $project: {
+                    'patient.emergencyContacts': 0,
+                    'patient.healthHistory': 0,
+                    'member.password': 0
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            }
+        ])
+
+        patientsSurveys.forEach(patientSurvey => {
+            patientSurvey.patient = patientSurvey.patient[0]
+            patientSurvey.member = patientSurvey.member[0]
+            patientSurvey.clinic = patientSurvey.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            patientsSurveys
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getPatientsSurveysByDoneById = async (request, response) => {
 
     try {
@@ -332,19 +411,21 @@ const addPatientSurvey = async (request, response) => {
             appointmentsSchedulingWay,
         } = request.body
 
-        const arrivalMethodPromise = ArrivalMethodModel.findById(arrivalMethodId)
         const memberPromise = UserModel.findById(doneById)
         const patientPromise = PatientModel.findById(patientId)
         const clinicPromise = ClinicModel.findById(clinicId)
 
-        const [arrivalMethod, member, patient, clinic] = await Promise.all([arrivalMethodPromise, memberPromise, patientPromise, clinicPromise])
+        const [member, patient, clinic] = await Promise.all([memberPromise, patientPromise, clinicPromise])
 
-        if(!arrivalMethod) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Arrival method ID does not exist',
-                field: 'arrivalMethodId'
-            })
+        if(arrivalMethodId) {
+            const arrivalMethod = await ArrivalMethodModel.findById(arrivalMethodId)
+            if(!arrivalMethod) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Arrival method ID does not exist',
+                    field: 'arrivalMethodId'
+                })
+            }
         }
 
         if(!member) {
@@ -517,13 +598,15 @@ const updatePatientSurvey = async (request, response) => {
             appointmentsSchedulingWay,
         } = request.body 
 
-        const arrivalMethod = await ArrivalMethodModel.findById(arrivalMethodId)
-        if(!arrivalMethod) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Arrival method ID is not registered',
-                field: 'arrivalMethodId'
-            })
+        if(arrivalMethodId) {
+            const arrivalMethod = await ArrivalMethodModel.findById(arrivalMethodId)
+            if(!arrivalMethod) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Arrival method ID does not exist',
+                    field: 'arrivalMethodId'
+                })
+            }
         }
 
         const patientSurveyData = {
@@ -702,6 +785,7 @@ module.exports = {
     getPatientsSurveys, 
     getPatientsSurveysByPatientId,
     getPatientsSurveysByClinicId,
+    getPatientsSurveysByOwnerId,
     getPatientsSurveysByDoneById,
     getPatientSurveyById,
     addPatientSurvey, 

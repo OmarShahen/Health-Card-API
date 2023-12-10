@@ -34,6 +34,7 @@ const StageModel = require('../models/CRM/StageModel')
 const MessageTemplateModel = require('../models/CRM/MessageTemplateModel')
 const MessageSentModel = require('../models/CRM/MessageSentModel')
 const ValueModel = require('../models/ValueModel')
+const OpeningTimeModel = require('../models/OpeningTimeModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -1278,6 +1279,41 @@ const verifyValueId = async (request, response, next) => {
     }
 }
 
+const verifyOpeningTimeId = async (request, response, next) => {
+
+    try {
+
+        const { openingTimeId } = request.params
+
+        if(!utils.isObjectId(openingTimeId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid opening ID format',
+                field: 'openingTimeId'
+            })
+        }
+
+        const openingTime = await OpeningTimeModel.findById(openingTimeId)
+        if(!openingTime) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Opening ID does not exist',
+                field: 'openingTimeId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -1314,5 +1350,6 @@ module.exports = {
     verifyStageId,
     verifyMessageTemplateId,
     verifyMessageSentId,
-    verifyValueId
+    verifyValueId,
+    verifyOpeningTimeId
 }

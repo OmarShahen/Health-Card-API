@@ -13,12 +13,22 @@ const isDateTimeValid = (dateTime) => {
     }
 
     return true
-
-    //return moment(dateTime, 'YYYY-MM-DD HH:mm:ss', true).isValid()
 }
 
 const isBirthYearValid = (date) => {
     return moment(date, 'YYYY', true).isValid()
 }
 
-module.exports = { isDateValid, isBirthYearValid, isDateTimeValid }
+const isTimeValid = timeString => {
+
+    const format = 'HH:mm'
+    const time = moment(timeString, format, true)
+  
+    if (time.isValid()) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+module.exports = { isDateValid, isBirthYearValid, isDateTimeValid, isTimeValid }

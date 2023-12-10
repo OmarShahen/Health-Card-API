@@ -33,7 +33,8 @@ var _require10 = require('./validateWhatsappLanguage'),
 var _require11 = require('./validateDate'),
     isDateValid = _require11.isDateValid,
     isBirthYearValid = _require11.isBirthYearValid,
-    isDateTimeValid = _require11.isDateTimeValid;
+    isDateTimeValid = _require11.isDateTimeValid,
+    isTimeValid = _require11.isTimeValid;
 
 var _require12 = require('./random-number'),
     generateVerificationCode = _require12.generateVerificationCode;
@@ -98,5 +99,6 @@ module.exports = {
   capitalizeFirstLetter: capitalizeFirstLetter,
   concatenateHmacString: concatenateHmacString,
   getTime: getTime,
-  getAge: getAge
+  getAge: getAge,
+  isTimeValid: isTimeValid
 };

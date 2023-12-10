@@ -30,6 +30,13 @@ router.get(
     (request, response) => treatmentsSurveysController.getTreatmentsSurveysByClinicId(request, response)
 )
 
+router.get(
+    '/v1/treatments-surveys/owners/:userId',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => treatmentsSurveysController.getTreatmentsSurveysByOwnerId(request, response)
+)
+
 router.post(
     '/v1/treatments-surveys',
     authorization.allPermission,

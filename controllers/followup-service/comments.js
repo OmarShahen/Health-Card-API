@@ -1,4 +1,5 @@
 const CommentModel = require('../../models/followup-service/CommentModel')
+const ClinicOwnerModel = require('../../models/ClinicOwnerModel')
 const UserModel = require('../../models/UserModel')
 const PatientModel = require('../../models/PatientModel')
 const ClinicModel = require('../../models/ClinicModel')
@@ -58,6 +59,128 @@ const getComments = async (request, response) => {
     }
 }
 
+const getCommentsByClinicId = async (request, response) => {
+
+    try {
+
+        const { clinicId } = request.params
+        const { type } = request.query
+
+        const { searchQuery } = utils.statsQueryGenerator('clinicId', clinicId, request.query)
+        
+        if(type) {
+            searchQuery.type = type
+        }
+
+        const comments = await CommentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+        
+        comments.forEach(comment => {
+            comment.patient = comment.patient[0]
+            comment.clinic = comment.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            comments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getCommentsByOwnerId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { type } = request.query
+
+        const ownerClinics = await ClinicOwnerModel.find({ ownerId: userId })
+
+        const clinics = ownerClinics.map(clinic => clinic.clinicId)
+
+        let { searchQuery } = utils.statsQueryGenerator('temp', userId, request.query)
+        
+        delete searchQuery.temp
+        searchQuery.clinicId = { $in: clinics }
+        
+        if(type) {
+            searchQuery.type = type
+        }
+
+        const comments = await CommentModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patientId',
+                    foreignField: '_id',
+                    as: 'patient'
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            }
+        ])
+        
+        comments.forEach(comment => {
+            comment.patient = comment.patient[0]
+            comment.clinic = comment.clinic[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            comments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 const addComment = async (request, response) => {
 
     try {
@@ -190,7 +313,9 @@ const deleteComment = async (request, response) => {
 
 
 module.exports = { 
-    getComments, 
+    getComments,
+    getCommentsByClinicId, 
+    getCommentsByOwnerId,
     addComment, 
     updateComment, 
     deleteComment 
