@@ -22,6 +22,12 @@ router.get(
     (request, response) => leadsController.searchLeads(request, response)
 )
 
+router.get(
+    '/v1/crm/leads/status/stages/filter',
+    authorization.allPermission,
+    (request, response) => leadsController.filterLeads(request, response)
+)
+
 router.post(
     '/v1/crm/leads',
     authorization.allPermission,

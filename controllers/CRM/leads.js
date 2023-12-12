@@ -151,6 +151,41 @@ const searchLeads = async (request, response) => {
     }
 }
 
+const filterLeads = async (request, response) => {
+
+    try {
+
+        const { status, stage } = request.query
+
+        let searchQuery = {}
+
+        if(status) {
+            searchQuery = { status }
+        }
+
+        if(stage) {
+            searchQuery = { ...searchQuery, stage }
+        }
+
+        const leads = await LeadModel
+        .find(searchQuery)
+        .sort({ updatedAt: -1 })
+
+        return response.status(200).json({
+            accepted: true,
+            leads
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const addLead = async (request, response) => {
 
     try {
@@ -402,6 +437,7 @@ module.exports = {
     getLeads,
     getLeadById,
     searchLeads, 
+    filterLeads,
     addLead, 
     updateLead, 
     deleteLead 

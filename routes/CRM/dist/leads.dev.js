@@ -18,6 +18,9 @@ router.get('/v1/crm/leads/:leadId', authorization.allPermission, verifyLeadId, f
 router.get('/v1/crm/leads/name/search', authorization.allPermission, function (request, response) {
   return leadsController.searchLeads(request, response);
 });
+router.get('/v1/crm/leads/status/stages/filter', authorization.allPermission, function (request, response) {
+  return leadsController.filterLeads(request, response);
+});
 router.post('/v1/crm/leads', authorization.allPermission, function (request, response) {
   return leadsController.addLead(request, response);
 });
