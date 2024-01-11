@@ -385,11 +385,11 @@ const addPatientSurvey = async (request, response) => {
         }
 
         const { 
-            arrivalMethodId,
-            doneById, 
-            patientId, 
-            clinicId, 
+            doneById,
+            doctorId, 
+            reviewerId, 
             overallExperience,
+            comment,
             serviceIdeaRate,
             serviceIdeaComment,
             callDuration,
@@ -412,21 +412,10 @@ const addPatientSurvey = async (request, response) => {
         } = request.body
 
         const memberPromise = UserModel.findById(doneById)
-        const patientPromise = PatientModel.findById(patientId)
-        const clinicPromise = ClinicModel.findById(clinicId)
+        const reviewerPromise = UserModel.findById(reviewerId)
+        const doctorPromise = UserModel.findById(doctorId)
 
-        const [member, patient, clinic] = await Promise.all([memberPromise, patientPromise, clinicPromise])
-
-        if(arrivalMethodId) {
-            const arrivalMethod = await ArrivalMethodModel.findById(arrivalMethodId)
-            if(!arrivalMethod) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'Arrival method ID does not exist',
-                    field: 'arrivalMethodId'
-                })
-            }
-        }
+        const [member, reviewer, doctor] = await Promise.all([memberPromise, reviewerPromise, doctorPromise])
 
         if(!member) {
             return response.status(400).json({
@@ -436,19 +425,19 @@ const addPatientSurvey = async (request, response) => {
             })
         }
         
-        if(!patient) {
+        if(!reviewer) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Patient ID does not exist',
-                field: 'patientId'
+                message: 'Reviewer ID does not exist',
+                field: 'reviewerId'
             })
         }   
 
-        if(!clinic) {
+        if(!doctor) {
             return response.status(400).json({
                 accepted: false,
-                message: 'Clinic ID does not exist',
-                field: 'clinicId'
+                message: 'Doctor ID does not exist',
+                field: 'doctorId'
             })
         }   
 
@@ -461,10 +450,10 @@ const addPatientSurvey = async (request, response) => {
         const patientSurveyData = {
             patientSurveyId: counter.value,
             doneById,
-            patientId,
-            clinicId,
-            arrivalMethodId,
+            reviewerId,
+            doctorId,
             overallExperience,
+            comment,
             serviceIdeaRate,
             serviceIdeaComment,
             callDuration,
@@ -499,29 +488,13 @@ const addPatientSurvey = async (request, response) => {
         const patientSurveyObj = new PatientSurveyModel(patientSurveyData)
         const newPatientSurvey = await patientSurveyObj.save()
 
-        const clinicPatientList = await ClinicPatientModel.find({ clinicId, patientId })
-        const clinicPatient = clinicPatientList[0]
+        const updateDoctor = await UserModel
+        .findByIdAndUpdate(doctorId, { totalReviews: doctor.totalReviews + 1 }, { new: true })
 
-        let updatedClinicPatient = {}
-
-        if(!clinicPatient?.survey?.isDone) {
-
-            const updateClinicPatientData = { 
-                survey: { 
-                    isDone: true, 
-                    doneById, 
-                    doneDate: new Date() 
-                } 
-            }
-
-            updatedClinicPatient = await ClinicPatientModel
-            .findOneAndUpdate({ clinicId, patientId }, updateClinicPatientData, { new: true })
-        }
 
         let newCall = {}
 
         if(callDuration) {
-
             const counter = await CounterModel.findOneAndUpdate(
                 { name: 'call' },
                 { $inc: { value: 1 } },
@@ -530,8 +503,8 @@ const addPatientSurvey = async (request, response) => {
 
             const callData = {
                 callId: counter.value,
-                patientId,
-                clinicId,
+                patientId: reviewerId,
+                doctorId,
                 doneById,
                 patientSurveyId: newPatientSurvey._id,
                 duration: callDuration
@@ -546,7 +519,61 @@ const addPatientSurvey = async (request, response) => {
             message: 'Added patient survey successfully!',
             patientSurvey: newPatientSurvey,
             call: newCall,
-            clinicPatient: updatedClinicPatient,
+            doctor: updateDoctor
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getPatientsSurveysByDoctorId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('doctorId', userId, request.query)
+        
+        const patientsSurveys = await PatientSurveyModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'reviewerId',
+                    foreignField: '_id',
+                    as: 'reviewer'
+                }
+            },
+            {
+                $project: {
+                    'reviewer.password': 0
+                }
+            }
+        ])
+
+        patientsSurveys.forEach(patientSurvey => {
+            patientSurvey.reviewer = patientSurvey.reviewer[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            patientsSurveys
         })
 
     } catch(error) {
@@ -788,6 +815,7 @@ module.exports = {
     getPatientsSurveysByOwnerId,
     getPatientsSurveysByDoneById,
     getPatientSurveyById,
+    getPatientsSurveysByDoctorId,
     addPatientSurvey, 
     deletePatientSurvey, 
     updatePatientSurvey

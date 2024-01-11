@@ -6,19 +6,19 @@ var config = require('../config/config');
 
 var addOpeningTime = function addOpeningTime(openingTimeData) {
   var leadId = openingTimeData.leadId,
-      clinicId = openingTimeData.clinicId,
+      expertId = openingTimeData.expertId,
       weekday = openingTimeData.weekday,
       openingTime = openingTimeData.openingTime,
       closingTime = openingTimeData.closingTime;
-  if (!leadId && !clinicId) return {
+  if (!leadId && !expertId) return {
     isAccepted: false,
     message: 'Entity relation is required',
     field: 'leadId'
   };
-  if (clinicId && !utils.isObjectId(clinicId)) return {
+  if (expertId && !utils.isObjectId(expertId)) return {
     isAccepted: false,
-    message: 'Clinic Id format is invalid',
-    field: 'clinicId'
+    message: 'Expert Id format is invalid',
+    field: 'expertId'
   };
   if (leadId && !utils.isObjectId(leadId)) return {
     isAccepted: false,
@@ -103,7 +103,22 @@ var updateOpeningTime = function updateOpeningTime(openingTimeData) {
   };
 };
 
+var updateOpeningTimeActivityStatus = function updateOpeningTimeActivityStatus(openingTimeData) {
+  var isActive = openingTimeData.isActive;
+  if (typeof isActive != 'boolean') return {
+    isAccepted: false,
+    message: 'isActive format is invalid',
+    field: 'isActive'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: openingTimeData
+  };
+};
+
 module.exports = {
   addOpeningTime: addOpeningTime,
-  updateOpeningTime: updateOpeningTime
+  updateOpeningTime: updateOpeningTime,
+  updateOpeningTimeActivityStatus: updateOpeningTimeActivityStatus
 };

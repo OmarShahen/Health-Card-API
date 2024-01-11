@@ -74,10 +74,15 @@ var addClinic = function addClinic(clinicData) {
   var name = clinicData.name,
       ownerId = clinicData.ownerId,
       speciality = clinicData.speciality,
+      subSpeciality = clinicData.subSpeciality,
       phone = clinicData.phone,
       countryCode = clinicData.countryCode,
+      notificationCountryCode = clinicData.notificationCountryCode,
+      notificationPhone = clinicData.notificationPhone,
       city = clinicData.city,
-      country = clinicData.country;
+      country = clinicData.country,
+      county = clinicData.county,
+      address = clinicData.address;
   if (!ownerId) return {
     isAccepted: false,
     message: 'owner Id is required',
@@ -108,20 +113,75 @@ var addClinic = function addClinic(clinicData) {
     message: 'Speciality must be a list',
     field: 'speciality'
   };
-  if (!checkSpecialities(speciality)) return {
+  if (speciality.length == 0) return {
     isAccepted: false,
-    message: 'Speciality values is invalid',
+    message: 'Speciality must be atleast one',
     field: 'speciality'
   };
-  if (phone && typeof phone != 'number') return {
+  if (!checkSpecialities(speciality)) return {
+    isAccepted: false,
+    message: 'Speciality Ids is invalid',
+    field: 'speciality'
+  };
+  if (!subSpeciality) return {
+    isAccepted: false,
+    message: 'subSpeciality is required',
+    field: 'subSpeciality'
+  };
+  if (!Array.isArray(subSpeciality)) return {
+    isAccepted: false,
+    message: 'subSpeciality must be a list',
+    field: 'subSpeciality'
+  };
+  if (subSpeciality.length == 0) return {
+    isAccepted: false,
+    message: 'subSpeciality must be atleast one',
+    field: 'subSpeciality'
+  };
+  if (!checkSpecialities(subSpeciality)) return {
+    isAccepted: false,
+    message: 'subSpeciality Ids is invalid',
+    field: 'subSpeciality'
+  };
+  if (!phone) return {
+    isAccepted: false,
+    message: 'Phone is required',
+    field: 'phone'
+  };
+  if (typeof phone != 'number') return {
     isAccepted: false,
     message: 'Phone number format is invalid',
     field: 'phone'
   };
-  if (countryCode && typeof countryCode != 'number') return {
+  if (!countryCode) return {
+    isAccepted: false,
+    message: 'Country code is required',
+    field: 'countryCode'
+  };
+  if (typeof countryCode != 'number') return {
     isAccepted: false,
     message: 'Country code format is invalid',
     field: 'countryCode'
+  };
+  if (!notificationCountryCode) return {
+    isAccepted: false,
+    message: 'Notification country code is required',
+    field: 'notificationCountryCode'
+  };
+  if (typeof notificationCountryCode != 'number') return {
+    isAccepted: false,
+    message: 'Notification country code format is invalid',
+    field: 'notificationCountryCode'
+  };
+  if (!notificationPhone) return {
+    isAccepted: false,
+    message: 'Notification phone is required',
+    field: 'notificationPhone'
+  };
+  if (typeof notificationPhone != 'number') return {
+    isAccepted: false,
+    message: 'Notification phone format is invalid',
+    field: 'notificationPhone'
   };
   if (!city) return {
     isAccepted: false,
@@ -143,6 +203,26 @@ var addClinic = function addClinic(clinicData) {
     message: 'Country formate is invalid',
     field: 'country'
   };
+  if (!county) return {
+    isAccepted: false,
+    message: 'County is required',
+    field: 'county'
+  };
+  if (typeof county != 'string') return {
+    isAccepted: false,
+    message: 'County formate is invalid',
+    field: 'county'
+  };
+  if (!address) return {
+    isAccepted: false,
+    message: 'Address is required',
+    field: 'address'
+  };
+  if (typeof address != 'string') return {
+    isAccepted: false,
+    message: 'Address formate is invalid',
+    field: 'address'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -153,10 +233,15 @@ var addClinic = function addClinic(clinicData) {
 var updateClinic = function updateClinic(clinicData) {
   var name = clinicData.name,
       speciality = clinicData.speciality,
+      subSpeciality = clinicData.subSpeciality,
       phone = clinicData.phone,
       countryCode = clinicData.countryCode,
+      notificationCountryCode = clinicData.notificationCountryCode,
+      notificationPhone = clinicData.notificationPhone,
       city = clinicData.city,
-      country = clinicData.country;
+      country = clinicData.country,
+      county = clinicData.county,
+      address = clinicData.address;
   if (!name) return {
     isAccepted: false,
     message: 'Name is required',
@@ -177,20 +262,75 @@ var updateClinic = function updateClinic(clinicData) {
     message: 'Speciality must be a list',
     field: 'speciality'
   };
-  if (!checkSpecialities(speciality)) return {
+  if (speciality.length == 0) return {
     isAccepted: false,
-    message: 'Speciality values is invalid',
+    message: 'Speciality must be atleast one',
     field: 'speciality'
   };
-  if (phone && typeof phone != 'number') return {
+  if (!checkSpecialities(speciality)) return {
+    isAccepted: false,
+    message: 'Speciality Ids is invalid',
+    field: 'speciality'
+  };
+  if (!subSpeciality) return {
+    isAccepted: false,
+    message: 'subSpeciality is required',
+    field: 'subSpeciality'
+  };
+  if (!Array.isArray(subSpeciality)) return {
+    isAccepted: false,
+    message: 'subSpeciality must be a list',
+    field: 'subSpeciality'
+  };
+  if (subSpeciality.length == 0) return {
+    isAccepted: false,
+    message: 'subSpeciality must be atleast one',
+    field: 'subSpeciality'
+  };
+  if (!checkSpecialities(subSpeciality)) return {
+    isAccepted: false,
+    message: 'subSpeciality Ids is invalid',
+    field: 'subSpeciality'
+  };
+  if (!phone) return {
+    isAccepted: false,
+    message: 'Phone is required',
+    field: 'phone'
+  };
+  if (typeof phone != 'number') return {
     isAccepted: false,
     message: 'Phone number format is invalid',
     field: 'phone'
   };
-  if (countryCode && typeof countryCode != 'number') return {
+  if (!countryCode) return {
+    isAccepted: false,
+    message: 'Country code is required',
+    field: 'countryCode'
+  };
+  if (typeof countryCode != 'number') return {
     isAccepted: false,
     message: 'Country code format is invalid',
     field: 'countryCode'
+  };
+  if (!notificationCountryCode) return {
+    isAccepted: false,
+    message: 'Notification country code is required',
+    field: 'notificationCountryCode'
+  };
+  if (typeof notificationCountryCode != 'number') return {
+    isAccepted: false,
+    message: 'Notification country code format is invalid',
+    field: 'notificationCountryCode'
+  };
+  if (!notificationPhone) return {
+    isAccepted: false,
+    message: 'Notification phone is required',
+    field: 'notificationPhone'
+  };
+  if (typeof notificationPhone != 'number') return {
+    isAccepted: false,
+    message: 'Notification phone format is invalid',
+    field: 'notificationPhone'
   };
   if (!city) return {
     isAccepted: false,
@@ -211,6 +351,26 @@ var updateClinic = function updateClinic(clinicData) {
     isAccepted: false,
     message: 'Country formate is invalid',
     field: 'country'
+  };
+  if (!county) return {
+    isAccepted: false,
+    message: 'County is required',
+    field: 'county'
+  };
+  if (typeof county != 'string') return {
+    isAccepted: false,
+    message: 'County formate is invalid',
+    field: 'county'
+  };
+  if (!address) return {
+    isAccepted: false,
+    message: 'Address is required',
+    field: 'address'
+  };
+  if (typeof address != 'string') return {
+    isAccepted: false,
+    message: 'Address formate is invalid',
+    field: 'address'
   };
   return {
     isAccepted: true,

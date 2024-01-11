@@ -14,30 +14,220 @@ var checkSpeciality = function checkSpeciality(specialities) {
   return true;
 };
 
+var checkPricing = function checkPricing(pricingList) {
+  for (var i = 0; i < pricingList.length; i++) {
+    var price = pricingList[i];
+    if (!price.duration) return false;
+    if (typeof price.duration != 'number') return false;
+    if (!price.price) return false;
+    if (typeof price.price != 'number') return false;
+  }
+
+  return true;
+};
+
 var updateUser = function updateUser(userData) {
   var firstName = userData.firstName,
-      lastName = userData.lastName,
+      title = userData.title,
+      description = userData.description,
+      phone = userData.phone,
       gender = userData.gender,
-      dateOfBirth = userData.dateOfBirth;
+      dateOfBirth = userData.dateOfBirth,
+      speciality = userData.speciality,
+      subSpeciality = userData.subSpeciality,
+      pricing = userData.pricing;
+  if (firstName && !utils.isNameValid(firstName)) return {
+    isAccepted: false,
+    message: 'Invalid name formate',
+    field: 'firstName'
+  };
+  if (phone && typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Invalid phone format',
+    field: 'phone'
+  };
+  if (title && typeof title != 'string') return {
+    isAccepted: false,
+    message: 'Invalid title format',
+    field: 'title'
+  };
+  if (description && typeof description != 'string') return {
+    isAccepted: false,
+    message: 'Invalid description format',
+    field: 'description'
+  };
+  if (gender && !config.GENDER.includes(gender)) return {
+    isAccepted: false,
+    message: 'Invalid gender',
+    field: 'gender'
+  };
+  if (dateOfBirth && !utils.isDateValid(dateOfBirth)) return {
+    isAccepted: false,
+    message: 'Date of birth format is invalid',
+    field: 'dateOfBirth'
+  };
+
+  if (speciality) {
+    if (!Array.isArray(speciality)) return {
+      isAccepted: false,
+      message: 'Speciality must be a list',
+      field: 'speciality'
+    };
+    if (speciality.length == 0) return {
+      isAccepted: false,
+      message: 'Speciality must be atleast one',
+      field: 'speciality'
+    };
+    if (!checkSpeciality(speciality)) return {
+      isAccepted: false,
+      message: 'Speciality Ids is invalid',
+      field: 'speciality'
+    };
+  }
+
+  if (subSpeciality) {
+    if (!Array.isArray(subSpeciality)) return {
+      isAccepted: false,
+      message: 'Subspeciality must be a list',
+      field: 'subSpeciality'
+    };
+    if (subSpeciality.length == 0) return {
+      isAccepted: false,
+      message: 'Subspeciality must be atleast one',
+      field: 'subSpeciality'
+    };
+    if (!checkSpeciality(subSpeciality)) return {
+      isAccepted: false,
+      message: 'Subspeciality Ids is invalid',
+      field: 'subSpeciality'
+    };
+  }
+
+  if (pricing) {
+    if (!Array.isArray(pricing)) return {
+      isAccepted: false,
+      message: 'Pricing must be a list',
+      field: 'pricing'
+    };
+    if (pricing.length != 2) return {
+      isAccepted: false,
+      message: 'Pricing must be atleast two',
+      field: 'pricing'
+    };
+    if (!checkPricing(pricing)) return {
+      isAccepted: false,
+      message: 'Pricing format is invalid',
+      field: 'pricing'
+    };
+  }
+
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
+var updateUserProfileImage = function updateUserProfileImage(userData) {
+  var profileImageURL = userData.profileImageURL;
+  if (!profileImageURL) return {
+    isAccepted: false,
+    message: 'Image URL is required',
+    field: 'profileImageURL'
+  };
+  if (!utils.isValidURL(profileImageURL)) return {
+    isAccepted: false,
+    message: 'Image URL format is invalid',
+    field: 'profileImageURL'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
+var addDoctorUser = function addDoctorUser(userData) {
+  var firstName = userData.firstName,
+      title = userData.title,
+      description = userData.description,
+      email = userData.email,
+      countryCode = userData.countryCode,
+      phone = userData.phone,
+      password = userData.password,
+      gender = userData.gender,
+      dateOfBirth = userData.dateOfBirth,
+      speciality = userData.speciality,
+      subSpeciality = userData.subSpeciality;
   if (!firstName) return {
     isAccepted: false,
-    message: 'First name is required',
+    message: 'Name is required',
     field: 'firstName'
   };
-  if (!utils.isNameValid(firstName)) return {
+  if (typeof firstName != 'string') return {
     isAccepted: false,
-    message: 'Invalid name formate',
+    message: 'Invalid name format',
     field: 'firstName'
   };
-  if (!lastName) return {
+  if (!title) return {
     isAccepted: false,
-    message: 'Last name is required',
-    field: 'lastName'
+    message: 'Title is required',
+    field: 'title'
   };
-  if (!utils.isNameValid(lastName)) return {
+  if (!config.DOCTORS_TITLES.includes(title)) return {
     isAccepted: false,
-    message: 'Invalid name formate',
-    field: 'lastName'
+    message: 'Title value is not registered',
+    field: 'title'
+  };
+  if (!description) return {
+    isAccepted: false,
+    message: 'Description is required',
+    field: 'description'
+  };
+  if (typeof description != 'string') return {
+    isAccepted: false,
+    message: 'Description format is invalid',
+    field: 'description'
+  };
+  if (!email) return {
+    isAccepted: false,
+    message: 'Email is required',
+    field: 'email'
+  };
+  if (!utils.isEmailValid(email)) return {
+    isAccepted: false,
+    message: 'Email formate is invalid',
+    field: 'email'
+  };
+  if (!countryCode) return {
+    isAccepted: false,
+    message: 'Country code is required',
+    field: 'countryCode'
+  };
+  if (typeof countryCode != 'number') return {
+    isAccepted: false,
+    message: 'Country code format is invalid',
+    field: 'countryCode'
+  };
+  if (!phone) return {
+    isAccepted: false,
+    message: 'Phone is required',
+    field: 'phone'
+  };
+  if (typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Phone format is invalid',
+    field: 'phone'
+  };
+  if (!password) return {
+    isAccepted: false,
+    message: 'Password is required',
+    field: 'password'
+  };
+  if (typeof password != 'string') return {
+    isAccepted: false,
+    message: 'Password format is invalid',
+    field: 'password'
   };
   if (!gender) return {
     isAccepted: false,
@@ -58,6 +248,46 @@ var updateUser = function updateUser(userData) {
     isAccepted: false,
     message: 'Date of birth format is invalid',
     field: 'dateOfBirth'
+  };
+  if (!speciality) return {
+    isAccepted: false,
+    message: 'Speciality is required',
+    field: 'speciality'
+  };
+  if (!Array.isArray(speciality)) return {
+    isAccepted: false,
+    message: 'Speciality must be a list',
+    field: 'speciality'
+  };
+  if (speciality.length == 0) return {
+    isAccepted: false,
+    message: 'Speciality must be atleast one',
+    field: 'speciality'
+  };
+  if (!checkSpeciality(speciality)) return {
+    isAccepted: false,
+    message: 'Speciality Ids is invalid',
+    field: 'speciality'
+  };
+  if (!subSpeciality) return {
+    isAccepted: false,
+    message: 'subSpeciality is required',
+    field: 'subSpeciality'
+  };
+  if (!Array.isArray(subSpeciality)) return {
+    isAccepted: false,
+    message: 'subSpeciality must be a list',
+    field: 'subSpeciality'
+  };
+  if (subSpeciality.length == 0) return {
+    isAccepted: false,
+    message: 'subSpeciality must be atleast one',
+    field: 'subSpeciality'
+  };
+  if (!checkSpeciality(subSpeciality)) return {
+    isAccepted: false,
+    message: 'subSpeciality Ids is invalid',
+    field: 'subSpeciality'
   };
   return {
     isAccepted: true,
@@ -283,11 +513,13 @@ var addEmployeeUser = function addEmployeeUser(userData) {
 
 module.exports = {
   updateUser: updateUser,
+  updateUserProfileImage: updateUserProfileImage,
   updateUserEmail: updateUserEmail,
   updateUserPassword: updateUserPassword,
   updateUserLanguage: updateUserLanguage,
   verifyAndUpdateUserPassword: verifyAndUpdateUserPassword,
   updateUserSpeciality: updateUserSpeciality,
   registerStaffToClinic: registerStaffToClinic,
-  addEmployeeUser: addEmployeeUser
+  addEmployeeUser: addEmployeeUser,
+  addDoctorUser: addDoctorUser
 };

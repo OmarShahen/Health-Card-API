@@ -1,8 +1,11 @@
 const express = require('express')
 const app = express()
+const http = require('http')
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
 const functions = require('firebase-functions')
+const uuid = require('uuid')
+
 //const Bree = require('bree')
 
 const morgan = require('morgan')
@@ -11,6 +14,13 @@ const cors = require('cors')
 //const http = require('http').Server(app)
 const { verifyLanguage } = require('./middlewares/language')
 
+const server = http.createServer(app)
+const io = require('socket.io')(server, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST']
+    }
+})
 
 app.use(morgan('dev'))
 app.use(express.json())
@@ -49,6 +59,7 @@ app.use('/api', require('./routes/file-storage/folders'))
 app.use('/api', require('./routes/file-storage/files'))
 app.use('/api', require('./routes/arrival-methods'))
 app.use('/api', require('./routes/opening-times'))
+app.use('/api', require('./routes/reviews'))
 
 app.use('/api', require('./routes/followup-service/clinics-subscriptions'))
 app.use('/api', require('./routes/followup-service/patients-surveys'))
@@ -79,7 +90,34 @@ app.get('/', (request, response) => {
     })
 })
 
+io.on('connection', socket => {
+    console.log('Connected Successfully!')
 
-app.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
+    socket.emit('me', socket.id)
 
-exports.app = functions.https.onRequest(app)
+    socket.on('disconnect', () => {
+        socket.broadcast.emit('callEnded')
+    })
+
+    socket.on('rooms:join', data => {
+        socket.join(data.appointmentId)
+    })
+
+    socket.on('calling', data => {
+        socket.to(data.appointmentId).emit('calling', data)
+    })
+
+    socket.on('signal', (data) => {
+		socket.to(data.appointmentId).emit('signal', { signal: data.signalData, callerName: data.callerName })
+	})
+
+	socket.on('answerCall', (data) => {
+		socket.to(data.appointmentId).emit('callAccepted', data.signal)
+	})
+
+})
+
+
+server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [HEALTH CARD-APP]`))
+
+//exports.app = functions.https.onRequest(app)

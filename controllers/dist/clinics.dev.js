@@ -8,6 +8,12 @@ function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.
 
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var ClinicModel = require('../models/ClinicModel');
 
 var ClinicOwnerModel = require('../models/ClinicOwnerModel');
@@ -45,7 +51,7 @@ var isClinicsInTestMode = function isClinicsInTestMode(clinics) {
 };
 
 var addClinic = function addClinic(request, response) {
-  var dataValidation, _request$body, ownerId, name, speciality, phone, countryCode, city, country, owner, specialitiesList, ownerClinics, mode, counter, clinicData, clinicObj, newClinic, clinicOwnerData, clinicOwnerObj, newClinicOwner, newClinicDoctor, clinicDoctorData, clinicDoctorcObj;
+  var dataValidation, _request$body, ownerId, speciality, subSpeciality, owner, specialitiesList, subSpecialitiesList, counter, clinicData, clinicObj, newClinic, clinicOwnerData, clinicOwnerObj, newClinicOwner, clinicDoctorData, clinicDoctorcObj, newClinicDoctor;
 
   return regeneratorRuntime.async(function addClinic$(_context) {
     while (1) {
@@ -66,7 +72,7 @@ var addClinic = function addClinic(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, ownerId = _request$body.ownerId, name = _request$body.name, speciality = _request$body.speciality, phone = _request$body.phone, countryCode = _request$body.countryCode, city = _request$body.city, country = _request$body.country;
+          _request$body = request.body, ownerId = _request$body.ownerId, speciality = _request$body.speciality, subSpeciality = _request$body.subSpeciality;
           _context.next = 7;
           return regeneratorRuntime.awrap(UserModel.findById(ownerId));
 
@@ -89,7 +95,8 @@ var addClinic = function addClinic(request, response) {
           return regeneratorRuntime.awrap(SpecialityModel.find({
             _id: {
               $in: speciality
-            }
+            },
+            type: 'MAIN'
           }));
 
         case 12:
@@ -102,51 +109,41 @@ var addClinic = function addClinic(request, response) {
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'not registered specialities',
+            message: 'invalid specialities Ids',
             field: 'speciality'
           }));
 
         case 15:
-          _context.next = 17;
-          return regeneratorRuntime.awrap(ClinicOwnerModel.aggregate([{
-            $match: {
-              ownerId: mongoose.Types.ObjectId(ownerId),
-              isCreator: true
-            }
-          }, {
-            $lookup: {
-              from: 'clinics',
-              localField: 'clinicId',
-              foreignField: '_id',
-              as: 'clinic'
-            }
-          }]));
-
-        case 17:
-          ownerClinics = _context.sent;
-          ownerClinics.forEach(function (ownerClinic) {
-            return ownerClinic.clinic = ownerClinic.clinic[0];
+          request.body.speciality = specialitiesList.map(function (special) {
+            return special._id;
           });
+          _context.next = 18;
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: subSpeciality
+            },
+            type: 'SUB'
+          }));
 
-          if (!isClinicsInTestMode(ownerClinics)) {
+        case 18:
+          subSpecialitiesList = _context.sent;
+
+          if (!(subSpecialitiesList.length != subSpeciality.length)) {
             _context.next = 21;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: translations[request.query.lang]["Cannot create clinic in test mode"],
-            field: 'ownerId'
+            message: 'invalid sub specialities Ids',
+            field: 'subSpeciality'
           }));
 
         case 21:
-          mode = 'PRODUCTION';
-
-          if (ownerClinics.length == 0) {
-            mode = 'TEST';
-          }
-
-          _context.next = 25;
+          request.body.subSpeciality = subSpecialitiesList.map(function (special) {
+            return special._id;
+          });
+          _context.next = 24;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'clinic'
           }, {
@@ -158,26 +155,16 @@ var addClinic = function addClinic(request, response) {
             upsert: true
           }));
 
-        case 25:
+        case 24:
           counter = _context.sent;
-          clinicData = {
-            clinicId: counter.value,
-            mode: mode,
-            ownerId: ownerId,
-            speciality: specialitiesList.map(function (special) {
-              return special._id;
-            }),
-            phone: phone,
-            countryCode: countryCode,
-            name: name,
-            city: city,
-            country: country
-          };
+          clinicData = _objectSpread({
+            clinicId: counter.value
+          }, request.body);
           clinicObj = new ClinicModel(clinicData);
-          _context.next = 30;
+          _context.next = 29;
           return regeneratorRuntime.awrap(clinicObj.save());
 
-        case 30:
+        case 29:
           newClinic = _context.sent;
           clinicOwnerData = {
             ownerId: ownerId,
@@ -185,45 +172,21 @@ var addClinic = function addClinic(request, response) {
             isCreator: true
           };
           clinicOwnerObj = new ClinicOwnerModel(clinicOwnerData);
-          _context.next = 35;
+          _context.next = 34;
           return regeneratorRuntime.awrap(clinicOwnerObj.save());
 
-        case 35:
+        case 34:
           newClinicOwner = _context.sent;
-          newClinicDoctor = {};
-
-          if (!owner.roles.includes('DOCTOR')) {
-            _context.next = 43;
-            break;
-          }
-
           clinicDoctorData = {
             doctorId: ownerId,
             clinicId: newClinic._id
           };
           clinicDoctorcObj = new ClinicDoctorModel(clinicDoctorData);
-          _context.next = 42;
+          _context.next = 39;
           return regeneratorRuntime.awrap(clinicDoctorcObj.save());
 
-        case 42:
+        case 39:
           newClinicDoctor = _context.sent;
-
-        case 43:
-          if (!(ownerClinics.length == 0 || !owner.roles.includes('OWNER'))) {
-            _context.next = 46;
-            break;
-          }
-
-          _context.next = 46;
-          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(ownerId, {
-            $push: {
-              roles: 'OWNER'
-            }
-          }, {
-            "new": true
-          }));
-
-        case 46:
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Added clinic successfully!'],
@@ -232,8 +195,8 @@ var addClinic = function addClinic(request, response) {
             clinicOwner: newClinicOwner
           }));
 
-        case 49:
-          _context.prev = 49;
+        case 43:
+          _context.prev = 43;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -242,16 +205,16 @@ var addClinic = function addClinic(request, response) {
             error: _context.t0.message
           }));
 
-        case 53:
+        case 47:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 49]]);
+  }, null, null, [[0, 43]]);
 };
 
 var updateClinic = function updateClinic(request, response) {
-  var dataValidation, user, clinicId, _request$body2, name, speciality, phone, countryCode, city, country, clinicOwnerList, specialitiesList, clinicData, updatedClinic;
+  var dataValidation, clinicId, _request$body2, speciality, subSpeciality, specialitiesList, subSpecialitiesList, clinicData, updatedClinic;
 
   return regeneratorRuntime.async(function updateClinic$(_context2) {
     while (1) {
@@ -272,42 +235,20 @@ var updateClinic = function updateClinic(request, response) {
           }));
 
         case 4:
-          user = request.user;
           clinicId = request.params.clinicId;
-          _request$body2 = request.body, name = _request$body2.name, speciality = _request$body2.speciality, phone = _request$body2.phone, countryCode = _request$body2.countryCode, city = _request$body2.city, country = _request$body2.country;
-          _context2.next = 9;
-          return regeneratorRuntime.awrap(ClinicOwnerModel.find({
-            ownerId: user._id,
-            clinicId: clinicId
-          }));
-
-        case 9:
-          clinicOwnerList = _context2.sent;
-
-          if (!(clinicOwnerList.length == 0)) {
-            _context2.next = 12;
-            break;
-          }
-
-          return _context2.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['User has no access to perform changes'],
-            field: 'clinicId'
-          }));
-
-        case 12:
-          _context2.next = 14;
+          _request$body2 = request.body, speciality = _request$body2.speciality, subSpeciality = _request$body2.subSpeciality;
+          _context2.next = 8;
           return regeneratorRuntime.awrap(SpecialityModel.find({
             _id: {
               $in: speciality
             }
           }));
 
-        case 14:
+        case 8:
           specialitiesList = _context2.sent;
 
           if (!(specialitiesList.length != speciality.length)) {
-            _context2.next = 17;
+            _context2.next = 11;
             break;
           }
 
@@ -317,23 +258,43 @@ var updateClinic = function updateClinic(request, response) {
             field: 'speciality'
           }));
 
-        case 17:
-          clinicData = {
-            speciality: specialitiesList.map(function (special) {
-              return special._id;
-            }),
-            name: name,
-            phone: phone,
-            countryCode: countryCode,
-            city: city,
-            country: country
-          };
-          _context2.next = 20;
+        case 11:
+          _context2.next = 13;
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: subSpeciality
+            },
+            type: 'SUB'
+          }));
+
+        case 13:
+          subSpecialitiesList = _context2.sent;
+
+          if (!(subSpecialitiesList.length != subSpeciality.length)) {
+            _context2.next = 16;
+            break;
+          }
+
+          return _context2.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'invalid sub specialities Ids',
+            field: 'subSpeciality'
+          }));
+
+        case 16:
+          request.body.speciality = specialitiesList.map(function (special) {
+            return special._id;
+          });
+          request.body.subSpeciality = subSpecialitiesList.map(function (special) {
+            return special._id;
+          });
+          clinicData = _objectSpread({}, request.body);
+          _context2.next = 21;
           return regeneratorRuntime.awrap(ClinicModel.findByIdAndUpdate(clinicId, clinicData, {
             "new": true
           }));
 
-        case 20:
+        case 21:
           updatedClinic = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
@@ -341,8 +302,8 @@ var updateClinic = function updateClinic(request, response) {
             clinic: updatedClinic
           }));
 
-        case 24:
-          _context2.prev = 24;
+        case 25:
+          _context2.prev = 25;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -351,12 +312,12 @@ var updateClinic = function updateClinic(request, response) {
             error: _context2.t0.message
           }));
 
-        case 28:
+        case 29:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 24]]);
+  }, null, null, [[0, 25]]);
 };
 
 var getClinics = function getClinics(request, response) {

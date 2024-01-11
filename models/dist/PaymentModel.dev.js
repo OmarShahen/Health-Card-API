@@ -3,7 +3,12 @@
 var mongoose = require('mongoose');
 
 var PaymentSchema = new mongoose.Schema({
-  subscriptionId: {
+  paymentId: {
+    type: Number,
+    required: true,
+    unique: true
+  },
+  appointmentId: {
     type: mongoose.Types.ObjectId,
     required: true
   },
@@ -19,6 +24,10 @@ var PaymentSchema = new mongoose.Schema({
     type: Boolean,
     required: true
   },
+  isRefunded: {
+    type: Boolean,
+    "default": false
+  },
   gateway: {
     type: String,
     required: true
@@ -33,10 +42,6 @@ var PaymentSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    required: true
-  },
-  userId: {
-    type: mongoose.Types.ObjectId,
     required: true
   },
   firstName: {

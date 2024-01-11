@@ -69,7 +69,8 @@ var _require20 = require('./validateURL'),
 
 var _require21 = require('./format-time'),
     getTime = _require21.getTime,
-    getAge = _require21.getAge;
+    getAge = _require21.getAge,
+    getHoursDifference = _require21.getHoursDifference;
 
 module.exports = {
   isRolesValid: isRolesValid,
@@ -100,5 +101,6 @@ module.exports = {
   concatenateHmacString: concatenateHmacString,
   getTime: getTime,
   getAge: getAge,
-  isTimeValid: isTimeValid
+  isTimeValid: isTimeValid,
+  getHoursDifference: getHoursDifference
 };

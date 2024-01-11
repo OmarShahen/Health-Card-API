@@ -1,32 +1,34 @@
 const utils = require('../utils/utils')
 const config = require('../config/config')
-const moment = require('moment')
 
 const addAppointment = (appointmentData) => {
 
-    const { patientId, clinicId, doctorId, serviceId, status, reservationTime } = appointmentData
+    const { seekerId, expertId, status, price, startTime, duration } = appointmentData
 
-    if(!patientId) return { isAccepted: false, message: 'patient Id is required', field: 'patientId' }
+    if(!seekerId) return { isAccepted: false, message: 'Seeker Id is required', field: 'seekerId' }
 
-    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'invalid patient Id format', field: 'patientId' }
+    if(!utils.isObjectId(seekerId)) return { isAccepted: false, message: 'invalid seeker Id format', field: 'seekerId' }
 
-    if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
+    if(!expertId) return { isAccepted: false, message: 'Expert Id is required', field: 'expertId' }
 
-    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'invalid clinic Id format', field: 'clinicId' }
-
-    if(!doctorId) return { isAccepted: false, message: 'doctor Id is required', field: 'doctorId' }
-
-    if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'invalid doctor Id format', field: 'doctorId' }
-
-    if(serviceId && !utils.isObjectId(serviceId)) return { isAccepted: false, message: 'invalid service Id format', field: 'serviceId' }
+    if(!utils.isObjectId(expertId)) return { isAccepted: false, message: 'invalid expert Id format', field: 'expertId' }
 
     if(!status) return { isAccepted: false, message: 'status is required', field: 'status' }
 
     if(!config.APPOINTMENT_STATUS.includes(status)) return { isAccepted: false, message: 'invalid status value', field: 'status' }
 
-    if(!reservationTime) return { isAccepted: false, message: 'reservation time is required', field: 'reservationTime' }
+    if(!price) return { isAccepted: false, message: 'Price is required', field: 'price' }
 
-    if(!utils.isDateTimeValid(reservationTime)) return { isAccepted: false, message: 'invalid date format', field: 'reservationTime' }
+    if(typeof price != 'number') return { isAccepted: false, message: 'Price format is invalid', field: 'price' }
+
+    if(!duration) return { isAccepted: false, message: 'Duration is required', field: 'duration' }
+
+    if(typeof duration != 'number') return { isAccepted: false, message: 'Duration format is invalid', field: 'duration' }
+
+    if(!startTime) return { isAccepted: false, message: 'start time is required', field: 'startTime' }
+
+    if(!utils.isDateTimeValid(startTime)) return { isAccepted: false, message: 'invalid start time format', field: 'startTime' }
+
 
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }

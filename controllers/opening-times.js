@@ -1,7 +1,7 @@
 const OpeningTimeModel = require('../models/OpeningTimeModel')
 const openingTimeValidation = require('../validations/opening-times')
 const LeadModel = require('../models/CRM/LeadModel')
-const ClinicModel = require('../models/ClinicModel')
+const UserModel = require('../models/UserModel')
 const CounterModel = require('../models/CounterModel')
 const utils = require('../utils/utils')
 const mongoose = require('mongoose')
@@ -98,6 +98,71 @@ const getOpeningTimesByLeadId = async (request, response) => {
     }
 }
 
+const getOpeningTimesByExpertId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const openingTimes = await OpeningTimeModel.aggregate([
+            {
+                $match: { expertId: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $sort: { 
+                    createdAt: -1
+                 }
+            }
+        ])
+
+        openingTimes.forEach(openTime => openTime.expert = openTime.expert[0])
+
+        return response.status(200).json({
+            accepted: true,
+            openingTimes
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getOpeningTimesByExpertIdAndDay = async (request, response) => {
+
+    try {
+
+        const { userId, weekday } = request.params
+
+        const openingTime = await OpeningTimeModel.find({ expertId: userId, weekday })
+
+        return response.status(200).json({
+            accepted: true,
+            openingTime
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const searchOpeningTimes = async (request, response) => {
 
     try {
@@ -170,7 +235,7 @@ const addOpeningTime = async (request, response) => {
             })
         }
 
-        const { leadId, clinicId, weekday, openingTime, closingTime } = request.body
+        const { leadId, expertId, weekday, openingTime, closingTime } = request.body
 
         if(leadId) {
             const lead = await LeadModel.findById(leadId)
@@ -183,13 +248,13 @@ const addOpeningTime = async (request, response) => {
             }
         }
         
-        if(clinicId) {
-            const clinic = await ClinicModel.findById(clinicId)
-            if(!clinic) {
+        if(expertId) {
+            const expert = await UserModel.findById(expertId)
+            if(!expert) {
                 return response.status(400).json({
                     accepted: false,
-                    message: 'Clinic ID is not registered',
-                    field: 'clinicId'
+                    message: 'Expert ID is not registered',
+                    field: 'expertId'
                 })
             }
         }
@@ -197,9 +262,9 @@ const addOpeningTime = async (request, response) => {
         let searchQuery = {}
 
         if(leadId) {
-            searchQuery = { leadId, weekday }
-        } else if(clinicId) {
-            searchQuery = { clinicId, weekday }
+            searchQuery = { leadId, weekday, isActive: true }
+        } else if(expertId) {
+            searchQuery = { expertId, weekday, isActive: true }
         }
 
         const openingTimeList = await OpeningTimeModel.find(searchQuery)
@@ -227,7 +292,7 @@ const addOpeningTime = async (request, response) => {
 
         const openingTimeData = {
             leadId,
-            clinicId,
+            expertId,
             openingTimeId: counter.value,
             weekday,
             openingTime: {
@@ -337,6 +402,41 @@ const updateOpeningTime = async (request, response) => {
     }
 }
 
+const updateOpeningTimeActivityStatus = async (request, response) => {
+
+    try {
+
+        const dataValidation = openingTimeValidation.updateOpeningTimeActivityStatus(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { openingTimeId } = request.params
+        const { isActive } = request.body
+        
+        const updatedOpeningTime = await OpeningTimeModel
+        .findByIdAndUpdate(openingTimeId, { isActive }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated opening time successfully!',
+            openingTime: updatedOpeningTime
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deleteOpeningTime = async (request, response) => {
 
     try {
@@ -365,8 +465,11 @@ const deleteOpeningTime = async (request, response) => {
 module.exports = { 
     getOpeningTimes, 
     getOpeningTimesByLeadId,
+    getOpeningTimesByExpertId,
+    getOpeningTimesByExpertIdAndDay,
     addOpeningTime, 
-    updateOpeningTime, 
+    updateOpeningTime,
+    updateOpeningTimeActivityStatus, 
     deleteOpeningTime,
     searchOpeningTimes
 }

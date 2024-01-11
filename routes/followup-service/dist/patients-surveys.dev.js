@@ -30,6 +30,10 @@ router.get('/v1/patients-surveys/members/:userId', authorization.allPermission, 
 router.get('/v1/patients-surveys/:patientSurveyId', authorization.allPermission, verifyPatientSurveyId, function (request, response) {
   return patientsSurveysController.getPatientSurveyById(request, response);
 });
+router.get('/v1/patients-surveys/doctors/:userId', //authorization.allPermission,
+verifyUserId, function (request, response) {
+  return patientsSurveysController.getPatientsSurveysByDoctorId(request, response);
+});
 router.post('/v1/patients-surveys', authorization.allPermission, function (request, response) {
   return patientsSurveysController.addPatientSurvey(request, response);
 });

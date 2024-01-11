@@ -18,7 +18,7 @@ const { calculateServicesTotalCost } = require('./calculateServicesTotalCost')
 const { isRolesValid } = require('./roles')
 const { capitalizeFirstLetter, concatenateHmacString } = require('./formatString')
 const { isValidURL } = require('./validateURL')
-const { getTime, getAge } = require('./format-time')
+const { getTime, getAge, getHoursDifference } = require('./format-time')
 
 module.exports = {
     isRolesValid,
@@ -49,5 +49,6 @@ module.exports = {
     concatenateHmacString,
     getTime,
     getAge,
-    isTimeValid
+    isTimeValid,
+    getHoursDifference
 }

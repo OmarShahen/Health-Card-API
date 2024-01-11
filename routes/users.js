@@ -12,6 +12,20 @@ router.get(
 )
 
 router.get(
+    '/v1/users/:userId/types/patients',
+    authorization.allPermission, 
+    verifyUserId,
+    (request, response) => usersController.getPatient(request, response)
+)
+
+
+router.get(
+    '/v1/users/:userId/experts',
+    verifyUserId, 
+    (request, response) => usersController.getExpertUser(request, response)
+)
+
+router.get(
     '/v1/users/roles/app',
     authorization.allPermission, 
     (request, response) => usersController.getAppUsers(request, response)
@@ -29,6 +43,13 @@ router.put(
     authorization.allPermission,
     verifyUserId, 
     (request, response) => usersController.updateUser(request, response)
+)
+
+router.patch(
+    '/v1/users/:userId/profile-image',
+    authorization.allPermission,
+    verifyUserId, 
+    (request, response) => usersController.updateUserProfileImage(request, response)
 )
 
 router.put(
@@ -73,24 +94,16 @@ router.delete(
     (request, response) => usersController.deleteUser(request, response)
 )
 
-router.patch(
-    '/v1/users/:userId/clinics',
-    authorization.allPermission,
-    verifyUserId,
-    (request, response) => usersController.registerStaffToClinic(request, response)
-)
-
-router.get(
-    '/v1/users/:userId/mode',
-    authorization.allPermission,
-    verifyUserId,
-    (request, response) => usersController.getUserMode(request, response)
-)
-
 router.post(
     '/v1/users/employee',
     authorization.allPermission,
     (request, response) => usersController.addEmployeeUser(request, response)
+)
+
+router.post(
+    '/v1/users/doctors',
+    authorization.allPermission,
+    (request, response) => usersController.addDoctorUser(request, response)
 )
 
 module.exports = router

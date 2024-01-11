@@ -12,7 +12,6 @@ var ClinicSchema = new mongoose.Schema({
   },
   mode: {
     type: String,
-    required: true,
     "enum": config.CLINIC_MODES
   },
   name: {
@@ -25,12 +24,29 @@ var ClinicSchema = new mongoose.Schema({
   countryCode: {
     type: Number
   },
+  notification: {
+    countryCode: {
+      type: Number
+    },
+    phone: {
+      type: Number
+    }
+  },
   speciality: [],
+  subSpeciality: [],
   city: {
     type: String,
     required: true
   },
   country: {
+    type: String,
+    required: true
+  },
+  county: {
+    type: String,
+    required: true
+  },
+  address: {
     type: String,
     required: true
   },

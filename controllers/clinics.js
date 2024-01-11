@@ -37,7 +37,7 @@ const addClinic = async (request, response) => {
             })
         }
 
-        const { ownerId, name, speciality, phone, countryCode, city, country } = request.body
+        const { ownerId, speciality, subSpeciality } = request.body
 
         const owner = await UserModel.findById(ownerId)
         if(!owner) {
@@ -48,44 +48,27 @@ const addClinic = async (request, response) => {
             })
         }
 
-        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality } })
+        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
         if(specialitiesList.length != speciality.length) {
             return response.status(400).json({
                 accepted: false,
-                message: 'not registered specialities',
+                message: 'invalid specialities Ids',
                 field: 'speciality'
             })
-        }
+        } 
 
-        const ownerClinics = await ClinicOwnerModel.aggregate([
-            {
-                $match: { ownerId: mongoose.Types.ObjectId(ownerId), isCreator: true }
-            },
-            {
-                $lookup: {
-                    from: 'clinics',
-                    localField: 'clinicId',
-                    foreignField: '_id',
-                    as: 'clinic'
-                }
-            }
-        ])
+        request.body.speciality = specialitiesList.map(special => special._id)
 
-        ownerClinics.forEach(ownerClinic => ownerClinic.clinic = ownerClinic.clinic[0])
-
-        if(isClinicsInTestMode(ownerClinics)) {
+        const subSpecialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
+        if(subSpecialitiesList.length != subSpeciality.length) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[request.query.lang][`Cannot create clinic in test mode`],
-                field: 'ownerId'
+                message: 'invalid sub specialities Ids',
+                field: 'subSpeciality'
             })
-        }
+        } 
 
-        let mode = 'PRODUCTION'
-
-        if(ownerClinics.length == 0) {
-            mode = 'TEST'  
-        }
+        request.body.subSpeciality = subSpecialitiesList.map(special => special._id)
 
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'clinic' },
@@ -93,17 +76,7 @@ const addClinic = async (request, response) => {
             { new: true, upsert: true }
         )
 
-        const clinicData = {
-            clinicId: counter.value,
-            mode,
-            ownerId,
-            speciality: specialitiesList.map(special => special._id),
-            phone,
-            countryCode,
-            name,
-            city,
-            country,
-        }
+        const clinicData = { clinicId: counter.value, ...request.body }
         
         const clinicObj = new ClinicModel(clinicData)
         const newClinic = await clinicObj.save()
@@ -112,17 +85,9 @@ const addClinic = async (request, response) => {
         const clinicOwnerObj = new ClinicOwnerModel(clinicOwnerData)
         const newClinicOwner = await clinicOwnerObj.save()
 
-        let newClinicDoctor = {}
-        if(owner.roles.includes('DOCTOR')) {
-            const clinicDoctorData = { doctorId: ownerId, clinicId: newClinic._id }
-            const clinicDoctorcObj = new ClinicDoctorModel(clinicDoctorData)
-            newClinicDoctor = await clinicDoctorcObj.save() 
-        }
-
-        if(ownerClinics.length == 0 || !owner.roles.includes('OWNER')) {
-            await UserModel.findByIdAndUpdate(ownerId, { $push: { roles: 'OWNER' } }, { new: true })
-        }
-        
+        const clinicDoctorData = { doctorId: ownerId, clinicId: newClinic._id }
+        const clinicDoctorcObj = new ClinicDoctorModel(clinicDoctorData)
+        const newClinicDoctor = await clinicDoctorcObj.save()
         
         return response.status(200).json({
             accepted: true,
@@ -155,18 +120,8 @@ const updateClinic = async (request, response) => {
             })
         }
 
-        const { user } = request
         const { clinicId } = request.params
-        const { name, speciality, phone, countryCode, city, country } = request.body
-
-        const clinicOwnerList = await ClinicOwnerModel.find({ ownerId: user._id, clinicId })
-        if(clinicOwnerList.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: translations[request.query.lang]['User has no access to perform changes'],
-                field: 'clinicId'
-            })
-        }
+        const { speciality, subSpeciality } = request.body
 
         const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality } })
 
@@ -178,14 +133,19 @@ const updateClinic = async (request, response) => {
             })
         }
 
-        const clinicData = {
-            speciality: specialitiesList.map(special => special._id),
-            name,
-            phone,
-            countryCode,
-            city,
-            country,
-        }
+        const subSpecialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
+        if(subSpecialitiesList.length != subSpeciality.length) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid sub specialities Ids',
+                field: 'subSpeciality'
+            })
+        } 
+
+        request.body.speciality = specialitiesList.map(special => special._id)
+        request.body.subSpeciality = subSpecialitiesList.map(special => special._id)
+
+        const clinicData = { ...request.body }
 
         const updatedClinic = await ClinicModel
         .findByIdAndUpdate(clinicId, clinicData, { new: true })

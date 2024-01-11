@@ -4,11 +4,11 @@ const config = require('../../config/config')
 const addPatientSurvey = (patientSurveyData) => {
 
     const { 
-        arrivalMethodId,
-        doneById, 
-        patientId, 
-        clinicId, 
+        doctorId,
+        reviewerId,
+        doneById,
         overallExperience,
+        comment,
         serviceIdeaRate,
         serviceIdeaComment,
         callDuration,
@@ -30,19 +30,19 @@ const addPatientSurvey = (patientSurveyData) => {
         appointmentsSchedulingWay,
     } = patientSurveyData
 
-    if(arrivalMethodId && !utils.isObjectId(arrivalMethodId)) return { isAccepted: false, message: 'Invalid arrival method ID format', field: 'arrivalMethodId' }
+    if(!doctorId) return { isAccepted: false, message: 'Doctor ID is required', field: 'doctorId' }
 
-    if(!clinicId) return { isAccepted: false, message: 'Clinic ID is required', field: 'clinicId' }
-
-    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Invalid clinic ID format', field: 'clinicId' }
+    if(!utils.isObjectId(doctorId)) return { isAccepted: false, message: 'Invalid doctor ID format', field: 'doctorId' }
 
     if(!doneById) return { isAccepted: false, message: 'Done By ID is required', field: 'doneById' }
 
     if(!utils.isObjectId(doneById)) return { isAccepted: false, message: 'Invalid done by ID format', field: 'doneById' }
 
-    if(!patientId) return { isAccepted: false, message: 'Patient ID is required', field: 'patientId' }
+    if(!reviewerId) return { isAccepted: false, message: 'Reviewer ID is required', field: 'reviewerId' }
 
-    if(!utils.isObjectId(patientId)) return { isAccepted: false, message: 'Invalid patient ID format', field: 'patientId' }
+    if(!utils.isObjectId(reviewerId)) return { isAccepted: false, message: 'Invalid reviewer ID format', field: 'reviewerId' }
+
+    if(comment && typeof comment != 'string') return { isAccepted: false, message: 'Invalid comment format', field: 'comment' }
 
     if(typeof overallExperience != 'number') 
         return { isAccepted: false, message: 'Overall experience format is invalid', field: 'overallExperience' }
@@ -207,5 +207,6 @@ const updatePatientSurvey = (patientSurveyData) => {
 
     return { isAccepted: true, message: 'data is valid', data: patientSurveyData }
 }
+
 
 module.exports = { addPatientSurvey, updatePatientSurvey }

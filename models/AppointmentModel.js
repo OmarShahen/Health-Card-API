@@ -3,12 +3,16 @@ const config = require('../config/config')
 
 const AppointmentSchema = new mongoose.Schema({
 
-    patientId: { type: mongoose.Types.ObjectId, required: true },
-    clinicId: { type: mongoose.Types.ObjectId, required: true },
-    doctorId: { type: mongoose.Types.ObjectId, required: true },
-    serviceId: { type: mongoose.Types.ObjectId },
+    appointmentId: { type: Number },
+    seekerId: { type: mongoose.Types.ObjectId, required: true },
+    expertId: { type: mongoose.Types.ObjectId, required: true },
+    paymentId: { type: mongoose.Types.ObjectId },
+    isPaid: { type: Boolean, default: false },
+    duration: { type: Number },
+    price: { type: Number, default: 0 },
     status: { type: String, default: 'UPCOMING', enum: config.APPOINTMENT_STATUS },
-    reservationTime: { type: Date, required: true }
+    startTime: { type: Date, required: true },
+    endTime: { type: Date, required: true }
 
 }, { timestamps: true })
 

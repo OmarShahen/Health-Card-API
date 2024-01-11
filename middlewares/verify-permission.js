@@ -149,13 +149,14 @@ const allPermission = (request, response, next) => {
 
     try {
 
-        const authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR', 'EMPLOYEE']
+        const authorizedRoles = ['EMPLOYEE']
+        const types = ['EXPERT', 'SEEKER']
 
         verifyToken(request, response, () => {
 
-            const { roles } = request.user
+            const { roles, type } = request.user
 
-            if(utils.isRolesValid(roles, authorizedRoles)) {
+            if(utils.isRolesValid(roles, authorizedRoles) || types.includes(type)) {
 
                 next()
 
@@ -179,20 +180,19 @@ const allPermission = (request, response, next) => {
     }
 }
 
-const doctorAndOwnerPermission = (request, response, next) => {
+const adminAndExpertPermission = (request, response, next) => {
 
     try {
 
-        const authorizedRoles = ['OWNER', 'DOCTOR']
+        const authorizedRoles = ['EMPLOYEE']
+        const types = ['EXPERT']
 
         verifyToken(request, response, () => {
 
-            const { roles } = request.user
+            const { roles, type } = request.user
 
-            if(utils.isRolesValid(roles, authorizedRoles)) {
-
+            if(utils.isRolesValid(roles, authorizedRoles) || types.includes(type)) {
                 next()
-
             } else {
 
                 return response.status(403).json({
@@ -219,5 +219,5 @@ module.exports = {
     doctorPermission,
     ownerPermission,
     allPermission,
-    doctorAndOwnerPermission
+    adminAndExpertPermission
 }

@@ -7,7 +7,6 @@ const userValidation = require('../validations/users')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
 const SpecialityModel = require('../models/SpecialityModel')
-const jwt = require('jsonwebtoken')
 const translations = require('../i18n/index')
 
 const getUser = async (request, response) => {
@@ -16,16 +15,109 @@ const getUser = async (request, response) => {
 
         const { userId } = request.params
 
-        const user = await UserModel
-        .findById(userId)
-        .select({ password: 0 })
-
-        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const userList = await UserModel.aggregate([
+            {
+                $match: { 
+                    _id: mongoose.Types.ObjectId(userId),
+                }
+            },
+            {
+                $limit: 1
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'speciality',
+                    foreignField: '_id',
+                    as: 'speciality'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'subSpeciality',
+                    foreignField: '_id',
+                    as: 'subSpeciality'
+                }
+            },
+            {
+                $project: {
+                    password: 0
+                }
+            }
+        ])
 
         return response.status(200).json({
             accepted: true,
-            user,
-            token: token
+            user: userList[0]
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getPatient = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const userList = await UserModel
+        .find({ _id: userId, type: 'PATIENT' })
+        .select({ password: 0 })
+
+        return response.status(200).json({
+            accepted: true,
+            user: userList[0]
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getExpertUser = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const userList = await UserModel.aggregate([
+            {
+                $match: { _id: mongoose.Types.ObjectId(userId), type: 'EXPERT' }
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'speciality',
+                    foreignField: '_id',
+                    as: 'speciality'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'subSpeciality',
+                    foreignField: '_id',
+                    as: 'subSpeciality'
+                }
+            }
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            user: userList[0],
         })
 
     } catch(error) {
@@ -108,18 +200,82 @@ const updateUser = async (request, response) => {
             })
         }
 
-        const { firstName, lastName, gender, dateOfBirth } = request.body
+        const { speciality, subSpeciality } = request.body
 
-        const newUserData = { firstName, lastName, gender, dateOfBirth }
+        if(speciality) {
+
+            const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
+            if(specialitiesList.length != speciality.length) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'invalid specialities Ids',
+                    field: 'speciality'
+                })
+            }
+
+            request.body.speciality = specialitiesList.map(special => special._id)
+        }
+
+        if(subSpeciality) {
+
+            const specialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
+            if(specialitiesList.length != subSpeciality.length) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'invalid subspecialities Ids',
+                    field: 'subSpeciality'
+                })
+            }
+
+            request.body.subSpeciality = specialitiesList.map(special => special._id)
+        }
 
         const updatedUser = await UserModel
-        .findByIdAndUpdate(userId, newUserData, { new: true })
+        .findByIdAndUpdate(userId, request.body, { new: true })
 
         updatedUser.password = undefined
 
         return response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated user successfully!'],
+            message: 'Updated user successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateUserProfileImage = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const dataValidation = userValidation.updateUserProfileImage(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { profileImageURL } = request.body
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { profileImageURL }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated user profile image successfully!',
             user: updatedUser
         })
 
@@ -417,127 +573,6 @@ const deleteUser = async (request, response) => {
     }
 }
 
-const registerStaffToClinic = async (request, response) => {
-
-    try {
-
-        const { userId } = request.params
-
-        const dataValidation = userValidation.registerStaffToClinic(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }   
-
-        const { clinicId } = request.body
-
-        const clinicList = await ClinicModel.find({ clinicId })
-        if(clinicList.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'No clinic is registered with that ID',
-                field: 'clinicId'
-            })
-        }
-
-        const user = await UserModel.findById(userId)
-
-        if(!user.roles.includes('STAFF')) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Invalid user role type to perform this operation',
-                field: 'userId'
-            })
-        }
-
-        if(user.clinicId) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'user is already registered with a clinic',
-                field: 'userId'
-            })
-        }
-
-
-        const clinic = clinicList[0]
-
-        const updatedUser = await UserModel
-        .findByIdAndUpdate(userId, { clinicId: clinic._id }, { new: true }) 
-
-        updatedUser.password = undefined
-
-        return response.status(200).json({
-            accepted: true,
-            message: 'Registered with a clinic successfully!',
-            user: updatedUser
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const getUserMode = async (request, response) => {
-
-    try {
-
-        const { userId } = request.params
-
-        const user = await UserModel.findById(userId)
-
-        if(!user.roles.includes('OWNER')) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'user must be owner',
-                field: 'userId'
-            })            
-        }
-
-        const testClinicsOwned = await ClinicOwnerModel.aggregate([
-            {
-                $match: { ownerId: mongoose.Types.ObjectId(userId) }
-            },
-            {
-                $lookup: {
-                    from: 'clinics',
-                    localField: 'clinicId',
-                    foreignField: '_id',
-                    as: 'clinic'
-                }
-            },
-            {
-                $match: { 'clinic.mode': 'TEST' }
-            }
-        ])
-
-        let mode = 'PRODUCTION'
-
-        if(testClinicsOwned.length > 0) {
-            mode = 'TEST'
-        }
-
-        return response.status(200).json({
-            accepted: true,
-            mode
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
 
 const addEmployeeUser = async (request, response) => {
 
@@ -599,8 +634,91 @@ const addEmployeeUser = async (request, response) => {
     }
 }
 
+const addDoctorUser = async (request, response) => {
+
+    try {
+
+        const dataValidation = userValidation.addDoctorUser(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { email, password, speciality, subSpeciality } = request.body
+
+        const emailList = await UserModel.find({ email, isVerified: true })
+
+        if(emailList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Email is already registered',
+                field: 'email'
+            })
+        }
+
+        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
+        if(specialitiesList.length != speciality.length) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid specialities Ids',
+                field: 'speciality'
+            })
+        } 
+
+        request.body.speciality = specialitiesList.map(special => special._id)
+
+        const subSpecialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
+        if(subSpecialitiesList.length != subSpeciality.length) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid sub specialities Ids',
+                field: 'subSpeciality'
+            })
+        } 
+
+        request.body.subSpeciality = subSpecialitiesList.map(special => special._id)
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'user' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
+        const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
+        let userData = { 
+            ...request.body, 
+            userId: counter.value, 
+            password: userPassword, 
+            type: 'MEDICAL',
+            isVerified: true
+        }
+
+        const userObj = new UserModel(userData)
+        const newUser = await userObj.save()
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Added doctor user successfully!',
+            user: newUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getUser,
+    getPatient,
+    getExpertUser,
     getAppUsers,
     getUserSpeciality,
     updateUser, 
@@ -608,9 +726,9 @@ module.exports = {
     updateUserEmail, 
     updateUserLanguage,
     updateUserPassword,
+    updateUserProfileImage,
     verifyAndUpdateUserPassword,
     deleteUser,
-    registerStaffToClinic,
-    getUserMode,
-    addEmployeeUser
+    addEmployeeUser,
+    addDoctorUser
 }

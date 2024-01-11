@@ -74,6 +74,8 @@ var ValueModel = require('../models/ValueModel');
 
 var OpeningTimeModel = require('../models/OpeningTimeModel');
 
+var ReviewModel = require('../models/ReviewModel');
+
 var verifyClinicId = function verifyClinicId(request, response, next) {
   var clinicId, clinic;
   return regeneratorRuntime.async(function verifyClinicId$(_context) {
@@ -2231,6 +2233,65 @@ var verifyOpeningTimeId = function verifyOpeningTimeId(request, response, next) 
   }, null, null, [[0, 12]]);
 };
 
+var verifyReviewId = function verifyReviewId(request, response, next) {
+  var reviewId, review;
+  return regeneratorRuntime.async(function verifyReviewId$(_context38) {
+    while (1) {
+      switch (_context38.prev = _context38.next) {
+        case 0:
+          _context38.prev = 0;
+          reviewId = request.params.reviewId;
+
+          if (utils.isObjectId(reviewId)) {
+            _context38.next = 4;
+            break;
+          }
+
+          return _context38.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid review ID format',
+            field: 'reviewId'
+          }));
+
+        case 4:
+          _context38.next = 6;
+          return regeneratorRuntime.awrap(ReviewModel.findById(reviewId));
+
+        case 6:
+          review = _context38.sent;
+
+          if (review) {
+            _context38.next = 9;
+            break;
+          }
+
+          return _context38.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Review ID does not exist',
+            field: 'reviewId'
+          }));
+
+        case 9:
+          return _context38.abrupt("return", next());
+
+        case 12:
+          _context38.prev = 12;
+          _context38.t0 = _context38["catch"](0);
+          console.error(_context38.t0);
+          return _context38.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context38.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context38.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyClinicId: verifyClinicId,
   verifyPatientId: verifyPatientId,
@@ -2268,5 +2329,6 @@ module.exports = {
   verifyMessageTemplateId: verifyMessageTemplateId,
   verifyMessageSentId: verifyMessageSentId,
   verifyValueId: verifyValueId,
-  verifyOpeningTimeId: verifyOpeningTimeId
+  verifyOpeningTimeId: verifyOpeningTimeId,
+  verifyReviewId: verifyReviewId
 };

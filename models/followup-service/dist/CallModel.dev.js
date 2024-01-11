@@ -16,8 +16,10 @@ var CallSchema = new mongoose.Schema({
     required: true
   },
   clinicId: {
-    type: mongoose.Types.ObjectId,
-    required: true
+    type: mongoose.Types.ObjectId
+  },
+  doctorId: {
+    type: mongoose.Types.ObjectId
   },
   patientSurveyId: {
     type: mongoose.Types.ObjectId

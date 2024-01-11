@@ -98,6 +98,63 @@ const getClinicsDoctorsByOwnerId = async (request, response) => {
     }
 }
 
+const getClinicsDoctorsByDoctorId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const clinicsDoctors = await ClinicDoctorModel.aggregate([
+            {
+                $match: { doctorId: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'clinics',
+                    localField: 'clinicId',
+                    foreignField: '_id',
+                    as: 'clinic'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'doctorId',
+                    foreignField: '_id',
+                    as: 'doctor'
+                }
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $project: {
+                    'doctor.password': 0
+                }
+            }
+        ])
+
+        clinicsDoctors.forEach(clinicDoctor => {
+            clinicDoctor.clinic = clinicDoctor.clinic[0]
+            clinicDoctor.doctor = clinicDoctor.doctor[0]
+        }) 
+
+        return response.status(200).json({
+            accepted: true,
+            clinicsDoctors
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 const getClinicsDoctorsByClinicId = async (request, response) => {
 
@@ -267,6 +324,7 @@ module.exports = {
     getClinicsDoctors, 
     getClinicsDoctorsByOwnerId, 
     getClinicsDoctorsByClinicId,
+    getClinicsDoctorsByDoctorId,
     addClinicDoctor, 
     deleteClinicDoctor 
 }

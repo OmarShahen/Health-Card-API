@@ -10,21 +10,27 @@ var _require = require('../middlewares/verify-routes-params'),
     verifyClinicId = _require.verifyClinicId,
     verifyPatientId = _require.verifyPatientId;
 
-var _require2 = require('../middlewares/verify-clinic-mode'),
-    verifyClinicAppointments = _require2.verifyClinicAppointments;
-
 var authorization = require('../middlewares/verify-permission');
 
-router.post('/v1/appointments', authorization.allPermission, verifyClinicAppointments, function (request, response) {
+router.post('/v1/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.addAppointment(request, response);
 });
 router.get('/v1/appointments/doctors/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return appointmentsController.getAppointmentsByDoctorId(request, response);
 });
+router.get('/v1/appointments/experts/:userId/status/:status/payments/paid', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getPaidAppointmentsByExpertIdAndStatus(request, response);
+});
+router.get('/v1/appointments/seekers/:userId/status/:status/payments/paid', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getPaidAppointmentsBySeekerIdAndStatus(request, response);
+});
+router.get('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.getAppointment(request, response);
+});
 router.get('/v1/appointments/clinics/:clinicId', authorization.allPermission, verifyClinicId, function (request, response) {
   return appointmentsController.getAppointmentsByClinicId(request, response);
 });
-router.get('/v1/appointments/patients/:patientId', authorization.allPermission, verifyPatientId, function (request, response) {
+router.get('/v1/appointments/patients/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return appointmentsController.getAppointmentsByPatientId(request, response);
 });
 router.get('/v1/appointments/clinics/:clinicId/patients/:patientId', authorization.allPermission, verifyClinicId, verifyPatientId, function (request, response) {

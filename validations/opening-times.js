@@ -3,11 +3,11 @@ const config = require('../config/config')
 
 const addOpeningTime = (openingTimeData) => {
 
-    const { leadId, clinicId, weekday, openingTime, closingTime } = openingTimeData
+    const { leadId, expertId, weekday, openingTime, closingTime } = openingTimeData
 
-    if(!leadId && !clinicId) return { isAccepted: false, message: 'Entity relation is required', field: 'leadId' }
+    if(!leadId && !expertId) return { isAccepted: false, message: 'Entity relation is required', field: 'leadId' }
 
-    if(clinicId && !utils.isObjectId(clinicId)) return { isAccepted: false, message: 'Clinic Id format is invalid', field: 'clinicId' }
+    if(expertId && !utils.isObjectId(expertId)) return { isAccepted: false, message: 'Expert Id format is invalid', field: 'expertId' }
 
     if(leadId && !utils.isObjectId(leadId)) return { isAccepted: false, message: 'Lead Id format is invalid', field: 'leadId' }
 
@@ -47,4 +47,14 @@ const updateOpeningTime = (openingTimeData) => {
 
 }
 
-module.exports = { addOpeningTime, updateOpeningTime }
+const updateOpeningTimeActivityStatus = (openingTimeData) => {
+
+    const { isActive } = openingTimeData
+
+    if(typeof isActive != 'boolean') return { isAccepted: false, message: 'isActive format is invalid', field: 'isActive' }
+
+    return { isAccepted: true, message: 'data is valid', data: openingTimeData }
+
+}
+
+module.exports = { addOpeningTime, updateOpeningTime, updateOpeningTimeActivityStatus }

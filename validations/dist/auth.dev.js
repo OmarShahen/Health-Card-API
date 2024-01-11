@@ -14,6 +14,18 @@ var checkSpeciality = function checkSpeciality(specialities) {
   return true;
 };
 
+var checkPricing = function checkPricing(pricingList) {
+  for (var i = 0; i < pricingList.length; i++) {
+    var price = pricingList[i];
+    if (!price.duration) return false;
+    if (typeof price.duration != 'number') return false;
+    if (!price.price) return false;
+    if (typeof price.price != 'number') return false;
+  }
+
+  return true;
+};
+
 var checkRoles = function checkRoles(roles) {
   for (var i = 0; i < roles.length; i++) {
     var isValid = false;
@@ -41,35 +53,24 @@ var checkRoles = function checkRoles(roles) {
   };
 };
 
-var signup = function signup(doctorData) {
-  var firstName = doctorData.firstName,
-      lastName = doctorData.lastName,
-      email = doctorData.email,
-      roles = doctorData.roles,
-      gender = doctorData.gender,
-      dateOfBirth = doctorData.dateOfBirth,
-      timeZone = doctorData.timeZone,
-      password = doctorData.password,
-      speciality = doctorData.speciality;
+var seekerSignup = function seekerSignup(userData) {
+  var firstName = userData.firstName,
+      email = userData.email,
+      countryCode = userData.countryCode,
+      phone = userData.phone,
+      gender = userData.gender,
+      dateOfBirth = userData.dateOfBirth,
+      timeZone = userData.timeZone,
+      password = userData.password;
   if (!firstName) return {
     isAccepted: false,
-    message: 'First name is required',
+    message: 'Name is required',
     field: 'firstName'
   };
   if (!validator.isNameValid(firstName)) return {
     isAccepted: false,
     message: 'Invalid name formate',
     field: 'firstName'
-  };
-  if (!lastName) return {
-    isAccepted: false,
-    message: 'Last name is required',
-    field: 'lastName'
-  };
-  if (!validator.isNameValid(lastName)) return {
-    isAccepted: false,
-    message: 'Invalid name formate',
-    field: 'lastName'
   };
   if (!email) return {
     isAccepted: false,
@@ -81,18 +82,26 @@ var signup = function signup(doctorData) {
     message: 'Email formate is invalid',
     field: 'email'
   };
-  if (!roles) return {
+  if (!countryCode) return {
     isAccepted: false,
-    message: 'Roles is required',
-    field: 'roles'
+    message: 'Country code is required',
+    field: 'countryCode'
   };
-  if (!Array.isArray(roles)) return {
+  if (typeof countryCode != 'number') return {
     isAccepted: false,
-    message: 'Roles must be a list',
-    field: 'roles'
+    message: 'Country code format is invalid',
+    field: 'countryCode'
   };
-  var rolesValidation = checkRoles(roles);
-  if (!rolesValidation.isAccepted) return rolesValidation;
+  if (!phone) return {
+    isAccepted: false,
+    message: 'Phone is required',
+    field: 'phone'
+  };
+  if (typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Phone format is invalid',
+    field: 'phone'
+  };
   if (!password) return {
     isAccepted: false,
     message: 'Password is required',
@@ -123,29 +132,160 @@ var signup = function signup(doctorData) {
     message: 'Date of birth format is invalid',
     field: 'dateOfBirth'
   };
-
-  if (roles.includes('DOCTOR')) {
-    if (!speciality) return {
-      isAccepted: false,
-      message: 'Speciality is required',
-      field: 'speciality'
-    };
-    if (!Array.isArray(speciality)) return {
-      isAccepted: false,
-      message: 'Speciality must be a list',
-      field: 'speciality'
-    };
-    if (speciality.length == 0) return {
-      isAccepted: false,
-      message: 'Speciality must be atleast one',
-      field: 'speciality'
-    };
-  }
-
   return {
     isAccepted: true,
     message: 'data is valid',
-    data: doctorData
+    data: userData
+  };
+};
+
+var expertSignup = function expertSignup(userData) {
+  var firstName = userData.firstName,
+      title = userData.title,
+      description = userData.description,
+      email = userData.email,
+      countryCode = userData.countryCode,
+      phone = userData.phone,
+      gender = userData.gender,
+      dateOfBirth = userData.dateOfBirth,
+      pricing = userData.pricing,
+      timeZone = userData.timeZone,
+      password = userData.password,
+      speciality = userData.speciality;
+  if (!firstName) return {
+    isAccepted: false,
+    message: 'Name is required',
+    field: 'firstName'
+  };
+  if (!validator.isNameValid(firstName)) return {
+    isAccepted: false,
+    message: 'Invalid name formate',
+    field: 'firstName'
+  };
+  if (!title) return {
+    isAccepted: false,
+    message: 'Title is required',
+    field: 'title'
+  };
+  if (typeof title != 'string') return {
+    isAccepted: false,
+    message: 'Title format is invalid',
+    field: 'title'
+  };
+  if (!description) return {
+    isAccepted: false,
+    message: 'Description is required',
+    field: 'description'
+  };
+  if (typeof description != 'string') return {
+    isAccepted: false,
+    message: 'Description format is invalid',
+    field: 'description'
+  };
+  if (!email) return {
+    isAccepted: false,
+    message: 'Email is required',
+    field: 'email'
+  };
+  if (!validator.isEmailValid(email)) return {
+    isAccepted: false,
+    message: 'Email formate is invalid',
+    field: 'email'
+  };
+  if (!countryCode) return {
+    isAccepted: false,
+    message: 'Country code is required',
+    field: 'countryCode'
+  };
+  if (typeof countryCode != 'number') return {
+    isAccepted: false,
+    message: 'Country code format is invalid',
+    field: 'countryCode'
+  };
+  if (!phone) return {
+    isAccepted: false,
+    message: 'Phone is required',
+    field: 'phone'
+  };
+  if (typeof phone != 'number') return {
+    isAccepted: false,
+    message: 'Phone format is invalid',
+    field: 'phone'
+  };
+  if (!password) return {
+    isAccepted: false,
+    message: 'Password is required',
+    field: 'password'
+  };
+  if (!gender) return {
+    isAccepted: false,
+    message: 'Gender is required',
+    field: 'gender'
+  };
+  if (!config.GENDER.includes(gender)) return {
+    isAccepted: false,
+    message: 'Invalid gender',
+    field: 'gender'
+  };
+  if (!dateOfBirth) return {
+    isAccepted: false,
+    message: 'Date of birth',
+    field: 'dateOfBirth'
+  };
+  if (!pricing) return {
+    isAccepted: false,
+    message: 'Pricing is required',
+    field: 'pricing'
+  };
+  if (!Array.isArray(pricing)) return {
+    isAccepted: false,
+    message: 'Pricing must be a list',
+    field: 'pricing'
+  };
+  if (pricing.length != 2) return {
+    isAccepted: false,
+    message: 'Pricing must be atleast two',
+    field: 'pricing'
+  };
+  if (!checkPricing(pricing)) return {
+    isAccepted: false,
+    message: 'Pricing format is invalid',
+    field: 'pricing'
+  };
+  if (timeZone && typeof timeZone != 'string') return {
+    isAccepted: false,
+    message: 'time zone format is invalid',
+    field: 'timeZone'
+  };
+  if (!validator.isDateTimeValid(dateOfBirth)) return {
+    isAccepted: false,
+    message: 'Date of birth format is invalid',
+    field: 'dateOfBirth'
+  };
+  if (!speciality) return {
+    isAccepted: false,
+    message: 'Speciality is required',
+    field: 'speciality'
+  };
+  if (!Array.isArray(speciality)) return {
+    isAccepted: false,
+    message: 'Speciality must be a list',
+    field: 'speciality'
+  };
+  if (speciality.length == 0) return {
+    isAccepted: false,
+    message: 'Speciality must be atleast one',
+    field: 'speciality'
+  };
+  if (!checkSpeciality(speciality)) return {
+    isAccepted: false,
+    message: 'Speciality format is invalid',
+    field: 'speciality'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
   };
 };
 
@@ -404,7 +544,8 @@ var addUserEmailVerificationCode = function addUserEmailVerificationCode(userVer
 };
 
 module.exports = {
-  signup: signup,
+  expertSignup: expertSignup,
+  seekerSignup: seekerSignup,
   login: login,
   verifyPersonalInfo: verifyPersonalInfo,
   verifyDemographicInfo: verifyDemographicInfo,

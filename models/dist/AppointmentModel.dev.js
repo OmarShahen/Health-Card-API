@@ -5,27 +5,41 @@ var mongoose = require('mongoose');
 var config = require('../config/config');
 
 var AppointmentSchema = new mongoose.Schema({
-  patientId: {
+  appointmentId: {
+    type: Number
+  },
+  seekerId: {
     type: mongoose.Types.ObjectId,
     required: true
   },
-  clinicId: {
+  expertId: {
     type: mongoose.Types.ObjectId,
     required: true
   },
-  doctorId: {
-    type: mongoose.Types.ObjectId,
-    required: true
-  },
-  serviceId: {
+  paymentId: {
     type: mongoose.Types.ObjectId
+  },
+  isPaid: {
+    type: Boolean,
+    "default": false
+  },
+  duration: {
+    type: Number
+  },
+  price: {
+    type: Number,
+    "default": 0
   },
   status: {
     type: String,
     "default": 'UPCOMING',
     "enum": config.APPOINTMENT_STATUS
   },
-  reservationTime: {
+  startTime: {
+    type: Date,
+    required: true
+  },
+  endTime: {
     type: Date,
     required: true
   }

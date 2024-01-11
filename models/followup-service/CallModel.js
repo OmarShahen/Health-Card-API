@@ -5,7 +5,8 @@ const CallSchema = new mongoose.Schema({
     callId: { type: Number, required: true },
     doneById: { type: mongoose.Types.ObjectId, required: true },
     patientId: { type: mongoose.Types.ObjectId, required: true },
-    clinicId: { type: mongoose.Types.ObjectId, required: true },
+    clinicId: { type: mongoose.Types.ObjectId },
+    doctorId: { type: mongoose.Types.ObjectId },
     patientSurveyId: { type: mongoose.Types.ObjectId },
     treatmentSurveyId: { type: mongoose.Types.ObjectId },
     duration: { type: Number, required: true }

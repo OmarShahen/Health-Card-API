@@ -9,9 +9,22 @@ router.get(
     (request, response) => specialitiesController.getSpecialities(request, response)
 )
 
+router.get(
+    '/v1/specialities/:specialityId',
+    authorization.allPermission,
+    verifySpecialityId,
+    (request, response) => specialitiesController.getSpeciality(request, response)
+)
+
+router.get(
+    '/v1/specialities/:specialityId/sub-specialities',
+    verifySpecialityId,
+    (request, response) => specialitiesController.getSubSpecialitiesOfMainSpeciality(request, response)
+)
+
 router.post(
     '/v1/specialities', 
-    //4authorization.allPermission,
+    authorization.allPermission,
     (request, response) => specialitiesController.addSpeciality(request, response)
 )
 

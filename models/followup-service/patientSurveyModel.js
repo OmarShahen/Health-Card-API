@@ -4,13 +4,18 @@ const PatientSurveySchema = new mongoose.Schema({
 
     patientSurveyId: { type: Number, required: true },
     doneById: { type: mongoose.Types.ObjectId, required: true },
-    patientId: { type: mongoose.Types.ObjectId, required: true },
-    clinicId: { type: mongoose.Types.ObjectId, required: true },
+    patientId: { type: mongoose.Types.ObjectId },
+    clinicId: { type: mongoose.Types.ObjectId },
+
+    doctorId: { type: mongoose.Types.ObjectId },
+    reviewerId: { type: mongoose.Types.ObjectId },
+
     arrivalMethodId: { type: mongoose.Types.ObjectId },
     overallExperience: { type: Number },
     serviceIdeaRate: { type: Number },
     serviceIdeaComment: { type: String },
     callDuration: { type: Number },
+    comment: { type: String },
     recordedBy: { type: String, default: 'CALL' },
     waiting: {
         timeWaited: { type: Number },

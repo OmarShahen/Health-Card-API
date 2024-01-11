@@ -5,11 +5,11 @@ var utils = require('../../utils/utils');
 var config = require('../../config/config');
 
 var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
-  var arrivalMethodId = patientSurveyData.arrivalMethodId,
+  var doctorId = patientSurveyData.doctorId,
+      reviewerId = patientSurveyData.reviewerId,
       doneById = patientSurveyData.doneById,
-      patientId = patientSurveyData.patientId,
-      clinicId = patientSurveyData.clinicId,
       overallExperience = patientSurveyData.overallExperience,
+      comment = patientSurveyData.comment,
       serviceIdeaRate = patientSurveyData.serviceIdeaRate,
       serviceIdeaComment = patientSurveyData.serviceIdeaComment,
       callDuration = patientSurveyData.callDuration,
@@ -29,20 +29,15 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
       appointmentsIsSchedulingEasy = patientSurveyData.appointmentsIsSchedulingEasy,
       appointmentsIsReminderSent = patientSurveyData.appointmentsIsReminderSent,
       appointmentsSchedulingWay = patientSurveyData.appointmentsSchedulingWay;
-  if (arrivalMethodId && !utils.isObjectId(arrivalMethodId)) return {
+  if (!doctorId) return {
     isAccepted: false,
-    message: 'Invalid arrival method ID format',
-    field: 'arrivalMethodId'
+    message: 'Doctor ID is required',
+    field: 'doctorId'
   };
-  if (!clinicId) return {
+  if (!utils.isObjectId(doctorId)) return {
     isAccepted: false,
-    message: 'Clinic ID is required',
-    field: 'clinicId'
-  };
-  if (!utils.isObjectId(clinicId)) return {
-    isAccepted: false,
-    message: 'Invalid clinic ID format',
-    field: 'clinicId'
+    message: 'Invalid doctor ID format',
+    field: 'doctorId'
   };
   if (!doneById) return {
     isAccepted: false,
@@ -54,15 +49,20 @@ var addPatientSurvey = function addPatientSurvey(patientSurveyData) {
     message: 'Invalid done by ID format',
     field: 'doneById'
   };
-  if (!patientId) return {
+  if (!reviewerId) return {
     isAccepted: false,
-    message: 'Patient ID is required',
-    field: 'patientId'
+    message: 'Reviewer ID is required',
+    field: 'reviewerId'
   };
-  if (!utils.isObjectId(patientId)) return {
+  if (!utils.isObjectId(reviewerId)) return {
     isAccepted: false,
-    message: 'Invalid patient ID format',
-    field: 'patientId'
+    message: 'Invalid reviewer ID format',
+    field: 'reviewerId'
+  };
+  if (comment && typeof comment != 'string') return {
+    isAccepted: false,
+    message: 'Invalid comment format',
+    field: 'comment'
   };
   if (typeof overallExperience != 'number') return {
     isAccepted: false,

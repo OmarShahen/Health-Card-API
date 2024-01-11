@@ -9,7 +9,7 @@ var OpeningTimeSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  clinicId: {
+  expertId: {
     type: mongoose.Types.ObjectId
   },
   leadId: {
@@ -19,6 +19,10 @@ var OpeningTimeSchema = new mongoose.Schema({
     type: String,
     required: true,
     "enum": config.WEEK_DAYS
+  },
+  isActive: {
+    type: Boolean,
+    "default": true
   },
   openingTime: {
     hour: {

@@ -4,49 +4,32 @@ var utils = require('../utils/utils');
 
 var config = require('../config/config');
 
-var moment = require('moment');
-
 var addAppointment = function addAppointment(appointmentData) {
-  var patientId = appointmentData.patientId,
-      clinicId = appointmentData.clinicId,
-      doctorId = appointmentData.doctorId,
-      serviceId = appointmentData.serviceId,
+  var seekerId = appointmentData.seekerId,
+      expertId = appointmentData.expertId,
       status = appointmentData.status,
-      reservationTime = appointmentData.reservationTime;
-  if (!patientId) return {
+      price = appointmentData.price,
+      startTime = appointmentData.startTime,
+      duration = appointmentData.duration;
+  if (!seekerId) return {
     isAccepted: false,
-    message: 'patient Id is required',
-    field: 'patientId'
+    message: 'Seeker Id is required',
+    field: 'seekerId'
   };
-  if (!utils.isObjectId(patientId)) return {
+  if (!utils.isObjectId(seekerId)) return {
     isAccepted: false,
-    message: 'invalid patient Id format',
-    field: 'patientId'
+    message: 'invalid seeker Id format',
+    field: 'seekerId'
   };
-  if (!clinicId) return {
+  if (!expertId) return {
     isAccepted: false,
-    message: 'clinic Id is required',
-    field: 'clinicId'
+    message: 'Expert Id is required',
+    field: 'expertId'
   };
-  if (!utils.isObjectId(clinicId)) return {
+  if (!utils.isObjectId(expertId)) return {
     isAccepted: false,
-    message: 'invalid clinic Id format',
-    field: 'clinicId'
-  };
-  if (!doctorId) return {
-    isAccepted: false,
-    message: 'doctor Id is required',
-    field: 'doctorId'
-  };
-  if (!utils.isObjectId(doctorId)) return {
-    isAccepted: false,
-    message: 'invalid doctor Id format',
-    field: 'doctorId'
-  };
-  if (serviceId && !utils.isObjectId(serviceId)) return {
-    isAccepted: false,
-    message: 'invalid service Id format',
-    field: 'serviceId'
+    message: 'invalid expert Id format',
+    field: 'expertId'
   };
   if (!status) return {
     isAccepted: false,
@@ -58,15 +41,35 @@ var addAppointment = function addAppointment(appointmentData) {
     message: 'invalid status value',
     field: 'status'
   };
-  if (!reservationTime) return {
+  if (!price) return {
     isAccepted: false,
-    message: 'reservation time is required',
-    field: 'reservationTime'
+    message: 'Price is required',
+    field: 'price'
   };
-  if (!utils.isDateTimeValid(reservationTime)) return {
+  if (typeof price != 'number') return {
     isAccepted: false,
-    message: 'invalid date format',
-    field: 'reservationTime'
+    message: 'Price format is invalid',
+    field: 'price'
+  };
+  if (!duration) return {
+    isAccepted: false,
+    message: 'Duration is required',
+    field: 'duration'
+  };
+  if (typeof duration != 'number') return {
+    isAccepted: false,
+    message: 'Duration format is invalid',
+    field: 'duration'
+  };
+  if (!startTime) return {
+    isAccepted: false,
+    message: 'start time is required',
+    field: 'startTime'
+  };
+  if (!utils.isDateTimeValid(startTime)) return {
+    isAccepted: false,
+    message: 'invalid start time format',
+    field: 'startTime'
   };
   return {
     isAccepted: true,

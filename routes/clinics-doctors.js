@@ -23,6 +23,12 @@ router.get(
     (request, response) => clinicsDoctorsController.getClinicsDoctorsByClinicId(request, response)
 )
 
+router.get(
+    '/v1/clinics-doctors/doctors/:userId',
+    verifyUserId,
+    (request, response) => clinicsDoctorsController.getClinicsDoctorsByDoctorId(request, response)
+)
+
 router.post(
     '/v1/clinics-doctors',
     authorization.allPermission,

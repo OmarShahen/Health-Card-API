@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const openingTimesController = require('../controllers/opening-times')
-const { verifyOpeningTimeId, verifyLeadId } = require('../middlewares/verify-routes-params')
+const { verifyOpeningTimeId, verifyLeadId, verifyClinicId, verifyUserId } = require('../middlewares/verify-routes-params')
 const authorization = require('../middlewares/verify-permission')
 
 
@@ -15,6 +15,19 @@ router.get(
     authorization.allPermission,
     verifyLeadId,
     (request, response) => openingTimesController.getOpeningTimesByLeadId(request, response)
+)
+
+router.get(
+    '/v1/opening-times/experts/:userId', 
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => openingTimesController.getOpeningTimesByExpertId(request, response)
+)
+
+router.get(
+    '/v1/opening-times/experts/:userId/week-days/:weekday',
+    verifyUserId,
+    (request, response) => openingTimesController.getOpeningTimesByExpertIdAndDay(request, response)   
 )
 
 router.get(
@@ -34,6 +47,13 @@ router.put(
     authorization.allPermission,
     verifyOpeningTimeId,
     (request, response) => openingTimesController.updateOpeningTime(request, response)
+)
+
+router.patch(
+    '/v1/opening-times/:openingTimeId/activity',
+    authorization.allPermission,
+    verifyOpeningTimeId,
+    (request, response) => openingTimesController.updateOpeningTimeActivityStatus(request, response)
 )
 
 router.delete(

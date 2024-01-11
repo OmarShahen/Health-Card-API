@@ -24,12 +24,10 @@ var mongoose = require('mongoose');
 
 var SpecialityModel = require('../models/SpecialityModel');
 
-var jwt = require('jsonwebtoken');
-
 var translations = require('../i18n/index');
 
 var getUser = function getUser(request, response) {
-  var userId, user, token;
+  var userId, userList;
   return regeneratorRuntime.async(function getUser$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
@@ -37,23 +35,41 @@ var getUser = function getUser(request, response) {
           _context.prev = 0;
           userId = request.params.userId;
           _context.next = 4;
-          return regeneratorRuntime.awrap(UserModel.findById(userId).select({
-            password: 0
-          }));
+          return regeneratorRuntime.awrap(UserModel.aggregate([{
+            $match: {
+              _id: mongoose.Types.ObjectId(userId)
+            }
+          }, {
+            $limit: 1
+          }, {
+            $lookup: {
+              from: 'specialities',
+              localField: 'speciality',
+              foreignField: '_id',
+              as: 'speciality'
+            }
+          }, {
+            $lookup: {
+              from: 'specialities',
+              localField: 'subSpeciality',
+              foreignField: '_id',
+              as: 'subSpeciality'
+            }
+          }, {
+            $project: {
+              password: 0
+            }
+          }]));
 
         case 4:
-          user = _context.sent;
-          token = jwt.sign(user._doc, config.SECRET_KEY, {
-            expiresIn: '30d'
-          });
+          userList = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
-            user: user,
-            token: token
+            user: userList[0]
           }));
 
-        case 9:
-          _context.prev = 9;
+        case 8:
+          _context.prev = 8;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -62,22 +78,118 @@ var getUser = function getUser(request, response) {
             error: _context.t0.message
           }));
 
-        case 13:
+        case 12:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 8]]);
 };
 
-var getAppUsers = function getAppUsers(request, response) {
-  var users;
-  return regeneratorRuntime.async(function getAppUsers$(_context2) {
+var getPatient = function getPatient(request, response) {
+  var userId, userList;
+  return regeneratorRuntime.async(function getPatient$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          _context2.next = 3;
+          userId = request.params.userId;
+          _context2.next = 4;
+          return regeneratorRuntime.awrap(UserModel.find({
+            _id: userId,
+            type: 'PATIENT'
+          }).select({
+            password: 0
+          }));
+
+        case 4:
+          userList = _context2.sent;
+          return _context2.abrupt("return", response.status(200).json({
+            accepted: true,
+            user: userList[0]
+          }));
+
+        case 8:
+          _context2.prev = 8;
+          _context2.t0 = _context2["catch"](0);
+          console.error(_context2.t0);
+          return _context2.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context2.t0.message
+          }));
+
+        case 12:
+        case "end":
+          return _context2.stop();
+      }
+    }
+  }, null, null, [[0, 8]]);
+};
+
+var getExpertUser = function getExpertUser(request, response) {
+  var userId, userList;
+  return regeneratorRuntime.async(function getExpertUser$(_context3) {
+    while (1) {
+      switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          userId = request.params.userId;
+          _context3.next = 4;
+          return regeneratorRuntime.awrap(UserModel.aggregate([{
+            $match: {
+              _id: mongoose.Types.ObjectId(userId),
+              type: 'EXPERT'
+            }
+          }, {
+            $lookup: {
+              from: 'specialities',
+              localField: 'speciality',
+              foreignField: '_id',
+              as: 'speciality'
+            }
+          }, {
+            $lookup: {
+              from: 'specialities',
+              localField: 'subSpeciality',
+              foreignField: '_id',
+              as: 'subSpeciality'
+            }
+          }]));
+
+        case 4:
+          userList = _context3.sent;
+          return _context3.abrupt("return", response.status(200).json({
+            accepted: true,
+            user: userList[0]
+          }));
+
+        case 8:
+          _context3.prev = 8;
+          _context3.t0 = _context3["catch"](0);
+          console.error(_context3.t0);
+          return _context3.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context3.t0.message
+          }));
+
+        case 12:
+        case "end":
+          return _context3.stop();
+      }
+    }
+  }, null, null, [[0, 8]]);
+};
+
+var getAppUsers = function getAppUsers(request, response) {
+  var users;
+  return regeneratorRuntime.async(function getAppUsers$(_context4) {
+    while (1) {
+      switch (_context4.prev = _context4.next) {
+        case 0:
+          _context4.prev = 0;
+          _context4.next = 3;
           return regeneratorRuntime.awrap(UserModel.find({
             roles: {
               $nin: ['EMPLOYEE']
@@ -91,125 +203,14 @@ var getAppUsers = function getAppUsers(request, response) {
           }));
 
         case 3:
-          users = _context2.sent;
-          return _context2.abrupt("return", response.status(200).json({
+          users = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
             accepted: true,
             users: users
           }));
 
         case 7:
-          _context2.prev = 7;
-          _context2.t0 = _context2["catch"](0);
-          console.error(_context2.t0);
-          return _context2.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context2.t0.message
-          }));
-
-        case 11:
-        case "end":
-          return _context2.stop();
-      }
-    }
-  }, null, null, [[0, 7]]);
-};
-
-var getUserSpeciality = function getUserSpeciality(request, response) {
-  var userId, user, speciality, specialities;
-  return regeneratorRuntime.async(function getUserSpeciality$(_context3) {
-    while (1) {
-      switch (_context3.prev = _context3.next) {
-        case 0:
-          _context3.prev = 0;
-          userId = request.params.userId;
-          _context3.next = 4;
-          return regeneratorRuntime.awrap(UserModel.findById(userId).select({
-            password: 0
-          }));
-
-        case 4:
-          user = _context3.sent;
-          speciality = user.speciality;
-          _context3.next = 8;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
-            _id: {
-              $in: speciality
-            }
-          }));
-
-        case 8:
-          specialities = _context3.sent;
-          user.speciality = specialities;
-          return _context3.abrupt("return", response.status(200).json({
-            accepted: true,
-            user: user
-          }));
-
-        case 13:
-          _context3.prev = 13;
-          _context3.t0 = _context3["catch"](0);
-          console.error(_context3.t0);
-          return _context3.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context3.t0.message
-          }));
-
-        case 17:
-        case "end":
-          return _context3.stop();
-      }
-    }
-  }, null, null, [[0, 13]]);
-};
-
-var updateUser = function updateUser(request, response) {
-  var userId, dataValidation, _request$body, firstName, lastName, gender, dateOfBirth, newUserData, updatedUser;
-
-  return regeneratorRuntime.async(function updateUser$(_context4) {
-    while (1) {
-      switch (_context4.prev = _context4.next) {
-        case 0:
-          _context4.prev = 0;
-          userId = request.params.userId;
-          dataValidation = userValidation.updateUser(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context4.next = 5;
-            break;
-          }
-
-          return _context4.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
-
-        case 5:
-          _request$body = request.body, firstName = _request$body.firstName, lastName = _request$body.lastName, gender = _request$body.gender, dateOfBirth = _request$body.dateOfBirth;
-          newUserData = {
-            firstName: firstName,
-            lastName: lastName,
-            gender: gender,
-            dateOfBirth: dateOfBirth
-          };
-          _context4.next = 9;
-          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, newUserData, {
-            "new": true
-          }));
-
-        case 9:
-          updatedUser = _context4.sent;
-          updatedUser.password = undefined;
-          return _context4.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Updated user successfully!'],
-            user: updatedUser
-          }));
-
-        case 14:
-          _context4.prev = 14;
+          _context4.prev = 7;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -218,37 +219,30 @@ var updateUser = function updateUser(request, response) {
             error: _context4.t0.message
           }));
 
-        case 18:
+        case 11:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 14]]);
+  }, null, null, [[0, 7]]);
 };
 
-var updateUserSpeciality = function updateUserSpeciality(request, response) {
-  var userId, dataValidation, speciality, specialities, newUserData, updatedUser;
-  return regeneratorRuntime.async(function updateUserSpeciality$(_context5) {
+var getUserSpeciality = function getUserSpeciality(request, response) {
+  var userId, user, speciality, specialities;
+  return regeneratorRuntime.async(function getUserSpeciality$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
           userId = request.params.userId;
-          dataValidation = userValidation.updateUserSpeciality(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context5.next = 5;
-            break;
-          }
-
-          return _context5.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
+          _context5.next = 4;
+          return regeneratorRuntime.awrap(UserModel.findById(userId).select({
+            password: 0
           }));
 
-        case 5:
-          speciality = request.body.speciality;
+        case 4:
+          user = _context5.sent;
+          speciality = user.speciality;
           _context5.next = 8;
           return regeneratorRuntime.awrap(SpecialityModel.find({
             _id: {
@@ -258,40 +252,14 @@ var updateUserSpeciality = function updateUserSpeciality(request, response) {
 
         case 8:
           specialities = _context5.sent;
-
-          if (!(specialities.length != speciality.length)) {
-            _context5.next = 11;
-            break;
-          }
-
-          return _context5.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'speciality Id is not registered',
-            field: 'speciality'
-          }));
-
-        case 11:
-          newUserData = {
-            speciality: specialities.map(function (special) {
-              return special._id;
-            })
-          };
-          _context5.next = 14;
-          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, newUserData, {
-            "new": true
-          }));
-
-        case 14:
-          updatedUser = _context5.sent;
-          updatedUser.password = undefined;
+          user.speciality = specialities;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated user successfully!'],
-            user: updatedUser
+            user: user
           }));
 
-        case 19:
-          _context5.prev = 19;
+        case 13:
+          _context5.prev = 13;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -300,23 +268,24 @@ var updateUserSpeciality = function updateUserSpeciality(request, response) {
             error: _context5.t0.message
           }));
 
-        case 23:
+        case 17:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 19]]);
+  }, null, null, [[0, 13]]);
 };
 
-var updateUserEmail = function updateUserEmail(request, response) {
-  var userId, dataValidation, email, emailList, updatedUser;
-  return regeneratorRuntime.async(function updateUserEmail$(_context6) {
+var updateUser = function updateUser(request, response) {
+  var userId, dataValidation, _request$body, speciality, subSpeciality, specialitiesList, _specialitiesList, updatedUser;
+
+  return regeneratorRuntime.async(function updateUser$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
           userId = request.params.userId;
-          dataValidation = userValidation.updateUserEmail(request.body);
+          dataValidation = userValidation.updateUser(request.body);
 
           if (dataValidation.isAccepted) {
             _context6.next = 5;
@@ -330,45 +299,90 @@ var updateUserEmail = function updateUserEmail(request, response) {
           }));
 
         case 5:
-          email = request.body.email;
-          _context6.next = 8;
-          return regeneratorRuntime.awrap(UserModel.find({
-            email: email
+          _request$body = request.body, speciality = _request$body.speciality, subSpeciality = _request$body.subSpeciality;
+
+          if (!speciality) {
+            _context6.next = 13;
+            break;
+          }
+
+          _context6.next = 9;
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: speciality
+            },
+            type: 'MAIN'
           }));
 
-        case 8:
-          emailList = _context6.sent;
+        case 9:
+          specialitiesList = _context6.sent;
 
-          if (!(emailList.length != 0 && !emailList[0]._id.equals(userId))) {
-            _context6.next = 11;
+          if (!(specialitiesList.length != speciality.length)) {
+            _context6.next = 12;
             break;
           }
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'email is already registered',
-            field: 'email'
+            message: 'invalid specialities Ids',
+            field: 'speciality'
           }));
 
-        case 11:
-          _context6.next = 13;
-          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
-            email: email
-          }, {
+        case 12:
+          request.body.speciality = specialitiesList.map(function (special) {
+            return special._id;
+          });
+
+        case 13:
+          if (!subSpeciality) {
+            _context6.next = 20;
+            break;
+          }
+
+          _context6.next = 16;
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: subSpeciality
+            },
+            type: 'SUB'
+          }));
+
+        case 16:
+          _specialitiesList = _context6.sent;
+
+          if (!(_specialitiesList.length != subSpeciality.length)) {
+            _context6.next = 19;
+            break;
+          }
+
+          return _context6.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'invalid subspecialities Ids',
+            field: 'subSpeciality'
+          }));
+
+        case 19:
+          request.body.subSpeciality = _specialitiesList.map(function (special) {
+            return special._id;
+          });
+
+        case 20:
+          _context6.next = 22;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, request.body, {
             "new": true
           }));
 
-        case 13:
+        case 22:
           updatedUser = _context6.sent;
           updatedUser.password = undefined;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'updated user email successfully!',
+            message: 'Updated user successfully!',
             user: updatedUser
           }));
 
-        case 18:
-          _context6.prev = 18;
+        case 27:
+          _context6.prev = 27;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -377,27 +391,26 @@ var updateUserEmail = function updateUserEmail(request, response) {
             error: _context6.t0.message
           }));
 
-        case 22:
+        case 31:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 18]]);
+  }, null, null, [[0, 27]]);
 };
 
-var updateUserLanguage = function updateUserLanguage(request, response) {
-  var userId, lang, dataValidation, updatedUser;
-  return regeneratorRuntime.async(function updateUserLanguage$(_context7) {
+var updateUserProfileImage = function updateUserProfileImage(request, response) {
+  var userId, dataValidation, profileImageURL, updatedUser;
+  return regeneratorRuntime.async(function updateUserProfileImage$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
           userId = request.params.userId;
-          lang = request.body.lang;
-          dataValidation = userValidation.updateUserLanguage(request.body);
+          dataValidation = userValidation.updateUserProfileImage(request.body);
 
           if (dataValidation.isAccepted) {
-            _context7.next = 6;
+            _context7.next = 5;
             break;
           }
 
@@ -407,24 +420,26 @@ var updateUserLanguage = function updateUserLanguage(request, response) {
             field: dataValidation.field
           }));
 
-        case 6:
+        case 5:
+          profileImageURL = request.body.profileImageURL;
           _context7.next = 8;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
-            lang: lang
+            profileImageURL: profileImageURL
           }, {
             "new": true
           }));
 
         case 8:
           updatedUser = _context7.sent;
+          updatedUser.password = undefined;
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated language successfully!'],
+            message: 'Updated user profile image successfully!',
             user: updatedUser
           }));
 
-        case 12:
-          _context7.prev = 12;
+        case 13:
+          _context7.prev = 13;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -433,23 +448,23 @@ var updateUserLanguage = function updateUserLanguage(request, response) {
             error: _context7.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
-var updateUserPassword = function updateUserPassword(request, response) {
-  var userId, dataValidation, password, user, newPassword, updatedUser;
-  return regeneratorRuntime.async(function updateUserPassword$(_context8) {
+var updateUserSpeciality = function updateUserSpeciality(request, response) {
+  var userId, dataValidation, speciality, specialities, newUserData, updatedUser;
+  return regeneratorRuntime.async(function updateUserSpeciality$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
         case 0:
           _context8.prev = 0;
           userId = request.params.userId;
-          dataValidation = userValidation.updateUserPassword(request.body);
+          dataValidation = userValidation.updateUserSpeciality(request.body);
 
           if (dataValidation.isAccepted) {
             _context8.next = 5;
@@ -463,30 +478,36 @@ var updateUserPassword = function updateUserPassword(request, response) {
           }));
 
         case 5:
-          password = request.body.password;
+          speciality = request.body.speciality;
           _context8.next = 8;
-          return regeneratorRuntime.awrap(UserModel.findById(userId));
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: speciality
+            }
+          }));
 
         case 8:
-          user = _context8.sent;
+          specialities = _context8.sent;
 
-          if (!bcrypt.compareSync(password, user.password)) {
+          if (!(specialities.length != speciality.length)) {
             _context8.next = 11;
             break;
           }
 
           return _context8.abrupt("return", response.status(400).json({
             accepted: false,
-            message: translations[request.query.lang]['New password must be diffrent from old password'],
-            field: 'password'
+            message: 'speciality Id is not registered',
+            field: 'speciality'
           }));
 
         case 11:
-          newPassword = bcrypt.hashSync(password, config.SALT_ROUNDS);
+          newUserData = {
+            speciality: specialities.map(function (special) {
+              return special._id;
+            })
+          };
           _context8.next = 14;
-          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
-            password: newPassword
-          }, {
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, newUserData, {
             "new": true
           }));
 
@@ -495,7 +516,7 @@ var updateUserPassword = function updateUserPassword(request, response) {
           updatedUser.password = undefined;
           return _context8.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated user password successfully!'],
+            message: translations[request.query.lang]['Updated user successfully!'],
             user: updatedUser
           }));
 
@@ -517,16 +538,15 @@ var updateUserPassword = function updateUserPassword(request, response) {
   }, null, null, [[0, 19]]);
 };
 
-var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, response) {
-  var userId, dataValidation, _request$body2, newPassword, currentPassword, user, newUserPassword, updatedUser;
-
-  return regeneratorRuntime.async(function verifyAndUpdateUserPassword$(_context9) {
+var updateUserEmail = function updateUserEmail(request, response) {
+  var userId, dataValidation, email, emailList, updatedUser;
+  return regeneratorRuntime.async(function updateUserEmail$(_context9) {
     while (1) {
       switch (_context9.prev = _context9.next) {
         case 0:
           _context9.prev = 0;
           userId = request.params.userId;
-          dataValidation = userValidation.verifyAndUpdateUserPassword(request.body);
+          dataValidation = userValidation.updateUserEmail(request.body);
 
           if (dataValidation.isAccepted) {
             _context9.next = 5;
@@ -540,69 +560,45 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
           }));
 
         case 5:
-          _request$body2 = request.body, newPassword = _request$body2.newPassword, currentPassword = _request$body2.currentPassword;
-
-          if (!(newPassword == currentPassword)) {
-            _context9.next = 8;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['New password must be diffrent from old password'],
-            field: 'newPassword'
+          email = request.body.email;
+          _context9.next = 8;
+          return regeneratorRuntime.awrap(UserModel.find({
+            email: email
           }));
 
         case 8:
-          _context9.next = 10;
-          return regeneratorRuntime.awrap(UserModel.findById(userId));
+          emailList = _context9.sent;
 
-        case 10:
-          user = _context9.sent;
-
-          if (bcrypt.compareSync(currentPassword, user.password)) {
-            _context9.next = 13;
+          if (!(emailList.length != 0 && !emailList[0]._id.equals(userId))) {
+            _context9.next = 11;
             break;
           }
 
           return _context9.abrupt("return", response.status(400).json({
             accepted: false,
-            message: translations[request.query.lang]['Current password is invalid'],
-            field: 'currentPassword'
+            message: 'email is already registered',
+            field: 'email'
           }));
 
-        case 13:
-          if (!bcrypt.compareSync(newPassword, user.password)) {
-            _context9.next = 15;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['Current password entered is already used'],
-            field: 'newPassword'
-          }));
-
-        case 15:
-          newUserPassword = bcrypt.hashSync(newPassword, config.SALT_ROUNDS);
-          _context9.next = 18;
+        case 11:
+          _context9.next = 13;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
-            password: newUserPassword
+            email: email
           }, {
             "new": true
           }));
 
-        case 18:
+        case 13:
           updatedUser = _context9.sent;
           updatedUser.password = undefined;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated user password successfully!'],
+            message: 'updated user email successfully!',
             user: updatedUser
           }));
 
-        case 23:
-          _context9.prev = 23;
+        case 18:
+          _context9.prev = 18;
           _context9.t0 = _context9["catch"](0);
           console.error(_context9.t0);
           return _context9.abrupt("return", response.status(500).json({
@@ -611,54 +607,54 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
             error: _context9.t0.message
           }));
 
-        case 27:
+        case 22:
         case "end":
           return _context9.stop();
       }
     }
-  }, null, null, [[0, 23]]);
+  }, null, null, [[0, 18]]);
 };
 
-var deleteUser = function deleteUser(request, response) {
-  var userId, user, _deleteUser;
-
-  return regeneratorRuntime.async(function deleteUser$(_context10) {
+var updateUserLanguage = function updateUserLanguage(request, response) {
+  var userId, lang, dataValidation, updatedUser;
+  return regeneratorRuntime.async(function updateUserLanguage$(_context10) {
     while (1) {
       switch (_context10.prev = _context10.next) {
         case 0:
           _context10.prev = 0;
           userId = request.params.userId;
-          _context10.next = 4;
-          return regeneratorRuntime.awrap(UserModel.findById(userId));
+          lang = request.body.lang;
+          dataValidation = userValidation.updateUserLanguage(request.body);
 
-        case 4:
-          user = _context10.sent;
-
-          if (!(user.roles.includes('DOCTOR') || user.roles.includes('OWNER'))) {
-            _context10.next = 7;
+          if (dataValidation.isAccepted) {
+            _context10.next = 6;
             break;
           }
 
           return _context10.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: "This user type cannot be deleted",
-            field: 'userId'
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
-        case 7:
-          _context10.next = 9;
-          return regeneratorRuntime.awrap(UserModel.findByIdAndDelete(userId));
+        case 6:
+          _context10.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            lang: lang
+          }, {
+            "new": true
+          }));
 
-        case 9:
-          _deleteUser = _context10.sent;
+        case 8:
+          updatedUser = _context10.sent;
           return _context10.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'user deleted successfully!',
-            user: _deleteUser
+            message: translations[request.query.lang]['Updated language successfully!'],
+            user: updatedUser
           }));
 
-        case 13:
-          _context10.prev = 13;
+        case 12:
+          _context10.prev = 12;
           _context10.t0 = _context10["catch"](0);
           console.error(_context10.t0);
           return _context10.abrupt("return", response.status(500).json({
@@ -667,23 +663,23 @@ var deleteUser = function deleteUser(request, response) {
             error: _context10.t0.message
           }));
 
-        case 17:
+        case 16:
         case "end":
           return _context10.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 12]]);
 };
 
-var registerStaffToClinic = function registerStaffToClinic(request, response) {
-  var userId, dataValidation, clinicId, clinicList, user, clinic, updatedUser;
-  return regeneratorRuntime.async(function registerStaffToClinic$(_context11) {
+var updateUserPassword = function updateUserPassword(request, response) {
+  var userId, dataValidation, password, user, newPassword, updatedUser;
+  return regeneratorRuntime.async(function updateUserPassword$(_context11) {
     while (1) {
       switch (_context11.prev = _context11.next) {
         case 0:
           _context11.prev = 0;
           userId = request.params.userId;
-          dataValidation = userValidation.registerStaffToClinic(request.body);
+          dataValidation = userValidation.updateUserPassword(request.body);
 
           if (dataValidation.isAccepted) {
             _context11.next = 5;
@@ -697,76 +693,44 @@ var registerStaffToClinic = function registerStaffToClinic(request, response) {
           }));
 
         case 5:
-          clinicId = request.body.clinicId;
+          password = request.body.password;
           _context11.next = 8;
-          return regeneratorRuntime.awrap(ClinicModel.find({
-            clinicId: clinicId
-          }));
+          return regeneratorRuntime.awrap(UserModel.findById(userId));
 
         case 8:
-          clinicList = _context11.sent;
+          user = _context11.sent;
 
-          if (!(clinicList.length == 0)) {
+          if (!bcrypt.compareSync(password, user.password)) {
             _context11.next = 11;
             break;
           }
 
           return _context11.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'No clinic is registered with that ID',
-            field: 'clinicId'
+            message: translations[request.query.lang]['New password must be diffrent from old password'],
+            field: 'password'
           }));
 
         case 11:
-          _context11.next = 13;
-          return regeneratorRuntime.awrap(UserModel.findById(userId));
-
-        case 13:
-          user = _context11.sent;
-
-          if (user.roles.includes('STAFF')) {
-            _context11.next = 16;
-            break;
-          }
-
-          return _context11.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid user role type to perform this operation',
-            field: 'userId'
-          }));
-
-        case 16:
-          if (!user.clinicId) {
-            _context11.next = 18;
-            break;
-          }
-
-          return _context11.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'user is already registered with a clinic',
-            field: 'userId'
-          }));
-
-        case 18:
-          clinic = clinicList[0];
-          _context11.next = 21;
+          newPassword = bcrypt.hashSync(password, config.SALT_ROUNDS);
+          _context11.next = 14;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
-            clinicId: clinic._id
+            password: newPassword
           }, {
             "new": true
           }));
 
-        case 21:
+        case 14:
           updatedUser = _context11.sent;
           updatedUser.password = undefined;
           return _context11.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Registered with a clinic successfully!',
+            message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
           }));
 
-        case 26:
-          _context11.prev = 26;
+        case 19:
+          _context11.prev = 19;
           _context11.t0 = _context11["catch"](0);
           console.error(_context11.t0);
           return _context11.abrupt("return", response.status(500).json({
@@ -775,73 +739,100 @@ var registerStaffToClinic = function registerStaffToClinic(request, response) {
             error: _context11.t0.message
           }));
 
-        case 30:
+        case 23:
         case "end":
           return _context11.stop();
       }
     }
-  }, null, null, [[0, 26]]);
+  }, null, null, [[0, 19]]);
 };
 
-var getUserMode = function getUserMode(request, response) {
-  var userId, user, testClinicsOwned, mode;
-  return regeneratorRuntime.async(function getUserMode$(_context12) {
+var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, response) {
+  var userId, dataValidation, _request$body2, newPassword, currentPassword, user, newUserPassword, updatedUser;
+
+  return regeneratorRuntime.async(function verifyAndUpdateUserPassword$(_context12) {
     while (1) {
       switch (_context12.prev = _context12.next) {
         case 0:
           _context12.prev = 0;
           userId = request.params.userId;
-          _context12.next = 4;
-          return regeneratorRuntime.awrap(UserModel.findById(userId));
+          dataValidation = userValidation.verifyAndUpdateUserPassword(request.body);
 
-        case 4:
-          user = _context12.sent;
+          if (dataValidation.isAccepted) {
+            _context12.next = 5;
+            break;
+          }
 
-          if (user.roles.includes('OWNER')) {
-            _context12.next = 7;
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 5:
+          _request$body2 = request.body, newPassword = _request$body2.newPassword, currentPassword = _request$body2.currentPassword;
+
+          if (!(newPassword == currentPassword)) {
+            _context12.next = 8;
             break;
           }
 
           return _context12.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'user must be owner',
-            field: 'userId'
+            message: translations[request.query.lang]['New password must be diffrent from old password'],
+            field: 'newPassword'
           }));
 
-        case 7:
-          _context12.next = 9;
-          return regeneratorRuntime.awrap(ClinicOwnerModel.aggregate([{
-            $match: {
-              ownerId: mongoose.Types.ObjectId(userId)
-            }
-          }, {
-            $lookup: {
-              from: 'clinics',
-              localField: 'clinicId',
-              foreignField: '_id',
-              as: 'clinic'
-            }
-          }, {
-            $match: {
-              'clinic.mode': 'TEST'
-            }
-          }]));
+        case 8:
+          _context12.next = 10;
+          return regeneratorRuntime.awrap(UserModel.findById(userId));
 
-        case 9:
-          testClinicsOwned = _context12.sent;
-          mode = 'PRODUCTION';
+        case 10:
+          user = _context12.sent;
 
-          if (testClinicsOwned.length > 0) {
-            mode = 'TEST';
+          if (bcrypt.compareSync(currentPassword, user.password)) {
+            _context12.next = 13;
+            break;
           }
 
-          return _context12.abrupt("return", response.status(200).json({
-            accepted: true,
-            mode: mode
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Current password is invalid'],
+            field: 'currentPassword'
+          }));
+
+        case 13:
+          if (!bcrypt.compareSync(newPassword, user.password)) {
+            _context12.next = 15;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Current password entered is already used'],
+            field: 'newPassword'
           }));
 
         case 15:
-          _context12.prev = 15;
+          newUserPassword = bcrypt.hashSync(newPassword, config.SALT_ROUNDS);
+          _context12.next = 18;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            password: newUserPassword
+          }, {
+            "new": true
+          }));
+
+        case 18:
+          updatedUser = _context12.sent;
+          updatedUser.password = undefined;
+          return _context12.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: translations[request.query.lang]['Updated user password successfully!'],
+            user: updatedUser
+          }));
+
+        case 23:
+          _context12.prev = 23;
           _context12.t0 = _context12["catch"](0);
           console.error(_context12.t0);
           return _context12.abrupt("return", response.status(500).json({
@@ -850,30 +841,86 @@ var getUserMode = function getUserMode(request, response) {
             error: _context12.t0.message
           }));
 
-        case 19:
+        case 27:
         case "end":
           return _context12.stop();
       }
     }
-  }, null, null, [[0, 15]]);
+  }, null, null, [[0, 23]]);
+};
+
+var deleteUser = function deleteUser(request, response) {
+  var userId, user, _deleteUser;
+
+  return regeneratorRuntime.async(function deleteUser$(_context13) {
+    while (1) {
+      switch (_context13.prev = _context13.next) {
+        case 0:
+          _context13.prev = 0;
+          userId = request.params.userId;
+          _context13.next = 4;
+          return regeneratorRuntime.awrap(UserModel.findById(userId));
+
+        case 4:
+          user = _context13.sent;
+
+          if (!(user.roles.includes('DOCTOR') || user.roles.includes('OWNER'))) {
+            _context13.next = 7;
+            break;
+          }
+
+          return _context13.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: "This user type cannot be deleted",
+            field: 'userId'
+          }));
+
+        case 7:
+          _context13.next = 9;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndDelete(userId));
+
+        case 9:
+          _deleteUser = _context13.sent;
+          return _context13.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'user deleted successfully!',
+            user: _deleteUser
+          }));
+
+        case 13:
+          _context13.prev = 13;
+          _context13.t0 = _context13["catch"](0);
+          console.error(_context13.t0);
+          return _context13.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context13.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context13.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
 };
 
 var addEmployeeUser = function addEmployeeUser(request, response) {
   var dataValidation, _request$body3, email, password, emailList, userPassword, counter, userData, userObj, newUser;
 
-  return regeneratorRuntime.async(function addEmployeeUser$(_context13) {
+  return regeneratorRuntime.async(function addEmployeeUser$(_context14) {
     while (1) {
-      switch (_context13.prev = _context13.next) {
+      switch (_context14.prev = _context14.next) {
         case 0:
-          _context13.prev = 0;
+          _context14.prev = 0;
           dataValidation = userValidation.addEmployeeUser(request.body);
 
           if (dataValidation.isAccepted) {
-            _context13.next = 4;
+            _context14.next = 4;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context14.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -881,21 +928,21 @@ var addEmployeeUser = function addEmployeeUser(request, response) {
 
         case 4:
           _request$body3 = request.body, email = _request$body3.email, password = _request$body3.password;
-          _context13.next = 7;
+          _context14.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
             isVerified: true
           }));
 
         case 7:
-          emailList = _context13.sent;
+          emailList = _context14.sent;
 
           if (!(emailList.length != 0)) {
-            _context13.next = 10;
+            _context14.next = 10;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context14.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Email is already registered',
             field: 'email'
@@ -903,7 +950,7 @@ var addEmployeeUser = function addEmployeeUser(request, response) {
 
         case 10:
           userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS);
-          _context13.next = 13;
+          _context14.next = 13;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'user'
           }, {
@@ -916,7 +963,7 @@ var addEmployeeUser = function addEmployeeUser(request, response) {
           }));
 
         case 13:
-          counter = _context13.sent;
+          counter = _context14.sent;
           userData = _objectSpread({
             userId: counter.value,
             isEmployee: true,
@@ -926,37 +973,186 @@ var addEmployeeUser = function addEmployeeUser(request, response) {
             roles: ['EMPLOYEE']
           });
           userObj = new UserModel(userData);
-          _context13.next = 18;
+          _context14.next = 18;
           return regeneratorRuntime.awrap(userObj.save());
 
         case 18:
-          newUser = _context13.sent;
-          return _context13.abrupt("return", response.status(200).json({
+          newUser = _context14.sent;
+          return _context14.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'User with employee roles is added successfully!',
             user: newUser
           }));
 
         case 22:
-          _context13.prev = 22;
-          _context13.t0 = _context13["catch"](0);
-          console.error(_context13.t0);
-          return _context13.abrupt("return", response.status(500).json({
+          _context14.prev = 22;
+          _context14.t0 = _context14["catch"](0);
+          console.error(_context14.t0);
+          return _context14.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context13.t0.message
+            error: _context14.t0.message
           }));
 
         case 26:
         case "end":
-          return _context13.stop();
+          return _context14.stop();
       }
     }
   }, null, null, [[0, 22]]);
 };
 
+var addDoctorUser = function addDoctorUser(request, response) {
+  var dataValidation, _request$body4, email, password, speciality, subSpeciality, emailList, specialitiesList, subSpecialitiesList, counter, userPassword, userData, userObj, newUser;
+
+  return regeneratorRuntime.async(function addDoctorUser$(_context15) {
+    while (1) {
+      switch (_context15.prev = _context15.next) {
+        case 0:
+          _context15.prev = 0;
+          dataValidation = userValidation.addDoctorUser(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context15.next = 4;
+            break;
+          }
+
+          return _context15.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          _request$body4 = request.body, email = _request$body4.email, password = _request$body4.password, speciality = _request$body4.speciality, subSpeciality = _request$body4.subSpeciality;
+          _context15.next = 7;
+          return regeneratorRuntime.awrap(UserModel.find({
+            email: email,
+            isVerified: true
+          }));
+
+        case 7:
+          emailList = _context15.sent;
+
+          if (!(emailList.length != 0)) {
+            _context15.next = 10;
+            break;
+          }
+
+          return _context15.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Email is already registered',
+            field: 'email'
+          }));
+
+        case 10:
+          _context15.next = 12;
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: speciality
+            },
+            type: 'MAIN'
+          }));
+
+        case 12:
+          specialitiesList = _context15.sent;
+
+          if (!(specialitiesList.length != speciality.length)) {
+            _context15.next = 15;
+            break;
+          }
+
+          return _context15.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'invalid specialities Ids',
+            field: 'speciality'
+          }));
+
+        case 15:
+          request.body.speciality = specialitiesList.map(function (special) {
+            return special._id;
+          });
+          _context15.next = 18;
+          return regeneratorRuntime.awrap(SpecialityModel.find({
+            _id: {
+              $in: subSpeciality
+            },
+            type: 'SUB'
+          }));
+
+        case 18:
+          subSpecialitiesList = _context15.sent;
+
+          if (!(subSpecialitiesList.length != subSpeciality.length)) {
+            _context15.next = 21;
+            break;
+          }
+
+          return _context15.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'invalid sub specialities Ids',
+            field: 'subSpeciality'
+          }));
+
+        case 21:
+          request.body.subSpeciality = subSpecialitiesList.map(function (special) {
+            return special._id;
+          });
+          _context15.next = 24;
+          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
+            name: 'user'
+          }, {
+            $inc: {
+              value: 1
+            }
+          }, {
+            "new": true,
+            upsert: true
+          }));
+
+        case 24:
+          counter = _context15.sent;
+          userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS);
+          userData = _objectSpread({}, request.body, {
+            userId: counter.value,
+            password: userPassword,
+            type: 'MEDICAL',
+            isVerified: true
+          });
+          userObj = new UserModel(userData);
+          _context15.next = 30;
+          return regeneratorRuntime.awrap(userObj.save());
+
+        case 30:
+          newUser = _context15.sent;
+          return _context15.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Added doctor user successfully!',
+            user: newUser
+          }));
+
+        case 34:
+          _context15.prev = 34;
+          _context15.t0 = _context15["catch"](0);
+          console.error(_context15.t0);
+          return _context15.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context15.t0.message
+          }));
+
+        case 38:
+        case "end":
+          return _context15.stop();
+      }
+    }
+  }, null, null, [[0, 34]]);
+};
+
 module.exports = {
   getUser: getUser,
+  getPatient: getPatient,
+  getExpertUser: getExpertUser,
   getAppUsers: getAppUsers,
   getUserSpeciality: getUserSpeciality,
   updateUser: updateUser,
@@ -964,9 +1160,9 @@ module.exports = {
   updateUserEmail: updateUserEmail,
   updateUserLanguage: updateUserLanguage,
   updateUserPassword: updateUserPassword,
+  updateUserProfileImage: updateUserProfileImage,
   verifyAndUpdateUserPassword: verifyAndUpdateUserPassword,
   deleteUser: deleteUser,
-  registerStaffToClinic: registerStaffToClinic,
-  getUserMode: getUserMode,
-  addEmployeeUser: addEmployeeUser
+  addEmployeeUser: addEmployeeUser,
+  addDoctorUser: addDoctorUser
 };

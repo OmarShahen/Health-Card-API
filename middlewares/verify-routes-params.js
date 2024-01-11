@@ -35,6 +35,7 @@ const MessageTemplateModel = require('../models/CRM/MessageTemplateModel')
 const MessageSentModel = require('../models/CRM/MessageSentModel')
 const ValueModel = require('../models/ValueModel')
 const OpeningTimeModel = require('../models/OpeningTimeModel')
+const ReviewModel = require('../models/ReviewModel')
 
 
 const verifyClinicId = async (request, response, next) => {
@@ -1314,6 +1315,41 @@ const verifyOpeningTimeId = async (request, response, next) => {
     }
 }
 
+const verifyReviewId = async (request, response, next) => {
+
+    try {
+
+        const { reviewId } = request.params
+
+        if(!utils.isObjectId(reviewId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid review ID format',
+                field: 'reviewId'
+            })
+        }
+
+        const review = await ReviewModel.findById(reviewId)
+        if(!review) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Review ID does not exist',
+                field: 'reviewId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyClinicId, 
     verifyPatientId,
@@ -1351,5 +1387,6 @@ module.exports = {
     verifyMessageTemplateId,
     verifyMessageSentId,
     verifyValueId,
-    verifyOpeningTimeId
+    verifyOpeningTimeId,
+    verifyReviewId
 }

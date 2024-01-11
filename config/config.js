@@ -2,8 +2,8 @@ module.exports = {
 
     WEB_FORGOT_PASSWORD_URL: `https://barbels-f6774.web.app/reset-password`,
     PORT: process.env.APP_PORT,
-    DB_URL: process.env.PROD_DB_URL,
-    //DB_URL: process.env.DB_URL,
+    //DB_URL: process.env.PROD_DB_URL,
+    DB_URL: process.env.DB_URL,
     PAYMOB_HMAC: process.env.PAYMOB_HMAC,
     PAYMOB_API_KEYS: process.env.PAYMOB_API_KEYS,
     MAX_FILE_SIZE: 25 * 1000000, // bytes
@@ -11,6 +11,9 @@ module.exports = {
     BLOOD_GROUPS: ['A', 'B', 'O', 'AB', 'A-', 'A+', 'B-', 'B+', 'O+', 'O-', 'AB+', 'AB-'],
     ALLOWED_FILE_EXTENSIONS: ['doc', 'docx', 'xls', 'xlsx', 'pdf', 'png', 'jpeg', 'jpg'],
     ROLES: ['OWNER', 'DOCTOR', 'STAFF'],
+    TYPES: ['EXPERT', 'SEEKER'],
+    SPECIALITIES_TYPES: ['MAIN', 'SUB'],
+    DOCTORS_TITLES: ['PROFESSOR', 'LECTURER', 'CONSULTANT', 'SPECIALIST'],
     CLINIC_MODES: ['TEST', 'PRODUCTION'],
     TEST_MODE_LIMIT: 3,
     EMAIL: {
@@ -27,10 +30,12 @@ module.exports = {
         BASE_URL: 'https://graph.facebook.com/v17.0',
         TOKEN: process.env.WHATSAPP_TOKEN,
         LANGUAGES: ['en', 'ar'],
-        PHONE_NUMBER_ID: 116167051586801,
+        PHONE_NUMBER_ID: 148470768360494,
         CREATE_PATIENT: 'create_patient',
         CREATE_PRESCRIPTION: 'create_prescription',
-        SEND_APPOINTMENT_REMINDER: 'appointment_reminder'
+        SEND_APPOINTMENT_REMINDER: 'appointment_reminder',
+        SEND_CLINIC_APPOINTMENT: 'new_appointment',
+        CANCEL_APPOINTMENT: 'delete_appointment'
     },
     RATES: ['LIKE', 'DISLIKE', 'LOVE'],
     DOSGAE_TYPES: [
@@ -47,5 +52,5 @@ module.exports = {
     COMMENT_TYPES: ['COMPLIMENT', 'ISSUE'],
     VALUES_ENTITY: ['LEADS', 'STAGES', 'MESSAGES'],
     MESSAGE_SENT_PLATFORMS: ['REALLIFE', 'WHATSAPP', 'FACEBOOK', 'INSTAGRAM', 'YOUTUBE', 'TIKTOK', 'OTHERS'],
-    WEEK_DAYS: ['FRIDAY', 'SATURDAY', 'SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY']
+    WEEK_DAYS: ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 }

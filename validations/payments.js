@@ -4,7 +4,7 @@ const config = require('../config/config')
 
 const createPaymentURL = (paymentData) => {
 
-    const { firstName, lastName, clinicId, email, phone, planName, planDaysDuration, planPrice } = paymentData
+    const { firstName, lastName, appointmentId, email, phone, planName, planPrice } = paymentData
 
     if(!firstName) return { isAccepted: false, message: 'first name is required', field: 'firstName' }
 
@@ -14,9 +14,9 @@ const createPaymentURL = (paymentData) => {
 
     if(typeof lastName != 'string') return { isAccepted: false, message: 'last name format is invalid', field: 'lastName' }
 
-    if(!clinicId) return { isAccepted: false, message: 'clinic ID is required', field: 'clinicId' }
+    if(!appointmentId) return { isAccepted: false, message: 'appointment ID is required', field: 'appointmentId' }
 
-    if(!utils.isObjectId(clinicId)) return { isAccepted: false, message: 'clinic ID format is invalid', field: 'clinicId' }
+    if(!utils.isObjectId(appointmentId)) return { isAccepted: false, message: 'appointment ID format is invalid', field: 'appointmentId' }
 
     if(!email) return { isAccepted: false, message: 'email is required', field: 'email' }
 
@@ -29,10 +29,6 @@ const createPaymentURL = (paymentData) => {
     if(!planName) return { isAccepted: false, message: 'plan name is required', field: 'planName' }
 
     if(typeof planName != 'string') return { isAccepted: false, message: 'plan name format is invalid', field: 'planName' }
-
-    if(!planDaysDuration) return { isAccepted: false, message: 'plan duration in days is required', field: 'planDaysDuration' }
-
-    if(typeof planDaysDuration != 'number') return { isAccepted: false, message: 'plan duration format is invalid', field: 'planDaysDuration' }
 
     if(!planPrice) return { isAccepted: false, message: 'plan price is required', field: 'planPrice' }
 

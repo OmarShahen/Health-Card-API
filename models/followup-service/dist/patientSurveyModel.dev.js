@@ -12,12 +12,16 @@ var PatientSurveySchema = new mongoose.Schema({
     required: true
   },
   patientId: {
-    type: mongoose.Types.ObjectId,
-    required: true
+    type: mongoose.Types.ObjectId
   },
   clinicId: {
-    type: mongoose.Types.ObjectId,
-    required: true
+    type: mongoose.Types.ObjectId
+  },
+  doctorId: {
+    type: mongoose.Types.ObjectId
+  },
+  reviewerId: {
+    type: mongoose.Types.ObjectId
   },
   arrivalMethodId: {
     type: mongoose.Types.ObjectId
@@ -33,6 +37,9 @@ var PatientSurveySchema = new mongoose.Schema({
   },
   callDuration: {
     type: Number
+  },
+  comment: {
+    type: String
   },
   recordedBy: {
     type: String,

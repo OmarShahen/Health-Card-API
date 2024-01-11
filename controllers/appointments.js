@@ -1,16 +1,16 @@
 const AppointmentModel = require('../models/AppointmentModel')
-const PatientModel = require('../models/PatientModel')
+const OpeningTimeModel = require('../models/OpeningTimeModel')
+const CounterModel = require('../models/CounterModel')
 const UserModel = require('../models/UserModel')
-const ServiceModel = require('../models/ServiceModel')
 const appointmentValidation = require('../validations/appointments')
 const ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel')
-const ClinicModel = require('../models/ClinicModel')
 const utils = require('../utils/utils')
-const { sendAppointmentEmail } = require('../mails/appointment')
-const whatsappAppointmentReminder = require('../APIs/whatsapp/send-appointment-reminder')
+const whatsappClinicAppointment = require('../APIs/whatsapp/send-clinic-appointment')
+const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointment')
 const { format } = require('date-fns')
 const translations = require('../i18n/index')
 const mongoose = require('mongoose')
+const config = require('../config/config')
 
 
 const addAppointment = async (request, response) => {
@@ -26,129 +26,119 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        const { lang } = request.query
+        let { seekerId, expertId, startTime, duration } = request.body
 
-        const { 
-            patientId,
-            clinicId,
-            doctorId, 
-            serviceId, 
-            status, 
-            reservationTime,
-            isSendMail
-        } = request.body
-
-        /*const todayDate = new Date() 
-        if(todayDate > new Date(reservationTime)) {
+        const todayDate = new Date() 
+        if(todayDate > new Date(startTime)) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Reservation time has passed'],
-                field: 'reservationTime'
+                message: 'Start time has passed',
+                field: 'startTime'
             })
-        }*/
+        }
 
-        const patientPromise = PatientModel.findById(patientId)
-        const clinicPromise = ClinicModel.findById(clinicId)
-        const doctorPromise = UserModel.findById(doctorId)
+        const expertListPromise = UserModel.find({ _id: expertId, type: 'EXPERT' })
+        const seekerListPromise = UserModel.find({ _id: seekerId })
 
-        const [patient, clinic, doctor] = await Promise.all([
-            patientPromise,
-            clinicPromise,
-            doctorPromise
+        const [expertList, seekerList] = await Promise.all([
+            expertListPromise,
+            seekerListPromise,
         ])
 
-        if(!patient) {
+        if(expertList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'patient Id is not registered',
-                field: 'patientId'
+                message: 'Expert Id is not registered',
+                field: 'expertId'
             })
         }
 
-        if(!clinic) {
+        if(seekerList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'clinic Id is not registered',
-                field: 'clinicId'
+                message: 'Seeker Id is not registered',
+                field: 'seekerId'
             })
         }
 
-        if(!doctor) {
+        if(duration > 60) {
             return response.status(400).json({
                 accepted: false,
-                message: 'doctor Id is not registered',
-                field: 'doctorId'
+                message: 'Duration limit is 60 minutes',
+                field: 'duration'
             })
         }
 
-        let serviceList = []
+        const expert = expertList[0]
+        const seeker = seekerList[0]
 
-        if(serviceId) {
-            serviceList = await ServiceModel.find({ _id: serviceId, clinicId })
-            if(serviceList.length == 0) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'service Id is not registered',
-                    field: 'serviceId'
-                })
-            }
-        }
+        startTime = new Date(startTime)
+        const endTime = new Date(startTime)
+        endTime.setMinutes(endTime.getMinutes() + duration)
 
-        const appointment = await AppointmentModel.find({ doctorId, reservationTime })
-        if(appointment.length != 0) {
+        request.body.endTime = endTime
+
+        const weekDay = config.WEEK_DAYS[startTime.getDay()]
+        const startingHour = startTime.getHours()
+        const startingMinute = startTime.getMinutes()
+
+        const openingTimes = await OpeningTimeModel.find({
+            expertId,
+            weekday: weekDay,
+            isActive: true,
+            'openingTime.hour': { $lte: startingHour },
+            'openingTime.minute': { $lte: startingMinute },
+            'closingTime.hour': { $gte: startingHour },
+            'closingTime.minute': { $gte: startingMinute },
+        })
+
+        if(openingTimes.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Doctor is already reserved in that time'],
-                field: 'reservationTime'
+                message: 'This time is not available in the schedule',
+                field: 'startTime'
             })
         }
 
-        const appointmentData = { 
-            patientId,
-            clinicId,
-            doctorId, 
-            serviceId, 
-            status,
-            reservationTime
+        const existingAppointmentsQuery = {
+            expertId,
+            isPaid: true,
+            status: { $ne: 'CANCELLED' },
+            $or: [
+                { startTime: { $lt: endTime }, endTime: { $gt: startTime } },
+                { startTime: { $gte: startTime, $lt: endTime } },
+                { endTime: { $gt: startTime, $lte: endTime } }
+            ]
         }
+
+        const existingAppointments = await AppointmentModel.find(existingAppointmentsQuery)
+        if(existingAppointments.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'There is appointment reserved at that time',
+                field: 'startTime'
+            })
+        }
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'Appointment' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
+        const appointmentData = { appointmentId: counter.value, ...request.body }
 
         const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()
 
-        let reservationDateTime = newAppointment.reservationTime
-
-        const appointmentDateTime = reservationDateTime.toLocaleString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-            second: 'numeric',
-          })
-
-
-        const mailData = {
-            receiverEmail: doctor.email,
-            appointmentData: {
-                clinicName: clinic.name,
-                clinicCity: utils.capitalizeFirstLetter(clinic.city),
-                serviceName: serviceId ? serviceList[0].name : 'Issue',
-                appointmentDate: appointmentDateTime
-            }
-
-        }
-
-        let mailStatus
-
-        if(isSendMail) {
-            mailStatus = await sendAppointmentEmail(mailData)
-        }
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(expert._id, { totalAppointments: expert.totalAppointments + 1 }, { new: true })
 
         return response.status(200).json({
             accepted: true,
-            message: translations[lang]['Registered appointment successfully!'],
+            message: 'Appointment is booked successfully!',
             appointment: newAppointment,
-            mailStatus
+            expert: updatedUser
         })
 
     } catch(error) {
@@ -333,13 +323,21 @@ const getAppointmentsByPatientId = async (request, response) => {
 
     try {
 
-        const { patientId } = request.params
+        const { userId } = request.params
 
-        const { searchQuery } = utils.statsQueryGenerator('patientId', patientId, request.query, 'reservationTime')
+        const { searchQuery } = utils.statsQueryGenerator('patientId', userId, request.query, 'reservationTime')
 
         const appointments = await AppointmentModel.aggregate([
             {
                 $match: searchQuery
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            {
+                $limit: 25
             },
             {
                 $lookup: {
@@ -351,7 +349,7 @@ const getAppointmentsByPatientId = async (request, response) => {
             },
             {
                 $lookup: {
-                    from: 'patients',
+                    from: 'users',
                     localField: 'patientId',
                     foreignField: '_id',
                     as: 'patient'
@@ -377,11 +375,6 @@ const getAppointmentsByPatientId = async (request, response) => {
                 $project: {
                     'doctor.password': 0
                 }
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
             }
         ])
 
@@ -395,6 +388,150 @@ const getAppointmentsByPatientId = async (request, response) => {
             if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
                 appointment.status = 'EXPIRED'
             }*/
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getPaidAppointmentsByExpertIdAndStatus = async (request, response) => {
+
+    try {
+
+        const { userId, status } = request.params
+
+        const matchQuery = { expertId: mongoose.Types.ObjectId(userId), isPaid: true }
+
+        if(status === 'UPCOMING') {
+            matchQuery.startTime = { $gte: new Date() }
+        }
+
+        if(status === 'PREVIOUS') {
+            matchQuery.startTime = { $lt: new Date() }  
+        }
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: {
+                    startTime: 1
+                }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getPaidAppointmentsBySeekerIdAndStatus = async (request, response) => {
+
+    try {
+
+        const { userId, status } = request.params
+
+        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId), isPaid: true }
+
+        if(status === 'UPCOMING') {
+            matchQuery.startTime = { $gte: new Date() }
+        }
+
+        if(status === 'PREVIOUS') {
+            matchQuery.startTime = { $lt: new Date() }  
+        }
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: {
+                    startTime: 1
+                }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
         })
 
         return response.status(200).json({
@@ -557,7 +694,6 @@ const updateAppointmentStatus = async (request, response) => {
     try {
 
         const { appointmentId } = request.params
-        const { lang } = request.query
         const { status } = request.body
 
         const dataValidation = appointmentValidation.updateAppointmentStatus(request.body)
@@ -574,27 +710,51 @@ const updateAppointmentStatus = async (request, response) => {
         if(appointment.status == status) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Appointment is already in this state'],
+                message: 'Appointment is already in this state',
                 field: 'status'
             })
         }
 
-        /*const todayDate = new Date()
-        if(appointment.reservationTime < todayDate) {
+        const todayDate = new Date()
+        if(appointment.startTime < todayDate) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[lang]['Appointment date has passed'],
-                field: 'reservationDate'
+                message: 'Appointment date has passed',
+                field: 'startTime'
             })
-        }*/
+        }
 
         const updatedAppointment = await AppointmentModel
         .findByIdAndUpdate(appointmentId, { status }, { new: true })
 
+        let notificationMessage
+
+        if(status == 'CANCELLED') {
+
+            const expert = await UserModel
+            .findByIdAndUpdate(appointment.expertId, { $inc: { totalAppointments: -1 } }, { new: true })
+            const seeker = await UserModel.findById(appointment.seekerId)
+
+            const targetPhone = `${expert.countryCode}${expert.phone}`
+            const reservationDateTime = new Date(appointment.startTime)
+            const messageBody = {
+                expertName: expert.firstName,
+                appointmentId: `#${appointment.appointmentId}`,
+                appointmentDate: format(reservationDateTime, 'dd MMMM yyyy'),
+                appointmentTime: format(reservationDateTime, 'hh:mm a'),
+                seekerName: seeker.firstName
+            }
+    
+            const messageSent = await whatsappCancelAppointment.sendCancelAppointment(targetPhone, 'en', messageBody)
+    
+            notificationMessage = messageSent.isSent ? 'Message is sent successfully!' : 'There was a problem sending your message'
+        }
+
         return response.status(200).json({
             accepted: true,
-            message: translations[lang]['Updated appointment status successfully!'],
-            appointment: updatedAppointment
+            message: 'Updated appointment status successfully!',
+            appointment: updatedAppointment,
+            notificationMessage
         })
 
     } catch(error) {
@@ -638,35 +798,20 @@ const sendAppointmentReminder = async (request, response) => {
 
         const { appointmentId } = request.params
 
-        const appointment = await AppointmentModel.findById(appointmentId)
-
-        const { patientId, clinicId } = appointment
-
-        const patientPromise = PatientModel.findById(patientId)
-        const clinicPromise = ClinicModel.findById(clinicId)
-
-        const [patient, clinic] = await Promise.all([patientPromise, clinicPromise])
-
-        if(!clinic.phone) {
-            return response.status(400).json({
-                accepted: false,
-                message: translations[request.query.lang]['Clinic phone number is not registered'],
-                field: 'appointmentId'
-            })
-        }
-
-        const patientPhone = `${patient.countryCode}${patient.phone}`
-
-        const messageBody = {
-            patientName: `${patient.firstName} ${patient.lastName}`,
-            appointmentDate: format(new Date(appointment.reservationTime), 'yyyy/MM/dd'),
-            appointmentTime: format(new Date(appointment.reservationTime), 'HH:mm a'),
-            clinicName: clinic.name,
-            clinicPhone: `${clinic.countryCode}${clinic.phone}`,
-        }
+        const targetPhone = '201065630331'
         
+        const messageBody = {
+            clinicName: 'الرعاية',
+            appointmentId: '123#',
+            patientName: 'عمر رضا السيد',
+            appointmentDate: '2023-10-10',
+            appointmentTime: '10:00 am',
+            patientPhone: '201065630331',
+            visitReason: 'كشف',
+            price: '250 EGP'
+        }
 
-        const messageSent = await whatsappAppointmentReminder.sendAppointmentReminder(patientPhone, 'ar', messageBody)
+        const messageSent = await whatsappClinicAppointment.sendClinicAppointment(targetPhone, 'ar', messageBody)
 
         if(!messageSent.isSent) {
             return response.status(400).json({
@@ -678,8 +823,7 @@ const sendAppointmentReminder = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Reminder sent successfully!',
-            appointment
+            message: 'Message sent successfully!',
         })
 
     } catch(error) {
@@ -782,6 +926,63 @@ const getFollowupRegisteredClinicsAppointments = async (request, response) => {
     }
 }
 
+const getAppointment = async (request, response) => {
+
+    try {
+
+        const { appointmentId } = request.params
+
+        const appointmentList = await AppointmentModel.aggregate([
+            {
+                $match: { _id: mongoose.Types.ObjectId(appointmentId) }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0,
+                }
+            }
+        ])
+
+        appointmentList.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
+        })
+
+        const appointment = appointmentList[0]
+
+        return response.status(200).json({
+            accepted: true,
+            appointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
 module.exports = { 
     addAppointment, 
     getAppointmentsByDoctorId, 
@@ -793,5 +994,8 @@ module.exports = {
     updateAppointmentStatus, 
     deleteAppointment,
     sendAppointmentReminder,
-    getFollowupRegisteredClinicsAppointments
+    getFollowupRegisteredClinicsAppointments,
+    getAppointment,
+    getPaidAppointmentsByExpertIdAndStatus,
+    getPaidAppointmentsBySeekerIdAndStatus
 }

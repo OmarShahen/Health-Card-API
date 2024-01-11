@@ -16,11 +16,11 @@ const { sendForgotPasswordVerificationCode } = require('../mails/forgot-password
 const { sendDeleteAccountCode } = require('../mails/delete-account')
 const translations = require('../i18n/index')
 
-const userSignup = async (request, response) => {
+const seekerSignup = async (request, response) => {
 
     try {
 
-        const dataValidation = authValidation.signup(request.body)
+        const dataValidation = authValidation.seekerSignup(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -29,7 +29,7 @@ const userSignup = async (request, response) => {
             })
         }
 
-        const { email, password, speciality, roles } = request.body
+        const { email, password } = request.body
 
         const emailList = await UserModel.find({ email, isVerified: true })
         if(emailList.length != 0) {
@@ -40,29 +40,14 @@ const userSignup = async (request, response) => {
             })
         }
 
-        let specialitiesList = []
-
-        if(roles.includes('DOCTOR')) {
-            specialitiesList = await SpecialityModel.find({ _id: { $in: speciality } })
-            if(specialitiesList.length != speciality.length) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'invalid specialities Ids',
-                    field: 'speciality'
-                })
-            }
-        }
-
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'user' },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
 
-        request.body.speciality = specialitiesList.map(special => special._id)
-
         const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
-        let userData = { ...request.body, userId: counter.value, password: userPassword }
+        let userData = { ...request.body, userId: counter.value, password: userPassword, type: 'SEEKER' }
         userData._id = undefined
 
         const userObj = new UserModel(userData)
@@ -79,9 +64,83 @@ const userSignup = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'Account created successfully!',
             mailSuccess: mailData.isSent,
-            message: mailData.isSent ? 'email is sent successfully!' : translations[request.query.lang]['There was a problem sending your email'],
+            message: mailData.isSent ? 'Verification code is sent successfully!' : 'There was a problem sending your email',
+            user: newUser,
+            emailVerification: newEmailVerification,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const expertSignup = async (request, response) => {
+
+    try {
+
+        const dataValidation = authValidation.expertSignup(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { email, password, speciality } = request.body
+
+        const emailList = await UserModel.find({ email, isVerified: true })
+        if(emailList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Email is already registered',
+                field: 'email'
+            })
+        }
+
+        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
+        if(specialitiesList.length != speciality.length) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'invalid specialities Ids',
+                field: 'speciality'
+            })
+        }   
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'user' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
+        request.body.speciality = specialitiesList.map(special => special._id)
+
+        const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
+        let userData = { ...request.body, userId: counter.value, password: userPassword, type: 'EXPERT' }
+        userData._id = undefined
+
+        const userObj = new UserModel(userData)
+        const newUser = await userObj.save()
+
+        const verificationCode = generateVerificationCode()
+        const mailData = await sendVerificationCode({ receiverEmail: email, verificationCode })
+
+        const emailVerificationData = { userId: newUser._id, code: verificationCode }
+        const emailVerificationObj = new EmailVerificationModel(emailVerificationData)
+        const newEmailVerification = await emailVerificationObj.save()
+
+        newUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            mailSuccess: mailData.isSent,
+            message: mailData.isSent ? 'Verification code is sent successfully!' : 'There was a problem sending your email',
             user: newUser,
             emailVerification: newEmailVerification,
         })
@@ -118,7 +177,7 @@ const userLogin = async (request, response) => {
         if(userList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[request.query.lang]['Email is not registered'],
+                message: 'Email is not registered',
                 field: 'email'
             })
         }
@@ -128,7 +187,7 @@ const userLogin = async (request, response) => {
         if(!bcrypt.compareSync(password, user.password)) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[request.query.lang]['Incorrect password'],
+                message: 'Incorrect password',
                 field: 'password'
             })
         }
@@ -237,7 +296,7 @@ const verifyEmailVerificationCode = async (request, response) => {
         if(emailVerificationList.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: translations[request.query.lang]['There is no verification code registered'],
+                message: 'There is no verification code registered',
                 field: 'code'
             })
         }
@@ -255,7 +314,7 @@ const verifyEmailVerificationCode = async (request, response) => {
 
         return response.status(200).json({
             accepted: true,
-            message: 'account has been verified successfully!',
+            message: 'Account is activated successfully!',
             user: updatedUser,
             deletedCodes: deleteCodes.deletedCount,
             token
@@ -799,7 +858,8 @@ const resetPassword = async (request, response) => {
 }
 
 module.exports = {
-    userSignup,
+    seekerSignup,
+    expertSignup,
     userLogin,
     userEmployeeLogin,
     verifyEmailVerificationCode,

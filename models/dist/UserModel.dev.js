@@ -5,9 +5,6 @@ var mongoose = require('mongoose');
 var config = require('../config/config');
 
 var UserSchema = new mongoose.Schema({
-  clinicId: {
-    type: mongoose.Types.ObjectId
-  },
   userId: {
     type: Number,
     required: true,
@@ -17,9 +14,11 @@ var UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  lastName: {
-    type: String,
-    required: true
+  description: {
+    type: String
+  },
+  title: {
+    type: String
   },
   email: {
     type: String,
@@ -52,8 +51,34 @@ var UserSchema = new mongoose.Schema({
     type: String,
     "default": "Africa/Cairo"
   },
+  profileImageURL: {
+    type: String
+  },
+  pricing: [],
+  rating: {
+    type: Number,
+    "default": 5
+  },
+  totalReviews: {
+    type: Number,
+    "default": 0
+  },
+  views: {
+    type: Number,
+    "default": 0
+  },
+  totalAppointments: {
+    type: Number,
+    "default": 0
+  },
   speciality: [],
+  subSpeciality: [],
   roles: [],
+  type: {
+    type: String,
+    required: true,
+    "enum": config.TYPES
+  },
   isEmployee: {
     type: Boolean,
     "default": false
@@ -61,6 +86,18 @@ var UserSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     required: true,
+    "default": false
+  },
+  isShow: {
+    type: Boolean,
+    "default": true
+  },
+  isBlocked: {
+    type: Boolean,
+    "default": false
+  },
+  isDeactivated: {
+    type: Boolean,
     "default": false
   },
   lastLoginDate: {

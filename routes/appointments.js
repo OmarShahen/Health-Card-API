@@ -1,13 +1,11 @@
 const router = require('express').Router()
 const appointmentsController = require('../controllers/appointments')
 const { verifyUserId, verifyAppointmentId, verifyClinicId, verifyPatientId } = require('../middlewares/verify-routes-params')
-const { verifyClinicAppointments } = require('../middlewares/verify-clinic-mode')
 const authorization = require('../middlewares/verify-permission')
 
 router.post(
     '/v1/appointments',
     authorization.allPermission,
-    verifyClinicAppointments,
     (request, response) => appointmentsController.addAppointment(request, response)
 )
 
@@ -19,6 +17,27 @@ router.get(
 )
 
 router.get(
+    '/v1/appointments/experts/:userId/status/:status/payments/paid',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => appointmentsController.getPaidAppointmentsByExpertIdAndStatus(request, response)
+)
+
+router.get(
+    '/v1/appointments/seekers/:userId/status/:status/payments/paid',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => appointmentsController.getPaidAppointmentsBySeekerIdAndStatus(request, response)
+)
+
+router.get(
+    '/v1/appointments/:appointmentId',
+    authorization.allPermission,
+    verifyAppointmentId,
+    (request, response) => appointmentsController.getAppointment(request, response)
+)
+
+router.get(
     '/v1/appointments/clinics/:clinicId',
     authorization.allPermission,
     verifyClinicId, 
@@ -26,9 +45,9 @@ router.get(
 )
 
 router.get(
-    '/v1/appointments/patients/:patientId',
+    '/v1/appointments/patients/:userId',
     authorization.allPermission,
-    verifyPatientId, 
+    verifyUserId, 
     (request, response) => appointmentsController.getAppointmentsByPatientId(request, response)
 )
 

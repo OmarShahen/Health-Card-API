@@ -44,6 +44,12 @@ router.get(
     (request, response) => patientsSurveysController.getPatientSurveyById(request, response)
 )
 
+router.get(
+    '/v1/patients-surveys/doctors/:userId',
+    //authorization.allPermission,
+    verifyUserId,
+    (request, response) => patientsSurveysController.getPatientsSurveysByDoctorId(request, response)
+)
 
 router.post(
     '/v1/patients-surveys',

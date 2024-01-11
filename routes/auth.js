@@ -3,7 +3,9 @@ const authController = require('../controllers/auth')
 const tokenMiddleware = require('../middlewares/verify-permission')
 const { verifyUserId } = require('../middlewares/verify-routes-params')
 
-router.post('/v1/auth/signup', (request, response) => authController.userSignup(request, response))
+router.post('/v1/auth/seekers/signup', (request, response) => authController.seekerSignup(request, response))
+
+router.post('/v1/auth/experts/signup', (request, response) => authController.expertSignup(request, response))
 
 router.post('/v1/auth/login', (request, response) => authController.userLogin(request, response))
 

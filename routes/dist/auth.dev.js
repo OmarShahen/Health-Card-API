@@ -9,8 +9,11 @@ var tokenMiddleware = require('../middlewares/verify-permission');
 var _require = require('../middlewares/verify-routes-params'),
     verifyUserId = _require.verifyUserId;
 
-router.post('/v1/auth/signup', function (request, response) {
-  return authController.userSignup(request, response);
+router.post('/v1/auth/seekers/signup', function (request, response) {
+  return authController.seekerSignup(request, response);
+});
+router.post('/v1/auth/experts/signup', function (request, response) {
+  return authController.expertSignup(request, response);
 });
 router.post('/v1/auth/login', function (request, response) {
   return authController.userLogin(request, response);

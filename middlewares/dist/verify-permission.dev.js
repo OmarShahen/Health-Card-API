@@ -116,11 +116,14 @@ var ownerPermission = function ownerPermission(request, response, next) {
 
 var allPermission = function allPermission(request, response, next) {
   try {
-    var authorizedRoles = ['OWNER', 'STAFF', 'DOCTOR', 'EMPLOYEE'];
+    var authorizedRoles = ['EMPLOYEE'];
+    var types = ['EXPERT', 'SEEKER'];
     verifyToken(request, response, function () {
-      var roles = request.user.roles;
+      var _request$user = request.user,
+          roles = _request$user.roles,
+          type = _request$user.type;
 
-      if (utils.isRolesValid(roles, authorizedRoles)) {
+      if (utils.isRolesValid(roles, authorizedRoles) || types.includes(type)) {
         next();
       } else {
         return response.status(403).json({
@@ -139,13 +142,16 @@ var allPermission = function allPermission(request, response, next) {
   }
 };
 
-var doctorAndOwnerPermission = function doctorAndOwnerPermission(request, response, next) {
+var adminAndExpertPermission = function adminAndExpertPermission(request, response, next) {
   try {
-    var authorizedRoles = ['OWNER', 'DOCTOR'];
+    var authorizedRoles = ['EMPLOYEE'];
+    var types = ['EXPERT'];
     verifyToken(request, response, function () {
-      var roles = request.user.roles;
+      var _request$user2 = request.user,
+          roles = _request$user2.roles,
+          type = _request$user2.type;
 
-      if (utils.isRolesValid(roles, authorizedRoles)) {
+      if (utils.isRolesValid(roles, authorizedRoles) || types.includes(type)) {
         next();
       } else {
         return response.status(403).json({
@@ -170,5 +176,5 @@ module.exports = {
   doctorPermission: doctorPermission,
   ownerPermission: ownerPermission,
   allPermission: allPermission,
-  doctorAndOwnerPermission: doctorAndOwnerPermission
+  adminAndExpertPermission: adminAndExpertPermission
 };
