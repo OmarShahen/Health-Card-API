@@ -12,9 +12,6 @@ var OpeningTimeSchema = new mongoose.Schema({
   expertId: {
     type: mongoose.Types.ObjectId
   },
-  leadId: {
-    type: mongoose.Types.ObjectId
-  },
   weekday: {
     type: String,
     required: true,

@@ -1,7 +1,5 @@
 const config = require('../config/config')
 const UserModel = require('../models/UserModel')
-const ClinicModel = require('../models/ClinicModel')
-const ClinicOwnerModel = require('../models/ClinicOwnerModel')
 const CounterModel = require('../models/CounterModel')
 const userValidation = require('../validations/users')
 const bcrypt = require('bcrypt')
@@ -46,31 +44,6 @@ const getUser = async (request, response) => {
                 }
             }
         ])
-
-        return response.status(200).json({
-            accepted: true,
-            user: userList[0]
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const getPatient = async (request, response) => {
-
-    try {
-
-        const { userId } = request.params
-
-        const userList = await UserModel
-        .find({ _id: userId, type: 'PATIENT' })
-        .select({ password: 0 })
 
         return response.status(200).json({
             accepted: true,
@@ -717,7 +690,6 @@ const addDoctorUser = async (request, response) => {
 
 module.exports = { 
     getUser,
-    getPatient,
     getExpertUser,
     getAppUsers,
     getUserSpeciality,

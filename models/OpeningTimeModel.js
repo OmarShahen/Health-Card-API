@@ -5,7 +5,6 @@ const OpeningTimeSchema = new mongoose.Schema({
 
     openingTimeId: { type: Number, required: true },
     expertId: { type: mongoose.Types.ObjectId },
-    leadId: { type: mongoose.Types.ObjectId },
     weekday: { type: String, required: true, enum: config.WEEK_DAYS },
     isActive: { type: Boolean, default: true },
     openingTime: {

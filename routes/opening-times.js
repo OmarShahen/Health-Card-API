@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const openingTimesController = require('../controllers/opening-times')
-const { verifyOpeningTimeId, verifyLeadId, verifyClinicId, verifyUserId } = require('../middlewares/verify-routes-params')
+const { verifyOpeningTimeId, verifyUserId } = require('../middlewares/verify-routes-params')
 const authorization = require('../middlewares/verify-permission')
 
 
@@ -10,12 +10,6 @@ router.get(
     (request, response) => openingTimesController.getOpeningTimes(request, response)
 )
 
-router.get(
-    '/v1/opening-times/leads/:leadId', 
-    authorization.allPermission,
-    verifyLeadId,
-    (request, response) => openingTimesController.getOpeningTimesByLeadId(request, response)
-)
 
 router.get(
     '/v1/opening-times/experts/:userId', 

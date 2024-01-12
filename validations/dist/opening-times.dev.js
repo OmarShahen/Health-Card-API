@@ -5,25 +5,19 @@ var utils = require('../utils/utils');
 var config = require('../config/config');
 
 var addOpeningTime = function addOpeningTime(openingTimeData) {
-  var leadId = openingTimeData.leadId,
-      expertId = openingTimeData.expertId,
+  var expertId = openingTimeData.expertId,
       weekday = openingTimeData.weekday,
       openingTime = openingTimeData.openingTime,
       closingTime = openingTimeData.closingTime;
-  if (!leadId && !expertId) return {
+  if (!expertId) return {
     isAccepted: false,
-    message: 'Entity relation is required',
-    field: 'leadId'
+    message: 'Expert ID is required',
+    field: 'expertId'
   };
-  if (expertId && !utils.isObjectId(expertId)) return {
+  if (!utils.isObjectId(expertId)) return {
     isAccepted: false,
     message: 'Expert Id format is invalid',
     field: 'expertId'
-  };
-  if (leadId && !utils.isObjectId(leadId)) return {
-    isAccepted: false,
-    message: 'Lead Id format is invalid',
-    field: 'leadId'
   };
   if (!weekday) return {
     isAccepted: false,

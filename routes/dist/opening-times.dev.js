@@ -6,17 +6,12 @@ var openingTimesController = require('../controllers/opening-times');
 
 var _require = require('../middlewares/verify-routes-params'),
     verifyOpeningTimeId = _require.verifyOpeningTimeId,
-    verifyLeadId = _require.verifyLeadId,
-    verifyClinicId = _require.verifyClinicId,
     verifyUserId = _require.verifyUserId;
 
 var authorization = require('../middlewares/verify-permission');
 
 router.get('/v1/opening-times', authorization.allPermission, function (request, response) {
   return openingTimesController.getOpeningTimes(request, response);
-});
-router.get('/v1/opening-times/leads/:leadId', authorization.allPermission, verifyLeadId, function (request, response) {
-  return openingTimesController.getOpeningTimesByLeadId(request, response);
 });
 router.get('/v1/opening-times/experts/:userId', authorization.allPermission, verifyUserId, function (request, response) {
   return openingTimesController.getOpeningTimesByExpertId(request, response);

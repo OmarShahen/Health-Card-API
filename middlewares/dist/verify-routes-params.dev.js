@@ -2,116 +2,52 @@
 
 var utils = require('../utils/utils');
 
-var ClinicModel = require('../models/ClinicModel');
-
-var PatientModel = require('../models/PatientModel');
-
 var UserModel = require('../models/UserModel');
-
-var PrescriptionModel = require('../models/PrescriptionModel');
 
 var AppointmentModel = require('../models/AppointmentModel');
 
-var EncounterModel = require('../models/EncounterModel');
-
-var ClinicPatientModel = require('../models/ClinicPatientModel');
-
-var VisitReasonModel = require('../models/VisitReasonModel');
-
 var SpecialityModel = require('../models/SpecialityModel');
-
-var ClinicOwnerModel = require('../models/ClinicOwnerModel');
-
-var ClinicDoctorModel = require('../models/ClinicDoctorModel');
-
-var ClinicPatientDoctorModel = require('../models/ClinicPatientDoctorModel');
-
-var ClinicRequestModel = require('../models/ClinicRequestModel');
-
-var ServiceModel = require('../models/ServiceModel');
-
-var InvoiceModel = require('../models/InvoiceModel');
-
-var InvoiceServiceModel = require('../models/InvoiceServiceModel');
-
-var CardModel = require('../models/CardModel');
-
-var SubscriptionModel = require('../models/SubscriptionModel');
-
-var InsuranceModel = require('../models/InsuranceModel');
-
-var InsurancePolicyModel = require('../models/InsurancePolicyModel');
-
-var FolderModel = require('../models/file-storage/FolderModel');
-
-var FileModel = require('../models/file-storage/FileModel');
-
-var ClinicSubscriptionModel = require('../models/followup-service/ClinicSubscriptionModel');
-
-var PatientSurveyModel = require('../models/followup-service/PatientSurveyModel');
-
-var ArrivalMethodModel = require('../models/ArrivalMethodModel');
-
-var LabelModel = require('../models/labels/LabelModel');
-
-var TreatmentSurveyModel = require('../models/followup-service/TreatmentSurveyModel');
-
-var MedicationChallengeModel = require('../models/medication-challenges/MedicationChallenges');
-
-var LeadModel = require('../models/CRM/LeadModel');
-
-var MeetingModel = require('../models/CRM/MeetingModel');
-
-var CommentModel = require('../models/followup-service/CommentModel');
-
-var StageModel = require('../models/CRM/StageModel');
-
-var MessageTemplateModel = require('../models/CRM/MessageTemplateModel');
-
-var MessageSentModel = require('../models/CRM/MessageSentModel');
-
-var ValueModel = require('../models/ValueModel');
 
 var OpeningTimeModel = require('../models/OpeningTimeModel');
 
 var ReviewModel = require('../models/ReviewModel');
 
-var verifyClinicId = function verifyClinicId(request, response, next) {
-  var clinicId, clinic;
-  return regeneratorRuntime.async(function verifyClinicId$(_context) {
+var verifyUserId = function verifyUserId(request, response, next) {
+  var userId, user;
+  return regeneratorRuntime.async(function verifyUserId$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          clinicId = request.params.clinicId;
+          userId = request.params.userId;
 
-          if (utils.isObjectId(clinicId)) {
+          if (utils.isObjectId(userId)) {
             _context.next = 4;
             break;
           }
 
           return _context.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid clinic Id formate',
-            field: 'clinicId'
+            message: 'invalid user Id formate',
+            field: 'userId'
           }));
 
         case 4:
           _context.next = 6;
-          return regeneratorRuntime.awrap(ClinicModel.findById(clinicId));
+          return regeneratorRuntime.awrap(UserModel.findById(userId));
 
         case 6:
-          clinic = _context.sent;
+          user = _context.sent;
 
-          if (clinic) {
+          if (user) {
             _context.next = 9;
             break;
           }
 
           return _context.abrupt("return", response.status(404).json({
             accepted: false,
-            message: 'clinic Id does not exist',
-            field: 'clinicId'
+            message: 'user Id does not exist',
+            field: 'userId'
           }));
 
         case 9:
@@ -134,42 +70,42 @@ var verifyClinicId = function verifyClinicId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
-var verifyPatientId = function verifyPatientId(request, response, next) {
-  var patientId, patient;
-  return regeneratorRuntime.async(function verifyPatientId$(_context2) {
+var verifyAppointmentId = function verifyAppointmentId(request, response, next) {
+  var appointmentId, appointment;
+  return regeneratorRuntime.async(function verifyAppointmentId$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          patientId = request.params.patientId;
+          appointmentId = request.params.appointmentId;
 
-          if (utils.isObjectId(patientId)) {
+          if (utils.isObjectId(appointmentId)) {
             _context2.next = 4;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid patient Id formate',
-            field: 'patientId'
+            message: 'invalid appointment Id formate',
+            field: 'appointmentId'
           }));
 
         case 4:
           _context2.next = 6;
-          return regeneratorRuntime.awrap(PatientModel.findById(patientId));
+          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 6:
-          patient = _context2.sent;
+          appointment = _context2.sent;
 
-          if (patient) {
+          if (appointment) {
             _context2.next = 9;
             break;
           }
 
           return _context2.abrupt("return", response.status(404).json({
             accepted: false,
-            message: 'patient Id does not exist',
-            field: 'patientId'
+            message: 'appointment Id does not exist',
+            field: 'appointmentId'
           }));
 
         case 9:
@@ -180,6 +116,7 @@ var verifyPatientId = function verifyPatientId(request, response, next) {
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: _context2.t0.message
           }));
@@ -192,42 +129,42 @@ var verifyPatientId = function verifyPatientId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
-var verifyUserId = function verifyUserId(request, response, next) {
-  var userId, user;
-  return regeneratorRuntime.async(function verifyUserId$(_context3) {
+var verifySpecialityId = function verifySpecialityId(request, response, next) {
+  var specialityId, speciality;
+  return regeneratorRuntime.async(function verifySpecialityId$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          userId = request.params.userId;
+          specialityId = request.params.specialityId;
 
-          if (utils.isObjectId(userId)) {
+          if (utils.isObjectId(specialityId)) {
             _context3.next = 4;
             break;
           }
 
           return _context3.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid user Id formate',
-            field: 'userId'
+            message: 'invalid speciality Id formate',
+            field: 'specialityId'
           }));
 
         case 4:
           _context3.next = 6;
-          return regeneratorRuntime.awrap(UserModel.findById(userId));
+          return regeneratorRuntime.awrap(SpecialityModel.findById(specialityId));
 
         case 6:
-          user = _context3.sent;
+          speciality = _context3.sent;
 
-          if (user) {
+          if (speciality) {
             _context3.next = 9;
             break;
           }
 
           return _context3.abrupt("return", response.status(404).json({
             accepted: false,
-            message: 'user Id does not exist',
-            field: 'userId'
+            message: 'speciality Id does not exist',
+            field: 'specialityId'
           }));
 
         case 9:
@@ -250,42 +187,42 @@ var verifyUserId = function verifyUserId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
-var verifyDoctorId = function verifyDoctorId(request, response, next) {
-  var doctorId, doctor;
-  return regeneratorRuntime.async(function verifyDoctorId$(_context4) {
+var verifyOpeningTimeId = function verifyOpeningTimeId(request, response, next) {
+  var openingTimeId, openingTime;
+  return regeneratorRuntime.async(function verifyOpeningTimeId$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          doctorId = request.params.doctorId;
+          openingTimeId = request.params.openingTimeId;
 
-          if (utils.isObjectId(doctorId)) {
+          if (utils.isObjectId(openingTimeId)) {
             _context4.next = 4;
             break;
           }
 
           return _context4.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid doctor Id formate',
-            field: 'doctorId'
+            message: 'Invalid opening ID format',
+            field: 'openingTimeId'
           }));
 
         case 4:
           _context4.next = 6;
-          return regeneratorRuntime.awrap(UserModel.findById(doctorId));
+          return regeneratorRuntime.awrap(OpeningTimeModel.findById(openingTimeId));
 
         case 6:
-          doctor = _context4.sent;
+          openingTime = _context4.sent;
 
-          if (!(!doctor || !doctor.roles.includes('DOCTOR'))) {
+          if (openingTime) {
             _context4.next = 9;
             break;
           }
 
           return _context4.abrupt("return", response.status(404).json({
             accepted: false,
-            message: 'doctor Id does not exist',
-            field: 'doctorId'
+            message: 'Opening ID does not exist',
+            field: 'openingTimeId'
           }));
 
         case 9:
@@ -296,6 +233,7 @@ var verifyDoctorId = function verifyDoctorId(request, response, next) {
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
+            accepted: false,
             message: 'internal server error',
             error: _context4.t0.message
           }));
@@ -308,2027 +246,69 @@ var verifyDoctorId = function verifyDoctorId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
-var verifyPrescriptionId = function verifyPrescriptionId(request, response, next) {
-  var prescriptionId, prescription;
-  return regeneratorRuntime.async(function verifyPrescriptionId$(_context5) {
+var verifyReviewId = function verifyReviewId(request, response, next) {
+  var reviewId, review;
+  return regeneratorRuntime.async(function verifyReviewId$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          prescriptionId = request.params.prescriptionId;
+          reviewId = request.params.reviewId;
 
-          if (utils.isObjectId(prescriptionId)) {
+          if (utils.isObjectId(reviewId)) {
             _context5.next = 4;
             break;
           }
 
           return _context5.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid prescription Id formate',
-            field: 'prescriptionId'
+            message: 'Invalid review ID format',
+            field: 'reviewId'
           }));
 
         case 4:
           _context5.next = 6;
-          return regeneratorRuntime.awrap(PrescriptionModel.findById(prescriptionId));
+          return regeneratorRuntime.awrap(ReviewModel.findById(reviewId));
 
         case 6:
-          prescription = _context5.sent;
+          review = _context5.sent;
 
-          if (prescription) {
+          if (review) {
             _context5.next = 9;
             break;
           }
 
           return _context5.abrupt("return", response.status(404).json({
             accepted: false,
-            message: 'prescription Id does not exist',
-            field: 'prescriptionId'
-          }));
-
-        case 9:
-          request.doctorId = prescription.doctorId;
-          return _context5.abrupt("return", next());
-
-        case 13:
-          _context5.prev = 13;
-          _context5.t0 = _context5["catch"](0);
-          console.error(_context5.t0);
-          return _context5.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context5.t0.message
-          }));
-
-        case 17:
-        case "end":
-          return _context5.stop();
-      }
-    }
-  }, null, null, [[0, 13]]);
-};
-
-var verifyCardId = function verifyCardId(request, response, next) {
-  var cardId, cardsList;
-  return regeneratorRuntime.async(function verifyCardId$(_context6) {
-    while (1) {
-      switch (_context6.prev = _context6.next) {
-        case 0:
-          _context6.prev = 0;
-          cardId = request.params.cardId;
-          _context6.next = 4;
-          return regeneratorRuntime.awrap(CardModel.find({
-            cardId: cardId
-          }));
-
-        case 4:
-          cardsList = _context6.sent;
-
-          if (!(cardsList.length == 0)) {
-            _context6.next = 7;
-            break;
-          }
-
-          return _context6.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'card Id does not exist',
-            field: 'cardId'
-          }));
-
-        case 7:
-          return _context6.abrupt("return", next());
-
-        case 10:
-          _context6.prev = 10;
-          _context6.t0 = _context6["catch"](0);
-          console.error(_context6.t0);
-          return _context6.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context6.t0.message
-          }));
-
-        case 14:
-        case "end":
-          return _context6.stop();
-      }
-    }
-  }, null, null, [[0, 10]]);
-};
-
-var verifyAppointmentId = function verifyAppointmentId(request, response, next) {
-  var appointmentId, appointment;
-  return regeneratorRuntime.async(function verifyAppointmentId$(_context7) {
-    while (1) {
-      switch (_context7.prev = _context7.next) {
-        case 0:
-          _context7.prev = 0;
-          appointmentId = request.params.appointmentId;
-
-          if (utils.isObjectId(appointmentId)) {
-            _context7.next = 4;
-            break;
-          }
-
-          return _context7.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid appointment Id formate',
-            field: 'appointmentId'
-          }));
-
-        case 4:
-          _context7.next = 6;
-          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
-
-        case 6:
-          appointment = _context7.sent;
-
-          if (appointment) {
-            _context7.next = 9;
-            break;
-          }
-
-          return _context7.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'appointment Id does not exist',
-            field: 'appointmentId'
-          }));
-
-        case 9:
-          return _context7.abrupt("return", next());
-
-        case 12:
-          _context7.prev = 12;
-          _context7.t0 = _context7["catch"](0);
-          console.error(_context7.t0);
-          return _context7.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context7.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context7.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyEncounterId = function verifyEncounterId(request, response, next) {
-  var encounterId, encounter;
-  return regeneratorRuntime.async(function verifyEncounterId$(_context8) {
-    while (1) {
-      switch (_context8.prev = _context8.next) {
-        case 0:
-          _context8.prev = 0;
-          encounterId = request.params.encounterId;
-
-          if (utils.isObjectId(encounterId)) {
-            _context8.next = 4;
-            break;
-          }
-
-          return _context8.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid encounter Id formate',
-            field: 'encounterId'
-          }));
-
-        case 4:
-          _context8.next = 6;
-          return regeneratorRuntime.awrap(EncounterModel.findById(encounterId));
-
-        case 6:
-          encounter = _context8.sent;
-
-          if (encounter) {
-            _context8.next = 9;
-            break;
-          }
-
-          return _context8.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'encounter Id does not exist',
-            field: 'encounterId'
-          }));
-
-        case 9:
-          request.doctorId = encounter.doctorId;
-          return _context8.abrupt("return", next());
-
-        case 13:
-          _context8.prev = 13;
-          _context8.t0 = _context8["catch"](0);
-          console.error(_context8.t0);
-          return _context8.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context8.t0.message
-          }));
-
-        case 17:
-        case "end":
-          return _context8.stop();
-      }
-    }
-  }, null, null, [[0, 13]]);
-};
-
-var verifyClinicPatientId = function verifyClinicPatientId(request, response, next) {
-  var clinicPatientId, clinicPatient;
-  return regeneratorRuntime.async(function verifyClinicPatientId$(_context9) {
-    while (1) {
-      switch (_context9.prev = _context9.next) {
-        case 0:
-          _context9.prev = 0;
-          clinicPatientId = request.params.clinicPatientId;
-
-          if (utils.isObjectId(clinicPatientId)) {
-            _context9.next = 4;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid clinic patient Id formate',
-            field: 'clinicPatientId'
-          }));
-
-        case 4:
-          _context9.next = 6;
-          return regeneratorRuntime.awrap(ClinicPatientModel.findById(clinicPatientId));
-
-        case 6:
-          clinicPatient = _context9.sent;
-
-          if (clinicPatient) {
-            _context9.next = 9;
-            break;
-          }
-
-          return _context9.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'clinic patient Id does not exist',
-            field: 'clinicPatientId'
-          }));
-
-        case 9:
-          return _context9.abrupt("return", next());
-
-        case 12:
-          _context9.prev = 12;
-          _context9.t0 = _context9["catch"](0);
-          console.error(_context9.t0);
-          return _context9.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context9.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context9.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyVisitReasonId = function verifyVisitReasonId(request, response, next) {
-  var visitReasonId, visitReason;
-  return regeneratorRuntime.async(function verifyVisitReasonId$(_context10) {
-    while (1) {
-      switch (_context10.prev = _context10.next) {
-        case 0:
-          _context10.prev = 0;
-          visitReasonId = request.params.visitReasonId;
-
-          if (utils.isObjectId(visitReasonId)) {
-            _context10.next = 4;
-            break;
-          }
-
-          return _context10.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid visit reason Id formate',
-            field: 'visitReasonId'
-          }));
-
-        case 4:
-          _context10.next = 6;
-          return regeneratorRuntime.awrap(VisitReasonModel.findById(visitReasonId));
-
-        case 6:
-          visitReason = _context10.sent;
-
-          if (visitReason) {
-            _context10.next = 9;
-            break;
-          }
-
-          return _context10.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'visit reason Id does not exist',
-            field: 'visitReasonId'
-          }));
-
-        case 9:
-          return _context10.abrupt("return", next());
-
-        case 12:
-          _context10.prev = 12;
-          _context10.t0 = _context10["catch"](0);
-          console.error(_context10.t0);
-          return _context10.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context10.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context10.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifySpecialityId = function verifySpecialityId(request, response, next) {
-  var specialityId, speciality;
-  return regeneratorRuntime.async(function verifySpecialityId$(_context11) {
-    while (1) {
-      switch (_context11.prev = _context11.next) {
-        case 0:
-          _context11.prev = 0;
-          specialityId = request.params.specialityId;
-
-          if (utils.isObjectId(specialityId)) {
-            _context11.next = 4;
-            break;
-          }
-
-          return _context11.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid speciality Id formate',
-            field: 'specialityId'
-          }));
-
-        case 4:
-          _context11.next = 6;
-          return regeneratorRuntime.awrap(SpecialityModel.findById(specialityId));
-
-        case 6:
-          speciality = _context11.sent;
-
-          if (speciality) {
-            _context11.next = 9;
-            break;
-          }
-
-          return _context11.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'speciality Id does not exist',
-            field: 'specialityId'
-          }));
-
-        case 9:
-          return _context11.abrupt("return", next());
-
-        case 12:
-          _context11.prev = 12;
-          _context11.t0 = _context11["catch"](0);
-          console.error(_context11.t0);
-          return _context11.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context11.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context11.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyClinicOwnerId = function verifyClinicOwnerId(request, response, next) {
-  var clinicOwnerId, clinicOwner;
-  return regeneratorRuntime.async(function verifyClinicOwnerId$(_context12) {
-    while (1) {
-      switch (_context12.prev = _context12.next) {
-        case 0:
-          _context12.prev = 0;
-          clinicOwnerId = request.params.clinicOwnerId;
-
-          if (utils.isObjectId(clinicOwnerId)) {
-            _context12.next = 4;
-            break;
-          }
-
-          return _context12.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid clinic owner Id formate',
-            field: 'clinicOwnerId'
-          }));
-
-        case 4:
-          _context12.next = 6;
-          return regeneratorRuntime.awrap(ClinicOwnerModel.findById(clinicOwnerId));
-
-        case 6:
-          clinicOwner = _context12.sent;
-
-          if (clinicOwner) {
-            _context12.next = 9;
-            break;
-          }
-
-          return _context12.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'clinic owner Id does not exist',
-            field: 'clinicOwnerId'
-          }));
-
-        case 9:
-          return _context12.abrupt("return", next());
-
-        case 12:
-          _context12.prev = 12;
-          _context12.t0 = _context12["catch"](0);
-          console.error(_context12.t0);
-          return _context12.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context12.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context12.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyClinicDoctorId = function verifyClinicDoctorId(request, response, next) {
-  var clinicDoctorId, clinicDoctor;
-  return regeneratorRuntime.async(function verifyClinicDoctorId$(_context13) {
-    while (1) {
-      switch (_context13.prev = _context13.next) {
-        case 0:
-          _context13.prev = 0;
-          clinicDoctorId = request.params.clinicDoctorId;
-
-          if (utils.isObjectId(clinicDoctorId)) {
-            _context13.next = 4;
-            break;
-          }
-
-          return _context13.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid clinic doctor Id formate',
-            field: 'clinicDoctorId'
-          }));
-
-        case 4:
-          _context13.next = 6;
-          return regeneratorRuntime.awrap(ClinicDoctorModel.findById(clinicDoctorId));
-
-        case 6:
-          clinicDoctor = _context13.sent;
-
-          if (clinicDoctor) {
-            _context13.next = 9;
-            break;
-          }
-
-          return _context13.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'clinic doctor Id does not exist',
-            field: 'clinicDoctorId'
-          }));
-
-        case 9:
-          return _context13.abrupt("return", next());
-
-        case 12:
-          _context13.prev = 12;
-          _context13.t0 = _context13["catch"](0);
-          console.error(_context13.t0);
-          return _context13.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context13.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context13.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyClinicPatientDoctorId = function verifyClinicPatientDoctorId(request, response, next) {
-  var clinicPatientDoctorId, clinicPatientDoctor;
-  return regeneratorRuntime.async(function verifyClinicPatientDoctorId$(_context14) {
-    while (1) {
-      switch (_context14.prev = _context14.next) {
-        case 0:
-          _context14.prev = 0;
-          clinicPatientDoctorId = request.params.clinicPatientDoctorId;
-
-          if (utils.isObjectId(clinicPatientDoctorId)) {
-            _context14.next = 4;
-            break;
-          }
-
-          return _context14.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid clinic patient doctor Id formate',
-            field: 'clinicPatientDoctorId'
-          }));
-
-        case 4:
-          _context14.next = 6;
-          return regeneratorRuntime.awrap(ClinicPatientDoctorModel.findById(clinicPatientDoctorId));
-
-        case 6:
-          clinicPatientDoctor = _context14.sent;
-
-          if (clinicPatientDoctor) {
-            _context14.next = 9;
-            break;
-          }
-
-          return _context14.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'clinic patient doctor Id does not exist',
-            field: 'clinicPatientDoctorId'
-          }));
-
-        case 9:
-          return _context14.abrupt("return", next());
-
-        case 12:
-          _context14.prev = 12;
-          _context14.t0 = _context14["catch"](0);
-          console.error(_context14.t0);
-          return _context14.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context14.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context14.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyClinicRequestId = function verifyClinicRequestId(request, response, next) {
-  var clinicRequestId, clinicRequest;
-  return regeneratorRuntime.async(function verifyClinicRequestId$(_context15) {
-    while (1) {
-      switch (_context15.prev = _context15.next) {
-        case 0:
-          _context15.prev = 0;
-          clinicRequestId = request.params.clinicRequestId;
-
-          if (utils.isObjectId(clinicRequestId)) {
-            _context15.next = 4;
-            break;
-          }
-
-          return _context15.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid clinic request Id formate',
-            field: 'clinicRequestId'
-          }));
-
-        case 4:
-          _context15.next = 6;
-          return regeneratorRuntime.awrap(ClinicRequestModel.findById(clinicRequestId));
-
-        case 6:
-          clinicRequest = _context15.sent;
-
-          if (clinicRequest) {
-            _context15.next = 9;
-            break;
-          }
-
-          return _context15.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'clinic request Id does not exist',
-            field: 'clinicRequestId'
-          }));
-
-        case 9:
-          // for the check clinic mode middleware
-          request.body.clinicId = clinicRequest.clinicId;
-          return _context15.abrupt("return", next());
-
-        case 13:
-          _context15.prev = 13;
-          _context15.t0 = _context15["catch"](0);
-          console.error(_context15.t0);
-          return _context15.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context15.t0.message
-          }));
-
-        case 17:
-        case "end":
-          return _context15.stop();
-      }
-    }
-  }, null, null, [[0, 13]]);
-};
-
-var verifyServiceId = function verifyServiceId(request, response, next) {
-  var serviceId, service;
-  return regeneratorRuntime.async(function verifyServiceId$(_context16) {
-    while (1) {
-      switch (_context16.prev = _context16.next) {
-        case 0:
-          _context16.prev = 0;
-          serviceId = request.params.serviceId;
-
-          if (utils.isObjectId(serviceId)) {
-            _context16.next = 4;
-            break;
-          }
-
-          return _context16.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid service Id formate',
-            field: 'serviceId'
-          }));
-
-        case 4:
-          _context16.next = 6;
-          return regeneratorRuntime.awrap(ServiceModel.findById(serviceId));
-
-        case 6:
-          service = _context16.sent;
-
-          if (service) {
-            _context16.next = 9;
-            break;
-          }
-
-          return _context16.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'service Id does not exist',
-            field: 'serviceId'
-          }));
-
-        case 9:
-          return _context16.abrupt("return", next());
-
-        case 12:
-          _context16.prev = 12;
-          _context16.t0 = _context16["catch"](0);
-          console.error(_context16.t0);
-          return _context16.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context16.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context16.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyInvoiceId = function verifyInvoiceId(request, response, next) {
-  var invoiceId, invoice;
-  return regeneratorRuntime.async(function verifyInvoiceId$(_context17) {
-    while (1) {
-      switch (_context17.prev = _context17.next) {
-        case 0:
-          _context17.prev = 0;
-          invoiceId = request.params.invoiceId;
-
-          if (utils.isObjectId(invoiceId)) {
-            _context17.next = 4;
-            break;
-          }
-
-          return _context17.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid invoice Id formate',
-            field: 'invoiceId'
-          }));
-
-        case 4:
-          _context17.next = 6;
-          return regeneratorRuntime.awrap(InvoiceModel.findById(invoiceId));
-
-        case 6:
-          invoice = _context17.sent;
-
-          if (invoice) {
-            _context17.next = 9;
-            break;
-          }
-
-          return _context17.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'invoice Id does not exist',
-            field: 'invoiceId'
-          }));
-
-        case 9:
-          return _context17.abrupt("return", next());
-
-        case 12:
-          _context17.prev = 12;
-          _context17.t0 = _context17["catch"](0);
-          console.error(_context17.t0);
-          return _context17.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context17.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context17.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyInvoiceServiceId = function verifyInvoiceServiceId(request, response, next) {
-  var invoiceServiceId, invoiceService;
-  return regeneratorRuntime.async(function verifyInvoiceServiceId$(_context18) {
-    while (1) {
-      switch (_context18.prev = _context18.next) {
-        case 0:
-          _context18.prev = 0;
-          invoiceServiceId = request.params.invoiceServiceId;
-
-          if (utils.isObjectId(invoiceServiceId)) {
-            _context18.next = 4;
-            break;
-          }
-
-          return _context18.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid invoice service Id format',
-            field: 'invoiceServiceId'
-          }));
-
-        case 4:
-          _context18.next = 6;
-          return regeneratorRuntime.awrap(InvoiceServiceModel.findById(invoiceServiceId));
-
-        case 6:
-          invoiceService = _context18.sent;
-
-          if (invoiceService) {
-            _context18.next = 9;
-            break;
-          }
-
-          return _context18.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'invoice service Id does not exist',
-            field: 'invoiceServiceId'
-          }));
-
-        case 9:
-          return _context18.abrupt("return", next());
-
-        case 12:
-          _context18.prev = 12;
-          _context18.t0 = _context18["catch"](0);
-          console.error(_context18.t0);
-          return _context18.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context18.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context18.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifySubscriptionId = function verifySubscriptionId(request, response, next) {
-  var subscriptionId, subscription;
-  return regeneratorRuntime.async(function verifySubscriptionId$(_context19) {
-    while (1) {
-      switch (_context19.prev = _context19.next) {
-        case 0:
-          _context19.prev = 0;
-          subscriptionId = request.params.subscriptionId;
-
-          if (utils.isObjectId(subscriptionId)) {
-            _context19.next = 4;
-            break;
-          }
-
-          return _context19.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid subscription Id format',
-            field: 'subscriptionId'
-          }));
-
-        case 4:
-          _context19.next = 6;
-          return regeneratorRuntime.awrap(SubscriptionModel.findById(subscriptionId));
-
-        case 6:
-          subscription = _context19.sent;
-
-          if (subscription) {
-            _context19.next = 9;
-            break;
-          }
-
-          return _context19.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'subscription Id does not exist',
-            field: 'subscriptionId'
-          }));
-
-        case 9:
-          return _context19.abrupt("return", next());
-
-        case 12:
-          _context19.prev = 12;
-          _context19.t0 = _context19["catch"](0);
-          console.error(_context19.t0);
-          return _context19.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context19.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context19.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyInsuranceId = function verifyInsuranceId(request, response, next) {
-  var insuranceId, insurance;
-  return regeneratorRuntime.async(function verifyInsuranceId$(_context20) {
-    while (1) {
-      switch (_context20.prev = _context20.next) {
-        case 0:
-          _context20.prev = 0;
-          insuranceId = request.params.insuranceId;
-
-          if (utils.isObjectId(insuranceId)) {
-            _context20.next = 4;
-            break;
-          }
-
-          return _context20.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid insurance Id format',
-            field: 'insuranceId'
-          }));
-
-        case 4:
-          _context20.next = 6;
-          return regeneratorRuntime.awrap(InsuranceModel.findById(insuranceId));
-
-        case 6:
-          insurance = _context20.sent;
-
-          if (insurance) {
-            _context20.next = 9;
-            break;
-          }
-
-          return _context20.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Insurance Id does not exist',
-            field: 'insuranceId'
-          }));
-
-        case 9:
-          return _context20.abrupt("return", next());
-
-        case 12:
-          _context20.prev = 12;
-          _context20.t0 = _context20["catch"](0);
-          console.error(_context20.t0);
-          return _context20.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context20.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context20.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyInsurancePolicyId = function verifyInsurancePolicyId(request, response, next) {
-  var insurancePolicyId, insurancePolicy;
-  return regeneratorRuntime.async(function verifyInsurancePolicyId$(_context21) {
-    while (1) {
-      switch (_context21.prev = _context21.next) {
-        case 0:
-          _context21.prev = 0;
-          insurancePolicyId = request.params.insurancePolicyId;
-
-          if (utils.isObjectId(insurancePolicyId)) {
-            _context21.next = 4;
-            break;
-          }
-
-          return _context21.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid insurance policy Id format',
-            field: 'insurancePolicyId'
-          }));
-
-        case 4:
-          _context21.next = 6;
-          return regeneratorRuntime.awrap(InsurancePolicyModel.findById(insurancePolicyId));
-
-        case 6:
-          insurancePolicy = _context21.sent;
-
-          if (insurancePolicy) {
-            _context21.next = 9;
-            break;
-          }
-
-          return _context21.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Insurance policy Id does not exist',
-            field: 'insurancePolicyId'
-          }));
-
-        case 9:
-          return _context21.abrupt("return", next());
-
-        case 12:
-          _context21.prev = 12;
-          _context21.t0 = _context21["catch"](0);
-          console.error(_context21.t0);
-          return _context21.abrupt("return", response.status(500).json({
-            message: 'internal server error',
-            error: _context21.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context21.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyFolderId = function verifyFolderId(request, response, next) {
-  var folderId, folder;
-  return regeneratorRuntime.async(function verifyFolderId$(_context22) {
-    while (1) {
-      switch (_context22.prev = _context22.next) {
-        case 0:
-          _context22.prev = 0;
-          folderId = request.params.folderId;
-
-          if (utils.isObjectId(folderId)) {
-            _context22.next = 4;
-            break;
-          }
-
-          return _context22.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid folder Id format',
-            field: 'folderId'
-          }));
-
-        case 4:
-          _context22.next = 6;
-          return regeneratorRuntime.awrap(FolderModel.findById(folderId));
-
-        case 6:
-          folder = _context22.sent;
-
-          if (folder) {
-            _context22.next = 9;
-            break;
-          }
-
-          return _context22.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Folder Id does not exist',
-            field: 'folderId'
-          }));
-
-        case 9:
-          return _context22.abrupt("return", next());
-
-        case 12:
-          _context22.prev = 12;
-          _context22.t0 = _context22["catch"](0);
-          console.error(_context22.t0);
-          return _context22.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context22.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context22.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyFileId = function verifyFileId(request, response, next) {
-  var fileId, file;
-  return regeneratorRuntime.async(function verifyFileId$(_context23) {
-    while (1) {
-      switch (_context23.prev = _context23.next) {
-        case 0:
-          _context23.prev = 0;
-          fileId = request.params.fileId;
-
-          if (utils.isObjectId(fileId)) {
-            _context23.next = 4;
-            break;
-          }
-
-          return _context23.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid file Id format',
-            field: 'fileId'
-          }));
-
-        case 4:
-          _context23.next = 6;
-          return regeneratorRuntime.awrap(FileModel.findById(fileId));
-
-        case 6:
-          file = _context23.sent;
-
-          if (file) {
-            _context23.next = 9;
-            break;
-          }
-
-          return _context23.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'File Id does not exist',
-            field: 'fileId'
-          }));
-
-        case 9:
-          return _context23.abrupt("return", next());
-
-        case 12:
-          _context23.prev = 12;
-          _context23.t0 = _context23["catch"](0);
-          console.error(_context23.t0);
-          return _context23.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context23.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context23.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyClinicSubscriptionId = function verifyClinicSubscriptionId(request, response, next) {
-  var clinicSubscriptionId, clinicSubscription;
-  return regeneratorRuntime.async(function verifyClinicSubscriptionId$(_context24) {
-    while (1) {
-      switch (_context24.prev = _context24.next) {
-        case 0:
-          _context24.prev = 0;
-          clinicSubscriptionId = request.params.clinicSubscriptionId;
-
-          if (utils.isObjectId(clinicSubscriptionId)) {
-            _context24.next = 4;
-            break;
-          }
-
-          return _context24.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid clinic subscription Id format',
-            field: 'clinicSubscriptionId'
-          }));
-
-        case 4:
-          _context24.next = 6;
-          return regeneratorRuntime.awrap(ClinicSubscriptionModel.findById(clinicSubscriptionId));
-
-        case 6:
-          clinicSubscription = _context24.sent;
-
-          if (clinicSubscription) {
-            _context24.next = 9;
-            break;
-          }
-
-          return _context24.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Clinic subscription Id does not exist',
-            field: 'clinicSubscriptionId'
-          }));
-
-        case 9:
-          return _context24.abrupt("return", next());
-
-        case 12:
-          _context24.prev = 12;
-          _context24.t0 = _context24["catch"](0);
-          console.error(_context24.t0);
-          return _context24.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context24.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context24.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyPatientSurveyId = function verifyPatientSurveyId(request, response, next) {
-  var patientSurveyId, patientSurvey;
-  return regeneratorRuntime.async(function verifyPatientSurveyId$(_context25) {
-    while (1) {
-      switch (_context25.prev = _context25.next) {
-        case 0:
-          _context25.prev = 0;
-          patientSurveyId = request.params.patientSurveyId;
-
-          if (utils.isObjectId(patientSurveyId)) {
-            _context25.next = 4;
-            break;
-          }
-
-          return _context25.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid patient survey Id format',
-            field: 'patientSurveyId'
-          }));
-
-        case 4:
-          _context25.next = 6;
-          return regeneratorRuntime.awrap(PatientSurveyModel.findById(patientSurveyId));
-
-        case 6:
-          patientSurvey = _context25.sent;
-
-          if (patientSurvey) {
-            _context25.next = 9;
-            break;
-          }
-
-          return _context25.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Patient survey Id does not exist',
-            field: 'patientSurveyId'
-          }));
-
-        case 9:
-          return _context25.abrupt("return", next());
-
-        case 12:
-          _context25.prev = 12;
-          _context25.t0 = _context25["catch"](0);
-          console.error(_context25.t0);
-          return _context25.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context25.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context25.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyArrivalMethodId = function verifyArrivalMethodId(request, response, next) {
-  var arrivalMethodId, arrivalMethod;
-  return regeneratorRuntime.async(function verifyArrivalMethodId$(_context26) {
-    while (1) {
-      switch (_context26.prev = _context26.next) {
-        case 0:
-          _context26.prev = 0;
-          arrivalMethodId = request.params.arrivalMethodId;
-
-          if (utils.isObjectId(arrivalMethodId)) {
-            _context26.next = 4;
-            break;
-          }
-
-          return _context26.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid arrival method Id format',
-            field: 'arrivalMethodId'
-          }));
-
-        case 4:
-          _context26.next = 6;
-          return regeneratorRuntime.awrap(ArrivalMethodModel.findById(arrivalMethodId));
-
-        case 6:
-          arrivalMethod = _context26.sent;
-
-          if (arrivalMethod) {
-            _context26.next = 9;
-            break;
-          }
-
-          return _context26.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Arrival Method Id does not exist',
-            field: 'arrivalMethodId'
-          }));
-
-        case 9:
-          return _context26.abrupt("return", next());
-
-        case 12:
-          _context26.prev = 12;
-          _context26.t0 = _context26["catch"](0);
-          console.error(_context26.t0);
-          return _context26.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context26.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context26.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyLabelId = function verifyLabelId(request, response, next) {
-  var labelId, label;
-  return regeneratorRuntime.async(function verifyLabelId$(_context27) {
-    while (1) {
-      switch (_context27.prev = _context27.next) {
-        case 0:
-          _context27.prev = 0;
-          labelId = request.params.labelId;
-
-          if (utils.isObjectId(labelId)) {
-            _context27.next = 4;
-            break;
-          }
-
-          return _context27.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid label Id format',
-            field: 'labelId'
-          }));
-
-        case 4:
-          _context27.next = 6;
-          return regeneratorRuntime.awrap(LabelModel.findById(labelId));
-
-        case 6:
-          label = _context27.sent;
-
-          if (label) {
-            _context27.next = 9;
-            break;
-          }
-
-          return _context27.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Label ID does not exist',
-            field: 'labelId'
-          }));
-
-        case 9:
-          return _context27.abrupt("return", next());
-
-        case 12:
-          _context27.prev = 12;
-          _context27.t0 = _context27["catch"](0);
-          console.error(_context27.t0);
-          return _context27.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context27.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context27.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyTreatmentSurveyId = function verifyTreatmentSurveyId(request, response, next) {
-  var treatmentSurveyId, treatmentSurvey;
-  return regeneratorRuntime.async(function verifyTreatmentSurveyId$(_context28) {
-    while (1) {
-      switch (_context28.prev = _context28.next) {
-        case 0:
-          _context28.prev = 0;
-          treatmentSurveyId = request.params.treatmentSurveyId;
-
-          if (utils.isObjectId(treatmentSurveyId)) {
-            _context28.next = 4;
-            break;
-          }
-
-          return _context28.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid treatment survey Id format',
-            field: 'treatmentSurveyId'
-          }));
-
-        case 4:
-          _context28.next = 6;
-          return regeneratorRuntime.awrap(TreatmentSurveyModel.findById(treatmentSurveyId));
-
-        case 6:
-          treatmentSurvey = _context28.sent;
-
-          if (treatmentSurvey) {
-            _context28.next = 9;
-            break;
-          }
-
-          return _context28.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Treatment survey ID does not exist',
-            field: 'treatmentSurveyId'
-          }));
-
-        case 9:
-          return _context28.abrupt("return", next());
-
-        case 12:
-          _context28.prev = 12;
-          _context28.t0 = _context28["catch"](0);
-          console.error(_context28.t0);
-          return _context28.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context28.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context28.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyMedicationChallengeId = function verifyMedicationChallengeId(request, response, next) {
-  var medicationChallengeId, medicationChallenge;
-  return regeneratorRuntime.async(function verifyMedicationChallengeId$(_context29) {
-    while (1) {
-      switch (_context29.prev = _context29.next) {
-        case 0:
-          _context29.prev = 0;
-          medicationChallengeId = request.params.medicationChallengeId;
-
-          if (utils.isObjectId(medicationChallengeId)) {
-            _context29.next = 4;
-            break;
-          }
-
-          return _context29.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid medication challenge ID format',
-            field: 'medicationChallengeId'
-          }));
-
-        case 4:
-          _context29.next = 6;
-          return regeneratorRuntime.awrap(MedicationChallengeModel.findById(medicationChallengeId));
-
-        case 6:
-          medicationChallenge = _context29.sent;
-
-          if (medicationChallenge) {
-            _context29.next = 9;
-            break;
-          }
-
-          return _context29.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Medication challenge ID does not exist',
-            field: 'medicationChallengeId'
-          }));
-
-        case 9:
-          return _context29.abrupt("return", next());
-
-        case 12:
-          _context29.prev = 12;
-          _context29.t0 = _context29["catch"](0);
-          console.error(_context29.t0);
-          return _context29.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context29.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context29.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyLeadId = function verifyLeadId(request, response, next) {
-  var leadId, lead;
-  return regeneratorRuntime.async(function verifyLeadId$(_context30) {
-    while (1) {
-      switch (_context30.prev = _context30.next) {
-        case 0:
-          _context30.prev = 0;
-          leadId = request.params.leadId;
-
-          if (utils.isObjectId(leadId)) {
-            _context30.next = 4;
-            break;
-          }
-
-          return _context30.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid lead ID format',
-            field: 'leadId'
-          }));
-
-        case 4:
-          _context30.next = 6;
-          return regeneratorRuntime.awrap(LeadModel.findById(leadId));
-
-        case 6:
-          lead = _context30.sent;
-
-          if (lead) {
-            _context30.next = 9;
-            break;
-          }
-
-          return _context30.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Lead ID does not exist',
-            field: 'leadId'
-          }));
-
-        case 9:
-          return _context30.abrupt("return", next());
-
-        case 12:
-          _context30.prev = 12;
-          _context30.t0 = _context30["catch"](0);
-          console.error(_context30.t0);
-          return _context30.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context30.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context30.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyMeetingId = function verifyMeetingId(request, response, next) {
-  var meetingId, meeting;
-  return regeneratorRuntime.async(function verifyMeetingId$(_context31) {
-    while (1) {
-      switch (_context31.prev = _context31.next) {
-        case 0:
-          _context31.prev = 0;
-          meetingId = request.params.meetingId;
-
-          if (utils.isObjectId(meetingId)) {
-            _context31.next = 4;
-            break;
-          }
-
-          return _context31.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid meeting ID format',
-            field: 'meetingId'
-          }));
-
-        case 4:
-          _context31.next = 6;
-          return regeneratorRuntime.awrap(MeetingModel.findById(meetingId));
-
-        case 6:
-          meeting = _context31.sent;
-
-          if (meeting) {
-            _context31.next = 9;
-            break;
-          }
-
-          return _context31.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Meeting ID does not exist',
-            field: 'meetingId'
-          }));
-
-        case 9:
-          return _context31.abrupt("return", next());
-
-        case 12:
-          _context31.prev = 12;
-          _context31.t0 = _context31["catch"](0);
-          console.error(_context31.t0);
-          return _context31.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context31.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context31.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyCommentId = function verifyCommentId(request, response, next) {
-  var commentId, comment;
-  return regeneratorRuntime.async(function verifyCommentId$(_context32) {
-    while (1) {
-      switch (_context32.prev = _context32.next) {
-        case 0:
-          _context32.prev = 0;
-          commentId = request.params.commentId;
-
-          if (utils.isObjectId(commentId)) {
-            _context32.next = 4;
-            break;
-          }
-
-          return _context32.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid comment ID format',
-            field: 'commentId'
-          }));
-
-        case 4:
-          _context32.next = 6;
-          return regeneratorRuntime.awrap(CommentModel.findById(commentId));
-
-        case 6:
-          comment = _context32.sent;
-
-          if (comment) {
-            _context32.next = 9;
-            break;
-          }
-
-          return _context32.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Comment ID does not exist',
-            field: 'commentId'
-          }));
-
-        case 9:
-          return _context32.abrupt("return", next());
-
-        case 12:
-          _context32.prev = 12;
-          _context32.t0 = _context32["catch"](0);
-          console.error(_context32.t0);
-          return _context32.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context32.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context32.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyStageId = function verifyStageId(request, response, next) {
-  var stageId, stage;
-  return regeneratorRuntime.async(function verifyStageId$(_context33) {
-    while (1) {
-      switch (_context33.prev = _context33.next) {
-        case 0:
-          _context33.prev = 0;
-          stageId = request.params.stageId;
-
-          if (utils.isObjectId(stageId)) {
-            _context33.next = 4;
-            break;
-          }
-
-          return _context33.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid stage ID format',
-            field: 'stageId'
-          }));
-
-        case 4:
-          _context33.next = 6;
-          return regeneratorRuntime.awrap(StageModel.findById(stageId));
-
-        case 6:
-          stage = _context33.sent;
-
-          if (stage) {
-            _context33.next = 9;
-            break;
-          }
-
-          return _context33.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Stage ID does not exist',
-            field: 'stageId'
-          }));
-
-        case 9:
-          return _context33.abrupt("return", next());
-
-        case 12:
-          _context33.prev = 12;
-          _context33.t0 = _context33["catch"](0);
-          console.error(_context33.t0);
-          return _context33.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context33.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context33.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyMessageTemplateId = function verifyMessageTemplateId(request, response, next) {
-  var messageTemplateId, messageTemplate;
-  return regeneratorRuntime.async(function verifyMessageTemplateId$(_context34) {
-    while (1) {
-      switch (_context34.prev = _context34.next) {
-        case 0:
-          _context34.prev = 0;
-          messageTemplateId = request.params.messageTemplateId;
-
-          if (utils.isObjectId(messageTemplateId)) {
-            _context34.next = 4;
-            break;
-          }
-
-          return _context34.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid message template ID format',
-            field: 'messageTemplateId'
-          }));
-
-        case 4:
-          _context34.next = 6;
-          return regeneratorRuntime.awrap(MessageTemplateModel.findById(messageTemplateId));
-
-        case 6:
-          messageTemplate = _context34.sent;
-
-          if (messageTemplate) {
-            _context34.next = 9;
-            break;
-          }
-
-          return _context34.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Message template ID does not exist',
-            field: 'messageTemplateId'
-          }));
-
-        case 9:
-          return _context34.abrupt("return", next());
-
-        case 12:
-          _context34.prev = 12;
-          _context34.t0 = _context34["catch"](0);
-          console.error(_context34.t0);
-          return _context34.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context34.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context34.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyMessageSentId = function verifyMessageSentId(request, response, next) {
-  var messageSentId, messageSent;
-  return regeneratorRuntime.async(function verifyMessageSentId$(_context35) {
-    while (1) {
-      switch (_context35.prev = _context35.next) {
-        case 0:
-          _context35.prev = 0;
-          messageSentId = request.params.messageSentId;
-
-          if (utils.isObjectId(messageSentId)) {
-            _context35.next = 4;
-            break;
-          }
-
-          return _context35.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid message sent ID format',
-            field: 'messageSentId'
-          }));
-
-        case 4:
-          _context35.next = 6;
-          return regeneratorRuntime.awrap(MessageSentModel.findById(messageSentId));
-
-        case 6:
-          messageSent = _context35.sent;
-
-          if (messageSent) {
-            _context35.next = 9;
-            break;
-          }
-
-          return _context35.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Message sent ID does not exist',
-            field: 'messageSentId'
-          }));
-
-        case 9:
-          return _context35.abrupt("return", next());
-
-        case 12:
-          _context35.prev = 12;
-          _context35.t0 = _context35["catch"](0);
-          console.error(_context35.t0);
-          return _context35.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context35.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context35.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyValueId = function verifyValueId(request, response, next) {
-  var valueId, value;
-  return regeneratorRuntime.async(function verifyValueId$(_context36) {
-    while (1) {
-      switch (_context36.prev = _context36.next) {
-        case 0:
-          _context36.prev = 0;
-          valueId = request.params.valueId;
-
-          if (utils.isObjectId(valueId)) {
-            _context36.next = 4;
-            break;
-          }
-
-          return _context36.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid value ID format',
-            field: 'valueId'
-          }));
-
-        case 4:
-          _context36.next = 6;
-          return regeneratorRuntime.awrap(ValueModel.findById(valueId));
-
-        case 6:
-          value = _context36.sent;
-
-          if (value) {
-            _context36.next = 9;
-            break;
-          }
-
-          return _context36.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Value ID does not exist',
-            field: 'valueId'
-          }));
-
-        case 9:
-          return _context36.abrupt("return", next());
-
-        case 12:
-          _context36.prev = 12;
-          _context36.t0 = _context36["catch"](0);
-          console.error(_context36.t0);
-          return _context36.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context36.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context36.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyOpeningTimeId = function verifyOpeningTimeId(request, response, next) {
-  var openingTimeId, openingTime;
-  return regeneratorRuntime.async(function verifyOpeningTimeId$(_context37) {
-    while (1) {
-      switch (_context37.prev = _context37.next) {
-        case 0:
-          _context37.prev = 0;
-          openingTimeId = request.params.openingTimeId;
-
-          if (utils.isObjectId(openingTimeId)) {
-            _context37.next = 4;
-            break;
-          }
-
-          return _context37.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid opening ID format',
-            field: 'openingTimeId'
-          }));
-
-        case 4:
-          _context37.next = 6;
-          return regeneratorRuntime.awrap(OpeningTimeModel.findById(openingTimeId));
-
-        case 6:
-          openingTime = _context37.sent;
-
-          if (openingTime) {
-            _context37.next = 9;
-            break;
-          }
-
-          return _context37.abrupt("return", response.status(404).json({
-            accepted: false,
-            message: 'Opening ID does not exist',
-            field: 'openingTimeId'
-          }));
-
-        case 9:
-          return _context37.abrupt("return", next());
-
-        case 12:
-          _context37.prev = 12;
-          _context37.t0 = _context37["catch"](0);
-          console.error(_context37.t0);
-          return _context37.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context37.t0.message
-          }));
-
-        case 16:
-        case "end":
-          return _context37.stop();
-      }
-    }
-  }, null, null, [[0, 12]]);
-};
-
-var verifyReviewId = function verifyReviewId(request, response, next) {
-  var reviewId, review;
-  return regeneratorRuntime.async(function verifyReviewId$(_context38) {
-    while (1) {
-      switch (_context38.prev = _context38.next) {
-        case 0:
-          _context38.prev = 0;
-          reviewId = request.params.reviewId;
-
-          if (utils.isObjectId(reviewId)) {
-            _context38.next = 4;
-            break;
-          }
-
-          return _context38.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Invalid review ID format',
-            field: 'reviewId'
-          }));
-
-        case 4:
-          _context38.next = 6;
-          return regeneratorRuntime.awrap(ReviewModel.findById(reviewId));
-
-        case 6:
-          review = _context38.sent;
-
-          if (review) {
-            _context38.next = 9;
-            break;
-          }
-
-          return _context38.abrupt("return", response.status(404).json({
-            accepted: false,
             message: 'Review ID does not exist',
             field: 'reviewId'
           }));
 
         case 9:
-          return _context38.abrupt("return", next());
+          return _context5.abrupt("return", next());
 
         case 12:
-          _context38.prev = 12;
-          _context38.t0 = _context38["catch"](0);
-          console.error(_context38.t0);
-          return _context38.abrupt("return", response.status(500).json({
+          _context5.prev = 12;
+          _context5.t0 = _context5["catch"](0);
+          console.error(_context5.t0);
+          return _context5.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context38.t0.message
+            error: _context5.t0.message
           }));
 
         case 16:
         case "end":
-          return _context38.stop();
+          return _context5.stop();
       }
     }
   }, null, null, [[0, 12]]);
 };
 
 module.exports = {
-  verifyClinicId: verifyClinicId,
-  verifyPatientId: verifyPatientId,
   verifyUserId: verifyUserId,
-  verifyDoctorId: verifyDoctorId,
-  verifyPrescriptionId: verifyPrescriptionId,
   verifyAppointmentId: verifyAppointmentId,
-  verifyEncounterId: verifyEncounterId,
-  verifyClinicPatientId: verifyClinicPatientId,
-  verifyVisitReasonId: verifyVisitReasonId,
   verifySpecialityId: verifySpecialityId,
-  verifyClinicOwnerId: verifyClinicOwnerId,
-  verifyClinicDoctorId: verifyClinicDoctorId,
-  verifyClinicPatientDoctorId: verifyClinicPatientDoctorId,
-  verifyClinicRequestId: verifyClinicRequestId,
-  verifyServiceId: verifyServiceId,
-  verifyInvoiceId: verifyInvoiceId,
-  verifyInvoiceServiceId: verifyInvoiceServiceId,
-  verifyCardId: verifyCardId,
-  verifySubscriptionId: verifySubscriptionId,
-  verifyInsuranceId: verifyInsuranceId,
-  verifyInsurancePolicyId: verifyInsurancePolicyId,
-  verifyFolderId: verifyFolderId,
-  verifyFileId: verifyFileId,
-  verifyClinicSubscriptionId: verifyClinicSubscriptionId,
-  verifyPatientSurveyId: verifyPatientSurveyId,
-  verifyArrivalMethodId: verifyArrivalMethodId,
-  verifyLabelId: verifyLabelId,
-  verifyTreatmentSurveyId: verifyTreatmentSurveyId,
-  verifyMedicationChallengeId: verifyMedicationChallengeId,
-  verifyLeadId: verifyLeadId,
-  verifyMeetingId: verifyMeetingId,
-  verifyCommentId: verifyCommentId,
-  verifyStageId: verifyStageId,
-  verifyMessageTemplateId: verifyMessageTemplateId,
-  verifyMessageSentId: verifyMessageSentId,
-  verifyValueId: verifyValueId,
   verifyOpeningTimeId: verifyOpeningTimeId,
   verifyReviewId: verifyReviewId
 };

@@ -1,6 +1,5 @@
 const OpeningTimeModel = require('../models/OpeningTimeModel')
 const openingTimeValidation = require('../validations/opening-times')
-const LeadModel = require('../models/CRM/LeadModel')
 const UserModel = require('../models/UserModel')
 const CounterModel = require('../models/CounterModel')
 const utils = require('../utils/utils')
@@ -56,47 +55,6 @@ const getOpeningTimes = async (request, response) => {
     }
 }
 
-const getOpeningTimesByLeadId = async (request, response) => {
-
-    try {
-
-        const { leadId } = request.params
-
-        const openingTimes = await OpeningTimeModel.aggregate([
-            {
-                $match: { leadId: mongoose.Types.ObjectId(leadId) }
-            },
-            {
-                $lookup: {
-                    from: 'leads',
-                    localField: 'leadId',
-                    foreignField: '_id',
-                    as: 'lead'
-                }
-            },
-            {
-                $sort: { 
-                    createdAt: -1
-                 }
-            }
-        ])
-
-        openingTimes.forEach(openTime => openTime.lead = openTime.lead[0])
-
-        return response.status(200).json({
-            accepted: true,
-            openingTimes
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
 
 const getOpeningTimesByExpertId = async (request, response) => {
 
@@ -235,18 +193,7 @@ const addOpeningTime = async (request, response) => {
             })
         }
 
-        const { leadId, expertId, weekday, openingTime, closingTime } = request.body
-
-        if(leadId) {
-            const lead = await LeadModel.findById(leadId)
-            if(!lead) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'Lead ID is not registered',
-                    field: 'leadId'
-                })
-            }
-        }
+        const { expertId, weekday, openingTime, closingTime } = request.body
         
         if(expertId) {
             const expert = await UserModel.findById(expertId)
@@ -258,14 +205,8 @@ const addOpeningTime = async (request, response) => {
                 })
             }
         }
-
-        let searchQuery = {}
-
-        if(leadId) {
-            searchQuery = { leadId, weekday, isActive: true }
-        } else if(expertId) {
-            searchQuery = { expertId, weekday, isActive: true }
-        }
+        
+        const searchQuery = { expertId, weekday, isActive: true }
 
         const openingTimeList = await OpeningTimeModel.find(searchQuery)
         if(openingTimeList.length != 0) {
@@ -463,8 +404,7 @@ const deleteOpeningTime = async (request, response) => {
 
 
 module.exports = { 
-    getOpeningTimes, 
-    getOpeningTimesByLeadId,
+    getOpeningTimes,
     getOpeningTimesByExpertId,
     getOpeningTimesByExpertIdAndDay,
     addOpeningTime, 

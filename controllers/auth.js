@@ -3,11 +3,8 @@ const authValidation = require('../validations/auth')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const UserModel = require('../models/UserModel')
-const ClinicModel = require('../models/ClinicModel')
 const CounterModel = require('../models/CounterModel')
-const ClinicRequestModel = require('../models/ClinicRequestModel')
 const SpecialityModel = require('../models/SpecialityModel')
-const InvoiceModel = require('../models/InvoiceModel')
 const EmailVerificationModel = require('../models/EmailVerificationModel')
 const { generateVerificationCode } = require('../utils/random-number')
 const utils = require('../utils/utils')
@@ -330,100 +327,6 @@ const verifyEmailVerificationCode = async (request, response) => {
     }
 }
 
-const verifyPersonalInfo = async (request, response) => {
-
-    try {
-
-        const dataValidation = authValidation.verifyPersonalInfo(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
-        return response.status(200).json({
-            accepted: true,
-            data: request.body
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifyDemographicInfo = async (request, response) => {
-
-    try {
-
-        const dataValidation = authValidation.verifyDemographicInfo(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
-        return response.status(200).json({
-            accepted: true,
-            data: request.body
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
-const verifySpecialityInfo = async (request, response) => {
-
-    try {
-
-        const dataValidation = authValidation.verifySpecialityInfo(request.body)
-        if(!dataValidation.isAccepted) {
-            return response.status(400).json({
-                accepted: dataValidation.isAccepted,
-                message: dataValidation.message,
-                field: dataValidation.field
-            })
-        }
-
-        const { speciality } = request.body
-
-        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality } })
-        if(specialitiesList.length != speciality.length) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'invalid specialities Ids',
-                field: 'speciality'
-            })
-        }
-
-        return response.status(200).json({
-            accepted: true,
-            data: request.body
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
 
 const verifyEmail = async (request, response) => {
 
@@ -863,9 +766,6 @@ module.exports = {
     userLogin,
     userEmployeeLogin,
     verifyEmailVerificationCode,
-    verifyPersonalInfo,
-    verifyDemographicInfo,
-    verifySpecialityInfo,
     verifyEmail,
     setUserVerified,
     addUserEmailVerificationCode,

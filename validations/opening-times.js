@@ -3,13 +3,11 @@ const config = require('../config/config')
 
 const addOpeningTime = (openingTimeData) => {
 
-    const { leadId, expertId, weekday, openingTime, closingTime } = openingTimeData
+    const { expertId, weekday, openingTime, closingTime } = openingTimeData
 
-    if(!leadId && !expertId) return { isAccepted: false, message: 'Entity relation is required', field: 'leadId' }
+    if(!expertId) return { isAccepted: false, message: 'Expert ID is required', field: 'expertId' }
 
-    if(expertId && !utils.isObjectId(expertId)) return { isAccepted: false, message: 'Expert Id format is invalid', field: 'expertId' }
-
-    if(leadId && !utils.isObjectId(leadId)) return { isAccepted: false, message: 'Lead Id format is invalid', field: 'leadId' }
+    if(!utils.isObjectId(expertId)) return { isAccepted: false, message: 'Expert Id format is invalid', field: 'expertId' }
 
     if(!weekday) return { isAccepted: false, message: 'Weekday is required', field: 'weekday' }
 
