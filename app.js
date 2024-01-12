@@ -4,7 +4,6 @@ const http = require('http')
 const dotenv = require('dotenv').config()
 const config = require('./config/config')
 const functions = require('firebase-functions')
-const uuid = require('uuid')
 
 //const Bree = require('bree')
 

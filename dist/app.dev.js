@@ -10,9 +10,7 @@ var dotenv = require('dotenv').config();
 
 var config = require('./config/config');
 
-var functions = require('firebase-functions');
-
-var uuid = require('uuid'); //const Bree = require('bree')
+var functions = require('firebase-functions'); //const Bree = require('bree')
 
 
 var morgan = require('morgan');
