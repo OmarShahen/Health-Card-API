@@ -442,96 +442,6 @@ const sendAppointmentReminder = async (request, response) => {
     }
 }
 
-const getFollowupRegisteredClinicsAppointments = async (request, response) => {
-
-    try {
-
-        const subscriptionList = await ClinicSubscriptionModel
-        .find({ isActive: true, endDate: { $gt: Date.now() } })
-
-        const clinicsIds = subscriptionList.map(subscription => subscription.clinicId)
-        
-        const uniqueClinicIdsSet = new Set(clinicsIds)
-        const uniqueClinicIdsList = [...uniqueClinicIdsSet]
-
-        const appointments = await AppointmentModel.aggregate([
-            {
-                $match: {
-                    clinicId: { $in: uniqueClinicIdsList }
-                }
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'doctorId',
-                    foreignField: '_id',
-                    as: 'doctor'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'patients',
-                    localField: 'patientId',
-                    foreignField: '_id',
-                    as: 'patient'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'services',
-                    localField: 'serviceId',
-                    foreignField: '_id',
-                    as: 'service'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'clinics',
-                    localField: 'clinicId',
-                    foreignField: '_id',
-                    as: 'clinic'
-                }
-            },
-            {
-                $project: {
-                    'doctor.password': 0
-                }
-            },
-            {
-                $sort: {
-                    createdAt: -1
-                }
-            }
-        ])
-
-        appointments.forEach(appointment => {
-            appointment.patient = appointment.patient[0]
-            appointment.doctor = appointment.doctor[0]
-            appointment.clinic = appointment.clinic[0]
-            appointment.service = appointment.service[0]
-            const todayDate = new Date()
-
-            if(todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
-                appointment.status = 'EXPIRED'
-            }
-        })
-        
-
-        return response.status(200).json({
-            accepted: true,
-            appointments
-        })
-
-    } catch(error) {
-        console.error(error)
-        return response.status(400).json({
-            accepted: false,
-            message: 'internal server error',
-            error: error.message
-        })
-    }
-}
-
 const getAppointment = async (request, response) => {
 
     try {
@@ -588,14 +498,85 @@ const getAppointment = async (request, response) => {
     }
 }
 
+const getAppointments = async (request, response) => {
+
+    try {
+
+        const { status } = request.query
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query, 'startTime')
+
+        let matchQuery = { ...searchQuery }
+
+        if(status == 'PAID') {
+            matchQuery.isPaid = true
+        } else if(status == 'UNPAID') {
+            matchQuery.isPaid = false
+        }
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: { startTime: -1 }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0,
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
+        })
+
+        const totalAppointments = await AppointmentModel.countDocuments(matchQuery)
+
+        return response.status(200).json({
+            accepted: true,
+            totalAppointments,
+            appointments,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 module.exports = { 
-    addAppointment, 
+    addAppointment,
     updateAppointmentStatus, 
     deleteAppointment,
     sendAppointmentReminder,
-    getFollowupRegisteredClinicsAppointments,
     getAppointment,
+    getAppointments,
     getPaidAppointmentsByExpertIdAndStatus,
     getPaidAppointmentsBySeekerIdAndStatus
 }

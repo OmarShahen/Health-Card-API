@@ -333,7 +333,6 @@ var addOpeningTime = function addOpeningTime(request, response) {
         case 25:
           counter = _context5.sent;
           openingTimeData = {
-            leadId: leadId,
             expertId: expertId,
             openingTimeId: counter.value,
             weekday: weekday,

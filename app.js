@@ -35,6 +35,7 @@ app.use('/api', require('./routes/appointments'))
 app.use('/api', require('./routes/users'))
 app.use('/api', require('./routes/specialities'))
 app.use('/api', require('./routes/experts'))
+app.use('/api', require('./routes/seekers'))
 app.use('/api', require('./routes/payments'))
 app.use('/api', require('./routes/opening-times'))
 app.use('/api', require('./routes/reviews'))
@@ -83,4 +84,4 @@ io.on('connection', socket => {
 
 server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
 
-//exports.app = functions.https.onRequest(app)
+exports.app = functions.https.onRequest(app)

@@ -51,7 +51,13 @@ router["delete"]('/v1/users/:userId', authorization.allPermission, verifyUserId,
 router.post('/v1/users/employee', authorization.allPermission, function (request, response) {
   return usersController.addEmployeeUser(request, response);
 });
-router.post('/v1/users/doctors', authorization.allPermission, function (request, response) {
-  return usersController.addDoctorUser(request, response);
+router.patch('/v1/users/:userId/visibility', authorization.allPermission, verifyUserId, function (request, response) {
+  return usersController.updateUserVisibility(request, response);
+});
+router.patch('/v1/users/:userId/blocked', authorization.allPermission, verifyUserId, function (request, response) {
+  return usersController.updateUserBlocked(request, response);
+});
+router.patch('/v1/users/:userId/activation', authorization.allPermission, verifyUserId, function (request, response) {
+  return usersController.updateUserActivation(request, response);
 });
 module.exports = router;

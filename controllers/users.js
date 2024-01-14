@@ -607,11 +607,13 @@ const addEmployeeUser = async (request, response) => {
     }
 }
 
-const addDoctorUser = async (request, response) => {
+const updateUserVisibility = async (request, response) => {
 
     try {
 
-        const dataValidation = userValidation.addDoctorUser(request.body)
+        const { userId } = request.params
+
+        const dataValidation = userValidation.updateUserVisibility(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -620,62 +622,93 @@ const addDoctorUser = async (request, response) => {
             })
         }
 
-        const { email, password, speciality, subSpeciality } = request.body
+        const { isShow } = request.body 
+        
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isShow }, { new: true })
 
-        const emailList = await UserModel.find({ email, isVerified: true })
-
-        if(emailList.length != 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Email is already registered',
-                field: 'email'
-            })
-        }
-
-        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
-        if(specialitiesList.length != speciality.length) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'invalid specialities Ids',
-                field: 'speciality'
-            })
-        } 
-
-        request.body.speciality = specialitiesList.map(special => special._id)
-
-        const subSpecialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
-        if(subSpecialitiesList.length != subSpeciality.length) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'invalid sub specialities Ids',
-                field: 'subSpeciality'
-            })
-        } 
-
-        request.body.subSpeciality = subSpecialitiesList.map(special => special._id)
-
-        const counter = await CounterModel.findOneAndUpdate(
-            { name: 'user' },
-            { $inc: { value: 1 } },
-            { new: true, upsert: true }
-        )
-
-        const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
-        let userData = { 
-            ...request.body, 
-            userId: counter.value, 
-            password: userPassword, 
-            type: 'MEDICAL',
-            isVerified: true
-        }
-
-        const userObj = new UserModel(userData)
-        const newUser = await userObj.save()
+        updatedUser.password = undefined
 
         return response.status(200).json({
             accepted: true,
-            message: 'Added doctor user successfully!',
-            user: newUser
+            message: 'Updated user visibility successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateUserBlocked = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const dataValidation = userValidation.updateUserBlocked(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { isBlocked } = request.body 
+        
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isBlocked }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated user blocked successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateUserActivation = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const dataValidation = userValidation.updateUserActivation(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { isDeactivated } = request.body 
+        
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isDeactivated }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated user activation successfully!',
+            user: updatedUser
         })
 
     } catch(error) {
@@ -702,5 +735,7 @@ module.exports = {
     verifyAndUpdateUserPassword,
     deleteUser,
     addEmployeeUser,
-    addDoctorUser
+    updateUserVisibility,
+    updateUserBlocked,
+    updateUserActivation
 }

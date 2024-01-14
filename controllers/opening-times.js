@@ -232,7 +232,6 @@ const addOpeningTime = async (request, response) => {
         )
 
         const openingTimeData = {
-            leadId,
             expertId,
             openingTimeId: counter.value,
             weekday,

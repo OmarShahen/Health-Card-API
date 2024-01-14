@@ -18,6 +18,9 @@ router.post('/v1/payments/paymob/process', function (request, response) {
 router.get('/v1/payments', authorization.allPermission, function (request, response) {
   return paymentsController.getPayments(request, response);
 });
+router.get('/v1/payments/statistics', authorization.allPermission, function (request, response) {
+  return paymentsController.getPaymentsStatistics(request, response);
+});
 router.post('/v1/payments/refund/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return paymentsController.refundPayment(request, response);
 });

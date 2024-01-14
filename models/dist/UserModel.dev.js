@@ -103,6 +103,24 @@ var UserSchema = new mongoose.Schema({
   lastLoginDate: {
     type: Date
   },
+  paymentInfo: {
+    paymentMethod: {
+      type: String,
+      "default": 'BANK',
+      "enum": ['BANK']
+    },
+    bankAccount: {
+      accountNumber: {
+        type: Number
+      },
+      accountHolderName: {
+        type: String
+      },
+      bankName: {
+        type: String
+      }
+    }
+  },
   resetPassword: {
     verificationCode: {
       type: Number

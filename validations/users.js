@@ -91,67 +91,33 @@ const updateUserProfileImage = (userData) => {
 
 }
 
-const addDoctorUser = (userData) => {
+const updateUserVisibility = (userData) => {
 
-    const { firstName, title, description, email, countryCode, phone, password, gender, dateOfBirth, speciality, subSpeciality } = userData
+    const { isShow } = userData
 
-
-    if(!firstName) return { isAccepted: false, message: 'Name is required', field: 'firstName' }
-
-    if(typeof firstName != 'string') return { isAccepted: false, message: 'Invalid name format', field: 'firstName' }
-
-    if(!title) return { isAccepted: false, message: 'Title is required', field: 'title' }
-
-    if(!config.DOCTORS_TITLES.includes(title)) return { isAccepted: false, message: 'Title value is not registered', field: 'title' }
-
-    if(!description) return { isAccepted: false, message: 'Description is required', field: 'description' }
-
-    if(typeof description != 'string') return { isAccepted: false, message: 'Description format is invalid', field: 'description' }
-
-    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
-
-    if(!utils.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
-
-    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
-
-    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Country code format is invalid', field: 'countryCode' }
-
-    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
-
-    if(typeof phone != 'number') return { isAccepted: false, message: 'Phone format is invalid', field: 'phone' }
-
-    if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
-
-    if(typeof password != 'string') return { isAccepted: false, message: 'Password format is invalid', field: 'password' }
-
-    if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
-    
-    if(!config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
-
-    if(!dateOfBirth) return { isAccepted: false, message: 'Date of birth is required', field: 'dateOfBirth' } 
-
-    if(!utils.isDateValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
-
-    if(!speciality) return { isAccepted: false, message: 'Speciality is required', field: 'speciality' }
-
-    if(!Array.isArray(speciality)) return { isAccepted: false, message: 'Speciality must be a list', field: 'speciality' }    
-
-    if(speciality.length == 0) return { isAccepted: false, message: 'Speciality must be atleast one', field: 'speciality' }
-
-    if(!checkSpeciality(speciality)) return { isAccepted: false, message: 'Speciality Ids is invalid', field: 'speciality' }
-
-    if(!subSpeciality) return { isAccepted: false, message: 'subSpeciality is required', field: 'subSpeciality' }
-
-    if(!Array.isArray(subSpeciality)) return { isAccepted: false, message: 'subSpeciality must be a list', field: 'subSpeciality' }    
-
-    if(subSpeciality.length == 0) return { isAccepted: false, message: 'subSpeciality must be atleast one', field: 'subSpeciality' }
-
-    if(!checkSpeciality(subSpeciality)) return { isAccepted: false, message: 'subSpeciality Ids is invalid', field: 'subSpeciality' }
-
+    if(typeof isShow != 'boolean') return { isAccepted: false, message: 'Invalid isShow format', field: 'isShow' }
 
     return { isAccepted: true, message: 'data is valid', data: userData }
-
 }
+
+const updateUserBlocked = (userData) => {
+
+    const { isBlocked } = userData
+
+    if(typeof isBlocked != 'boolean') return { isAccepted: false, message: 'Invalid isBlocked format', field: 'isBlocked' }
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+}
+
+const updateUserActivation = (userData) => {
+
+    const { isDeactivated } = userData
+
+    if(typeof isDeactivated != 'boolean') return { isAccepted: false, message: 'Invalid isDeactivated format', field: 'isDeactivated' }
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+}
+
 
 const updateUserSpeciality = (userData) => {
 
@@ -217,17 +183,6 @@ const verifyAndUpdateUserPassword = (userData) => {
     return { isAccepted: true, message: 'data is valid', data: userData }
 }
 
-const registerStaffToClinic = (clinicData) => {
-
-    const { clinicId } = clinicData
-
-    if(!clinicId) return { isAccepted: false, message: 'clinic Id is required', field: 'clinicId' }
-
-    if(typeof clinicId != 'number') return { isAccepted: false, message: 'clinic Id format is invalid', field: 'clinicId' }
-
-
-    return { isAccepted: true, message: 'data is valid', data: clinicData }
-}
 
 const addEmployeeUser = (userData) => {
 
@@ -272,7 +227,8 @@ module.exports = {
     updateUserLanguage,
     verifyAndUpdateUserPassword,
     updateUserSpeciality,
-    registerStaffToClinic,
     addEmployeeUser,
-    addDoctorUser
+    updateUserActivation,
+    updateUserVisibility,
+    updateUserBlocked
 }

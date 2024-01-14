@@ -100,10 +100,26 @@ router.post(
     (request, response) => usersController.addEmployeeUser(request, response)
 )
 
-router.post(
-    '/v1/users/doctors',
+router.patch(
+    '/v1/users/:userId/visibility',
     authorization.allPermission,
-    (request, response) => usersController.addDoctorUser(request, response)
+    verifyUserId, 
+    (request, response) => usersController.updateUserVisibility(request, response)
 )
+
+router.patch(
+    '/v1/users/:userId/blocked',
+    authorization.allPermission,
+    verifyUserId, 
+    (request, response) => usersController.updateUserBlocked(request, response)
+)
+
+router.patch(
+    '/v1/users/:userId/activation',
+    authorization.allPermission,
+    verifyUserId, 
+    (request, response) => usersController.updateUserActivation(request, response)
+)
+
 
 module.exports = router

@@ -12,6 +12,14 @@ var PaymentSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  expertId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
+  seekerId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
   transactionId: {
     type: Number,
     required: true
@@ -40,25 +48,12 @@ var PaymentSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  commission: {
+    type: Number,
+    required: true
+  },
   currency: {
-    type: String,
-    required: true
-  },
-  firstName: {
-    type: String,
-    required: true
-  },
-  lastName: {
-    type: String,
-    required: true
-  },
-  email: {
-    type: String,
-    required: true
-  },
-  phoneNumber: {
-    type: String,
-    required: true
+    type: String
   }
 }, {
   timestamps: true

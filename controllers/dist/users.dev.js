@@ -957,18 +957,18 @@ var addEmployeeUser = function addEmployeeUser(request, response) {
   }, null, null, [[0, 22]]);
 };
 
-var addDoctorUser = function addDoctorUser(request, response) {
-  var dataValidation, _request$body4, email, password, speciality, subSpeciality, emailList, specialitiesList, subSpecialitiesList, counter, userPassword, userData, userObj, newUser;
-
-  return regeneratorRuntime.async(function addDoctorUser$(_context14) {
+var updateUserVisibility = function updateUserVisibility(request, response) {
+  var userId, dataValidation, isShow, updatedUser;
+  return regeneratorRuntime.async(function updateUserVisibility$(_context14) {
     while (1) {
       switch (_context14.prev = _context14.next) {
         case 0:
           _context14.prev = 0;
-          dataValidation = userValidation.addDoctorUser(request.body);
+          userId = request.params.userId;
+          dataValidation = userValidation.updateUserVisibility(request.body);
 
           if (dataValidation.isAccepted) {
-            _context14.next = 4;
+            _context14.next = 5;
             break;
           }
 
@@ -978,116 +978,26 @@ var addDoctorUser = function addDoctorUser(request, response) {
             field: dataValidation.field
           }));
 
-        case 4:
-          _request$body4 = request.body, email = _request$body4.email, password = _request$body4.password, speciality = _request$body4.speciality, subSpeciality = _request$body4.subSpeciality;
-          _context14.next = 7;
-          return regeneratorRuntime.awrap(UserModel.find({
-            email: email,
-            isVerified: true
-          }));
-
-        case 7:
-          emailList = _context14.sent;
-
-          if (!(emailList.length != 0)) {
-            _context14.next = 10;
-            break;
-          }
-
-          return _context14.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Email is already registered',
-            field: 'email'
-          }));
-
-        case 10:
-          _context14.next = 12;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
-            _id: {
-              $in: speciality
-            },
-            type: 'MAIN'
-          }));
-
-        case 12:
-          specialitiesList = _context14.sent;
-
-          if (!(specialitiesList.length != speciality.length)) {
-            _context14.next = 15;
-            break;
-          }
-
-          return _context14.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid specialities Ids',
-            field: 'speciality'
-          }));
-
-        case 15:
-          request.body.speciality = specialitiesList.map(function (special) {
-            return special._id;
-          });
-          _context14.next = 18;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
-            _id: {
-              $in: subSpeciality
-            },
-            type: 'SUB'
-          }));
-
-        case 18:
-          subSpecialitiesList = _context14.sent;
-
-          if (!(subSpecialitiesList.length != subSpeciality.length)) {
-            _context14.next = 21;
-            break;
-          }
-
-          return _context14.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid sub specialities Ids',
-            field: 'subSpeciality'
-          }));
-
-        case 21:
-          request.body.subSpeciality = subSpecialitiesList.map(function (special) {
-            return special._id;
-          });
-          _context14.next = 24;
-          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
-            name: 'user'
+        case 5:
+          isShow = request.body.isShow;
+          _context14.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            isShow: isShow
           }, {
-            $inc: {
-              value: 1
-            }
-          }, {
-            "new": true,
-            upsert: true
+            "new": true
           }));
 
-        case 24:
-          counter = _context14.sent;
-          userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS);
-          userData = _objectSpread({}, request.body, {
-            userId: counter.value,
-            password: userPassword,
-            type: 'MEDICAL',
-            isVerified: true
-          });
-          userObj = new UserModel(userData);
-          _context14.next = 30;
-          return regeneratorRuntime.awrap(userObj.save());
-
-        case 30:
-          newUser = _context14.sent;
+        case 8:
+          updatedUser = _context14.sent;
+          updatedUser.password = undefined;
           return _context14.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added doctor user successfully!',
-            user: newUser
+            message: 'Updated user visibility successfully!',
+            user: updatedUser
           }));
 
-        case 34:
-          _context14.prev = 34;
+        case 13:
+          _context14.prev = 13;
           _context14.t0 = _context14["catch"](0);
           console.error(_context14.t0);
           return _context14.abrupt("return", response.status(500).json({
@@ -1096,12 +1006,126 @@ var addDoctorUser = function addDoctorUser(request, response) {
             error: _context14.t0.message
           }));
 
-        case 38:
+        case 17:
         case "end":
           return _context14.stop();
       }
     }
-  }, null, null, [[0, 34]]);
+  }, null, null, [[0, 13]]);
+};
+
+var updateUserBlocked = function updateUserBlocked(request, response) {
+  var userId, dataValidation, isBlocked, updatedUser;
+  return regeneratorRuntime.async(function updateUserBlocked$(_context15) {
+    while (1) {
+      switch (_context15.prev = _context15.next) {
+        case 0:
+          _context15.prev = 0;
+          userId = request.params.userId;
+          dataValidation = userValidation.updateUserBlocked(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context15.next = 5;
+            break;
+          }
+
+          return _context15.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 5:
+          isBlocked = request.body.isBlocked;
+          _context15.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            isBlocked: isBlocked
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedUser = _context15.sent;
+          updatedUser.password = undefined;
+          return _context15.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated user blocked successfully!',
+            user: updatedUser
+          }));
+
+        case 13:
+          _context15.prev = 13;
+          _context15.t0 = _context15["catch"](0);
+          console.error(_context15.t0);
+          return _context15.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context15.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context15.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
+var updateUserActivation = function updateUserActivation(request, response) {
+  var userId, dataValidation, isDeactivated, updatedUser;
+  return regeneratorRuntime.async(function updateUserActivation$(_context16) {
+    while (1) {
+      switch (_context16.prev = _context16.next) {
+        case 0:
+          _context16.prev = 0;
+          userId = request.params.userId;
+          dataValidation = userValidation.updateUserActivation(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context16.next = 5;
+            break;
+          }
+
+          return _context16.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 5:
+          isDeactivated = request.body.isDeactivated;
+          _context16.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            isDeactivated: isDeactivated
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedUser = _context16.sent;
+          updatedUser.password = undefined;
+          return _context16.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated user activation successfully!',
+            user: updatedUser
+          }));
+
+        case 13:
+          _context16.prev = 13;
+          _context16.t0 = _context16["catch"](0);
+          console.error(_context16.t0);
+          return _context16.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context16.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context16.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
 };
 
 module.exports = {
@@ -1118,5 +1142,7 @@ module.exports = {
   verifyAndUpdateUserPassword: verifyAndUpdateUserPassword,
   deleteUser: deleteUser,
   addEmployeeUser: addEmployeeUser,
-  addDoctorUser: addDoctorUser
+  updateUserVisibility: updateUserVisibility,
+  updateUserBlocked: updateUserBlocked,
+  updateUserActivation: updateUserActivation
 };

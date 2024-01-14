@@ -307,7 +307,7 @@ var expertSignup = function expertSignup(request, response) {
 };
 
 var userLogin = function userLogin(request, response) {
-  var dataValidation, _request$body3, email, password, userList, user, formattedUser, updatedUser, userClinic, token;
+  var dataValidation, _request$body3, email, password, userList, user, updatedUser, token;
 
   return regeneratorRuntime.async(function userLogin$(_context3) {
     while (1) {
@@ -352,8 +352,20 @@ var userLogin = function userLogin(request, response) {
         case 10:
           user = userList[0];
 
-          if (bcrypt.compareSync(password, user.password)) {
+          if (!user.isBlocked) {
             _context3.next = 13;
+            break;
+          }
+
+          return _context3.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Your account is blocked',
+            field: 'email'
+          }));
+
+        case 13:
+          if (bcrypt.compareSync(password, user.password)) {
+            _context3.next = 15;
             break;
           }
 
@@ -363,31 +375,16 @@ var userLogin = function userLogin(request, response) {
             field: 'password'
           }));
 
-        case 13:
-          formattedUser = _objectSpread({}, user._doc);
-          _context3.next = 16;
+        case 15:
+          _context3.next = 17;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(user._id, {
             lastLoginDate: new Date()
           }, {
             "new": true
           }));
 
-        case 16:
+        case 17:
           updatedUser = _context3.sent;
-
-          if (!user.roles.includes('STAFF')) {
-            _context3.next = 22;
-            break;
-          }
-
-          _context3.next = 20;
-          return regeneratorRuntime.awrap(ClinicModel.findById(user.clinicId));
-
-        case 20:
-          userClinic = _context3.sent;
-          formattedUser.clinic = userClinic;
-
-        case 22:
           updatedUser.password = undefined;
           token = jwt.sign(user._doc, config.SECRET_KEY, {
             expiresIn: '30d'
@@ -398,8 +395,8 @@ var userLogin = function userLogin(request, response) {
             user: updatedUser
           }));
 
-        case 27:
-          _context3.prev = 27;
+        case 23:
+          _context3.prev = 23;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -408,12 +405,12 @@ var userLogin = function userLogin(request, response) {
             error: _context3.t0.message
           }));
 
-        case 31:
+        case 27:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 27]]);
+  }, null, null, [[0, 23]]);
 };
 
 var userEmployeeLogin = function userEmployeeLogin(request, response) {

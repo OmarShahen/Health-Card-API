@@ -147,147 +147,40 @@ var updateUserProfileImage = function updateUserProfileImage(userData) {
   };
 };
 
-var addDoctorUser = function addDoctorUser(userData) {
-  var firstName = userData.firstName,
-      title = userData.title,
-      description = userData.description,
-      email = userData.email,
-      countryCode = userData.countryCode,
-      phone = userData.phone,
-      password = userData.password,
-      gender = userData.gender,
-      dateOfBirth = userData.dateOfBirth,
-      speciality = userData.speciality,
-      subSpeciality = userData.subSpeciality;
-  if (!firstName) return {
+var updateUserVisibility = function updateUserVisibility(userData) {
+  var isShow = userData.isShow;
+  if (typeof isShow != 'boolean') return {
     isAccepted: false,
-    message: 'Name is required',
-    field: 'firstName'
+    message: 'Invalid isShow format',
+    field: 'isShow'
   };
-  if (typeof firstName != 'string') return {
-    isAccepted: false,
-    message: 'Invalid name format',
-    field: 'firstName'
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
   };
-  if (!title) return {
+};
+
+var updateUserBlocked = function updateUserBlocked(userData) {
+  var isBlocked = userData.isBlocked;
+  if (typeof isBlocked != 'boolean') return {
     isAccepted: false,
-    message: 'Title is required',
-    field: 'title'
+    message: 'Invalid isBlocked format',
+    field: 'isBlocked'
   };
-  if (!config.DOCTORS_TITLES.includes(title)) return {
-    isAccepted: false,
-    message: 'Title value is not registered',
-    field: 'title'
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
   };
-  if (!description) return {
+};
+
+var updateUserActivation = function updateUserActivation(userData) {
+  var isDeactivated = userData.isDeactivated;
+  if (typeof isDeactivated != 'boolean') return {
     isAccepted: false,
-    message: 'Description is required',
-    field: 'description'
-  };
-  if (typeof description != 'string') return {
-    isAccepted: false,
-    message: 'Description format is invalid',
-    field: 'description'
-  };
-  if (!email) return {
-    isAccepted: false,
-    message: 'Email is required',
-    field: 'email'
-  };
-  if (!utils.isEmailValid(email)) return {
-    isAccepted: false,
-    message: 'Email formate is invalid',
-    field: 'email'
-  };
-  if (!countryCode) return {
-    isAccepted: false,
-    message: 'Country code is required',
-    field: 'countryCode'
-  };
-  if (typeof countryCode != 'number') return {
-    isAccepted: false,
-    message: 'Country code format is invalid',
-    field: 'countryCode'
-  };
-  if (!phone) return {
-    isAccepted: false,
-    message: 'Phone is required',
-    field: 'phone'
-  };
-  if (typeof phone != 'number') return {
-    isAccepted: false,
-    message: 'Phone format is invalid',
-    field: 'phone'
-  };
-  if (!password) return {
-    isAccepted: false,
-    message: 'Password is required',
-    field: 'password'
-  };
-  if (typeof password != 'string') return {
-    isAccepted: false,
-    message: 'Password format is invalid',
-    field: 'password'
-  };
-  if (!gender) return {
-    isAccepted: false,
-    message: 'Gender is required',
-    field: 'gender'
-  };
-  if (!config.GENDER.includes(gender)) return {
-    isAccepted: false,
-    message: 'Invalid gender',
-    field: 'gender'
-  };
-  if (!dateOfBirth) return {
-    isAccepted: false,
-    message: 'Date of birth is required',
-    field: 'dateOfBirth'
-  };
-  if (!utils.isDateValid(dateOfBirth)) return {
-    isAccepted: false,
-    message: 'Date of birth format is invalid',
-    field: 'dateOfBirth'
-  };
-  if (!speciality) return {
-    isAccepted: false,
-    message: 'Speciality is required',
-    field: 'speciality'
-  };
-  if (!Array.isArray(speciality)) return {
-    isAccepted: false,
-    message: 'Speciality must be a list',
-    field: 'speciality'
-  };
-  if (speciality.length == 0) return {
-    isAccepted: false,
-    message: 'Speciality must be atleast one',
-    field: 'speciality'
-  };
-  if (!checkSpeciality(speciality)) return {
-    isAccepted: false,
-    message: 'Speciality Ids is invalid',
-    field: 'speciality'
-  };
-  if (!subSpeciality) return {
-    isAccepted: false,
-    message: 'subSpeciality is required',
-    field: 'subSpeciality'
-  };
-  if (!Array.isArray(subSpeciality)) return {
-    isAccepted: false,
-    message: 'subSpeciality must be a list',
-    field: 'subSpeciality'
-  };
-  if (subSpeciality.length == 0) return {
-    isAccepted: false,
-    message: 'subSpeciality must be atleast one',
-    field: 'subSpeciality'
-  };
-  if (!checkSpeciality(subSpeciality)) return {
-    isAccepted: false,
-    message: 'subSpeciality Ids is invalid',
-    field: 'subSpeciality'
+    message: 'Invalid isDeactivated format',
+    field: 'isDeactivated'
   };
   return {
     isAccepted: true,
@@ -412,25 +305,6 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(userData)
   };
 };
 
-var registerStaffToClinic = function registerStaffToClinic(clinicData) {
-  var clinicId = clinicData.clinicId;
-  if (!clinicId) return {
-    isAccepted: false,
-    message: 'clinic Id is required',
-    field: 'clinicId'
-  };
-  if (typeof clinicId != 'number') return {
-    isAccepted: false,
-    message: 'clinic Id format is invalid',
-    field: 'clinicId'
-  };
-  return {
-    isAccepted: true,
-    message: 'data is valid',
-    data: clinicData
-  };
-};
-
 var addEmployeeUser = function addEmployeeUser(userData) {
   var firstName = userData.firstName,
       lastName = userData.lastName,
@@ -519,7 +393,8 @@ module.exports = {
   updateUserLanguage: updateUserLanguage,
   verifyAndUpdateUserPassword: verifyAndUpdateUserPassword,
   updateUserSpeciality: updateUserSpeciality,
-  registerStaffToClinic: registerStaffToClinic,
   addEmployeeUser: addEmployeeUser,
-  addDoctorUser: addDoctorUser
+  updateUserActivation: updateUserActivation,
+  updateUserVisibility: updateUserVisibility,
+  updateUserBlocked: updateUserBlocked
 };

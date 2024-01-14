@@ -1,13 +1,5 @@
 "use strict";
 
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
-
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -675,118 +667,15 @@ var sendAppointmentReminder = function sendAppointmentReminder(request, response
   }, null, null, [[0, 12]]);
 };
 
-var getFollowupRegisteredClinicsAppointments = function getFollowupRegisteredClinicsAppointments(request, response) {
-  var subscriptionList, clinicsIds, uniqueClinicIdsSet, uniqueClinicIdsList, appointments;
-  return regeneratorRuntime.async(function getFollowupRegisteredClinicsAppointments$(_context7) {
+var getAppointment = function getAppointment(request, response) {
+  var appointmentId, appointmentList, appointment;
+  return regeneratorRuntime.async(function getAppointment$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
-          _context7.next = 3;
-          return regeneratorRuntime.awrap(ClinicSubscriptionModel.find({
-            isActive: true,
-            endDate: {
-              $gt: Date.now()
-            }
-          }));
-
-        case 3:
-          subscriptionList = _context7.sent;
-          clinicsIds = subscriptionList.map(function (subscription) {
-            return subscription.clinicId;
-          });
-          uniqueClinicIdsSet = new Set(clinicsIds);
-          uniqueClinicIdsList = _toConsumableArray(uniqueClinicIdsSet);
-          _context7.next = 9;
-          return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
-            $match: {
-              clinicId: {
-                $in: uniqueClinicIdsList
-              }
-            }
-          }, {
-            $lookup: {
-              from: 'users',
-              localField: 'doctorId',
-              foreignField: '_id',
-              as: 'doctor'
-            }
-          }, {
-            $lookup: {
-              from: 'patients',
-              localField: 'patientId',
-              foreignField: '_id',
-              as: 'patient'
-            }
-          }, {
-            $lookup: {
-              from: 'services',
-              localField: 'serviceId',
-              foreignField: '_id',
-              as: 'service'
-            }
-          }, {
-            $lookup: {
-              from: 'clinics',
-              localField: 'clinicId',
-              foreignField: '_id',
-              as: 'clinic'
-            }
-          }, {
-            $project: {
-              'doctor.password': 0
-            }
-          }, {
-            $sort: {
-              createdAt: -1
-            }
-          }]));
-
-        case 9:
-          appointments = _context7.sent;
-          appointments.forEach(function (appointment) {
-            appointment.patient = appointment.patient[0];
-            appointment.doctor = appointment.doctor[0];
-            appointment.clinic = appointment.clinic[0];
-            appointment.service = appointment.service[0];
-            var todayDate = new Date();
-
-            if (todayDate > appointment.reservationTime && appointment.status != 'CANCELLED') {
-              appointment.status = 'EXPIRED';
-            }
-          });
-          return _context7.abrupt("return", response.status(200).json({
-            accepted: true,
-            appointments: appointments
-          }));
-
-        case 14:
-          _context7.prev = 14;
-          _context7.t0 = _context7["catch"](0);
-          console.error(_context7.t0);
-          return _context7.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context7.t0.message
-          }));
-
-        case 18:
-        case "end":
-          return _context7.stop();
-      }
-    }
-  }, null, null, [[0, 14]]);
-};
-
-var getAppointment = function getAppointment(request, response) {
-  var appointmentId, appointmentList, appointment;
-  return regeneratorRuntime.async(function getAppointment$(_context8) {
-    while (1) {
-      switch (_context8.prev = _context8.next) {
-        case 0:
-          _context8.prev = 0;
           appointmentId = request.params.appointmentId;
-          _context8.next = 4;
+          _context7.next = 4;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $match: {
               _id: mongoose.Types.ObjectId(appointmentId)
@@ -813,19 +702,102 @@ var getAppointment = function getAppointment(request, response) {
           }]));
 
         case 4:
-          appointmentList = _context8.sent;
+          appointmentList = _context7.sent;
           appointmentList.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
           });
           appointment = appointmentList[0];
-          return _context8.abrupt("return", response.status(200).json({
+          return _context7.abrupt("return", response.status(200).json({
             accepted: true,
             appointment: appointment
           }));
 
         case 10:
-          _context8.prev = 10;
+          _context7.prev = 10;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 14:
+        case "end":
+          return _context7.stop();
+      }
+    }
+  }, null, null, [[0, 10]]);
+};
+
+var getAppointments = function getAppointments(request, response) {
+  var status, _utils$statsQueryGene, searchQuery, matchQuery, appointments, totalAppointments;
+
+  return regeneratorRuntime.async(function getAppointments$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          status = request.query.status;
+          _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
+          matchQuery = _objectSpread({}, searchQuery);
+
+          if (status == 'PAID') {
+            matchQuery.isPaid = true;
+          } else if (status == 'UNPAID') {
+            matchQuery.isPaid = false;
+          }
+
+          _context8.next = 7;
+          return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
+            $match: matchQuery
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }, {
+            $limit: 25
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'expertId',
+              foreignField: '_id',
+              as: 'expert'
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'seekerId',
+              foreignField: '_id',
+              as: 'seeker'
+            }
+          }, {
+            $project: {
+              'expert.password': 0,
+              'seeker.password': 0
+            }
+          }]));
+
+        case 7:
+          appointments = _context8.sent;
+          appointments.forEach(function (appointment) {
+            appointment.expert = appointment.expert[0];
+            appointment.seeker = appointment.seeker[0];
+          });
+          _context8.next = 11;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments(matchQuery));
+
+        case 11:
+          totalAppointments = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            totalAppointments: totalAppointments,
+            appointments: appointments
+          }));
+
+        case 15:
+          _context8.prev = 15;
           _context8.t0 = _context8["catch"](0);
           console.error(_context8.t0);
           return _context8.abrupt("return", response.status(500).json({
@@ -834,12 +806,12 @@ var getAppointment = function getAppointment(request, response) {
             error: _context8.t0.message
           }));
 
-        case 14:
+        case 19:
         case "end":
           return _context8.stop();
       }
     }
-  }, null, null, [[0, 10]]);
+  }, null, null, [[0, 15]]);
 };
 
 module.exports = {
@@ -847,8 +819,8 @@ module.exports = {
   updateAppointmentStatus: updateAppointmentStatus,
   deleteAppointment: deleteAppointment,
   sendAppointmentReminder: sendAppointmentReminder,
-  getFollowupRegisteredClinicsAppointments: getFollowupRegisteredClinicsAppointments,
   getAppointment: getAppointment,
+  getAppointments: getAppointments,
   getPaidAppointmentsByExpertIdAndStatus: getPaidAppointmentsByExpertIdAndStatus,
   getPaidAppointmentsBySeekerIdAndStatus: getPaidAppointmentsBySeekerIdAndStatus
 };

@@ -98,8 +98,10 @@ const processPayment = async (request, response) => {
 
         const paymentData = {
             paymentId: counter.value,
-            appointmentId,
+            appointmentId: appointment._id,
             transactionId: payment.id,
+            expertId: appointment.expertId,
+            seekerId: appointment.seekerId,
             success: payment.success,
             pending: payment.pending,
             gateway: 'PAYMOB',
@@ -107,10 +109,7 @@ const processPayment = async (request, response) => {
             amountCents: payment.amount_cents,
             currency: payment.currency,
             createdAt: payment.created_at,
-            firstName: payment.payment_key_claims.billing_data.first_name,
-            lastName: payment.payment_key_claims.billing_data.last_name,
-            email: payment.payment_key_claims.billing_data.email,
-            phoneNumber: payment.payment_key_claims.billing_data.phone_number,
+            commission: 0.1
         }
 
         const paymentObj = new PaymentModel(paymentData)
@@ -246,13 +245,152 @@ const getPayments = async (request, response) => {
 
     try {
 
-        const payments = await PaymentModel
-        .find()
-        .sort({ createdAt: -1 })
+        const { status } = request.query
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
+
+        const matchQuery = { ...searchQuery }
+
+        if(status == 'PAID') {
+            matchQuery.isRefunded = false
+        } else if(status == 'REFUNDED') {
+            matchQuery.isRefunded = true
+        }
+
+        const payments = await PaymentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'appointments',
+                    localField: 'appointmentId',
+                    foreignField: '_id',
+                    as: 'appointment'
+                }
+            }
+        ])
+
+        payments.forEach(payment => {
+            payment.seeker = payment.seeker[0]
+            payment.expert = payment.expert[0]
+            payment.appointment = payment.appointment[0]
+        })
+
+        const totalPayments = await PaymentModel.countDocuments(matchQuery)
 
         return response.status(200).json({
             accepted: true,
+            totalPayments,
             payments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getPaymentsStatistics = async (request, response) => {
+
+    try {
+
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
+
+        const matchQuery = { ...searchQuery }
+
+        const totalAmountPaidList = await PaymentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                  _id: null,
+                  total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountPaid = totalAmountPaidList[0].total / 100
+
+        const totalAmountPaidActiveList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isRefunded: false }
+            },
+            {
+                $group: {
+                  _id: null,
+                  total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountPaidActive = totalAmountPaidActiveList[0].total / 100
+
+        const totalAmountPaidRefundedList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isRefunded: true }
+            },
+            {
+                $group: {
+                  _id: null,
+                  total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountPaidRefunded = totalAmountPaidRefundedList[0].total / 100
+
+        const totalAmountPaidCommissionList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isRefunded: false }
+            },
+            {
+              $project: {
+                commissionAmount: { $multiply: ['$commission', '$amountCents'] },
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalCommission: { $sum: '$commissionAmount' }
+              }
+            }
+          ])
+
+        const totalAmountPaidCommission = totalAmountPaidCommissionList[0].total / 100
+
+        return response.status(200).json({
+            accepted: true,
+            totalAmountPaid,
+            totalAmountPaidActive,
+            totalAmountPaidRefunded,
+            totalAmountPaidCommission,
         })
 
     } catch(error) {
@@ -437,7 +575,7 @@ const fullRefundPayment = async (request, response) => {
         } catch(error) {
             return response.status(400).json({
                 accepted: false,
-                message: 'There was a problem refunding, please contact the support team',
+                message: 'There was a problem refunding',
                 error: error?.response?.data?.message
             })
         }
@@ -492,5 +630,6 @@ module.exports = {
     createPaymentURL, 
     getPayments, 
     refundPayment,
-    fullRefundPayment
+    fullRefundPayment,
+    getPaymentsStatistics
 }

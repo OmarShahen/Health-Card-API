@@ -28,13 +28,22 @@ const UserSchema = new mongoose.Schema({
     roles: [],
     type: { type: String, required: true, enum: config.TYPES },
 
-
     isEmployee: { type: Boolean, default: false },
     isVerified: { type: Boolean, required: true, default: false },
     isShow: { type: Boolean, default: true },
     isBlocked: { type: Boolean, default: false },
     isDeactivated: { type: Boolean, default: false },
     lastLoginDate: { type: Date },
+
+    paymentInfo: {
+        paymentMethod: { type: String, default: 'BANK', enum: ['BANK'] },
+        bankAccount: {
+            accountNumber: { type: Number },
+            accountHolderName: { type: String },
+            bankName: { type: String }
+        }
+    },
+
     resetPassword: {
         verificationCode: { type: Number },
         expirationDate: { type: Date }

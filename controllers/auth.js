@@ -181,6 +181,14 @@ const userLogin = async (request, response) => {
 
         const user = userList[0]
 
+        if(user.isBlocked) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Your account is blocked',
+                field: 'email'
+            })
+        }
+
         if(!bcrypt.compareSync(password, user.password)) {
             return response.status(400).json({
                 accepted: false,
@@ -189,14 +197,7 @@ const userLogin = async (request, response) => {
             })
         }
 
-        const formattedUser = { ...user._doc }
-
         const updatedUser = await UserModel.findByIdAndUpdate(user._id, { lastLoginDate: new Date() }, { new: true })
-
-        if(user.roles.includes('STAFF')) {
-            const userClinic = await ClinicModel.findById(user.clinicId)
-            formattedUser.clinic = userClinic
-        }
 
         updatedUser.password = undefined
 

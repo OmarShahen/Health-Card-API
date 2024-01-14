@@ -21,6 +21,12 @@ router.get(
     (request, response) => paymentsController.getPayments(request, response)
 )
 
+router.get(
+    '/v1/payments/statistics', 
+    authorization.allPermission,
+    (request, response) => paymentsController.getPaymentsStatistics(request, response)
+)
+
 router.post(
     '/v1/payments/refund/appointments/:appointmentId',
     authorization.allPermission,
@@ -32,7 +38,7 @@ router.post(
     '/v1/payments/full-refund/appointments/:appointmentId',
     authorization.adminAndExpertPermission,
     verifyAppointmentId,
-    (request, response) => paymentsController.refundPayment(request, response)
+    (request, response) => paymentsController.fullRefundPayment(request, response)
 )
 
 module.exports = router

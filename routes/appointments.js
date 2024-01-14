@@ -10,6 +10,12 @@ router.post(
 )
 
 router.get(
+    '/v1/appointments',
+    authorization.allPermission,
+    (request, response) => appointmentsController.getAppointments(request, response)
+)
+
+router.get(
     '/v1/appointments/experts/:userId/status/:status/payments/paid',
     authorization.allPermission,
     verifyUserId,
@@ -29,7 +35,6 @@ router.get(
     verifyAppointmentId,
     (request, response) => appointmentsController.getAppointment(request, response)
 )
-
 
 router.patch(
     '/v1/appointments/:appointmentId/status', 
