@@ -39,8 +39,11 @@ var mongoose = require('mongoose');
 
 var config = require('../config/config');
 
+var _require2 = require('../APIs/100ms/request'),
+    videoPlatformRequest = _require2.videoPlatformRequest;
+
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, _request$body, seekerId, expertId, startTime, duration, todayDate, expertListPromise, seekerListPromise, _ref, _ref2, expertList, seekerList, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, existingAppointmentsQuery, existingAppointments, counter, appointmentData, appointmentObj, newAppointment, updatedUser;
+  var dataValidation, _request$body, seekerId, expertId, startTime, duration, todayDate, expertListPromise, seekerListPromise, _ref, _ref2, expertList, seekerList, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, existingAppointmentsQuery, existingAppointments, roomData, newRoom, counter, appointmentData, appointmentObj, newAppointment, updatedUser;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -214,7 +217,16 @@ var addAppointment = function addAppointment(request, response) {
           }));
 
         case 42:
-          _context.next = 44;
+          roomData = {
+            template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
+            description: "".concat(duration, " minutes session with ").concat(expert.firstName)
+          };
+          _context.next = 45;
+          return regeneratorRuntime.awrap(videoPlatformRequest.post('/v2/rooms', roomData));
+
+        case 45:
+          newRoom = _context.sent;
+          _context.next = 48;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'Appointment'
           }, {
@@ -226,25 +238,26 @@ var addAppointment = function addAppointment(request, response) {
             upsert: true
           }));
 
-        case 44:
+        case 48:
           counter = _context.sent;
           appointmentData = _objectSpread({
-            appointmentId: counter.value
+            appointmentId: counter.value,
+            roomId: newRoom.data.id
           }, request.body);
           appointmentObj = new AppointmentModel(appointmentData);
-          _context.next = 49;
+          _context.next = 53;
           return regeneratorRuntime.awrap(appointmentObj.save());
 
-        case 49:
+        case 53:
           newAppointment = _context.sent;
-          _context.next = 52;
+          _context.next = 56;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalAppointments: expert.totalAppointments + 1
           }, {
             "new": true
           }));
 
-        case 52:
+        case 56:
           updatedUser = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
@@ -253,8 +266,8 @@ var addAppointment = function addAppointment(request, response) {
             expert: updatedUser
           }));
 
-        case 56:
-          _context.prev = 56;
+        case 60:
+          _context.prev = 60;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -263,12 +276,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 60:
+        case 64:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 56]]);
+  }, null, null, [[0, 60]]);
 };
 
 var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {
@@ -740,7 +753,7 @@ var getAppointments = function getAppointments(request, response) {
         case 0:
           _context8.prev = 0;
           status = request.query.status;
-          _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
+          _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query, 'startTime'), searchQuery = _utils$statsQueryGene.searchQuery;
           matchQuery = _objectSpread({}, searchQuery);
 
           if (status == 'PAID') {
@@ -754,7 +767,7 @@ var getAppointments = function getAppointments(request, response) {
             $match: matchQuery
           }, {
             $sort: {
-              createdAt: -1
+              startTime: -1
             }
           }, {
             $limit: 25
@@ -814,6 +827,41 @@ var getAppointments = function getAppointments(request, response) {
   }, null, null, [[0, 15]]);
 };
 
+var get100msRooms = function get100msRooms(request, response) {
+  var roomsResponse;
+  return regeneratorRuntime.async(function get100msRooms$(_context9) {
+    while (1) {
+      switch (_context9.prev = _context9.next) {
+        case 0:
+          _context9.prev = 0;
+          _context9.next = 3;
+          return regeneratorRuntime.awrap(videoPlatformRequest.get('/v2/rooms'));
+
+        case 3:
+          roomsResponse = _context9.sent;
+          return _context9.abrupt("return", response.status(200).json({
+            accepted: true,
+            rooms: roomsResponse.data.data
+          }));
+
+        case 7:
+          _context9.prev = 7;
+          _context9.t0 = _context9["catch"](0);
+          console.error(_context9.t0);
+          return _context9.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context9.t0.message
+          }));
+
+        case 11:
+        case "end":
+          return _context9.stop();
+      }
+    }
+  }, null, null, [[0, 7]]);
+};
+
 module.exports = {
   addAppointment: addAppointment,
   updateAppointmentStatus: updateAppointmentStatus,
@@ -822,5 +870,6 @@ module.exports = {
   getAppointment: getAppointment,
   getAppointments: getAppointments,
   getPaidAppointmentsByExpertIdAndStatus: getPaidAppointmentsByExpertIdAndStatus,
-  getPaidAppointmentsBySeekerIdAndStatus: getPaidAppointmentsBySeekerIdAndStatus
+  getPaidAppointmentsBySeekerIdAndStatus: getPaidAppointmentsBySeekerIdAndStatus,
+  get100msRooms: get100msRooms
 };

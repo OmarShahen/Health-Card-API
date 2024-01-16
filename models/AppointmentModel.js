@@ -7,6 +7,7 @@ const AppointmentSchema = new mongoose.Schema({
     seekerId: { type: mongoose.Types.ObjectId, required: true },
     expertId: { type: mongoose.Types.ObjectId, required: true },
     paymentId: { type: mongoose.Types.ObjectId },
+    roomId: { type: String, required: true },
     isPaid: { type: Boolean, default: false },
     duration: { type: Number },
     price: { type: Number, default: 0 },

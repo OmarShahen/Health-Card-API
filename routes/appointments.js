@@ -16,6 +16,12 @@ router.get(
 )
 
 router.get(
+    '/v1/100ms/rooms',
+    authorization.allPermission,
+    (request, response) => appointmentsController.get100msRooms(request, response)
+)
+
+router.get(
     '/v1/appointments/experts/:userId/status/:status/payments/paid',
     authorization.allPermission,
     verifyUserId,

@@ -5,6 +5,7 @@ const dotenv = require('dotenv').config()
 const config = require('./config/config')
 const functions = require('firebase-functions')
 
+
 //const Bree = require('bree')
 
 const morgan = require('morgan')
@@ -82,6 +83,6 @@ io.on('connection', socket => {
 })
 
 
-server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
+//server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
 
 exports.app = functions.https.onRequest(app)

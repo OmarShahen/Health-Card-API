@@ -79,8 +79,6 @@ io.on('connection', function (socket) {
   socket.on('answerCall', function (data) {
     socket.to(data.appointmentId).emit('callAccepted', data.signal);
   });
-});
-server.listen(config.PORT, function () {
-  return console.log("server started on port ".concat(config.PORT, " [RA'AYA APP]"));
-});
+}); //server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
+
 exports.app = functions.https.onRequest(app);

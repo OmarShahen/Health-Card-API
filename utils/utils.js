@@ -20,6 +20,7 @@ const { capitalizeFirstLetter, concatenateHmacString } = require('./formatString
 const { isValidURL } = require('./validateURL')
 const { getTime, getAge, getHoursDifference } = require('./format-time')
 
+
 module.exports = {
     isRolesValid,
     isNameValid,
@@ -50,5 +51,5 @@ module.exports = {
     getTime,
     getAge,
     isTimeValid,
-    getHoursDifference
+    getHoursDifference,
 }

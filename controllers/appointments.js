@@ -10,6 +10,7 @@ const { format } = require('date-fns')
 const translations = require('../i18n/index')
 const mongoose = require('mongoose')
 const config = require('../config/config')
+const { videoPlatformRequest } = require('../APIs/100ms/request')
 
 
 const addAppointment = async (request, response) => {
@@ -119,13 +120,23 @@ const addAppointment = async (request, response) => {
             })
         }
 
+        const roomData = {
+            template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
+            description: `${duration} minutes session with ${expert.firstName}`
+        }
+        const newRoom = await videoPlatformRequest.post('/v2/rooms', roomData)
+
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'Appointment' },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
 
-        const appointmentData = { appointmentId: counter.value, ...request.body }
+        const appointmentData = { 
+            appointmentId: counter.value,
+            roomId: newRoom.data.id,
+            ...request.body 
+        }
 
         const appointmentObj = new AppointmentModel(appointmentData)
         const newAppointment = await appointmentObj.save()
@@ -149,7 +160,6 @@ const addAppointment = async (request, response) => {
         })
     }
 }
-
 
 const getPaidAppointmentsByExpertIdAndStatus = async (request, response) => {
 
@@ -570,6 +580,27 @@ const getAppointments = async (request, response) => {
     }
 }
 
+const get100msRooms = async (request, response) => {
+
+    try {
+
+        const roomsResponse = await videoPlatformRequest.get('/v2/rooms')
+
+        return response.status(200).json({
+            accepted: true,
+            rooms: roomsResponse.data.data
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     addAppointment,
     updateAppointmentStatus, 
@@ -578,5 +609,6 @@ module.exports = {
     getAppointment,
     getAppointments,
     getPaidAppointmentsByExpertIdAndStatus,
-    getPaidAppointmentsBySeekerIdAndStatus
+    getPaidAppointmentsBySeekerIdAndStatus,
+    get100msRooms
 }

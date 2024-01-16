@@ -16,6 +16,9 @@ router.post('/v1/appointments', authorization.allPermission, function (request, 
 router.get('/v1/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointments(request, response);
 });
+router.get('/v1/100ms/rooms', authorization.allPermission, function (request, response) {
+  return appointmentsController.get100msRooms(request, response);
+});
 router.get('/v1/appointments/experts/:userId/status/:status/payments/paid', authorization.allPermission, verifyUserId, function (request, response) {
   return appointmentsController.getPaidAppointmentsByExpertIdAndStatus(request, response);
 });
