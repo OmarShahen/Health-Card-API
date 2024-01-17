@@ -12,6 +12,8 @@ const { sendVerificationCode } = require('../mails/verification-code')
 const { sendForgotPasswordVerificationCode } = require('../mails/forgot-password')
 const { sendDeleteAccountCode } = require('../mails/delete-account')
 const translations = require('../i18n/index')
+const axios = require('axios')
+
 
 const seekerSignup = async (request, response) => {
 
@@ -207,6 +209,127 @@ const userLogin = async (request, response) => {
             accepted: true,
             token: token,
             user: updatedUser,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const userGoogleLogin = async (request, response) => {
+
+    try {
+
+        const { accessToken } = request.query
+
+        const googleResponse = await axios
+        .get(`https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=${accessToken}`)
+
+        const { email } = googleResponse.data
+
+        const userList = await UserModel
+        .find({ email, isverified: true })
+
+        if(userList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Email is not registered',
+                field: 'email'
+            })
+        }
+
+        const user = userList[0]
+
+        if(user.isBlocked) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Your account is blocked',
+                field: 'email'
+            })
+        }
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(user._id, { lastLoginDate: new Date() }, { new: true })
+
+        updatedUser.password = undefined
+
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+
+        return response.status(200).json({
+            accepted: true,
+            user: updatedUser,
+            token
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const seekerGoogleSignup = async (request, response) => {
+
+    try {
+
+        const dataValidation = authValidation.seekerGoogleSignup(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { email, password } = request.body
+
+        const userList = await UserModel
+        .find({ email, isverified: true })
+
+        if(userList.length != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Email is already registered',
+                field: 'email'
+            })
+        }
+
+        const counter = await CounterModel.findOneAndUpdate(
+            { name: 'user' },
+            { $inc: { value: 1 } },
+            { new: true, upsert: true }
+        )
+
+        const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
+
+        const userData = {
+            userId: counter.value,
+            ...request.body,
+            password: userPassword,
+            isVerified: true,
+            type: 'SEEKER',
+            oauth: { isGoogleAuth: true }
+        }
+
+        const userObj = new UserModel(userData)
+        const newUser = await userObj.save()
+
+        newUser.password = undefined
+
+        const token = jwt.sign(newUser._doc, config.SECRET_KEY, { expiresIn: '30d' })
+
+        return response.status(200).json({
+            accepted: true,
+            user: newUser,
+            token
         })
 
     } catch(error) {
@@ -766,6 +889,8 @@ module.exports = {
     expertSignup,
     userLogin,
     userEmployeeLogin,
+    userGoogleLogin,
+    seekerGoogleSignup,
     verifyEmailVerificationCode,
     verifyEmail,
     setUserVerified,

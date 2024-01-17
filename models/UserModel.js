@@ -10,12 +10,16 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, required: true },
     countryCode: { type: Number },
     phone: { type: Number },
-    password: { type: String, required: true },
-    gender: { type: String, required: true, enum: config.GENDER },
+    password: { type: String },
+    gender: { type: String, enum: config.GENDER },
     dateOfBirth: { type: Date },
     lang: { type: String, default: 'ar', enum: config.LANGUAGES },
     timeZone: { type: String, default: "Africa/Cairo" },
     profileImageURL: { type: String },
+
+    oauth: {
+        isGoogleAuth: { type: Boolean, default: false }
+    },
 
     pricing: [],
     rating: { type: Number, default: 5 },

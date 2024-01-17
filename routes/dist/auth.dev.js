@@ -4,8 +4,6 @@ var router = require('express').Router();
 
 var authController = require('../controllers/auth');
 
-var tokenMiddleware = require('../middlewares/verify-permission');
-
 var _require = require('../middlewares/verify-routes-params'),
     verifyUserId = _require.verifyUserId;
 
@@ -17,6 +15,12 @@ router.post('/v1/auth/experts/signup', function (request, response) {
 });
 router.post('/v1/auth/login', function (request, response) {
   return authController.userLogin(request, response);
+});
+router.post('/v1/auth/google/login', function (request, response) {
+  return authController.userGoogleLogin(request, response);
+});
+router.post('/v1/auth/seekers/google/signup', function (request, response) {
+  return authController.seekerGoogleSignup(request, response);
 });
 router.post('/v1/auth/employee/login', function (request, response) {
   return authController.userEmployeeLogin(request, response);

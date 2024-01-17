@@ -11,16 +11,9 @@ const functions = require('firebase-functions')
 const morgan = require('morgan')
 const db = require('./config/database')
 const cors = require('cors')
-//const http = require('http').Server(app)
 const { verifyLanguage } = require('./middlewares/language')
 
 const server = http.createServer(app)
-const io = require('socket.io')(server, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
-})
 
 app.use(morgan('dev'))
 app.use(express.json())
@@ -53,33 +46,6 @@ app.get('/', (request, response) => {
     return response.status(200).json({
         message: `welcome to RA'AYA`
     })
-})
-
-io.on('connection', socket => {
-    console.log('Connected Successfully!')
-
-    socket.emit('me', socket.id)
-
-    socket.on('disconnect', () => {
-        socket.broadcast.emit('callEnded')
-    })
-
-    socket.on('rooms:join', data => {
-        socket.join(data.appointmentId)
-    })
-
-    socket.on('calling', data => {
-        socket.to(data.appointmentId).emit('calling', data)
-    })
-
-    socket.on('signal', (data) => {
-		socket.to(data.appointmentId).emit('signal', { signal: data.signalData, callerName: data.callerName })
-	})
-
-	socket.on('answerCall', (data) => {
-		socket.to(data.appointmentId).emit('callAccepted', data.signal)
-	})
-
 })
 
 

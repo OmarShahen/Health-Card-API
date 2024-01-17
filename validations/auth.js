@@ -82,6 +82,46 @@ const seekerSignup = (userData) => {
 
 }
 
+const seekerGoogleSignup = (userData) => {
+
+    const { firstName, email, password, countryCode, phone, gender, dateOfBirth, timeZone, profileImageURL } = userData
+
+    if(!firstName) return { isAccepted: false, message: 'Name is required', field: 'firstName' }
+
+    if(!validator.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
+
+    if(!email) return { isAccepted: false, message: 'Email is required', field: 'email' }
+
+    if(!validator.isEmailValid(email)) return { isAccepted: false, message: 'Email formate is invalid', field: 'email' }
+
+    if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
+
+    if(typeof password != 'string') return { isAccepted: false, message: 'Passowrd format is invalid', field: 'password' }
+
+    if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
+
+    if(typeof countryCode != 'number') return { isAccepted: false, message: 'Country code format is invalid', field: 'countryCode' }
+
+    if(!phone) return { isAccepted: false, message: 'Phone is required', field: 'phone' }
+
+    if(typeof phone != 'number') return { isAccepted: false, message: 'Phone format is invalid', field: 'phone' }
+
+    if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
+
+    if(!config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
+
+    if(!dateOfBirth) return { isAccepted: false, message: 'Date of birth', field: 'dateOfBirth' } 
+
+    if(timeZone && typeof timeZone != 'string') return { isAccepted: false, message: 'time zone format is invalid', field: 'timeZone' }
+
+    if(!validator.isDateTimeValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
+            
+    if(profileImageURL && !validator.isValidURL(profileImageURL)) return { isAccepted: false, message: 'Profile image URL is invalid', field: 'profileImageURL' }
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+
+}
+
 const expertSignup = (userData) => {
 
     const { firstName, title, description, email, countryCode, phone, gender, dateOfBirth, pricing, timeZone, password, speciality } = userData
@@ -292,6 +332,7 @@ const addUserEmailVerificationCode = (userVerificationData) => {
 module.exports = { 
     expertSignup,
     seekerSignup,
+    seekerGoogleSignup,
     login,
     verifyPersonalInfo, 
     verifyDemographicInfo,

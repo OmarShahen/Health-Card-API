@@ -183,7 +183,6 @@ const verifyAndUpdateUserPassword = (userData) => {
     return { isAccepted: true, message: 'data is valid', data: userData }
 }
 
-
 const addEmployeeUser = (userData) => {
 
     const { firstName, lastName, email, password, countryCode, phone, gender } = userData

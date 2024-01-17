@@ -17,21 +17,12 @@ var morgan = require('morgan');
 
 var db = require('./config/database');
 
-var cors = require('cors'); //const http = require('http').Server(app)
-
+var cors = require('cors');
 
 var _require = require('./middlewares/language'),
     verifyLanguage = _require.verifyLanguage;
 
 var server = http.createServer(app);
-
-var io = require('socket.io')(server, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST']
-  }
-});
-
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cors());
@@ -58,27 +49,7 @@ app.get('/', function (request, response) {
     message: "welcome to RA'AYA"
   });
 });
-io.on('connection', function (socket) {
-  console.log('Connected Successfully!');
-  socket.emit('me', socket.id);
-  socket.on('disconnect', function () {
-    socket.broadcast.emit('callEnded');
-  });
-  socket.on('rooms:join', function (data) {
-    socket.join(data.appointmentId);
-  });
-  socket.on('calling', function (data) {
-    socket.to(data.appointmentId).emit('calling', data);
-  });
-  socket.on('signal', function (data) {
-    socket.to(data.appointmentId).emit('signal', {
-      signal: data.signalData,
-      callerName: data.callerName
-    });
-  });
-  socket.on('answerCall', function (data) {
-    socket.to(data.appointmentId).emit('callAccepted', data.signal);
-  });
-}); //server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
-
+server.listen(config.PORT, function () {
+  return console.log("server started on port ".concat(config.PORT, " [RA'AYA APP]"));
+});
 exports.app = functions.https.onRequest(app);

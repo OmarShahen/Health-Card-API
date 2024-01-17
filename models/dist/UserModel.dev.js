@@ -31,12 +31,10 @@ var UserSchema = new mongoose.Schema({
     type: Number
   },
   password: {
-    type: String,
-    required: true
+    type: String
   },
   gender: {
     type: String,
-    required: true,
     "enum": config.GENDER
   },
   dateOfBirth: {
@@ -53,6 +51,12 @@ var UserSchema = new mongoose.Schema({
   },
   profileImageURL: {
     type: String
+  },
+  oauth: {
+    isGoogleAuth: {
+      type: Boolean,
+      "default": false
+    }
   },
   pricing: [],
   rating: {
