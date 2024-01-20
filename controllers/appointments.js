@@ -86,16 +86,26 @@ const addAppointment = async (request, response) => {
             expertId,
             weekday: weekDay,
             isActive: true,
-            'openingTime.hour': { $lte: startingHour },
-            'openingTime.minute': { $lte: startingMinute },
-            'closingTime.hour': { $gte: startingHour },
-            'closingTime.minute': { $gte: startingMinute },
         })
 
         if(openingTimes.length == 0) {
             return response.status(400).json({
                 accepted: false,
-                message: 'This time is not available in the schedule',
+                message: 'This day is not available in the schedule',
+                field: 'startTime'
+            })
+        }
+
+        const openingTime = openingTimes[0]
+
+        const combinedAvailableOpeningTime = (openingTime.openingTime.hour * 60) + openingTime.openingTime.minute
+        const combinedAvailableClosingTime = (openingTime.closingTime.hour * 60) + openingTime.closingTime.minute
+        const combinedTargetTime = (startingHour * 60) + startingMinute
+        
+        if(combinedAvailableOpeningTime > combinedTargetTime || combinedAvailableClosingTime < combinedTargetTime) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'This time slot is not available',
                 field: 'startTime'
             })
         }
@@ -122,7 +132,8 @@ const addAppointment = async (request, response) => {
 
         const roomData = {
             template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
-            description: `${duration} minutes session with ${expert.firstName}`
+            description: `${duration} minutes session with ${expert.firstName}`,
+            max_duration_seconds: (duration + 5) * 60
         }
         const newRoom = await videoPlatformRequest.post('/v2/rooms', roomData)
 
