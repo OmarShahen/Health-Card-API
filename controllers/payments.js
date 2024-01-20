@@ -129,7 +129,6 @@ const processPayment = async (request, response) => {
         const options = {
             hour: 'numeric',
             minute: 'numeric',
-            second: 'numeric',
             hour12: true,
             timeZone: 'Africa/Cairo'
         }
