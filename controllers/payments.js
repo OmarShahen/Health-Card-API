@@ -126,11 +126,19 @@ const processPayment = async (request, response) => {
 
         const targetPhone = `${expert.countryCode}${expert.phone}`
 
+        const options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            second: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+        }
+
         const messageBody = {
             expertName: expert.firstName,
             appointmentId: `#${updatedAppointment.appointmentId}`,
             appointmentDate: format(reservationDateTime, 'dd MMMM yyyy'),
-            appointmentTime: format(reservationDateTime, 'hh:mm a'),
+            appointmentTime: reservationDateTime.toLocaleString('en-US', options),
             duration: `${updatedAppointment.duration} minute`,
             seekerName: seeker.firstName
         }
