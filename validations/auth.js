@@ -68,6 +68,12 @@ const seekerSignup = (userData) => {
 
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
 
+    if(typeof password != 'string') return { isAccepted: false, message: 'Passowrd format is invalid', field: 'password' }
+
+    const validatedPassword = validator.isPasswordStrong(password)
+
+    if(!validatedPassword.isAccepted) return { isAccepted: false, message: validatedPassword.message, field: 'password' }
+
     if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
 
     if(!config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
@@ -97,6 +103,10 @@ const seekerGoogleSignup = (userData) => {
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
 
     if(typeof password != 'string') return { isAccepted: false, message: 'Passowrd format is invalid', field: 'password' }
+
+    const validatedPassword = validator.isPasswordStrong(password)
+
+    if(!validatedPassword.isAccepted) return { isAccepted: false, message: validatedPassword.message, field: 'password' }
 
     if(!countryCode) return { isAccepted: false, message: 'Country code is required', field: 'countryCode' }
 
@@ -151,6 +161,10 @@ const expertSignup = (userData) => {
     if(typeof phone != 'number') return { isAccepted: false, message: 'Phone format is invalid', field: 'phone' }
 
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
+
+    const validatedPassword = validator.isPasswordStrong(password)
+
+    if(!validatedPassword.isAccepted) return { isAccepted: false, message: validatedPassword.message, field: 'password' }
 
     if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
 
@@ -223,6 +237,10 @@ const resetPassword = (resetData) => {
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
 
     if(typeof password != 'string') return { isAccepted: false, message: 'Invalid password format', field: 'password' } 
+
+    const validatedPassword = validator.isPasswordStrong(password)
+
+    if(!validatedPassword.isAccepted) return { isAccepted: false, message: validatedPassword.message, field: 'password' }
     
 
     return { isAccepted: true, message: 'data is valid', data: resetData }

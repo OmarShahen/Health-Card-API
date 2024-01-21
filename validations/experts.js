@@ -24,6 +24,10 @@ const addExpert = (expertData) => {
 
     if(!password) return { isAccepted: false, message: 'Password is required', field: 'password' }
 
+    const validatedPassword = utils.isPasswordStrong(password)
+
+    if(!validatedPassword.isAccepted) return { isAccepted: false, message: validatedPassword.message, field: 'password' }
+
     if(!gender) return { isAccepted: false, message: 'Gender is required', field: 'gender' }
 
     if(!config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }

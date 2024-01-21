@@ -107,6 +107,17 @@ var seekerSignup = function seekerSignup(userData) {
     message: 'Password is required',
     field: 'password'
   };
+  if (typeof password != 'string') return {
+    isAccepted: false,
+    message: 'Passowrd format is invalid',
+    field: 'password'
+  };
+  var validatedPassword = validator.isPasswordStrong(password);
+  if (!validatedPassword.isAccepted) return {
+    isAccepted: false,
+    message: validatedPassword.message,
+    field: 'password'
+  };
   if (!gender) return {
     isAccepted: false,
     message: 'Gender is required',
@@ -177,6 +188,12 @@ var seekerGoogleSignup = function seekerGoogleSignup(userData) {
   if (typeof password != 'string') return {
     isAccepted: false,
     message: 'Passowrd format is invalid',
+    field: 'password'
+  };
+  var validatedPassword = validator.isPasswordStrong(password);
+  if (!validatedPassword.isAccepted) return {
+    isAccepted: false,
+    message: validatedPassword.message,
     field: 'password'
   };
   if (!countryCode) return {
@@ -312,6 +329,12 @@ var expertSignup = function expertSignup(userData) {
   if (!password) return {
     isAccepted: false,
     message: 'Password is required',
+    field: 'password'
+  };
+  var validatedPassword = validator.isPasswordStrong(password);
+  if (!validatedPassword.isAccepted) return {
+    isAccepted: false,
+    message: validatedPassword.message,
     field: 'password'
   };
   if (!gender) return {
@@ -462,6 +485,12 @@ var resetPassword = function resetPassword(resetData) {
   if (typeof password != 'string') return {
     isAccepted: false,
     message: 'Invalid password format',
+    field: 'password'
+  };
+  var validatedPassword = validator.isPasswordStrong(password);
+  if (!validatedPassword.isAccepted) return {
+    isAccepted: false,
+    message: validatedPassword.message,
     field: 'password'
   };
   return {

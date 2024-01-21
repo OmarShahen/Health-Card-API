@@ -56,6 +56,12 @@ var addExpert = function addExpert(expertData) {
     message: 'Password is required',
     field: 'password'
   };
+  var validatedPassword = utils.isPasswordStrong(password);
+  if (!validatedPassword.isAccepted) return {
+    isAccepted: false,
+    message: validatedPassword.message,
+    field: 'password'
+  };
   if (!gender) return {
     isAccepted: false,
     message: 'Gender is required',

@@ -72,6 +72,9 @@ var _require21 = require('./format-time'),
     getAge = _require21.getAge,
     getHoursDifference = _require21.getHoursDifference;
 
+var _require22 = require('./validatePassword'),
+    isPasswordStrong = _require22.isPasswordStrong;
+
 module.exports = {
   isRolesValid: isRolesValid,
   isNameValid: isNameValid,
@@ -102,5 +105,6 @@ module.exports = {
   getTime: getTime,
   getAge: getAge,
   isTimeValid: isTimeValid,
-  getHoursDifference: getHoursDifference
+  getHoursDifference: getHoursDifference,
+  isPasswordStrong: isPasswordStrong
 };
