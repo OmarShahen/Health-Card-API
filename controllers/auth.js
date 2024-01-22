@@ -13,6 +13,7 @@ const { sendForgotPasswordVerificationCode } = require('../mails/forgot-password
 const { sendDeleteAccountCode } = require('../mails/delete-account')
 const translations = require('../i18n/index')
 const axios = require('axios')
+const { sendEmail } = require('../mails/send-email')
 
 
 const seekerSignup = async (request, response) => {
@@ -59,6 +60,21 @@ const seekerSignup = async (request, response) => {
         const emailVerificationObj = new EmailVerificationModel(emailVerificationData)
         const newEmailVerification = await emailVerificationObj.save()
 
+        const newUserEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New User Sign Up',
+            mailBodyText: `You have a new user with ID #${newUser.userId}`,
+            mailBodyHTML: `
+            <strong>ID: </strong><span>#${newUser.userId}</span><br />
+            <strong>Name: </strong><span>${newUser.firstName}</span><br />
+            <strong>Email: </strong><span>${newUser.email}</span><br />
+            <strong>Phone: </strong><span>+${newUser.countryCode}${newUser.phone}</span><br />
+            <strong>Gender: </strong><span>${newUser.gender}</span><br />
+            `
+        }
+
+        const emailSent = await sendEmail(newUserEmailData)
+
         newUser.password = undefined
 
         return response.status(200).json({
@@ -67,6 +83,7 @@ const seekerSignup = async (request, response) => {
             message: mailData.isSent ? 'Verification code is sent successfully!' : 'There was a problem sending your email',
             user: newUser,
             emailVerification: newEmailVerification,
+            newUserEmail: emailSent
         })
 
     } catch(error) {
@@ -326,9 +343,25 @@ const seekerGoogleSignup = async (request, response) => {
 
         const token = jwt.sign(newUser._doc, config.SECRET_KEY, { expiresIn: '30d' })
 
+        const newUserEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New User Sign Up',
+            mailBodyText: `You have a new user with ID #${newUser.userId}`,
+            mailBodyHTML: `
+            <strong>ID: </strong><span>#${newUser.userId}</span><br />
+            <strong>Name: </strong><span>${newUser.firstName}</span><br />
+            <strong>Email: </strong><span>${newUser.email}</span><br />
+            <strong>Phone: </strong><span>+${newUser.countryCode}${newUser.phone}</span><br />
+            <strong>Gender: </strong><span>${newUser.gender}</span><br />
+            `
+        }
+
+        const emailSent = await sendEmail(newUserEmailData)
+
         return response.status(200).json({
             accepted: true,
             user: newUser,
+            emailSent,
             token
         })
 
@@ -566,7 +599,7 @@ const addUserEmailVerificationCode = async (request, response) => {
     }
 }
 
-const sendEmail = async (request, response) => {
+/*const sendEmail = async (request, response) => {
 
     try {
 
@@ -585,7 +618,7 @@ const sendEmail = async (request, response) => {
             error: error.message
         })
     }
-}
+}*/
 
 const forgotPassword = async (request, response) => {
 
@@ -895,7 +928,7 @@ module.exports = {
     verifyEmail,
     setUserVerified,
     addUserEmailVerificationCode,
-    sendEmail,
+    //sendEmail,
     forgotPassword,
     resetPassword,
     verifyResetPasswordVerificationCode,

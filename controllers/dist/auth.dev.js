@@ -48,8 +48,11 @@ var translations = require('../i18n/index');
 
 var axios = require('axios');
 
+var _require5 = require('../mails/send-email'),
+    sendEmail = _require5.sendEmail;
+
 var seekerSignup = function seekerSignup(request, response) {
-  var dataValidation, _request$body, email, password, emailList, counter, userPassword, userData, userObj, newUser, verificationCode, mailData, emailVerificationData, emailVerificationObj, newEmailVerification;
+  var dataValidation, _request$body, email, password, emailList, counter, userPassword, userData, userObj, newUser, verificationCode, mailData, emailVerificationData, emailVerificationObj, newEmailVerification, newUserEmailData, emailSent;
 
   return regeneratorRuntime.async(function seekerSignup$(_context) {
     while (1) {
@@ -138,17 +141,29 @@ var seekerSignup = function seekerSignup(request, response) {
 
         case 28:
           newEmailVerification = _context.sent;
+          newUserEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New User Sign Up',
+            mailBodyText: "You have a new user with ID #".concat(newUser.userId),
+            mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newUser.userId, "</span><br />\n            <strong>Name: </strong><span>").concat(newUser.firstName, "</span><br />\n            <strong>Email: </strong><span>").concat(newUser.email, "</span><br />\n            <strong>Phone: </strong><span>+").concat(newUser.countryCode).concat(newUser.phone, "</span><br />\n            <strong>Gender: </strong><span>").concat(newUser.gender, "</span><br />\n            ")
+          };
+          _context.next = 32;
+          return regeneratorRuntime.awrap(sendEmail(newUserEmailData));
+
+        case 32:
+          emailSent = _context.sent;
           newUser.password = undefined;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             mailSuccess: mailData.isSent,
             message: mailData.isSent ? 'Verification code is sent successfully!' : 'There was a problem sending your email',
             user: newUser,
-            emailVerification: newEmailVerification
+            emailVerification: newEmailVerification,
+            newUserEmail: emailSent
           }));
 
-        case 33:
-          _context.prev = 33;
+        case 37:
+          _context.prev = 37;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -157,12 +172,12 @@ var seekerSignup = function seekerSignup(request, response) {
             error: _context.t0.message
           }));
 
-        case 37:
+        case 41:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 33]]);
+  }, null, null, [[0, 37]]);
 };
 
 var expertSignup = function expertSignup(request, response) {
@@ -502,7 +517,7 @@ var userGoogleLogin = function userGoogleLogin(request, response) {
 };
 
 var seekerGoogleSignup = function seekerGoogleSignup(request, response) {
-  var dataValidation, _request$body4, email, password, userList, counter, userPassword, userData, userObj, newUser, token;
+  var dataValidation, _request$body4, email, password, userList, counter, userPassword, userData, userObj, newUser, token, newUserEmailData, emailSent;
 
   return regeneratorRuntime.async(function seekerGoogleSignup$(_context5) {
     while (1) {
@@ -580,14 +595,26 @@ var seekerGoogleSignup = function seekerGoogleSignup(request, response) {
           token = jwt.sign(newUser._doc, config.SECRET_KEY, {
             expiresIn: '30d'
           });
+          newUserEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New User Sign Up',
+            mailBodyText: "You have a new user with ID #".concat(newUser.userId),
+            mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newUser.userId, "</span><br />\n            <strong>Name: </strong><span>").concat(newUser.firstName, "</span><br />\n            <strong>Email: </strong><span>").concat(newUser.email, "</span><br />\n            <strong>Phone: </strong><span>+").concat(newUser.countryCode).concat(newUser.phone, "</span><br />\n            <strong>Gender: </strong><span>").concat(newUser.gender, "</span><br />\n            ")
+          };
+          _context5.next = 24;
+          return regeneratorRuntime.awrap(sendEmail(newUserEmailData));
+
+        case 24:
+          emailSent = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             user: newUser,
+            emailSent: emailSent,
             token: token
           }));
 
-        case 24:
-          _context5.prev = 24;
+        case 28:
+          _context5.prev = 28;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -596,12 +623,12 @@ var seekerGoogleSignup = function seekerGoogleSignup(request, response) {
             error: _context5.t0.message
           }));
 
-        case 28:
+        case 32:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 24]]);
+  }, null, null, [[0, 28]]);
 };
 
 var userEmployeeLogin = function userEmployeeLogin(request, response) {
@@ -984,61 +1011,44 @@ var addUserEmailVerificationCode = function addUserEmailVerificationCode(request
     }
   }, null, null, [[0, 19]]);
 };
+/*const sendEmail = async (request, response) => {
 
-var sendEmail = function sendEmail(request, response) {
-  var mailData;
-  return regeneratorRuntime.async(function sendEmail$(_context11) {
-    while (1) {
-      switch (_context11.prev = _context11.next) {
-        case 0:
-          _context11.prev = 0;
-          _context11.next = 3;
-          return regeneratorRuntime.awrap(sendVerificationCode({
-            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
-            verificationCode: generateVerificationCode()
-          }));
+    try {
 
-        case 3:
-          mailData = _context11.sent;
-          return _context11.abrupt("return", response.status(200).json({
+        const mailData = await sendVerificationCode({ receiverEmail: 'omarredaelsayedmohamed@gmail.com', verificationCode: generateVerificationCode() })
+
+        return response.status(200).json({
             accepted: true,
             message: mailData.isSent ? 'email sent successfully!' : 'error sending email'
-          }));
+        })
 
-        case 7:
-          _context11.prev = 7;
-          _context11.t0 = _context11["catch"](0);
-          console.error(_context11.t0);
-          return _context11.abrupt("return", response.status(500).json({
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context11.t0.message
-          }));
-
-        case 11:
-        case "end":
-          return _context11.stop();
-      }
+            error: error.message
+        })
     }
-  }, null, null, [[0, 7]]);
-};
+}*/
+
 
 var forgotPassword = function forgotPassword(request, response) {
   var dataValidation, email, emailList, user, verificationCode, verificationData, updatedUserPromise, forgotPasswordData, sendEmailPromise, _ref3, _ref4, updatedUser, _sendEmail;
 
-  return regeneratorRuntime.async(function forgotPassword$(_context12) {
+  return regeneratorRuntime.async(function forgotPassword$(_context11) {
     while (1) {
-      switch (_context12.prev = _context12.next) {
+      switch (_context11.prev = _context11.next) {
         case 0:
-          _context12.prev = 0;
+          _context11.prev = 0;
           dataValidation = authValidation.forgotPassword(request.body);
 
           if (dataValidation.isAccepted) {
-            _context12.next = 4;
+            _context11.next = 4;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context11.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -1046,21 +1056,21 @@ var forgotPassword = function forgotPassword(request, response) {
 
         case 4:
           email = request.body.email;
-          _context12.next = 7;
+          _context11.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
             isVerified: true
           }));
 
         case 7:
-          emailList = _context12.sent;
+          emailList = _context11.sent;
 
           if (!(emailList.length == 0)) {
-            _context12.next = 10;
+            _context11.next = 10;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context11.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Email is not registered'],
             field: 'email'
@@ -1084,45 +1094,45 @@ var forgotPassword = function forgotPassword(request, response) {
             verificationCode: verificationCode
           };
           sendEmailPromise = sendForgotPasswordVerificationCode(forgotPasswordData);
-          _context12.next = 18;
+          _context11.next = 18;
           return regeneratorRuntime.awrap(Promise.all([updatedUserPromise, sendEmailPromise]));
 
         case 18:
-          _ref3 = _context12.sent;
+          _ref3 = _context11.sent;
           _ref4 = _slicedToArray(_ref3, 2);
           updatedUser = _ref4[0];
           _sendEmail = _ref4[1];
 
           if (_sendEmail.isSent) {
-            _context12.next = 24;
+            _context11.next = 24;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context11.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['There was a problem sending your email'],
             field: 'isSent'
           }));
 
         case 24:
-          return _context12.abrupt("return", response.status(200).json({
+          return _context11.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Verification code is sent successfully!'
           }));
 
         case 27:
-          _context12.prev = 27;
-          _context12.t0 = _context12["catch"](0);
-          console.error(_context12.t0);
-          return _context12.abrupt("return", response.status(500).json({
+          _context11.prev = 27;
+          _context11.t0 = _context11["catch"](0);
+          console.error(_context11.t0);
+          return _context11.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context12.t0.message
+            error: _context11.t0.message
           }));
 
         case 31:
         case "end":
-          return _context12.stop();
+          return _context11.stop();
       }
     }
   }, null, null, [[0, 27]]);
@@ -1131,44 +1141,44 @@ var forgotPassword = function forgotPassword(request, response) {
 var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerificationCode(request, response) {
   var userId, user, invoices, verificationCode, verificationData, updatedUserPromise, deleteAccountData, sendEmailPromise, _ref5, _ref6, updatedUser, _sendEmail2;
 
-  return regeneratorRuntime.async(function sendUserDeleteAccountVerificationCode$(_context13) {
+  return regeneratorRuntime.async(function sendUserDeleteAccountVerificationCode$(_context12) {
     while (1) {
-      switch (_context13.prev = _context13.next) {
+      switch (_context12.prev = _context12.next) {
         case 0:
-          _context13.prev = 0;
+          _context12.prev = 0;
           userId = request.params.userId;
-          _context13.next = 4;
+          _context12.next = 4;
           return regeneratorRuntime.awrap(UserModel.findById(userId));
 
         case 4:
-          user = _context13.sent;
+          user = _context12.sent;
 
           if (user.roles.includes('STAFF')) {
-            _context13.next = 7;
+            _context12.next = 7;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context12.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Your account is with a role that cannot be deleted'],
             field: 'userId'
           }));
 
         case 7:
-          _context13.next = 9;
+          _context12.next = 9;
           return regeneratorRuntime.awrap(InvoiceModel.find({
             creatorId: userId
           }));
 
         case 9:
-          invoices = _context13.sent;
+          invoices = _context12.sent;
 
           if (!(invoices.length != 0)) {
-            _context13.next = 12;
+            _context12.next = 12;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context12.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Data registered with the account',
             field: 'userId'
@@ -1191,45 +1201,45 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
             verificationCode: verificationCode
           };
           sendEmailPromise = sendDeleteAccountCode(deleteAccountData);
-          _context13.next = 19;
+          _context12.next = 19;
           return regeneratorRuntime.awrap(Promise.all([updatedUserPromise, sendEmailPromise]));
 
         case 19:
-          _ref5 = _context13.sent;
+          _ref5 = _context12.sent;
           _ref6 = _slicedToArray(_ref5, 2);
           updatedUser = _ref6[0];
           _sendEmail2 = _ref6[1];
 
           if (_sendEmail2.isSent) {
-            _context13.next = 25;
+            _context12.next = 25;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context12.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['There was a problem sending your email'],
             field: 'isSent'
           }));
 
         case 25:
-          return _context13.abrupt("return", response.status(200).json({
+          return _context12.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Verification code is sent successfully!'
           }));
 
         case 28:
-          _context13.prev = 28;
-          _context13.t0 = _context13["catch"](0);
-          console.error(_context13.t0);
-          return _context13.abrupt("return", response.status(500).json({
+          _context12.prev = 28;
+          _context12.t0 = _context12["catch"](0);
+          console.error(_context12.t0);
+          return _context12.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context13.t0.message
+            error: _context12.t0.message
           }));
 
         case 32:
         case "end":
-          return _context13.stop();
+          return _context12.stop();
       }
     }
   }, null, null, [[0, 28]]);
@@ -1238,13 +1248,13 @@ var sendUserDeleteAccountVerificationCode = function sendUserDeleteAccountVerifi
 var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificationCode(request, response) {
   var _request$params2, userId, verificationCode, userList, user, deleteClinicRequests, deletedUser;
 
-  return regeneratorRuntime.async(function verifyDeleteAccountVerificationCode$(_context14) {
+  return regeneratorRuntime.async(function verifyDeleteAccountVerificationCode$(_context13) {
     while (1) {
-      switch (_context14.prev = _context14.next) {
+      switch (_context13.prev = _context13.next) {
         case 0:
-          _context14.prev = 0;
+          _context13.prev = 0;
           _request$params2 = request.params, userId = _request$params2.userId, verificationCode = _request$params2.verificationCode;
-          _context14.next = 4;
+          _context13.next = 4;
           return regeneratorRuntime.awrap(UserModel.find({
             _id: userId,
             isVerified: true,
@@ -1255,14 +1265,14 @@ var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificati
           }));
 
         case 4:
-          userList = _context14.sent;
+          userList = _context13.sent;
 
           if (!(userList.length == 0)) {
-            _context14.next = 7;
+            _context13.next = 7;
             break;
           }
 
-          return _context14.abrupt("return", response.status(400).json({
+          return _context13.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Verification code is not registered'],
             field: 'verificationCode'
@@ -1272,43 +1282,43 @@ var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificati
           user = userList[0];
 
           if (!user.roles.includes('STAFF')) {
-            _context14.next = 12;
+            _context13.next = 12;
             break;
           }
 
-          _context14.next = 11;
+          _context13.next = 11;
           return regeneratorRuntime.awrap(ClinicRequestModel.deleteMany({
             userId: userId
           }));
 
         case 11:
-          deleteClinicRequests = _context14.sent;
+          deleteClinicRequests = _context13.sent;
 
         case 12:
-          _context14.next = 14;
+          _context13.next = 14;
           return regeneratorRuntime.awrap(UserModel.findByIdAndDelete(userId));
 
         case 14:
-          deletedUser = _context14.sent;
-          return _context14.abrupt("return", response.status(200).json({
+          deletedUser = _context13.sent;
+          return _context13.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'User account is deleted successfully!',
             user: deletedUser
           }));
 
         case 18:
-          _context14.prev = 18;
-          _context14.t0 = _context14["catch"](0);
-          console.error(_context14.t0);
-          return _context14.abrupt("return", response.status(500).json({
+          _context13.prev = 18;
+          _context13.t0 = _context13["catch"](0);
+          console.error(_context13.t0);
+          return _context13.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context14.t0.message
+            error: _context13.t0.message
           }));
 
         case 22:
         case "end":
-          return _context14.stop();
+          return _context13.stop();
       }
     }
   }, null, null, [[0, 18]]);
@@ -1317,12 +1327,83 @@ var verifyDeleteAccountVerificationCode = function verifyDeleteAccountVerificati
 var verifyResetPasswordVerificationCode = function verifyResetPasswordVerificationCode(request, response) {
   var dataValidation, _request$body6, email, verificationCode, userList;
 
-  return regeneratorRuntime.async(function verifyResetPasswordVerificationCode$(_context15) {
+  return regeneratorRuntime.async(function verifyResetPasswordVerificationCode$(_context14) {
+    while (1) {
+      switch (_context14.prev = _context14.next) {
+        case 0:
+          _context14.prev = 0;
+          dataValidation = authValidation.verifyResetPasswordVerificationCode(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context14.next = 4;
+            break;
+          }
+
+          return _context14.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          _request$body6 = request.body, email = _request$body6.email, verificationCode = _request$body6.verificationCode;
+          _context14.next = 7;
+          return regeneratorRuntime.awrap(UserModel.find({
+            email: email,
+            isVerified: true,
+            'resetPassword.verificationCode': verificationCode,
+            'resetPassword.expirationDate': {
+              $gt: Date.now()
+            }
+          }));
+
+        case 7:
+          userList = _context14.sent;
+
+          if (!(userList.length == 0)) {
+            _context14.next = 10;
+            break;
+          }
+
+          return _context14.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: translations[request.query.lang]['Verification code is not registered'],
+            field: 'verificationCode'
+          }));
+
+        case 10:
+          return _context14.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'verification code is verified!'
+          }));
+
+        case 13:
+          _context14.prev = 13;
+          _context14.t0 = _context14["catch"](0);
+          console.error(_context14.t0);
+          return _context14.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context14.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context14.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
+var resetPassword = function resetPassword(request, response) {
+  var dataValidation, _request$body7, email, verificationCode, password, userList, user, userId, newUserPassword, updateUserData, updatedUser;
+
+  return regeneratorRuntime.async(function resetPassword$(_context15) {
     while (1) {
       switch (_context15.prev = _context15.next) {
         case 0:
           _context15.prev = 0;
-          dataValidation = authValidation.verifyResetPasswordVerificationCode(request.body);
+          dataValidation = authValidation.resetPassword(request.body);
 
           if (dataValidation.isAccepted) {
             _context15.next = 4;
@@ -1336,7 +1417,7 @@ var verifyResetPasswordVerificationCode = function verifyResetPasswordVerificati
           }));
 
         case 4:
-          _request$body6 = request.body, email = _request$body6.email, verificationCode = _request$body6.verificationCode;
+          _request$body7 = request.body, email = _request$body7.email, verificationCode = _request$body7.verificationCode, password = _request$body7.password;
           _context15.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
@@ -1362,86 +1443,15 @@ var verifyResetPasswordVerificationCode = function verifyResetPasswordVerificati
           }));
 
         case 10:
-          return _context15.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'verification code is verified!'
-          }));
-
-        case 13:
-          _context15.prev = 13;
-          _context15.t0 = _context15["catch"](0);
-          console.error(_context15.t0);
-          return _context15.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context15.t0.message
-          }));
-
-        case 17:
-        case "end":
-          return _context15.stop();
-      }
-    }
-  }, null, null, [[0, 13]]);
-};
-
-var resetPassword = function resetPassword(request, response) {
-  var dataValidation, _request$body7, email, verificationCode, password, userList, user, userId, newUserPassword, updateUserData, updatedUser;
-
-  return regeneratorRuntime.async(function resetPassword$(_context16) {
-    while (1) {
-      switch (_context16.prev = _context16.next) {
-        case 0:
-          _context16.prev = 0;
-          dataValidation = authValidation.resetPassword(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context16.next = 4;
-            break;
-          }
-
-          return _context16.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
-
-        case 4:
-          _request$body7 = request.body, email = _request$body7.email, verificationCode = _request$body7.verificationCode, password = _request$body7.password;
-          _context16.next = 7;
-          return regeneratorRuntime.awrap(UserModel.find({
-            email: email,
-            isVerified: true,
-            'resetPassword.verificationCode': verificationCode,
-            'resetPassword.expirationDate': {
-              $gt: Date.now()
-            }
-          }));
-
-        case 7:
-          userList = _context16.sent;
-
-          if (!(userList.length == 0)) {
-            _context16.next = 10;
-            break;
-          }
-
-          return _context16.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['Verification code is not registered'],
-            field: 'verificationCode'
-          }));
-
-        case 10:
           user = userList[0];
           userId = user._id;
 
           if (!bcrypt.compareSync(password, user.password)) {
-            _context16.next = 14;
+            _context15.next = 14;
             break;
           }
 
-          return _context16.abrupt("return", response.status(400).json({
+          return _context15.abrupt("return", response.status(400).json({
             accepted: false,
             message: translations[request.query.lang]['Enter a new password to the current one'],
             field: 'password'
@@ -1456,33 +1466,33 @@ var resetPassword = function resetPassword(request, response) {
               expirationDate: null
             }
           };
-          _context16.next = 18;
+          _context15.next = 18;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, updateUserData, {
             "new": true
           }));
 
         case 18:
-          updatedUser = _context16.sent;
+          updatedUser = _context15.sent;
           updatedUser.password = undefined;
-          return _context16.abrupt("return", response.status(200).json({
+          return _context15.abrupt("return", response.status(200).json({
             accepted: true,
             message: translations[request.query.lang]['Updated user password successfully!'],
             user: updatedUser
           }));
 
         case 23:
-          _context16.prev = 23;
-          _context16.t0 = _context16["catch"](0);
-          console.error(_context16.t0);
-          return _context16.abrupt("return", response.status(500).json({
+          _context15.prev = 23;
+          _context15.t0 = _context15["catch"](0);
+          console.error(_context15.t0);
+          return _context15.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context16.t0.message
+            error: _context15.t0.message
           }));
 
         case 27:
         case "end":
-          return _context16.stop();
+          return _context15.stop();
       }
     }
   }, null, null, [[0, 23]]);
@@ -1499,7 +1509,7 @@ module.exports = {
   verifyEmail: verifyEmail,
   setUserVerified: setUserVerified,
   addUserEmailVerificationCode: addUserEmailVerificationCode,
-  sendEmail: sendEmail,
+  //sendEmail,
   forgotPassword: forgotPassword,
   resetPassword: resetPassword,
   verifyResetPasswordVerificationCode: verifyResetPasswordVerificationCode,

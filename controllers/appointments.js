@@ -11,6 +11,7 @@ const translations = require('../i18n/index')
 const mongoose = require('mongoose')
 const config = require('../config/config')
 const { videoPlatformRequest } = require('../APIs/100ms/request')
+const email = require('../mails/send-email')
 
 
 const addAppointment = async (request, response) => {
@@ -155,11 +156,40 @@ const addAppointment = async (request, response) => {
         const updatedUser = await UserModel
         .findByIdAndUpdate(expert._id, { totalAppointments: expert.totalAppointments + 1 }, { new: true })
 
+        const options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+        }
+
+        const appointmentStartTime = new Date(newAppointment.startTime)
+        const appointmentEndTime = new Date(newAppointment.endTime)
+
+        const newUserEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New Appointment',
+            mailBodyText: `You have a new appointment with ID #${newAppointment.appointmentId}`,
+            mailBodyHTML: `
+            <strong>ID: </strong><span>#${newAppointment.appointmentId}</span><br />
+            <strong>Expert: </strong><span>${expert.firstName}</span><br />
+            <strong>Seeker: </strong><span>${seeker.firstName}</span><br />
+            <strong>Price: </strong><span>${newAppointment.price} EGP</span><br />
+            <strong>Duration: </strong><span>${newAppointment.duration} minutes</span><br />
+            <strong>Date: </strong><span>${format(newAppointment.startTime, 'dd MMM yyyy')}</span><br />
+            <strong>Start Time: </strong><span>${appointmentStartTime.toLocaleString('en-US', options)}</span><br />
+            <strong>End Time: </strong><span>${appointmentEndTime.toLocaleString('en-US', options)}</span><br />
+            `
+        }
+
+        const emailSent = await email.sendEmail(newUserEmailData)
+
         return response.status(200).json({
             accepted: true,
             message: 'Appointment is booked successfully!',
             appointment: newAppointment,
-            expert: updatedUser
+            expert: updatedUser,
+            emailSent
         })
 
     } catch(error) {
@@ -423,34 +453,26 @@ const sendAppointmentReminder = async (request, response) => {
 
     try {
 
-        const { appointmentId } = request.params
-
-        const targetPhone = '201065630331'
-        
-        const messageBody = {
-            clinicName: 'الرعاية',
-            appointmentId: '123#',
-            patientName: 'عمر رضا السيد',
-            appointmentDate: '2023-10-10',
-            appointmentTime: '10:00 am',
-            patientPhone: '201065630331',
-            visitReason: 'كشف',
-            price: '250 EGP'
+        const mailData = {
+            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
+            subject: 'New User Sign Up',
+            mailBodyText: 'You have a new user with ID #123',
+            mailBodyHTML: `
+            <strong>ID: </strong><span>#123</span><br />
+            <strong>Name: </strong><span>Omar Reda</span><br />
+            <strong>Email: </strong><span>omar@gmail.com</span><br />
+            <strong>Phone: </strong><span>+201065630331</span><br />
+            <strong>Gender: </strong><span>Male</span><br />
+            <strong>Age: </strong><span>20</span><br />
+            `
         }
 
-        const messageSent = await whatsappClinicAppointment.sendClinicAppointment(targetPhone, 'ar', messageBody)
-
-        if(!messageSent.isSent) {
-            return response.status(400).json({
-                accepted: false,
-                message: translations[request.query.lang]['There was a problem sending the message'],
-                field: 'appointmentId'
-            })
-        }
+        const emailSent = await email.sendEmail(mailData)
 
         return response.status(200).json({
             accepted: true,
             message: 'Message sent successfully!',
+            emailSent
         })
 
     } catch(error) {

@@ -17,6 +17,7 @@ module.exports = {
   },
   SALT_ROUNDS: Number.parseInt(process.env.SALT_ROUNDS),
   SECRET_KEY: process.env.SECRET_KEY,
+  NOTIFICATION_EMAIL: 'omarredaelsayedmohamed@gmail.com',
   LANGUAGES: ['en', 'ar'],
   VIDEO_PLATFORM: {
     BASE_URL: 'https://api.100ms.live',

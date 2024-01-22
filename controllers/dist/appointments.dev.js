@@ -42,8 +42,10 @@ var config = require('../config/config');
 var _require2 = require('../APIs/100ms/request'),
     videoPlatformRequest = _require2.videoPlatformRequest;
 
+var email = require('../mails/send-email');
+
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, _request$body, seekerId, expertId, startTime, duration, todayDate, expertListPromise, seekerListPromise, _ref, _ref2, expertList, seekerList, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, openingTime, combinedAvailableOpeningTime, combinedAvailableClosingTime, combinedTargetTime, existingAppointmentsQuery, existingAppointments, roomData, newRoom, counter, appointmentData, appointmentObj, newAppointment, updatedUser;
+  var dataValidation, _request$body, seekerId, expertId, startTime, duration, todayDate, expertListPromise, seekerListPromise, _ref, _ref2, expertList, seekerList, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, openingTime, combinedAvailableOpeningTime, combinedAvailableClosingTime, combinedTargetTime, existingAppointmentsQuery, existingAppointments, roomData, newRoom, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -224,7 +226,8 @@ var addAppointment = function addAppointment(request, response) {
         case 48:
           roomData = {
             template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
-            description: "".concat(duration, " minutes session with ").concat(expert.firstName)
+            description: "".concat(duration, " minutes session with ").concat(expert.firstName),
+            max_duration_seconds: (duration + 5) * 60
           };
           _context.next = 51;
           return regeneratorRuntime.awrap(videoPlatformRequest.post('/v2/rooms', roomData));
@@ -264,15 +267,35 @@ var addAppointment = function addAppointment(request, response) {
 
         case 62:
           updatedUser = _context.sent;
+          options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          appointmentStartTime = new Date(newAppointment.startTime);
+          appointmentEndTime = new Date(newAppointment.endTime);
+          newUserEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New Appointment',
+            mailBodyText: "You have a new appointment with ID #".concat(newAppointment.appointmentId),
+            mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newAppointment.appointmentId, "</span><br />\n            <strong>Expert: </strong><span>").concat(expert.firstName, "</span><br />\n            <strong>Seeker: </strong><span>").concat(seeker.firstName, "</span><br />\n            <strong>Price: </strong><span>").concat(newAppointment.price, " EGP</span><br />\n            <strong>Duration: </strong><span>").concat(newAppointment.duration, " minutes</span><br />\n            <strong>Date: </strong><span>").concat(format(newAppointment.startTime, 'dd MMM yyyy'), "</span><br />\n            <strong>Start Time: </strong><span>").concat(appointmentStartTime.toLocaleString('en-US', options), "</span><br />\n            <strong>End Time: </strong><span>").concat(appointmentEndTime.toLocaleString('en-US', options), "</span><br />\n            ")
+          };
+          _context.next = 69;
+          return regeneratorRuntime.awrap(email.sendEmail(newUserEmailData));
+
+        case 69:
+          emailSent = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Appointment is booked successfully!',
             appointment: newAppointment,
-            expert: updatedUser
+            expert: updatedUser,
+            emailSent: emailSent
           }));
 
-        case 66:
-          _context.prev = 66;
+        case 73:
+          _context.prev = 73;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -281,12 +304,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 70:
+        case 77:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 66]]);
+  }, null, null, [[0, 73]]);
 };
 
 var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {
@@ -626,49 +649,31 @@ var deleteAppointment = function deleteAppointment(request, response) {
 };
 
 var sendAppointmentReminder = function sendAppointmentReminder(request, response) {
-  var appointmentId, targetPhone, messageBody, messageSent;
+  var mailData, emailSent;
   return regeneratorRuntime.async(function sendAppointmentReminder$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          appointmentId = request.params.appointmentId;
-          targetPhone = '201065630331';
-          messageBody = {
-            clinicName: 'الرعاية',
-            appointmentId: '123#',
-            patientName: 'عمر رضا السيد',
-            appointmentDate: '2023-10-10',
-            appointmentTime: '10:00 am',
-            patientPhone: '201065630331',
-            visitReason: 'كشف',
-            price: '250 EGP'
+          mailData = {
+            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
+            subject: 'New User Sign Up',
+            mailBodyText: 'You have a new user with ID #123',
+            mailBodyHTML: "\n            <strong>ID: </strong><span>#123</span><br />\n            <strong>Name: </strong><span>Omar Reda</span><br />\n            <strong>Email: </strong><span>omar@gmail.com</span><br />\n            <strong>Phone: </strong><span>+201065630331</span><br />\n            <strong>Gender: </strong><span>Male</span><br />\n            <strong>Age: </strong><span>20</span><br />\n            "
           };
-          _context6.next = 6;
-          return regeneratorRuntime.awrap(whatsappClinicAppointment.sendClinicAppointment(targetPhone, 'ar', messageBody));
+          _context6.next = 4;
+          return regeneratorRuntime.awrap(email.sendEmail(mailData));
 
-        case 6:
-          messageSent = _context6.sent;
-
-          if (messageSent.isSent) {
-            _context6.next = 9;
-            break;
-          }
-
-          return _context6.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['There was a problem sending the message'],
-            field: 'appointmentId'
-          }));
-
-        case 9:
+        case 4:
+          emailSent = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Message sent successfully!'
+            message: 'Message sent successfully!',
+            emailSent: emailSent
           }));
 
-        case 12:
-          _context6.prev = 12;
+        case 8:
+          _context6.prev = 8;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -677,12 +682,12 @@ var sendAppointmentReminder = function sendAppointmentReminder(request, response
             error: _context6.t0.message
           }));
 
-        case 16:
+        case 12:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 8]]);
 };
 
 var getAppointment = function getAppointment(request, response) {
