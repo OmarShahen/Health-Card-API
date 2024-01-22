@@ -4,7 +4,6 @@ const CounterModel = require('../models/CounterModel')
 const UserModel = require('../models/UserModel')
 const appointmentValidation = require('../validations/appointments')
 const utils = require('../utils/utils')
-const whatsappClinicAppointment = require('../APIs/whatsapp/send-clinic-appointment')
 const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointment')
 const { format } = require('date-fns')
 const translations = require('../i18n/index')
@@ -97,7 +96,7 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        const openingTime = openingTimes[0]
+        /*const openingTime = openingTimes[0]
 
         const combinedAvailableOpeningTime = (openingTime.openingTime.hour * 60) + openingTime.openingTime.minute
         const combinedAvailableClosingTime = (openingTime.closingTime.hour * 60) + openingTime.closingTime.minute
@@ -109,7 +108,7 @@ const addAppointment = async (request, response) => {
                 message: 'This time slot is not available',
                 field: 'startTime'
             })
-        }
+        }*/
 
         const existingAppointmentsQuery = {
             expertId,
