@@ -104,7 +104,7 @@ const getOpeningTimesByExpertIdAndDay = async (request, response) => {
 
         const { userId, weekday } = request.params
 
-        const openingTime = await OpeningTimeModel.find({ expertId: userId, weekday })
+        const openingTime = await OpeningTimeModel.find({ expertId: userId, weekday, isActive:true })
 
         return response.status(200).json({
             accepted: true,

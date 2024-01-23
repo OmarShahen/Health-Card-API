@@ -140,7 +140,8 @@ var getOpeningTimesByExpertIdAndDay = function getOpeningTimesByExpertIdAndDay(r
           _context3.next = 4;
           return regeneratorRuntime.awrap(OpeningTimeModel.find({
             expertId: userId,
-            weekday: weekday
+            weekday: weekday,
+            isActive: true
           }));
 
         case 4:
