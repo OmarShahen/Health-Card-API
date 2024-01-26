@@ -11,6 +11,7 @@ const PaymentSchema = new mongoose.Schema({
     pending: { type: Boolean, required: true },
     isRefunded: { type: Boolean, default: false },
     gateway: { type: String, required: true },
+    method: { type: String },
     orderId: { type: Number, required: true },
     amountCents: { type: Number, required: true },
     commission: { type: Number, required: true },

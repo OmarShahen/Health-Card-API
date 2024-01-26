@@ -12,6 +12,9 @@ var _require = require('../middlewares/verify-routes-params'),
 router.post('/v1/payments/paymob', authorization.allPermission, function (request, response) {
   return paymentsController.createPaymentURL(request, response);
 });
+router.post('/v1/payments/paymob/mobile-wallets', authorization.allPermission, function (request, response) {
+  return paymentsController.createMobileWalletPaymentURL(request, response);
+});
 router.post('/v1/payments/paymob/process', function (request, response) {
   return paymentsController.processPayment(request, response);
 });
@@ -25,6 +28,6 @@ router.post('/v1/payments/refund/appointments/:appointmentId', authorization.all
   return paymentsController.refundPayment(request, response);
 });
 router.post('/v1/payments/full-refund/appointments/:appointmentId', authorization.adminAndExpertPermission, verifyAppointmentId, function (request, response) {
-  return paymentsController.refundPayment(request, response);
+  return paymentsController.fullRefundPayment(request, response);
 });
 module.exports = router;

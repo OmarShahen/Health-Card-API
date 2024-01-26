@@ -40,6 +40,9 @@ var PaymentSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  method: {
+    type: String
+  },
   orderId: {
     type: Number,
     required: true

@@ -5,6 +5,11 @@ module.exports = {
     //DB_URL: process.env.DB_URL,
     PAYMOB_HMAC: process.env.PAYMOB_HMAC,
     PAYMOB_API_KEYS: process.env.PAYMOB_API_KEYS,
+    PAYMOB: {
+        LOCAL_CARDS_INTEGRATION_ID: 3931768,
+        MOBILE_WALLET_INTEGRATION_ID: 4447178
+    },
+    PAYMENT_COMMISSION: 0.1,
     GENDER: ['MALE', 'FEMALE'],
     ROLES: ['OWNER', 'DOCTOR', 'STAFF'],
     TYPES: ['EXPERT', 'SEEKER'],

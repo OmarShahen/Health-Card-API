@@ -11,6 +11,12 @@ router.post(
 )
 
 router.post(
+    '/v1/payments/paymob/mobile-wallets',
+    authorization.allPermission,
+    (request, response) => paymentsController.createMobileWalletPaymentURL(request, response)
+)
+
+router.post(
     '/v1/payments/paymob/process', 
     (request, response) => paymentsController.processPayment(request, response)
 )

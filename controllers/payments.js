@@ -12,7 +12,6 @@ const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointm
 const { format } = require('date-fns')
 const utils = require('../utils/utils')
 
-
 const processPayment = async (request, response) => {
 
     try {
@@ -89,7 +88,6 @@ const processPayment = async (request, response) => {
             })
         }
 
-
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'payment' },
             { $inc: { value: 1 } },
@@ -105,11 +103,12 @@ const processPayment = async (request, response) => {
             success: payment.success,
             pending: payment.pending,
             gateway: 'PAYMOB',
+            method: payment.data.klass,
             orderId: payment.order.id,
             amountCents: payment.amount_cents,
             currency: payment.currency,
             createdAt: payment.created_at,
-            commission: 0.1
+            commission: config.PAYMENT_COMMISSION
         }
 
         const paymentObj = new PaymentModel(paymentData)
@@ -223,9 +222,9 @@ const createPaymentURL = async (request, response) => {
                 country: "EGYPT", 
                 last_name: lastName, 
                 state: "NA"
-            }, 
+            },
             currency: "EGP", 
-            integration_id: 3931768
+            integration_id: config.PAYMOB.LOCAL_CARDS_INTEGRATION_ID
         }
 
         const paymentRequest = await axios.post('https://accept.paymob.com/api/acceptance/payment_keys', paymentData)
@@ -236,6 +235,100 @@ const createPaymentURL = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             iFrameURL
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const createMobileWalletPaymentURL = async (request, response) => {
+
+    try {
+
+        const dataValidation = paymentValidation.createMobileWalletPaymentURL(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { appointmentId, walletPhone, firstName, lastName, phone, email, planName, planPrice } = request.body
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+        if(!appointment) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'appointment ID is not registered',
+                field: 'appointmentId'
+            })
+        }
+
+        const authData = {
+            api_key: config.PAYMOB_API_KEYS
+        }
+
+        const authResponse = await axios.post('https://accept.paymob.com/api/auth/tokens', authData)
+        
+        const orderData = {
+            auth_token: authResponse.data.token,
+            delivery_needed: "false",
+            amount_cents: `${planPrice}`,
+            currency: "EGP",
+            items: [{ name: planName, description: appointmentId, quantity: 1, amount_cents: planPrice }]
+        }
+
+        const orderResponse = await axios.post('https://accept.paymob.com/api/ecommerce/orders', orderData)
+
+        const token = authResponse.data.token
+        const orderId = orderResponse.data.id
+
+        let paymentData = {
+            auth_token: token,
+            amount_cents: `${planPrice}`, 
+            expiration: 3600, 
+            order_id: orderId,
+            billing_data: {
+                apartment: "NA", 
+                email: email, 
+                floor: "NA", 
+                first_name: firstName, 
+                street: "NA", 
+                building: "NA", 
+                phone_number: phone, 
+                shipping_method: "NA", 
+                postal_code: "NA", 
+                city: "NA", 
+                country: "EGYPT", 
+                last_name: lastName, 
+                state: "NA"
+            },
+            currency: "EGP", 
+            integration_id: config.PAYMOB.MOBILE_WALLET_INTEGRATION_ID
+        }
+
+        const paymentRequest = await axios.post('https://accept.paymob.com/api/acceptance/payment_keys', paymentData)
+        const paymentToken = paymentRequest.data.token
+
+        const walletPayData = {
+            source: { subtype: 'WALLET', identifier: walletPhone },
+            payment_token: paymentToken
+        }
+
+        const walletPayResponse = await axios.post('https://accept.paymob.com/api/acceptance/payments/pay', walletPayData)
+        const redirectURL = walletPayResponse.data.data.redirect_url
+
+        return response.status(200).json({
+            accepted: true,
+            message: walletPayResponse.data.data.message,
+            redirectURL
         })
 
     } catch(error) {
@@ -635,6 +728,7 @@ const fullRefundPayment = async (request, response) => {
 module.exports = { 
     processPayment, 
     createPaymentURL, 
+    createMobileWalletPaymentURL,
     getPayments, 
     refundPayment,
     fullRefundPayment,
