@@ -31,4 +31,7 @@ router["delete"]('/v1/experts/:userId', authorization.allPermission, verifyUserI
 router.patch('/v1/experts/:userId/bank-info', authorization.allPermission, verifyUserId, function (request, response) {
   return expertsController.addExpertBankInfo(request, response);
 });
+router.patch('/v1/experts/:userId/mobile-wallet', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.addExpertMobileWalletInfo(request, response);
+});
 module.exports = router;

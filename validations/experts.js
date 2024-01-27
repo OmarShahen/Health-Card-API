@@ -55,4 +55,17 @@ const addBankInfo = (expertData) => {
     return { isAccepted: true, message: 'data is valid', data: expertData }
 }
 
-module.exports = { addExpert, addBankInfo }
+const addMobileWalletInfo = (expertData) => {
+
+    const { walletNumber } = expertData
+
+    if(!walletNumber) return { isAccepted: false, message: 'Wallet number is required', field: 'walletNumber' }
+
+    if(typeof walletNumber != 'string') return { isAccepted: false, message: 'Wallet number format is invalid', field: 'walletNumber' }
+
+    if(!utils.isPhoneValid(walletNumber)) return { isAccepted: false, message: 'Wallet phone number format is invalid', field: 'walletNumber' } 
+
+    return { isAccepted: true, message: 'data is valid', data: expertData }
+}
+
+module.exports = { addExpert, addBankInfo, addMobileWalletInfo }

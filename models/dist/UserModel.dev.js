@@ -111,7 +111,7 @@ var UserSchema = new mongoose.Schema({
     paymentMethod: {
       type: String,
       "default": 'BANK',
-      "enum": ['BANK']
+      "enum": ['BANK', 'MOBILE_WALLET']
     },
     bankAccount: {
       accountNumber: {
@@ -121,6 +121,11 @@ var UserSchema = new mongoose.Schema({
         type: String
       },
       bankName: {
+        type: String
+      }
+    },
+    mobileWallet: {
+      walletNumber: {
         type: String
       }
     }

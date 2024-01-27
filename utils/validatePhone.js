@@ -1,5 +1,5 @@
 
-const isPhoneValid = (phoneNumber, max=null) => {
+const isPhoneValid = (phoneNumber, max=11) => {
 
     const numbers = '0123456789'
 

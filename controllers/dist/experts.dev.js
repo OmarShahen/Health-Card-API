@@ -587,6 +587,63 @@ var addExpertBankInfo = function addExpertBankInfo(request, response) {
   }, null, null, [[0, 14]]);
 };
 
+var addExpertMobileWalletInfo = function addExpertMobileWalletInfo(request, response) {
+  var userId, dataValidation, walletNumber, updatedExpert;
+  return regeneratorRuntime.async(function addExpertMobileWalletInfo$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          userId = request.params.userId;
+          dataValidation = expertValidation.addMobileWalletInfo(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context8.next = 5;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 5:
+          walletNumber = request.body.walletNumber;
+          _context8.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            'paymentInfo.mobileWallet.walletNumber': walletNumber
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedExpert = _context8.sent;
+          updatedExpert.password = undefined;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Added expert mobile wallet information successfully!',
+            user: updatedExpert
+          }));
+
+        case 13:
+          _context8.prev = 13;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
 module.exports = {
   searchExperts: searchExperts,
   searchExpertsByNameAndSpeciality: searchExpertsByNameAndSpeciality,
@@ -594,5 +651,6 @@ module.exports = {
   addExpert: addExpert,
   getExperts: getExperts,
   deleteExpert: deleteExpert,
-  addExpertBankInfo: addExpertBankInfo
+  addExpertBankInfo: addExpertBankInfo,
+  addExpertMobileWalletInfo: addExpertMobileWalletInfo
 };

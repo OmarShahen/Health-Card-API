@@ -40,11 +40,14 @@ const UserSchema = new mongoose.Schema({
     lastLoginDate: { type: Date },
 
     paymentInfo: {
-        paymentMethod: { type: String, default: 'BANK', enum: ['BANK'] },
+        paymentMethod: { type: String, default: 'BANK', enum: ['BANK', 'MOBILE_WALLET'] },
         bankAccount: {
             accountNumber: { type: Number },
             accountHolderName: { type: String },
             bankName: { type: String }
+        },
+        mobileWallet: {
+            walletNumber: { type: String }
         }
     },
 

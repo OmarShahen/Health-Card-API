@@ -120,7 +120,32 @@ var addBankInfo = function addBankInfo(expertData) {
   };
 };
 
+var addMobileWalletInfo = function addMobileWalletInfo(expertData) {
+  var walletNumber = expertData.walletNumber;
+  if (!walletNumber) return {
+    isAccepted: false,
+    message: 'Wallet number is required',
+    field: 'walletNumber'
+  };
+  if (typeof walletNumber != 'string') return {
+    isAccepted: false,
+    message: 'Wallet number format is invalid',
+    field: 'walletNumber'
+  };
+  if (!utils.isPhoneValid(walletNumber)) return {
+    isAccepted: false,
+    message: 'Wallet phone number format is invalid',
+    field: 'walletNumber'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: expertData
+  };
+};
+
 module.exports = {
   addExpert: addExpert,
-  addBankInfo: addBankInfo
+  addBankInfo: addBankInfo,
+  addMobileWalletInfo: addMobileWalletInfo
 };

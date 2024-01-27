@@ -414,6 +414,44 @@ const addExpertBankInfo = async (request, response) => {
     }
 }
 
+const addExpertMobileWalletInfo = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const dataValidation = expertValidation.addMobileWalletInfo(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { walletNumber } = request.body
+
+        const updatedExpert = await UserModel
+        .findByIdAndUpdate(userId, { 'paymentInfo.mobileWallet.walletNumber': walletNumber }, { new: true })
+
+        updatedExpert.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Added expert mobile wallet information successfully!',
+            user: updatedExpert
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     searchExperts, 
     searchExpertsByNameAndSpeciality, 
@@ -421,5 +459,6 @@ module.exports = {
     addExpert, 
     getExperts,
     deleteExpert,
-    addExpertBankInfo
+    addExpertBankInfo,
+    addExpertMobileWalletInfo
 }

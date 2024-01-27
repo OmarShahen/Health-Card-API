@@ -546,7 +546,6 @@ const deleteUser = async (request, response) => {
     }
 }
 
-
 const addEmployeeUser = async (request, response) => {
 
     try {

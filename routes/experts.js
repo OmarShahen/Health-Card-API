@@ -48,4 +48,11 @@ router.patch(
     (request, response) => expertsController.addExpertBankInfo(request, response)
 )
 
+router.patch(
+    '/v1/experts/:userId/mobile-wallet',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.addExpertMobileWalletInfo(request, response)
+)
+
 module.exports = router
