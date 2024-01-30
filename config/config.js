@@ -14,6 +14,7 @@ module.exports = {
     ROLES: ['OWNER', 'DOCTOR', 'STAFF'],
     TYPES: ['EXPERT', 'SEEKER'],
     SPECIALITIES_TYPES: ['MAIN', 'SUB'],
+    EXPERT_VERIFICATION_STATUS: ['PENDING', 'ACCEPTED', 'REJECTED'],
     EMAIL: {
         APP_MAIL: 'raayaeg@gmail.com',
         APP_MAIL_PASSWORD: process.env.APP_MAIL_PASSWORD,

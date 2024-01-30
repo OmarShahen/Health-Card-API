@@ -12,6 +12,8 @@ var OpeningTimeModel = require('../models/OpeningTimeModel');
 
 var ReviewModel = require('../models/ReviewModel');
 
+var ExpertVerificationModel = require('../models/ExpertVerificationModel');
+
 var verifyUserId = function verifyUserId(request, response, next) {
   var userId, user;
   return regeneratorRuntime.async(function verifyUserId$(_context) {
@@ -305,10 +307,70 @@ var verifyReviewId = function verifyReviewId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyExpertVerificationId = function verifyExpertVerificationId(request, response, next) {
+  var expertVerificationId, expertVerification;
+  return regeneratorRuntime.async(function verifyExpertVerificationId$(_context6) {
+    while (1) {
+      switch (_context6.prev = _context6.next) {
+        case 0:
+          _context6.prev = 0;
+          expertVerificationId = request.params.expertVerificationId;
+
+          if (utils.isObjectId(expertVerificationId)) {
+            _context6.next = 4;
+            break;
+          }
+
+          return _context6.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid expert verification ID format',
+            field: 'expertVerificationId'
+          }));
+
+        case 4:
+          _context6.next = 6;
+          return regeneratorRuntime.awrap(ExpertVerificationModel.findById(expertVerificationId));
+
+        case 6:
+          expertVerification = _context6.sent;
+
+          if (expertVerification) {
+            _context6.next = 9;
+            break;
+          }
+
+          return _context6.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Expert verification ID does not exist',
+            field: 'expertVerificationId'
+          }));
+
+        case 9:
+          return _context6.abrupt("return", next());
+
+        case 12:
+          _context6.prev = 12;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context6.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context6.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyUserId: verifyUserId,
   verifyAppointmentId: verifyAppointmentId,
   verifySpecialityId: verifySpecialityId,
   verifyOpeningTimeId: verifyOpeningTimeId,
-  verifyReviewId: verifyReviewId
+  verifyReviewId: verifyReviewId,
+  verifyExpertVerificationId: verifyExpertVerificationId
 };

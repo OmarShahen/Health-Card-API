@@ -33,7 +33,7 @@ app.use('/api', require('./routes/seekers'))
 app.use('/api', require('./routes/payments'))
 app.use('/api', require('./routes/opening-times'))
 app.use('/api', require('./routes/reviews'))
-
+app.use('/api', require('./routes/expertVerifications'))
 
 
 db()

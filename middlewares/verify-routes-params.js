@@ -4,7 +4,7 @@ const AppointmentModel = require('../models/AppointmentModel')
 const SpecialityModel = require('../models/SpecialityModel')
 const OpeningTimeModel = require('../models/OpeningTimeModel')
 const ReviewModel = require('../models/ReviewModel')
-
+const ExpertVerificationModel = require('../models/ExpertVerificationModel')
 
 
 const verifyUserId = async (request, response, next) => {
@@ -181,10 +181,46 @@ const verifyReviewId = async (request, response, next) => {
     }
 }
 
+const verifyExpertVerificationId = async (request, response, next) => {
+
+    try {
+
+        const { expertVerificationId } = request.params
+
+        if(!utils.isObjectId(expertVerificationId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid expert verification ID format',
+                field: 'expertVerificationId'
+            })
+        }
+
+        const expertVerification = await ExpertVerificationModel.findById(expertVerificationId)
+        if(!expertVerification) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Expert verification ID does not exist',
+                field: 'expertVerificationId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyUserId,
     verifyAppointmentId,
     verifySpecialityId,
     verifyOpeningTimeId,
-    verifyReviewId
+    verifyReviewId,
+    verifyExpertVerificationId
 }
