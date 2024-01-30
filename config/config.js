@@ -1,5 +1,5 @@
 module.exports = {
-
+    APP_NAME: `RA'AYA`,
     PORT: process.env.APP_PORT,
     DB_URL: process.env.PROD_DB_URL,
     //DB_URL: process.env.DB_URL,
@@ -9,6 +9,7 @@ module.exports = {
         LOCAL_CARDS_INTEGRATION_ID: 3931768,
         MOBILE_WALLET_INTEGRATION_ID: 4447178
     },
+    SUPPORT_NUMBER: '+201555415331',
     PAYMENT_COMMISSION: 0.1,
     GENDER: ['MALE', 'FEMALE'],
     ROLES: ['OWNER', 'DOCTOR', 'STAFF'],
@@ -39,6 +40,7 @@ module.exports = {
         SEND_CLINIC_APPOINTMENT: 'new_appointment',
         CANCEL_APPOINTMENT: 'delete_appointment'
     },
+    EXPERT_SIGNUP_LINK: 'https://ra-aya.web.app/auth/signup',
     TIME_UNIT: ['day', 'week', 'month'],
     APPOINTMENT_STATUS: ['UPCOMING', 'ACTIVE', 'DONE', 'CANCELLED', 'WAITING', 'RESCHEDULED'],
     WEEK_DAYS: ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']

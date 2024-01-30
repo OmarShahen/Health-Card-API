@@ -255,17 +255,11 @@ var seekerGoogleSignup = function seekerGoogleSignup(userData) {
 
 var expertSignup = function expertSignup(userData) {
   var firstName = userData.firstName,
-      title = userData.title,
-      description = userData.description,
       email = userData.email,
       countryCode = userData.countryCode,
       phone = userData.phone,
-      gender = userData.gender,
-      dateOfBirth = userData.dateOfBirth,
-      pricing = userData.pricing,
-      timeZone = userData.timeZone,
       password = userData.password,
-      speciality = userData.speciality;
+      expertVerificationId = userData.expertVerificationId;
   if (!firstName) return {
     isAccepted: false,
     message: 'Name is required',
@@ -275,26 +269,6 @@ var expertSignup = function expertSignup(userData) {
     isAccepted: false,
     message: 'Invalid name formate',
     field: 'firstName'
-  };
-  if (!title) return {
-    isAccepted: false,
-    message: 'Title is required',
-    field: 'title'
-  };
-  if (typeof title != 'string') return {
-    isAccepted: false,
-    message: 'Title format is invalid',
-    field: 'title'
-  };
-  if (!description) return {
-    isAccepted: false,
-    message: 'Description is required',
-    field: 'description'
-  };
-  if (typeof description != 'string') return {
-    isAccepted: false,
-    message: 'Description format is invalid',
-    field: 'description'
   };
   if (!email) return {
     isAccepted: false,
@@ -337,70 +311,15 @@ var expertSignup = function expertSignup(userData) {
     message: validatedPassword.message,
     field: 'password'
   };
-  if (!gender) return {
+  if (!expertVerificationId) return {
     isAccepted: false,
-    message: 'Gender is required',
-    field: 'gender'
+    message: 'Expert verification ID is required',
+    field: 'expertVerificationId'
   };
-  if (!config.GENDER.includes(gender)) return {
+  if (!validator.isObjectId(expertVerificationId)) return {
     isAccepted: false,
-    message: 'Invalid gender',
-    field: 'gender'
-  };
-  if (!dateOfBirth) return {
-    isAccepted: false,
-    message: 'Date of birth',
-    field: 'dateOfBirth'
-  };
-  if (!pricing) return {
-    isAccepted: false,
-    message: 'Pricing is required',
-    field: 'pricing'
-  };
-  if (!Array.isArray(pricing)) return {
-    isAccepted: false,
-    message: 'Pricing must be a list',
-    field: 'pricing'
-  };
-  if (pricing.length != 2) return {
-    isAccepted: false,
-    message: 'Pricing must be atleast two',
-    field: 'pricing'
-  };
-  if (!checkPricing(pricing)) return {
-    isAccepted: false,
-    message: 'Pricing format is invalid',
-    field: 'pricing'
-  };
-  if (timeZone && typeof timeZone != 'string') return {
-    isAccepted: false,
-    message: 'time zone format is invalid',
-    field: 'timeZone'
-  };
-  if (!validator.isDateTimeValid(dateOfBirth)) return {
-    isAccepted: false,
-    message: 'Date of birth format is invalid',
-    field: 'dateOfBirth'
-  };
-  if (!speciality) return {
-    isAccepted: false,
-    message: 'Speciality is required',
-    field: 'speciality'
-  };
-  if (!Array.isArray(speciality)) return {
-    isAccepted: false,
-    message: 'Speciality must be a list',
-    field: 'speciality'
-  };
-  if (speciality.length == 0) return {
-    isAccepted: false,
-    message: 'Speciality must be atleast one',
-    field: 'speciality'
-  };
-  if (!checkSpeciality(speciality)) return {
-    isAccepted: false,
-    message: 'Speciality format is invalid',
-    field: 'speciality'
+    message: 'Expert verification ID format is invalid',
+    field: 'expertVerificationId'
   };
   return {
     isAccepted: true,

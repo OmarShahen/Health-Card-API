@@ -20,6 +20,8 @@ var email = require('../mails/send-email');
 
 var config = require('../config/config');
 
+var emailTemplates = require('../mails/templates/messages');
+
 var getExpertVerifications = function getExpertVerifications(request, response) {
   var status, _utils$statsQueryGene, searchQuery, expertsVerifications, matchQuery, totalExpertsVerifications, totalAcceptedExpertsVerifications, totalPendingExpertsVerifications, totalRejectedExpertsVerifications;
 
@@ -275,7 +277,8 @@ var addExpertVerification = function addExpertVerification(request, response) {
 };
 
 var updateExpertVerificationStatus = function updateExpertVerificationStatus(request, response) {
-  var expertVerificationId, status, dataValidation, updatedExpertVerification;
+  var expertVerificationId, status, dataValidation, updatedExpertVerification, emailSent, mailData, mailtemplateData, _mailData;
+
   return regeneratorRuntime.async(function updateExpertVerificationStatus$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
@@ -306,14 +309,56 @@ var updateExpertVerificationStatus = function updateExpertVerificationStatus(req
 
         case 8:
           updatedExpertVerification = _context4.sent;
+
+          if (!(status == 'REJECTED')) {
+            _context4.next = 14;
+            break;
+          }
+
+          mailData = {
+            receiverEmail: updatedExpertVerification.email,
+            subject: 'Expert Verification Request - Rejection',
+            mailBodyHTML: emailTemplates.getExpertVerificationRejectionMessage({
+              expertName: updatedExpertVerification.name
+            })
+          };
+          _context4.next = 13;
+          return regeneratorRuntime.awrap(email.sendEmail(mailData));
+
+        case 13:
+          emailSent = _context4.sent;
+
+        case 14:
+          if (!(status == 'ACCEPTED')) {
+            _context4.next = 20;
+            break;
+          }
+
+          mailtemplateData = {
+            expertName: updatedExpertVerification.name,
+            signupLink: "".concat(config.EXPERT_SIGNUP_LINK, "?type=EXPERT&expertVerification=").concat(updatedExpertVerification._id)
+          };
+          _mailData = {
+            receiverEmail: updatedExpertVerification.email,
+            subject: 'Congratulations! Your Expert Verification Request has been Accepted',
+            mailBodyHTML: emailTemplates.getExpertVerificationAcceptanceMessage(mailtemplateData)
+          };
+          _context4.next = 19;
+          return regeneratorRuntime.awrap(email.sendEmail(_mailData));
+
+        case 19:
+          emailSent = _context4.sent;
+
+        case 20:
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Updated expert verification status successfully!',
+            emailSent: emailSent,
             expertVerification: updatedExpertVerification
           }));
 
-        case 12:
-          _context4.prev = 12;
+        case 23:
+          _context4.prev = 23;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -322,12 +367,12 @@ var updateExpertVerificationStatus = function updateExpertVerificationStatus(req
             error: _context4.t0.message
           }));
 
-        case 16:
+        case 27:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 23]]);
 };
 
 var deleteExpertVerification = function deleteExpertVerification(request, response) {

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcrypt')
 const UserModel = require('../models/UserModel')
 const CounterModel = require('../models/CounterModel')
-const SpecialityModel = require('../models/SpecialityModel')
+const ExpertVerificationModel = require('../models/ExpertVerificationModel')
 const EmailVerificationModel = require('../models/EmailVerificationModel')
 const { generateVerificationCode } = require('../utils/random-number')
 const utils = require('../utils/utils')
@@ -109,7 +109,7 @@ const expertSignup = async (request, response) => {
             })
         }
 
-        const { email, password, speciality } = request.body
+        const { email, password, expertVerificationId } = request.body
 
         const emailList = await UserModel.find({ email, isVerified: true })
         if(emailList.length != 0) {
@@ -118,24 +118,38 @@ const expertSignup = async (request, response) => {
                 message: 'Email is already registered',
                 field: 'email'
             })
-        }
+        } 
 
-        const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
-        if(specialitiesList.length != speciality.length) {
+        const expertVerification = await ExpertVerificationModel.findById(expertVerificationId)
+        if(!expertVerification) {
             return response.status(400).json({
                 accepted: false,
-                message: 'invalid specialities Ids',
-                field: 'speciality'
+                message: 'Expert verification ID is not registered',
+                field: 'expertVerificationId'
             })
-        }   
+        }
+
+        if(expertVerification.status != 'ACCEPTED') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Expert verification is not accepted',
+                field: 'expertVerificationId'
+            })
+        }
+
+        if(expertVerification.email != email) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Expert verification email does not match the entered email',
+                field: 'email'
+            })
+        }
 
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'user' },
             { $inc: { value: 1 } },
             { new: true, upsert: true }
         )
-
-        request.body.speciality = specialitiesList.map(special => special._id)
 
         const userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS)
         let userData = { ...request.body, userId: counter.value, password: userPassword, type: 'EXPERT' }
@@ -153,9 +167,24 @@ const expertSignup = async (request, response) => {
 
         newUser.password = undefined
 
+        const newExpertEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New Expert Sign Up',
+            mailBodyText: `You have a new expert with ID #${newUser.userId}`,
+            mailBodyHTML: `
+            <strong>ID: </strong><span>#${newUser.userId}</span><br />
+            <strong>Name: </strong><span>${newUser.firstName}</span><br />
+            <strong>Email: </strong><span>${newUser.email}</span><br />
+            <strong>Phone: </strong><span>+${newUser.countryCode}${newUser.phone}</span>
+            `
+        }
+
+        const expertMailSent = await sendEmail(newExpertEmailData)
+
         return response.status(200).json({
             accepted: true,
             mailSuccess: mailData.isSent,
+            expertMailSent,
             message: mailData.isSent ? 'Verification code is sent successfully!' : 'There was a problem sending your email',
             user: newUser,
             emailVerification: newEmailVerification,
@@ -483,7 +512,6 @@ const verifyEmailVerificationCode = async (request, response) => {
         })
     }
 }
-
 
 const verifyEmail = async (request, response) => {
 

@@ -29,6 +29,7 @@ const UserSchema = new mongoose.Schema({
 
     speciality: [],
     subSpeciality: [],
+    expertVerificationId: { type: mongoose.Types.ObjectId },
     roles: [],
     type: { type: String, required: true, enum: config.TYPES },
 

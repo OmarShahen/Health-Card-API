@@ -5,6 +5,7 @@ const expertVerificationValidation = require('../validations/expertVerifications
 const utils = require('../utils/utils')
 const email = require('../mails/send-email')
 const config = require('../config/config')
+const emailTemplates = require('../mails/templates/messages')
 
 const getExpertVerifications = async (request, response) => {
 
@@ -199,9 +200,38 @@ const updateExpertVerificationStatus = async (request, response) => {
         const updatedExpertVerification = await ExpertVerificationModel
         .findByIdAndUpdate(expertVerificationId, { status }, { new: true })
 
+        let emailSent
+
+        if(status == 'REJECTED') {
+            const mailData = {
+                receiverEmail: updatedExpertVerification.email,
+                subject: 'Expert Verification Request - Rejection',
+                mailBodyHTML: emailTemplates.getExpertVerificationRejectionMessage({ expertName: updatedExpertVerification.name }) 
+            }
+            
+            emailSent = await email.sendEmail(mailData)   
+        }
+
+        if(status == 'ACCEPTED') {
+
+            const mailtemplateData = {
+                expertName: updatedExpertVerification.name,
+                signupLink: `${config.EXPERT_SIGNUP_LINK}?type=EXPERT&expertVerification=${updatedExpertVerification._id}`
+            }
+            
+            const mailData = {
+                receiverEmail: updatedExpertVerification.email,
+                subject: 'Congratulations! Your Expert Verification Request has been Accepted',
+                mailBodyHTML: emailTemplates.getExpertVerificationAcceptanceMessage(mailtemplateData) 
+            }
+            
+            emailSent = await email.sendEmail(mailData)   
+        }
+
         return response.status(200).json({
             accepted: true,
             message: 'Updated expert verification status successfully!',
+            emailSent,
             expertVerification: updatedExpertVerification
         })
 

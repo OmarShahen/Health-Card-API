@@ -26,7 +26,7 @@ var UserModel = require('../models/UserModel');
 
 var CounterModel = require('../models/CounterModel');
 
-var SpecialityModel = require('../models/SpecialityModel');
+var ExpertVerificationModel = require('../models/ExpertVerificationModel');
 
 var EmailVerificationModel = require('../models/EmailVerificationModel');
 
@@ -181,7 +181,7 @@ var seekerSignup = function seekerSignup(request, response) {
 };
 
 var expertSignup = function expertSignup(request, response) {
-  var dataValidation, _request$body2, email, password, speciality, emailList, specialitiesList, counter, userPassword, userData, userObj, newUser, verificationCode, mailData, emailVerificationData, emailVerificationObj, newEmailVerification;
+  var dataValidation, _request$body2, email, password, expertVerificationId, emailList, expertVerification, counter, userPassword, userData, userObj, newUser, verificationCode, mailData, emailVerificationData, emailVerificationObj, newEmailVerification, newExpertEmailData, expertMailSent;
 
   return regeneratorRuntime.async(function expertSignup$(_context2) {
     while (1) {
@@ -202,7 +202,7 @@ var expertSignup = function expertSignup(request, response) {
           }));
 
         case 4:
-          _request$body2 = request.body, email = _request$body2.email, password = _request$body2.password, speciality = _request$body2.speciality;
+          _request$body2 = request.body, email = _request$body2.email, password = _request$body2.password, expertVerificationId = _request$body2.expertVerificationId;
           _context2.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
@@ -225,29 +225,48 @@ var expertSignup = function expertSignup(request, response) {
 
         case 10:
           _context2.next = 12;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
-            _id: {
-              $in: speciality
-            },
-            type: 'MAIN'
-          }));
+          return regeneratorRuntime.awrap(ExpertVerificationModel.findById(expertVerificationId));
 
         case 12:
-          specialitiesList = _context2.sent;
+          expertVerification = _context2.sent;
 
-          if (!(specialitiesList.length != speciality.length)) {
+          if (expertVerification) {
             _context2.next = 15;
             break;
           }
 
           return _context2.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'invalid specialities Ids',
-            field: 'speciality'
+            message: 'Expert verification ID is not registered',
+            field: 'expertVerificationId'
           }));
 
         case 15:
-          _context2.next = 17;
+          if (!(expertVerification.status != 'ACCEPTED')) {
+            _context2.next = 17;
+            break;
+          }
+
+          return _context2.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Expert verification is not accepted',
+            field: 'expertVerificationId'
+          }));
+
+        case 17:
+          if (!(expertVerification.email != email)) {
+            _context2.next = 19;
+            break;
+          }
+
+          return _context2.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Expert verification email does not match the entered email',
+            field: 'email'
+          }));
+
+        case 19:
+          _context2.next = 21;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'user'
           }, {
@@ -259,11 +278,8 @@ var expertSignup = function expertSignup(request, response) {
             upsert: true
           }));
 
-        case 17:
+        case 21:
           counter = _context2.sent;
-          request.body.speciality = specialitiesList.map(function (special) {
-            return special._id;
-          });
           userPassword = bcrypt.hashSync(password, config.SALT_ROUNDS);
           userData = _objectSpread({}, request.body, {
             userId: counter.value,
@@ -272,41 +288,53 @@ var expertSignup = function expertSignup(request, response) {
           });
           userData._id = undefined;
           userObj = new UserModel(userData);
-          _context2.next = 25;
+          _context2.next = 28;
           return regeneratorRuntime.awrap(userObj.save());
 
-        case 25:
+        case 28:
           newUser = _context2.sent;
           verificationCode = generateVerificationCode();
-          _context2.next = 29;
+          _context2.next = 32;
           return regeneratorRuntime.awrap(sendVerificationCode({
             receiverEmail: email,
             verificationCode: verificationCode
           }));
 
-        case 29:
+        case 32:
           mailData = _context2.sent;
           emailVerificationData = {
             userId: newUser._id,
             code: verificationCode
           };
           emailVerificationObj = new EmailVerificationModel(emailVerificationData);
-          _context2.next = 34;
+          _context2.next = 37;
           return regeneratorRuntime.awrap(emailVerificationObj.save());
 
-        case 34:
+        case 37:
           newEmailVerification = _context2.sent;
           newUser.password = undefined;
+          newExpertEmailData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New Expert Sign Up',
+            mailBodyText: "You have a new expert with ID #".concat(newUser.userId),
+            mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newUser.userId, "</span><br />\n            <strong>Name: </strong><span>").concat(newUser.firstName, "</span><br />\n            <strong>Email: </strong><span>").concat(newUser.email, "</span><br />\n            <strong>Phone: </strong><span>+").concat(newUser.countryCode).concat(newUser.phone, "</span>\n            ")
+          };
+          _context2.next = 42;
+          return regeneratorRuntime.awrap(sendEmail(newExpertEmailData));
+
+        case 42:
+          expertMailSent = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
             mailSuccess: mailData.isSent,
+            expertMailSent: expertMailSent,
             message: mailData.isSent ? 'Verification code is sent successfully!' : 'There was a problem sending your email',
             user: newUser,
             emailVerification: newEmailVerification
           }));
 
-        case 39:
-          _context2.prev = 39;
+        case 46:
+          _context2.prev = 46;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -315,12 +343,12 @@ var expertSignup = function expertSignup(request, response) {
             error: _context2.t0.message
           }));
 
-        case 43:
+        case 50:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 39]]);
+  }, null, null, [[0, 46]]);
 };
 
 var userLogin = function userLogin(request, response) {

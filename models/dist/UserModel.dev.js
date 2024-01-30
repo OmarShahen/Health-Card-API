@@ -77,6 +77,9 @@ var UserSchema = new mongoose.Schema({
   },
   speciality: [],
   subSpeciality: [],
+  expertVerificationId: {
+    type: mongoose.Types.ObjectId
+  },
   roles: [],
   type: {
     type: String,
