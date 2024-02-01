@@ -86,6 +86,10 @@ var UserSchema = new mongoose.Schema({
     required: true,
     "enum": config.TYPES
   },
+  isOnBoarded: {
+    type: Boolean,
+    "default": false
+  },
   isEmployee: {
     type: Boolean,
     "default": false

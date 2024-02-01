@@ -68,4 +68,13 @@ const addMobileWalletInfo = (expertData) => {
     return { isAccepted: true, message: 'data is valid', data: expertData }
 }
 
-module.exports = { addExpert, addBankInfo, addMobileWalletInfo }
+const updateExpertOnBoarding = (expertData) => {
+
+    const { isOnBoarded } = expertData
+
+    if(typeof isOnBoarded != 'boolean') return { isAccepted: false, message: 'OnBoarded format is invalid', field: 'isOnBoarded' }
+
+    return { isAccepted: true, message: 'data is valid', data: expertData }
+}
+
+module.exports = { addExpert, addBankInfo, addMobileWalletInfo, updateExpertOnBoarding }

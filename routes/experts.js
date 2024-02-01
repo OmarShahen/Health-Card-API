@@ -55,4 +55,18 @@ router.patch(
     (request, response) => expertsController.addExpertMobileWalletInfo(request, response)
 )
 
+router.patch(
+    '/v1/experts/:userId/onboarding',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.updateExpertOnBoarding(request, response)
+)
+
+router.get(
+    '/v1/experts/:userId/profile-completion-percentage',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.getExpertProfileCompletionPercentage(request, response)
+)
+
 module.exports = router

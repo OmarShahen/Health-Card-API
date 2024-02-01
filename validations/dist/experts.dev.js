@@ -144,8 +144,23 @@ var addMobileWalletInfo = function addMobileWalletInfo(expertData) {
   };
 };
 
+var updateExpertOnBoarding = function updateExpertOnBoarding(expertData) {
+  var isOnBoarded = expertData.isOnBoarded;
+  if (typeof isOnBoarded != 'boolean') return {
+    isAccepted: false,
+    message: 'OnBoarded format is invalid',
+    field: 'isOnBoarded'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: expertData
+  };
+};
+
 module.exports = {
   addExpert: addExpert,
   addBankInfo: addBankInfo,
-  addMobileWalletInfo: addMobileWalletInfo
+  addMobileWalletInfo: addMobileWalletInfo,
+  updateExpertOnBoarding: updateExpertOnBoarding
 };

@@ -350,14 +350,21 @@ var getExperts = function getExperts(request, response) {
 
         case 8:
           totalExperts = _context4.sent;
+          experts.forEach(function (expert) {
+            try {
+              expert.profileCompletion = utils.calculateExpertProfileCompletePercentage(expert).completionPercentage;
+            } catch (error) {
+              error.message;
+            }
+          });
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
             totalExperts: totalExperts,
             experts: experts
           }));
 
-        case 12:
-          _context4.prev = 12;
+        case 13:
+          _context4.prev = 13;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -366,12 +373,12 @@ var getExperts = function getExperts(request, response) {
             error: _context4.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
 var searchExpertsByName = function searchExpertsByName(request, response) {
@@ -408,13 +415,20 @@ var searchExpertsByName = function searchExpertsByName(request, response) {
 
         case 6:
           experts = _context5.sent;
+          experts.forEach(function (expert) {
+            try {
+              expert.profileCompletion = utils.calculateExpertProfileCompletePercentage(expert).completionPercentage;
+            } catch (error) {
+              error.message;
+            }
+          });
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             experts: experts
           }));
 
-        case 10:
-          _context5.prev = 10;
+        case 11:
+          _context5.prev = 11;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -423,12 +437,12 @@ var searchExpertsByName = function searchExpertsByName(request, response) {
             error: _context5.t0.message
           }));
 
-        case 14:
+        case 15:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 10]]);
+  }, null, null, [[0, 11]]);
 };
 
 var deleteExpert = function deleteExpert(request, response) {
@@ -644,6 +658,102 @@ var addExpertMobileWalletInfo = function addExpertMobileWalletInfo(request, resp
   }, null, null, [[0, 13]]);
 };
 
+var updateExpertOnBoarding = function updateExpertOnBoarding(request, response) {
+  var userId, isOnBoarded, dataValidation, updatedUser;
+  return regeneratorRuntime.async(function updateExpertOnBoarding$(_context9) {
+    while (1) {
+      switch (_context9.prev = _context9.next) {
+        case 0:
+          _context9.prev = 0;
+          userId = request.params.userId;
+          isOnBoarded = request.body.isOnBoarded;
+          dataValidation = expertValidation.updateExpertOnBoarding(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context9.next = 6;
+            break;
+          }
+
+          return _context9.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 6:
+          _context9.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            isOnBoarded: isOnBoarded
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedUser = _context9.sent;
+          updatedUser.password = undefined;
+          return _context9.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated expert onboarding successfully!',
+            user: updatedUser
+          }));
+
+        case 13:
+          _context9.prev = 13;
+          _context9.t0 = _context9["catch"](0);
+          console.error(_context9.t0);
+          return _context9.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context9.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context9.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
+var getExpertProfileCompletionPercentage = function getExpertProfileCompletionPercentage(request, response) {
+  var userId, user, profileCompletionPercentage;
+  return regeneratorRuntime.async(function getExpertProfileCompletionPercentage$(_context10) {
+    while (1) {
+      switch (_context10.prev = _context10.next) {
+        case 0:
+          _context10.prev = 0;
+          userId = request.params.userId;
+          _context10.next = 4;
+          return regeneratorRuntime.awrap(UserModel.findById(userId));
+
+        case 4:
+          user = _context10.sent;
+          user.password = undefined;
+          profileCompletionPercentage = utils.calculateExpertProfileCompletePercentage(user);
+          return _context10.abrupt("return", response.status(200).json({
+            accepted: true,
+            profileCompletionPercentage: profileCompletionPercentage,
+            user: user
+          }));
+
+        case 10:
+          _context10.prev = 10;
+          _context10.t0 = _context10["catch"](0);
+          console.error(_context10.t0);
+          return _context10.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context10.t0.message
+          }));
+
+        case 14:
+        case "end":
+          return _context10.stop();
+      }
+    }
+  }, null, null, [[0, 10]]);
+};
+
 module.exports = {
   searchExperts: searchExperts,
   searchExpertsByNameAndSpeciality: searchExpertsByNameAndSpeciality,
@@ -652,5 +762,7 @@ module.exports = {
   getExperts: getExperts,
   deleteExpert: deleteExpert,
   addExpertBankInfo: addExpertBankInfo,
-  addExpertMobileWalletInfo: addExpertMobileWalletInfo
+  addExpertMobileWalletInfo: addExpertMobileWalletInfo,
+  updateExpertOnBoarding: updateExpertOnBoarding,
+  getExpertProfileCompletionPercentage: getExpertProfileCompletionPercentage
 };

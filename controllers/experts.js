@@ -258,6 +258,16 @@ const getExperts = async (request, response) => {
 
         const totalExperts = await UserModel.countDocuments(matchQuery)
 
+        experts.forEach(expert => {
+            try {
+                expert.profileCompletion = utils
+                .calculateExpertProfileCompletePercentage(expert)
+                .completionPercentage
+            } catch(error) {
+                error.message
+            }
+        })
+
         return response.status(200).json({
             accepted: true,
             totalExperts,
@@ -304,6 +314,16 @@ const searchExpertsByName = async (request, response) => {
                 }
             }
         ])
+
+        experts.forEach(expert => {
+            try {
+                expert.profileCompletion = utils
+                .calculateExpertProfileCompletePercentage(expert)
+                .completionPercentage
+            } catch(error) {
+                error.message
+            }
+        })
 
         return response.status(200).json({
             accepted: true,
@@ -452,6 +472,70 @@ const addExpertMobileWalletInfo = async (request, response) => {
     }
 }
 
+const updateExpertOnBoarding = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { isOnBoarded } = request.body
+
+        const dataValidation = expertValidation.updateExpertOnBoarding(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isOnBoarded }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated expert onboarding successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getExpertProfileCompletionPercentage = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const user = await UserModel.findById(userId)
+        user.password = undefined
+
+        const profileCompletionPercentage = utils.calculateExpertProfileCompletePercentage(user)
+
+        return response.status(200).json({
+            accepted: true,
+            profileCompletionPercentage,
+            user
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     searchExperts, 
     searchExpertsByNameAndSpeciality, 
@@ -460,5 +544,7 @@ module.exports = {
     getExperts,
     deleteExpert,
     addExpertBankInfo,
-    addExpertMobileWalletInfo
+    addExpertMobileWalletInfo,
+    updateExpertOnBoarding,
+    getExpertProfileCompletionPercentage
 }

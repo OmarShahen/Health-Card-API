@@ -7,6 +7,7 @@ const PaymentSchema = new mongoose.Schema({
     expertId: { type: mongoose.Types.ObjectId, required: true },
     seekerId: { type: mongoose.Types.ObjectId, required: true },
     transactionId: { type: Number, required: true },
+    isExpertPaid: { type: Boolean, default: false },
     success: { type: Boolean, required: true },
     pending: { type: Boolean, required: true },
     isRefunded: { type: Boolean, default: false },

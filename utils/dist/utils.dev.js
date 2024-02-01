@@ -75,6 +75,9 @@ var _require21 = require('./format-time'),
 var _require22 = require('./validatePassword'),
     isPasswordStrong = _require22.isPasswordStrong;
 
+var _require23 = require('./calculateProfileCompletePercentage'),
+    calculateExpertProfileCompletePercentage = _require23.calculateExpertProfileCompletePercentage;
+
 module.exports = {
   isRolesValid: isRolesValid,
   isNameValid: isNameValid,
@@ -106,5 +109,6 @@ module.exports = {
   getAge: getAge,
   isTimeValid: isTimeValid,
   getHoursDifference: getHoursDifference,
-  isPasswordStrong: isPasswordStrong
+  isPasswordStrong: isPasswordStrong,
+  calculateExpertProfileCompletePercentage: calculateExpertProfileCompletePercentage
 };

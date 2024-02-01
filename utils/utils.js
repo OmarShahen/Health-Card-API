@@ -20,6 +20,7 @@ const { capitalizeFirstLetter, concatenateHmacString } = require('./formatString
 const { isValidURL } = require('./validateURL')
 const { getTime, getAge, getHoursDifference } = require('./format-time')
 const { isPasswordStrong } = require('./validatePassword')
+const { calculateExpertProfileCompletePercentage } = require('./calculateProfileCompletePercentage')
 
 
 module.exports = {
@@ -53,5 +54,6 @@ module.exports = {
     getAge,
     isTimeValid,
     getHoursDifference,
-    isPasswordStrong
+    isPasswordStrong,
+    calculateExpertProfileCompletePercentage
 }

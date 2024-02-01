@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
     countryCode: { type: Number },
     phone: { type: Number },
     password: { type: String },
-    gender: { type: String, enum: config.GENDER },
+    gender: { type: String, default: 'MALE' },
     dateOfBirth: { type: Date },
     lang: { type: String, default: 'ar', enum: config.LANGUAGES },
     timeZone: { type: String, default: "Africa/Cairo" },
@@ -33,6 +33,7 @@ const UserSchema = new mongoose.Schema({
     roles: [],
     type: { type: String, required: true, enum: config.TYPES },
 
+    isOnBoarded: { type: Boolean, default: false },
     isEmployee: { type: Boolean, default: false },
     isVerified: { type: Boolean, required: true, default: false },
     isShow: { type: Boolean, default: true },

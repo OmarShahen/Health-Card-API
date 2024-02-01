@@ -34,4 +34,10 @@ router.patch('/v1/experts/:userId/bank-info', authorization.allPermission, verif
 router.patch('/v1/experts/:userId/mobile-wallet', authorization.allPermission, verifyUserId, function (request, response) {
   return expertsController.addExpertMobileWalletInfo(request, response);
 });
+router.patch('/v1/experts/:userId/onboarding', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.updateExpertOnBoarding(request, response);
+});
+router.get('/v1/experts/:userId/profile-completion-percentage', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.getExpertProfileCompletionPercentage(request, response);
+});
 module.exports = router;

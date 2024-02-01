@@ -24,6 +24,10 @@ var PaymentSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  isExpertPaid: {
+    type: Boolean,
+    "default": false
+  },
   success: {
     type: Boolean,
     required: true
