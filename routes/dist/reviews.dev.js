@@ -16,6 +16,9 @@ router.get('/v1/reviews', authorization.allPermission, function (request, respon
 router.get('/v1/reviews/stats', authorization.allPermission, function (request, response) {
   return reviewsController.getReviewsStats(request, response);
 });
+router.get('/v1/reviews/experts/:userId/stats', verifyUserId, function (request, response) {
+  return reviewsController.getExpertReviewsStats(request, response);
+});
 router.get('/v1/reviews/experts/:userId', verifyUserId, function (request, response) {
   return reviewsController.getReviewsByExpertId(request, response);
 });

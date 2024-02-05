@@ -7,10 +7,10 @@ const paymentValidation = require('../validations/payments')
 const axios = require('axios')
 const AppointmentModel = require('../models/AppointmentModel')
 const UserModel = require('../models/UserModel')
-const whatsappClinicAppointment = require('../APIs/whatsapp/send-clinic-appointment')
-const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointment')
 const { format } = require('date-fns')
 const utils = require('../utils/utils')
+const email = require('../mails/send-email')
+
 
 const processPayment = async (request, response) => {
 
@@ -118,12 +118,8 @@ const processPayment = async (request, response) => {
         const updatedAppointment = await AppointmentModel
         .findByIdAndUpdate(appointmentId, updateAppointmentData, { new: true })
 
-        let reservationDateTime = new Date(updatedAppointment.startTime)
-
         const expert = await UserModel.findById(updatedAppointment.expertId)
         const seeker = await UserModel.findById(updatedAppointment.seekerId)
-
-        const targetPhone = `${expert.countryCode}${expert.phone}`
 
         const options = {
             hour: 'numeric',
@@ -132,20 +128,30 @@ const processPayment = async (request, response) => {
             timeZone: 'Africa/Cairo'
         }
 
-        const messageBody = {
-            expertName: expert.firstName,
-            appointmentId: `#${updatedAppointment.appointmentId}`,
-            appointmentDate: format(reservationDateTime, 'dd MMMM yyyy'),
-            appointmentTime: reservationDateTime.toLocaleString('en-US', options),
-            duration: `${updatedAppointment.duration} minute`,
-            seekerName: seeker.firstName
+        const appointmentStartTime = new Date(updatedAppointment.startTime)
+        const appointmentEndTime = new Date(updatedAppointment.endTime)
+
+        const emailData = {
+            receiverEmail: expert.email,
+            subject: 'New Appointment',
+            mailBodyText: `You have a new appointment with ID #${updatedAppointment.appointmentId}`,
+            mailBodyHTML: `
+            <strong>ID: </strong><span>#${updatedAppointment.appointmentId}</span><br />
+            <strong>Seeker: </strong><span>${seeker.firstName}</span><br />
+            <strong>Price: </strong><span>${updatedAppointment.price} EGP</span><br />
+            <strong>Duration: </strong><span>${updatedAppointment.duration} minutes</span><br />
+            <strong>Date: </strong><span>${format(updatedAppointment.startTime, 'dd MMM yyyy')}</span><br />
+            <strong>Start Time: </strong><span>${appointmentStartTime.toLocaleString('en-US', options)}</span><br />
+            <strong>End Time: </strong><span>${appointmentEndTime.toLocaleString('en-US', options)}</span><br />
+            `
         }
 
-        await whatsappClinicAppointment.sendClinicAppointment(targetPhone, 'en', messageBody)
+        const emailSent = await email.sendEmail(emailData)
 
         return response.status(200).json({
             accepted: true,
             message: 'processed payment successfully!',
+            emailSent,
             payment: newPayment,
             appointment: updatedAppointment,
         })
@@ -430,13 +436,11 @@ const getPaymentsStatistics = async (request, response) => {
             },
             {
                 $group: {
-                  _id: null,
-                  total: { $sum: '$amountCents' }
+                _id: null,
+                total: { $sum: '$amountCents' }
                 }
             }
         ])
-
-        const totalAmountPaid = totalAmountPaidList[0].total / 100
 
         const totalAmountPaidActiveList = await PaymentModel.aggregate([
             {
@@ -444,13 +448,11 @@ const getPaymentsStatistics = async (request, response) => {
             },
             {
                 $group: {
-                  _id: null,
-                  total: { $sum: '$amountCents' }
+                _id: null,
+                total: { $sum: '$amountCents' }
                 }
             }
         ])
-
-        const totalAmountPaidActive = totalAmountPaidActiveList[0].total / 100
 
         const totalAmountPaidRefundedList = await PaymentModel.aggregate([
             {
@@ -458,32 +460,49 @@ const getPaymentsStatistics = async (request, response) => {
             },
             {
                 $group: {
-                  _id: null,
-                  total: { $sum: '$amountCents' }
+                _id: null,
+                total: { $sum: '$amountCents' }
                 }
             }
         ])
-
-        const totalAmountPaidRefunded = totalAmountPaidRefundedList[0].total / 100
 
         const totalAmountPaidCommissionList = await PaymentModel.aggregate([
             {
                 $match: { ...matchQuery, isRefunded: false }
             },
             {
-              $project: {
-                commissionAmount: { $multiply: ['$commission', '$amountCents'] },
-              }
+                $project: {
+                    commissionAmount: { $multiply: ['$commission', '$amountCents'] },
+            }
             },
             {
-              $group: {
-                _id: null,
-                totalCommission: { $sum: '$commissionAmount' }
-              }
+                $group: {
+                    _id: null,
+                    totalCommission: { $sum: '$commissionAmount' }
             }
-          ])
+            }
+        ])
 
-        const totalAmountPaidCommission = totalAmountPaidCommissionList[0].total / 100
+        let totalAmountPaid = 0
+        let totalAmountPaidActive = 0
+        let totalAmountPaidRefunded = 0
+        let totalAmountPaidCommission = 0
+
+        if(totalAmountPaidList.length != 0) {
+            totalAmountPaid = totalAmountPaidList[0].total / 100
+        }
+
+        if(totalAmountPaidActiveList.length != 0) {
+            totalAmountPaidActive = totalAmountPaidActiveList[0].total / 100
+        }
+
+        if(totalAmountPaidRefundedList.length != 0) {
+            totalAmountPaidRefunded = totalAmountPaidRefundedList[0].total / 100
+        }
+
+        if(totalAmountPaidCommissionList.length != 0) {
+            totalAmountPaidCommission = totalAmountPaidCommissionList[0].totalCommission / 100
+        }
 
         return response.status(200).json({
             accepted: true,
@@ -588,27 +607,19 @@ const refundPayment = async (request, response) => {
         const expert = await UserModel
         .findByIdAndUpdate(appointment.expertId, { $inc: { totalAppointments: -1 } }, { new: true })
 
-        const seeker = await UserModel.findById(appointment.seekerId)
-
-        const targetPhone = `${expert.countryCode}${expert.phone}`
-        const reservationDateTime = new Date(appointment.startTime)
-        const messageBody = {
-            expertName: expert.firstName,
-            appointmentId: `#${appointment.appointmentId}`,
-            appointmentDate: format(reservationDateTime, 'dd MMMM yyyy'),
-            appointmentTime: format(reservationDateTime, 'hh:mm a'),
-            seekerName: seeker.firstName
+        const emailData = {
+            receiverEmail: expert.email,
+            subject: 'Cancelled Appointment',
+            mailBodyText: `You have a cancelled appointment with ID #${updatedAppointment.appointmentId}`,
+            mailBodyHTML: `You have a cancelled appointment with ID #${updatedAppointment.appointmentId}`
         }
 
-        const messageSent = await whatsappCancelAppointment.sendCancelAppointment(targetPhone, 'en', messageBody)
-
-        const notificationMessage = messageSent.isSent ? 'Message is sent successfully!' : 'There was a problem sending your message'
-
+        const emailSent = await email.sendEmail(emailData)
 
         return response.status(200).json({
             accepted: true,
             message: 'Appointment is cancelled and refunded successfully!',
-            notificationMessage,
+            emailSent,
             appointment: updatedAppointment,
             payment: updatedPayment,
             expert
@@ -691,25 +702,19 @@ const fullRefundPayment = async (request, response) => {
 
         const seeker = await UserModel.findById(appointment.seekerId)
 
-        const targetPhone = `${seeker.countryCode}${seeker.phone}`
-        const reservationDateTime = new Date(appointment.startTime)
-        const messageBody = {
-            expertName: seeker.firstName,
-            appointmentId: `#${appointment.appointmentId}`,
-            appointmentDate: format(reservationDateTime, 'dd MMMM yyyy'),
-            appointmentTime: format(reservationDateTime, 'hh:mm a'),
-            seekerName: expert.firstName
+        const emailData = {
+            receiverEmail: seeker.email,
+            subject: 'Cancelled Appointment',
+            mailBodyText: `You have a cancelled appointment with ID #${updatedAppointment.appointmentId}`,
+            mailBodyHTML: `You have a cancelled appointment with ID #${updatedAppointment.appointmentId}`
         }
 
-        const messageSent = await whatsappCancelAppointment.sendCancelAppointment(targetPhone, 'en', messageBody)
-
-        const notificationMessage = messageSent.isSent ? 'Message is sent successfully!' : 'There was a problem sending your message'
-
+        const emailSent = await email.sendEmail(emailData)
 
         return response.status(200).json({
             accepted: true,
             message: 'Appointment is cancelled and refunded successfully!',
-            notificationMessage,
+            emailSent,
             appointment: updatedAppointment,
             payment: updatedPayment,
             expert

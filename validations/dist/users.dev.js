@@ -14,18 +14,6 @@ var checkSpeciality = function checkSpeciality(specialities) {
   return true;
 };
 
-var checkPricing = function checkPricing(pricingList) {
-  for (var i = 0; i < pricingList.length; i++) {
-    var price = pricingList[i];
-    if (!price.duration) return false;
-    if (typeof price.duration != 'number') return false;
-    if (!price.price) return false;
-    if (typeof price.price != 'number') return false;
-  }
-
-  return true;
-};
-
 var updateUser = function updateUser(userData) {
   var firstName = userData.firstName,
       title = userData.title,
@@ -35,7 +23,7 @@ var updateUser = function updateUser(userData) {
       dateOfBirth = userData.dateOfBirth,
       speciality = userData.speciality,
       subSpeciality = userData.subSpeciality,
-      pricing = userData.pricing;
+      languages = userData.languages;
   if (firstName && !utils.isNameValid(firstName)) return {
     isAccepted: false,
     message: 'Invalid name formate',
@@ -103,21 +91,16 @@ var updateUser = function updateUser(userData) {
     };
   }
 
-  if (pricing) {
-    if (!Array.isArray(pricing)) return {
+  if (languages) {
+    if (!Array.isArray(languages)) return {
       isAccepted: false,
-      message: 'Pricing must be a list',
-      field: 'pricing'
+      message: 'Languages must be a list',
+      field: 'languages'
     };
-    if (pricing.length != 2) return {
+    if (languages.length == 0) return {
       isAccepted: false,
-      message: 'Pricing must be atleast two',
-      field: 'pricing'
-    };
-    if (!checkPricing(pricing)) return {
-      isAccepted: false,
-      message: 'Pricing format is invalid',
-      field: 'pricing'
+      message: 'Languages must be atleast one',
+      field: 'languages'
     };
   }
 

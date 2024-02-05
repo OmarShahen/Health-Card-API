@@ -3,7 +3,7 @@ const utils = require('../utils/utils')
 
 const addReview = (reviewData) => {
 
-    const { expertId, seekerId, rating, note, isRecommend } = reviewData
+    const { expertId, seekerId, rating, communication, understanding, solutions, commitment, note, isRecommend } = reviewData
 
     if(!expertId) return { isAccepted: false, message: 'Expert ID is required', field: 'expertId' }
 
@@ -18,6 +18,22 @@ const addReview = (reviewData) => {
     if(!rating) return { isAccepted: false, message: 'Rating is required', field: 'rating' }
 
     if(typeof rating != 'number') return { isAccepted: false, message: 'Rating format is invalid', field: 'rating' }
+
+    if(!communication) return { isAccepted: false, message: 'Communication is required', field: 'communication' }
+
+    if(typeof communication != 'number') return { isAccepted: false, message: 'Communication format is invalid', field: 'communication' }
+
+    if(!understanding) return { isAccepted: false, message: 'Understanding is required', field: 'understanding' }
+
+    if(typeof understanding != 'number') return { isAccepted: false, message: 'Understanding format is invalid', field: 'understanding' }
+
+    if(!solutions) return { isAccepted: false, message: 'Solutions is required', field: 'solutions' }
+
+    if(typeof solutions != 'number') return { isAccepted: false, message: 'Solutions format is invalid', field: 'solutions' }
+
+    if(!commitment) return { isAccepted: false, message: 'Commitment is required', field: 'commitment' }
+
+    if(typeof commitment != 'number') return { isAccepted: false, message: 'Commitment format is invalid', field: 'commitment' }
 
     if(typeof isRecommend != 'boolean') return { isAccepted: false, message: 'Is recommend format is invalid', field: 'isRecommend' }
 

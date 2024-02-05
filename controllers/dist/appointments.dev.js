@@ -22,6 +22,8 @@ var CounterModel = require('../models/CounterModel');
 
 var UserModel = require('../models/UserModel');
 
+var ServiceModel = require('../models/ServiceModel');
+
 var appointmentValidation = require('../validations/appointments');
 
 var utils = require('../utils/utils');
@@ -43,7 +45,7 @@ var _require2 = require('../APIs/100ms/request'),
 var email = require('../mails/send-email');
 
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, _request$body, seekerId, expertId, startTime, duration, todayDate, expertListPromise, seekerListPromise, _ref, _ref2, expertList, seekerList, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, existingAppointmentsQuery, existingAppointments, roomData, newRoom, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
+  var dataValidation, _request$body, seekerId, expertId, serviceId, startTime, duration, todayDate, expertListPromise, seekerListPromise, servicePromise, _ref, _ref2, expertList, seekerList, service, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, existingAppointmentsQuery, existingAppointments, roomData, newRoom, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -64,7 +66,7 @@ var addAppointment = function addAppointment(request, response) {
           }));
 
         case 4:
-          _request$body = request.body, seekerId = _request$body.seekerId, expertId = _request$body.expertId, startTime = _request$body.startTime, duration = _request$body.duration;
+          _request$body = request.body, seekerId = _request$body.seekerId, expertId = _request$body.expertId, serviceId = _request$body.serviceId, startTime = _request$body.startTime, duration = _request$body.duration;
           todayDate = new Date();
 
           if (!(todayDate > new Date(startTime))) {
@@ -86,17 +88,19 @@ var addAppointment = function addAppointment(request, response) {
           seekerListPromise = UserModel.find({
             _id: seekerId
           });
-          _context.next = 12;
-          return regeneratorRuntime.awrap(Promise.all([expertListPromise, seekerListPromise]));
+          servicePromise = ServiceModel.findById(serviceId);
+          _context.next = 13;
+          return regeneratorRuntime.awrap(Promise.all([expertListPromise, seekerListPromise, servicePromise]));
 
-        case 12:
+        case 13:
           _ref = _context.sent;
-          _ref2 = _slicedToArray(_ref, 2);
+          _ref2 = _slicedToArray(_ref, 3);
           expertList = _ref2[0];
           seekerList = _ref2[1];
+          service = _ref2[2];
 
           if (!(expertList.length == 0)) {
-            _context.next = 18;
+            _context.next = 20;
             break;
           }
 
@@ -106,9 +110,9 @@ var addAppointment = function addAppointment(request, response) {
             field: 'expertId'
           }));
 
-        case 18:
+        case 20:
           if (!(seekerList.length == 0)) {
-            _context.next = 20;
+            _context.next = 22;
             break;
           }
 
@@ -118,9 +122,21 @@ var addAppointment = function addAppointment(request, response) {
             field: 'seekerId'
           }));
 
-        case 20:
+        case 22:
+          if (service) {
+            _context.next = 24;
+            break;
+          }
+
+          return _context.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Service ID is not registered',
+            field: 'serviceId'
+          }));
+
+        case 24:
           if (!(duration > 60)) {
-            _context.next = 22;
+            _context.next = 26;
             break;
           }
 
@@ -130,7 +146,7 @@ var addAppointment = function addAppointment(request, response) {
             field: 'duration'
           }));
 
-        case 22:
+        case 26:
           expert = expertList[0];
           seeker = seekerList[0];
           startTime = new Date(startTime);
@@ -140,18 +156,18 @@ var addAppointment = function addAppointment(request, response) {
           weekDay = config.WEEK_DAYS[startTime.getDay()];
           startingHour = startTime.getHours();
           startingMinute = startTime.getMinutes();
-          _context.next = 33;
+          _context.next = 37;
           return regeneratorRuntime.awrap(OpeningTimeModel.find({
             expertId: expertId,
             weekday: weekDay,
             isActive: true
           }));
 
-        case 33:
+        case 37:
           openingTimes = _context.sent;
 
           if (!(openingTimes.length == 0)) {
-            _context.next = 36;
+            _context.next = 40;
             break;
           }
 
@@ -161,7 +177,7 @@ var addAppointment = function addAppointment(request, response) {
             field: 'startTime'
           }));
 
-        case 36:
+        case 40:
           /*const openingTime = openingTimes[0]
             const combinedAvailableOpeningTime = (openingTime.openingTime.hour * 60) + openingTime.openingTime.minute
           const combinedAvailableClosingTime = (openingTime.closingTime.hour * 60) + openingTime.closingTime.minute
@@ -199,14 +215,14 @@ var addAppointment = function addAppointment(request, response) {
               }
             }]
           };
-          _context.next = 39;
+          _context.next = 43;
           return regeneratorRuntime.awrap(AppointmentModel.find(existingAppointmentsQuery));
 
-        case 39:
+        case 43:
           existingAppointments = _context.sent;
 
           if (!(existingAppointments.length != 0)) {
-            _context.next = 42;
+            _context.next = 46;
             break;
           }
 
@@ -216,18 +232,18 @@ var addAppointment = function addAppointment(request, response) {
             field: 'startTime'
           }));
 
-        case 42:
+        case 46:
           roomData = {
             template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
             description: "".concat(duration, " minutes session with ").concat(expert.firstName),
             max_duration_seconds: (duration + 5) * 60
           };
-          _context.next = 45;
+          _context.next = 49;
           return regeneratorRuntime.awrap(videoPlatformRequest.post('/v2/rooms', roomData));
 
-        case 45:
+        case 49:
           newRoom = _context.sent;
-          _context.next = 48;
+          _context.next = 52;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'Appointment'
           }, {
@@ -239,26 +255,26 @@ var addAppointment = function addAppointment(request, response) {
             upsert: true
           }));
 
-        case 48:
+        case 52:
           counter = _context.sent;
           appointmentData = _objectSpread({
             appointmentId: counter.value,
             roomId: newRoom.data.id
           }, request.body);
           appointmentObj = new AppointmentModel(appointmentData);
-          _context.next = 53;
+          _context.next = 57;
           return regeneratorRuntime.awrap(appointmentObj.save());
 
-        case 53:
+        case 57:
           newAppointment = _context.sent;
-          _context.next = 56;
+          _context.next = 60;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalAppointments: expert.totalAppointments + 1
           }, {
             "new": true
           }));
 
-        case 56:
+        case 60:
           updatedUser = _context.sent;
           options = {
             hour: 'numeric',
@@ -274,10 +290,10 @@ var addAppointment = function addAppointment(request, response) {
             mailBodyText: "You have a new appointment with ID #".concat(newAppointment.appointmentId),
             mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newAppointment.appointmentId, "</span><br />\n            <strong>Expert: </strong><span>").concat(expert.firstName, "</span><br />\n            <strong>Seeker: </strong><span>").concat(seeker.firstName, "</span><br />\n            <strong>Price: </strong><span>").concat(newAppointment.price, " EGP</span><br />\n            <strong>Duration: </strong><span>").concat(newAppointment.duration, " minutes</span><br />\n            <strong>Date: </strong><span>").concat(format(newAppointment.startTime, 'dd MMM yyyy'), "</span><br />\n            <strong>Start Time: </strong><span>").concat(appointmentStartTime.toLocaleString('en-US', options), "</span><br />\n            <strong>End Time: </strong><span>").concat(appointmentEndTime.toLocaleString('en-US', options), "</span><br />\n            ")
           };
-          _context.next = 63;
+          _context.next = 67;
           return regeneratorRuntime.awrap(email.sendEmail(newUserEmailData));
 
-        case 63:
+        case 67:
           emailSent = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
@@ -287,8 +303,8 @@ var addAppointment = function addAppointment(request, response) {
             emailSent: emailSent
           }));
 
-        case 67:
-          _context.prev = 67;
+        case 71:
+          _context.prev = 71;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -297,12 +313,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 71:
+        case 75:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 67]]);
+  }, null, null, [[0, 71]]);
 };
 
 var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {
@@ -711,6 +727,13 @@ var getAppointment = function getAppointment(request, response) {
               as: 'seeker'
             }
           }, {
+            $lookup: {
+              from: 'services',
+              localField: 'serviceId',
+              foreignField: '_id',
+              as: 'service'
+            }
+          }, {
             $project: {
               'expert.password': 0,
               'seeker.password': 0
@@ -722,6 +745,7 @@ var getAppointment = function getAppointment(request, response) {
           appointmentList.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
+            appointment.service = appointment.service[0];
           });
           appointment = appointmentList[0];
           return _context7.abrupt("return", response.status(200).json({

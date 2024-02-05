@@ -1,22 +1,20 @@
 "use strict";
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var ServiceModel = require('../models/ServiceModel');
-
-var serviceValidation = require('../validations/services');
-
-var AppointmentModel = require('../models/AppointmentModel');
-
-var ClinicModel = require('../models/ClinicModel');
 
 var UserModel = require('../models/UserModel');
 
-var InvoiceServiceModel = require('../models/InvoiceServiceModel');
+var AppointmentModel = require('../models/AppointmentModel');
 
-var ClinicOwnerModel = require('../models/ClinicOwnerModel');
+var CounterModel = require('../models/CounterModel');
 
-var mongoose = require('mongoose');
-
-var translations = require('../i18n/index');
+var serviceValidation = require('../validations/services');
 
 var getServices = function getServices(request, response) {
   var services;
@@ -55,44 +53,30 @@ var getServices = function getServices(request, response) {
   }, null, null, [[0, 7]]);
 };
 
-var getServicesByClinicId = function getServicesByClinicId(request, response) {
-  var clinicId, services;
-  return regeneratorRuntime.async(function getServicesByClinicId$(_context2) {
+var getServicesByExpertId = function getServicesByExpertId(request, response) {
+  var userId, services;
+  return regeneratorRuntime.async(function getServicesByExpertId$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          clinicId = request.params.clinicId;
+          userId = request.params.userId;
           _context2.next = 4;
-          return regeneratorRuntime.awrap(ServiceModel.aggregate([{
-            $match: {
-              clinicId: mongoose.Types.ObjectId(clinicId)
-            }
-          }, {
-            $lookup: {
-              from: 'clinics',
-              localField: 'clinicId',
-              foreignField: '_id',
-              as: 'clinic'
-            }
-          }, {
-            $sort: {
-              createdAt: -1
-            }
-          }]));
+          return regeneratorRuntime.awrap(ServiceModel.find({
+            expertId: userId
+          }).sort({
+            createdAt: -1
+          }));
 
         case 4:
           services = _context2.sent;
-          services.forEach(function (service) {
-            return service.clinic = service.clinic[0];
-          });
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
             services: services
           }));
 
-        case 9:
-          _context2.prev = 9;
+        case 8:
+          _context2.prev = 8;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -101,64 +85,107 @@ var getServicesByClinicId = function getServicesByClinicId(request, response) {
             error: _context2.t0.message
           }));
 
-        case 13:
+        case 12:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 8]]);
 };
 
-var getServicesByUserId = function getServicesByUserId(request, response) {
-  var userId, ownerClinics, clinics, services;
-  return regeneratorRuntime.async(function getServicesByUserId$(_context3) {
+var addService = function addService(request, response) {
+  var dataValidation, _request$body, expertId, title, expert, expertServicesList, counter, serviceData, serviceObj, newService;
+
+  return regeneratorRuntime.async(function addService$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          userId = request.params.userId;
-          _context3.next = 4;
-          return regeneratorRuntime.awrap(ClinicOwnerModel.find({
-            ownerId: userId
+          dataValidation = serviceValidation.addService(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context3.next = 4;
+            break;
+          }
+
+          return _context3.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
         case 4:
-          ownerClinics = _context3.sent;
-          clinics = ownerClinics.map(function (clinic) {
-            return clinic.clinicId;
-          });
-          _context3.next = 8;
-          return regeneratorRuntime.awrap(ServiceModel.aggregate([{
-            $match: {
-              clinicId: {
-                $in: clinics
-              }
-            }
-          }, {
-            $lookup: {
-              from: 'clinics',
-              localField: 'clinicId',
-              foreignField: '_id',
-              as: 'clinic'
-            }
-          }, {
-            $sort: {
-              createdAt: -1
-            }
-          }]));
+          _request$body = request.body, expertId = _request$body.expertId, title = _request$body.title;
+          _context3.next = 7;
+          return regeneratorRuntime.awrap(UserModel.findById(expertId));
 
-        case 8:
-          services = _context3.sent;
-          services.forEach(function (service) {
-            return service.clinic = service.clinic[0];
-          });
-          return _context3.abrupt("return", response.status(200).json({
-            accepted: true,
-            services: services
+        case 7:
+          expert = _context3.sent;
+
+          if (expert) {
+            _context3.next = 10;
+            break;
+          }
+
+          return _context3.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Expert ID is not registered',
+            field: 'expertId'
           }));
 
-        case 13:
-          _context3.prev = 13;
+        case 10:
+          _context3.next = 12;
+          return regeneratorRuntime.awrap(ServiceModel.find({
+            expertId: expertId,
+            title: title
+          }));
+
+        case 12:
+          expertServicesList = _context3.sent;
+
+          if (!(expertServicesList.length != 0)) {
+            _context3.next = 15;
+            break;
+          }
+
+          return _context3.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Title is already registered in a service',
+            field: 'title'
+          }));
+
+        case 15:
+          _context3.next = 17;
+          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
+            name: 'service'
+          }, {
+            $inc: {
+              value: 1
+            }
+          }, {
+            "new": true,
+            upsert: true
+          }));
+
+        case 17:
+          counter = _context3.sent;
+          serviceData = _objectSpread({
+            serviceId: counter.value
+          }, request.body);
+          serviceObj = new ServiceModel(serviceData);
+          _context3.next = 22;
+          return regeneratorRuntime.awrap(serviceObj.save());
+
+        case 22:
+          newService = _context3.sent;
+          return _context3.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Added service successfully!',
+            service: newService
+          }));
+
+        case 26:
+          _context3.prev = 26;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -167,26 +194,27 @@ var getServicesByUserId = function getServicesByUserId(request, response) {
             error: _context3.t0.message
           }));
 
-        case 17:
+        case 30:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 26]]);
 };
 
-var addService = function addService(request, response) {
-  var dataValidation, _request$body, clinicId, name, clinic, serviceList, serviceObj, newService;
-
-  return regeneratorRuntime.async(function addService$(_context4) {
+var updateService = function updateService(request, response) {
+  var serviceId, title, dataValidation, service, expertServicesList, updatedService;
+  return regeneratorRuntime.async(function updateService$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          dataValidation = serviceValidation.addService(request.body);
+          serviceId = request.params.serviceId;
+          title = request.body.title;
+          dataValidation = serviceValidation.updateService(request.body);
 
           if (dataValidation.isAccepted) {
-            _context4.next = 4;
+            _context4.next = 6;
             break;
           }
 
@@ -196,61 +224,54 @@ var addService = function addService(request, response) {
             field: dataValidation.field
           }));
 
-        case 4:
-          _request$body = request.body, clinicId = _request$body.clinicId, name = _request$body.name;
-          _context4.next = 7;
-          return regeneratorRuntime.awrap(ClinicModel.findById(clinicId));
+        case 6:
+          _context4.next = 8;
+          return regeneratorRuntime.awrap(ServiceModel.findById(serviceId));
 
-        case 7:
-          clinic = _context4.sent;
+        case 8:
+          service = _context4.sent;
 
-          if (clinic) {
-            _context4.next = 10;
+          if (!(title != service.title)) {
+            _context4.next = 15;
             break;
           }
 
-          return _context4.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'clinic Id is not registered',
-            field: 'clinicId'
-          }));
-
-        case 10:
           _context4.next = 12;
           return regeneratorRuntime.awrap(ServiceModel.find({
-            clinicId: clinicId,
-            name: name
+            expertId: service.expertId,
+            title: title
           }));
 
         case 12:
-          serviceList = _context4.sent;
+          expertServicesList = _context4.sent;
 
-          if (!(serviceList.length != 0)) {
+          if (!(expertServicesList.length != 0)) {
             _context4.next = 15;
             break;
           }
 
           return _context4.abrupt("return", response.status(400).json({
             accepted: false,
-            message: translations[request.query.lang]['Service name is already registered'],
-            field: 'name'
+            message: 'Title is already registered in a service',
+            field: 'title'
           }));
 
         case 15:
-          serviceObj = new ServiceModel(request.body);
-          _context4.next = 18;
-          return regeneratorRuntime.awrap(serviceObj.save());
-
-        case 18:
-          newService = _context4.sent;
-          return _context4.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Added service successfully!'],
-            service: newService
+          _context4.next = 17;
+          return regeneratorRuntime.awrap(ServiceModel.findByIdAndUpdate(serviceId, request.body, {
+            "new": true
           }));
 
-        case 22:
-          _context4.prev = 22;
+        case 17:
+          updatedService = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated service successfully!',
+            service: updatedService
+          }));
+
+        case 21:
+          _context4.prev = 21;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -259,75 +280,54 @@ var addService = function addService(request, response) {
             error: _context4.t0.message
           }));
 
-        case 26:
+        case 25:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 22]]);
+  }, null, null, [[0, 21]]);
 };
 
-var deleteService = function deleteService(request, response) {
-  var serviceId, invoiceList, appointmentsList, deletedService;
-  return regeneratorRuntime.async(function deleteService$(_context5) {
+var updateServiceActivity = function updateServiceActivity(request, response) {
+  var serviceId, isActive, dataValidation, updatedService;
+  return regeneratorRuntime.async(function updateServiceActivity$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
           serviceId = request.params.serviceId;
-          _context5.next = 4;
-          return regeneratorRuntime.awrap(InvoiceServiceModel.find({
-            serviceId: serviceId
-          }));
+          isActive = request.body.isActive;
+          dataValidation = serviceValidation.updateServiceActivity(request.body);
 
-        case 4:
-          invoiceList = _context5.sent;
-
-          if (!(invoiceList.length != 0)) {
-            _context5.next = 7;
+          if (dataValidation.isAccepted) {
+            _context5.next = 6;
             break;
           }
 
           return _context5.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['The service is already registered with invoices'],
-            field: 'serviceId'
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
-        case 7:
-          _context5.next = 9;
-          return regeneratorRuntime.awrap(AppointmentModel.find({
-            serviceId: serviceId
+        case 6:
+          _context5.next = 8;
+          return regeneratorRuntime.awrap(ServiceModel.findByIdAndUpdate(serviceId, {
+            isActive: isActive
+          }, {
+            "new": true
           }));
 
-        case 9:
-          appointmentsList = _context5.sent;
-
-          if (!(appointmentsList.length != 0)) {
-            _context5.next = 12;
-            break;
-          }
-
-          return _context5.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: translations[request.query.lang]['The service is already registered with appointments'],
-            field: 'serviceId'
+        case 8:
+          updatedService = _context5.sent;
+          return _context5.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated service activity successfully!',
+            service: updatedService
           }));
 
         case 12:
-          _context5.next = 14;
-          return regeneratorRuntime.awrap(ServiceModel.findByIdAndDelete(serviceId));
-
-        case 14:
-          deletedService = _context5.sent;
-          return _context5.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[request.query.lang]['Deleted service successfully!'],
-            service: deletedService
-          }));
-
-        case 18:
-          _context5.prev = 18;
+          _context5.prev = 12;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -336,89 +336,55 @@ var deleteService = function deleteService(request, response) {
             error: _context5.t0.message
           }));
 
-        case 22:
+        case 16:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 18]]);
+  }, null, null, [[0, 12]]);
 };
 
-var updateService = function updateService(request, response) {
-  var dataValidation, serviceId, _request$body2, name, cost, service, nameList, serviceData, updatedService;
-
-  return regeneratorRuntime.async(function updateService$(_context6) {
+var deleteService = function deleteService(request, response) {
+  var serviceId, appointmentsList, deletedService;
+  return regeneratorRuntime.async(function deleteService$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          dataValidation = serviceValidation.updateService(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context6.next = 4;
-            break;
-          }
-
-          return _context6.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
+          serviceId = request.params.serviceId;
+          _context6.next = 4;
+          return regeneratorRuntime.awrap(AppointmentModel.find({
+            serviceId: serviceId
           }));
 
         case 4:
-          serviceId = request.params.serviceId;
-          _request$body2 = request.body, name = _request$body2.name, cost = _request$body2.cost;
-          _context6.next = 8;
-          return regeneratorRuntime.awrap(ServiceModel.findById(serviceId));
+          appointmentsList = _context6.sent;
 
-        case 8:
-          service = _context6.sent;
-
-          if (!(name != service.name)) {
-            _context6.next = 15;
-            break;
-          }
-
-          _context6.next = 12;
-          return regeneratorRuntime.awrap(ServiceModel.find({
-            clinicId: service.clinicId,
-            name: name
-          }));
-
-        case 12:
-          nameList = _context6.sent;
-
-          if (!(nameList.length != 0)) {
-            _context6.next = 15;
+          if (!(appointmentsList.length != 0)) {
+            _context6.next = 7;
             break;
           }
 
           return _context6.abrupt("return", response.status(400).json({
             accepted: false,
-            message: translations[request.query.lang]['Service name is already registered'],
-            field: 'name'
+            message: 'Service is registered with appointments',
+            field: 'serviceId'
           }));
 
-        case 15:
-          serviceData = {
-            name: name,
-            cost: cost
-          };
-          _context6.next = 18;
-          return regeneratorRuntime.awrap(ServiceModel.findByIdAndUpdate(serviceId, serviceData, {
-            "new": true
-          }));
+        case 7:
+          _context6.next = 9;
+          return regeneratorRuntime.awrap(ServiceModel.findByIdAndDelete(serviceId));
 
-        case 18:
-          updatedService = _context6.sent;
+        case 9:
+          deletedService = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: translations[request.query.lang]['Updated service successfully!'],
-            service: updatedService
+            message: 'Deleted service successfully!',
+            service: deletedService
           }));
 
-        case 22:
-          _context6.prev = 22;
+        case 13:
+          _context6.prev = 13;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -427,19 +393,19 @@ var updateService = function updateService(request, response) {
             error: _context6.t0.message
           }));
 
-        case 26:
+        case 17:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 22]]);
+  }, null, null, [[0, 13]]);
 };
 
 module.exports = {
   getServices: getServices,
-  getServicesByClinicId: getServicesByClinicId,
-  getServicesByUserId: getServicesByUserId,
+  getServicesByExpertId: getServicesByExpertId,
   addService: addService,
-  deleteService: deleteService,
-  updateService: updateService
+  updateService: updateService,
+  updateServiceActivity: updateServiceActivity,
+  deleteService: deleteService
 };

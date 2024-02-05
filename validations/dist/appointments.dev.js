@@ -7,6 +7,7 @@ var config = require('../config/config');
 var addAppointment = function addAppointment(appointmentData) {
   var seekerId = appointmentData.seekerId,
       expertId = appointmentData.expertId,
+      serviceId = appointmentData.serviceId,
       status = appointmentData.status,
       price = appointmentData.price,
       startTime = appointmentData.startTime,
@@ -30,6 +31,16 @@ var addAppointment = function addAppointment(appointmentData) {
     isAccepted: false,
     message: 'invalid expert Id format',
     field: 'expertId'
+  };
+  if (!serviceId) return {
+    isAccepted: false,
+    message: 'Service Id is required',
+    field: 'serviceId'
+  };
+  if (!utils.isObjectId(serviceId)) return {
+    isAccepted: false,
+    message: 'Invalid service Id format',
+    field: 'serviceId'
   };
   if (!status) return {
     isAccepted: false,

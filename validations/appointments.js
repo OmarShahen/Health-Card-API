@@ -3,7 +3,7 @@ const config = require('../config/config')
 
 const addAppointment = (appointmentData) => {
 
-    const { seekerId, expertId, status, price, startTime, duration } = appointmentData
+    const { seekerId, expertId, serviceId, status, price, startTime, duration } = appointmentData
 
     if(!seekerId) return { isAccepted: false, message: 'Seeker Id is required', field: 'seekerId' }
 
@@ -12,6 +12,10 @@ const addAppointment = (appointmentData) => {
     if(!expertId) return { isAccepted: false, message: 'Expert Id is required', field: 'expertId' }
 
     if(!utils.isObjectId(expertId)) return { isAccepted: false, message: 'invalid expert Id format', field: 'expertId' }
+
+    if(!serviceId) return { isAccepted: false, message: 'Service Id is required', field: 'serviceId' }
+
+    if(!utils.isObjectId(serviceId)) return { isAccepted: false, message: 'Invalid service Id format', field: 'serviceId' }
 
     if(!status) return { isAccepted: false, message: 'status is required', field: 'status' }
 

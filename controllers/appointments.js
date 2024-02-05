@@ -2,6 +2,7 @@ const AppointmentModel = require('../models/AppointmentModel')
 const OpeningTimeModel = require('../models/OpeningTimeModel')
 const CounterModel = require('../models/CounterModel')
 const UserModel = require('../models/UserModel')
+const ServiceModel = require('../models/ServiceModel')
 const appointmentValidation = require('../validations/appointments')
 const utils = require('../utils/utils')
 const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointment')
@@ -26,7 +27,7 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        let { seekerId, expertId, startTime, duration } = request.body
+        let { seekerId, expertId, serviceId, startTime, duration } = request.body
 
         const todayDate = new Date() 
         if(todayDate > new Date(startTime)) {
@@ -39,10 +40,12 @@ const addAppointment = async (request, response) => {
 
         const expertListPromise = UserModel.find({ _id: expertId, type: 'EXPERT' })
         const seekerListPromise = UserModel.find({ _id: seekerId })
+        const servicePromise = ServiceModel.findById(serviceId)
 
-        const [expertList, seekerList] = await Promise.all([
+        const [expertList, seekerList, service] = await Promise.all([
             expertListPromise,
             seekerListPromise,
+            servicePromise
         ])
 
         if(expertList.length == 0) {
@@ -58,6 +61,14 @@ const addAppointment = async (request, response) => {
                 accepted: false,
                 message: 'Seeker Id is not registered',
                 field: 'seekerId'
+            })
+        }
+
+        if(!service) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Service ID is not registered',
+                field: 'serviceId'
             })
         }
 
@@ -511,6 +522,14 @@ const getAppointment = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'services',
+                    localField: 'serviceId',
+                    foreignField: '_id',
+                    as: 'service'
+                }
+            },
+            {
                 $project: {
                     'expert.password': 0,
                     'seeker.password': 0,
@@ -521,6 +540,7 @@ const getAppointment = async (request, response) => {
         appointmentList.forEach(appointment => {
             appointment.expert = appointment.expert[0]
             appointment.seeker = appointment.seeker[0]
+            appointment.service = appointment.service[0]
         })
 
         const appointment = appointmentList[0]

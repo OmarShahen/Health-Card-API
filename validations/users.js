@@ -11,26 +11,10 @@ const checkSpeciality = (specialities) => {
     return true
 }
 
-const checkPricing = (pricingList) => {
-    for(let i=0;i<pricingList.length;i++) {
-        const price = pricingList[i]
-
-        if(!price.duration) return false
-
-        if(typeof price.duration != 'number') return false
-
-        if(!price.price) return false
-
-        if(typeof price.price != 'number') return false
-
-    }
-
-    return true
-}
 
 const updateUser = (userData) => {
 
-    const { firstName, title, description, phone, gender, dateOfBirth, speciality, subSpeciality, pricing } = userData
+    const { firstName, title, description, phone, gender, dateOfBirth, speciality, subSpeciality, languages } = userData
 
 
     if(firstName && !utils.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
@@ -63,13 +47,11 @@ const updateUser = (userData) => {
         if(!checkSpeciality(subSpeciality)) return { isAccepted: false, message: 'Subspeciality Ids is invalid', field: 'subSpeciality' }
     }
 
-    if(pricing) {
+    if(languages) {
 
-        if(!Array.isArray(pricing)) return { isAccepted: false, message: 'Pricing must be a list', field: 'pricing' }    
+        if(!Array.isArray(languages)) return { isAccepted: false, message: 'Languages must be a list', field: 'languages' }    
 
-        if(pricing.length != 2) return { isAccepted: false, message: 'Pricing must be atleast two', field: 'pricing' }
-
-        if(!checkPricing(pricing)) return { isAccepted: false, message: 'Pricing format is invalid', field: 'pricing' }
+        if(languages.length == 0) return { isAccepted: false, message: 'Languages must be atleast one', field: 'languages' }
 
     }
 

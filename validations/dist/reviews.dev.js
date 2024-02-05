@@ -6,6 +6,10 @@ var addReview = function addReview(reviewData) {
   var expertId = reviewData.expertId,
       seekerId = reviewData.seekerId,
       rating = reviewData.rating,
+      communication = reviewData.communication,
+      understanding = reviewData.understanding,
+      solutions = reviewData.solutions,
+      commitment = reviewData.commitment,
       note = reviewData.note,
       isRecommend = reviewData.isRecommend;
   if (!expertId) return {
@@ -42,6 +46,46 @@ var addReview = function addReview(reviewData) {
     isAccepted: false,
     message: 'Rating format is invalid',
     field: 'rating'
+  };
+  if (!communication) return {
+    isAccepted: false,
+    message: 'Communication is required',
+    field: 'communication'
+  };
+  if (typeof communication != 'number') return {
+    isAccepted: false,
+    message: 'Communication format is invalid',
+    field: 'communication'
+  };
+  if (!understanding) return {
+    isAccepted: false,
+    message: 'Understanding is required',
+    field: 'understanding'
+  };
+  if (typeof understanding != 'number') return {
+    isAccepted: false,
+    message: 'Understanding format is invalid',
+    field: 'understanding'
+  };
+  if (!solutions) return {
+    isAccepted: false,
+    message: 'Solutions is required',
+    field: 'solutions'
+  };
+  if (typeof solutions != 'number') return {
+    isAccepted: false,
+    message: 'Solutions format is invalid',
+    field: 'solutions'
+  };
+  if (!commitment) return {
+    isAccepted: false,
+    message: 'Commitment is required',
+    field: 'commitment'
+  };
+  if (typeof commitment != 'number') return {
+    isAccepted: false,
+    message: 'Commitment format is invalid',
+    field: 'commitment'
   };
   if (typeof isRecommend != 'boolean') return {
     isAccepted: false,

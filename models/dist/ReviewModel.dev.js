@@ -17,13 +17,40 @@ var ReviewSchema = new mongoose.Schema({
   },
   rating: {
     type: Number,
-    required: true
+    "default": 5,
+    min: 0,
+    max: 5
+  },
+  communication: {
+    type: Number,
+    "default": 5,
+    min: 0,
+    max: 5
+  },
+  understanding: {
+    type: Number,
+    "default": 5,
+    min: 0,
+    max: 5
+  },
+  solutions: {
+    type: Number,
+    "default": 5,
+    min: 0,
+    max: 5
+  },
+  commitment: {
+    type: Number,
+    "default": 5,
+    min: 0,
+    max: 5
   },
   note: {
     type: String
   },
   isRecommend: {
-    type: Boolean
+    type: Boolean,
+    "default": true
   }
 }, {
   timestamps: true

@@ -30,8 +30,8 @@ const calculateExpertProfileCompletePercentage = (userProfile) => {
         completedFields++
     }
 
-    if(!userProfile.pricing || userProfile.pricing.length == 0) {
-        missingFields.push('pricing')
+    if(!userProfile.languages || userProfile.languages.length == 0) {
+        missingFields.push('languages')
     } else {
         completedFields++
     }
@@ -44,7 +44,7 @@ const calculateExpertProfileCompletePercentage = (userProfile) => {
         missingFields.push('paymentInfo')
     }
 
-    requiredFields = [...requiredFields, 'speciality', 'subSpeciality', 'pricing', 'paymentInfo']
+    requiredFields = [...requiredFields, 'speciality', 'subSpeciality', 'languages', 'paymentInfo']
 
     const completionPercentage = (completedFields / totalFields) * 100
 

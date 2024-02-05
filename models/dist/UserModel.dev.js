@@ -35,11 +35,16 @@ var UserSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    "enum": config.GENDER
+    "default": 'MALE'
   },
   dateOfBirth: {
     type: Date
   },
+  nationality: {
+    type: String,
+    "default": 'EGYPT'
+  },
+  languages: [],
   lang: {
     type: String,
     "default": 'ar',

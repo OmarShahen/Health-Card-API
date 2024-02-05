@@ -40,6 +40,7 @@ app.use('/api', require('./routes/payments'));
 app.use('/api', require('./routes/opening-times'));
 app.use('/api', require('./routes/reviews'));
 app.use('/api', require('./routes/expertVerifications'));
+app.use('/api', require('./routes/services'));
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
 })["catch"](function (error) {

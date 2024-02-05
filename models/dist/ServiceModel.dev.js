@@ -3,17 +3,37 @@
 var mongoose = require('mongoose');
 
 var ServiceSchema = new mongoose.Schema({
-  clinicId: {
+  serviceId: {
+    type: Number,
+    required: true
+  },
+  expertId: {
     type: mongoose.Types.ObjectId,
     required: true
   },
-  name: {
+  title: {
     type: String,
     required: true
   },
-  cost: {
+  description: {
+    type: String,
+    required: true
+  },
+  price: {
     type: Number,
     required: true
+  },
+  duration: {
+    type: Number,
+    required: true
+  },
+  isActive: {
+    type: Boolean,
+    "default": true
+  },
+  format: {
+    type: String,
+    "default": 'ONE-ON-ONE'
   }
 }, {
   timestamps: true

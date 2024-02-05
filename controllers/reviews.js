@@ -105,6 +105,120 @@ const getReviewsStats = async (request, response) => {
     }
 }
 
+const getExpertReviewsStats = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const matchQuery = { expertId: mongoose.Types.ObjectId(userId) }
+
+        const reviewsRatingList = await ReviewModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageRating: { $avg: '$rating' }
+                }
+            }
+        ])
+
+        const reviewsCommunicationList = await ReviewModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageCommunication: { $avg: '$communication' }
+                }
+            }
+        ])
+
+        const reviewsUnderstandingList = await ReviewModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageUnderstanding: { $avg: '$understanding' }
+                }
+            }
+        ])
+
+        const reviewsSolutionsList = await ReviewModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageSolutions: { $avg: '$solutions' }
+                }
+            }
+        ])
+
+        const reviewsCommitmentList = await ReviewModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    averageCommitment: { $avg: '$commitment' }
+                }
+            }
+        ])
+
+        let reviewsRating = 0
+        let reviewsCommunication = 0
+        let reviewsUnderstanding = 0
+        let reviewsSolutions = 0
+        let reviewsCommitment = 0
+
+        if(reviewsRatingList.length != 0) {
+            reviewsRating = reviewsRatingList[0].averageRating
+        }
+
+        if(reviewsCommunicationList.length != 0) {
+            reviewsCommunication = reviewsCommunicationList[0].averageCommunication
+        }
+
+        if(reviewsUnderstandingList.length != 0) {
+            reviewsUnderstanding = reviewsUnderstandingList[0].averageUnderstanding
+        }
+
+        if(reviewsSolutionsList.length != 0) {
+            reviewsSolutions = reviewsSolutionsList[0].averageSolutions
+        }
+
+        if(reviewsCommitmentList.length != 0) {
+            reviewsCommitment = reviewsCommitmentList[0].averageCommitment
+        }
+
+
+        return response.status(200).json({
+            accepted: true,
+            reviewsRating,
+            reviewsCommunication,
+            reviewsUnderstanding,
+            reviewsSolutions,
+            reviewsCommitment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getReviewsByExpertId = async (request, response) => {
 
     try {
@@ -295,5 +409,6 @@ module.exports = {
     addReview, 
     deleteReview, 
     getReviewsByExpertId, 
-    getReviewsStats 
+    getReviewsStats,
+    getExpertReviewsStats
 }

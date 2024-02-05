@@ -19,6 +19,10 @@ var AppointmentSchema = new mongoose.Schema({
   paymentId: {
     type: mongoose.Types.ObjectId
   },
+  serviceId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
   roomId: {
     type: String,
     required: true

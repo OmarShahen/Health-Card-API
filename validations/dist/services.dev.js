@@ -3,38 +3,70 @@
 var utils = require('../utils/utils');
 
 var addService = function addService(serviceData) {
-  var clinicId = serviceData.clinicId,
-      name = serviceData.name,
-      cost = serviceData.cost;
-  if (!clinicId) return {
+  var expertId = serviceData.expertId,
+      title = serviceData.title,
+      description = serviceData.description,
+      price = serviceData.price,
+      duration = serviceData.duration;
+  if (!expertId) return {
     isAccepted: false,
-    message: 'Clinic Id is required',
-    field: 'clinicId'
+    message: 'Expert ID is required',
+    field: 'expertId'
   };
-  if (!utils.isObjectId(clinicId)) return {
+  if (!utils.isObjectId(expertId)) return {
     isAccepted: false,
-    message: 'Clinic Id format is invalid',
-    field: 'clinicId'
+    message: 'Expert ID format is invalid',
+    field: 'expertId'
   };
-  if (!name) return {
+  if (!title) return {
     isAccepted: false,
-    message: 'Name is required',
-    field: 'name'
+    message: 'Title is required',
+    field: 'title'
   };
-  if (typeof name != 'string') return {
+  if (typeof title != 'string') return {
     isAccepted: false,
-    message: 'Invalid name format',
-    field: 'name'
+    message: 'Invalid title format',
+    field: 'title'
   };
-  if (!cost) return {
+  if (!description) return {
     isAccepted: false,
-    message: 'Cost is required',
-    field: 'cost'
+    message: 'Description is required',
+    field: 'description'
   };
-  if (typeof cost != 'number') return {
+  if (typeof description != 'string') return {
     isAccepted: false,
-    message: 'Invalid cost format',
-    field: 'cost'
+    message: 'Description format is invalid',
+    field: 'description'
+  };
+  if (!price) return {
+    isAccepted: false,
+    message: 'Price is required',
+    field: 'price'
+  };
+  if (typeof price != 'number') return {
+    isAccepted: false,
+    message: 'Price format is invalid',
+    field: 'price'
+  };
+  if (!duration) return {
+    isAccepted: false,
+    message: 'Duration is required',
+    field: 'duration'
+  };
+  if (typeof duration != 'number') return {
+    isAccepted: false,
+    message: 'Duration format is invalid',
+    field: 'duration'
+  };
+  if (duration < 5) return {
+    isAccepted: false,
+    message: 'Duration minimum is 5 minutes',
+    field: 'duration'
+  };
+  if (duration > 180) return {
+    isAccepted: false,
+    message: 'Duration maximum is 180 minutes',
+    field: 'duration'
   };
   return {
     isAccepted: true,
@@ -44,27 +76,73 @@ var addService = function addService(serviceData) {
 };
 
 var updateService = function updateService(serviceData) {
-  var name = serviceData.name,
-      cost = serviceData.cost;
-  if (!name) return {
+  var title = serviceData.title,
+      description = serviceData.description,
+      price = serviceData.price,
+      duration = serviceData.duration;
+  if (!title) return {
     isAccepted: false,
-    message: 'Name is required',
-    field: 'name'
+    message: 'Title is required',
+    field: 'title'
   };
-  if (typeof name != 'string') return {
+  if (typeof title != 'string') return {
     isAccepted: false,
-    message: 'Invalid name format',
-    field: 'name'
+    message: 'Invalid title format',
+    field: 'title'
   };
-  if (!cost) return {
+  if (!description) return {
     isAccepted: false,
-    message: 'Cost is required',
-    field: 'cost'
+    message: 'Description is required',
+    field: 'description'
   };
-  if (typeof cost != 'number') return {
+  if (typeof description != 'string') return {
     isAccepted: false,
-    message: 'Invalid cost format',
-    field: 'cost'
+    message: 'Description format is invalid',
+    field: 'description'
+  };
+  if (!price) return {
+    isAccepted: false,
+    message: 'Price is required',
+    field: 'price'
+  };
+  if (typeof price != 'number') return {
+    isAccepted: false,
+    message: 'Price format is invalid',
+    field: 'price'
+  };
+  if (!duration) return {
+    isAccepted: false,
+    message: 'Duration is required',
+    field: 'duration'
+  };
+  if (typeof duration != 'number') return {
+    isAccepted: false,
+    message: 'Duration format is invalid',
+    field: 'duration'
+  };
+  if (duration < 5) return {
+    isAccepted: false,
+    message: 'Duration minimum is 5 minutes',
+    field: 'duration'
+  };
+  if (duration > 180) return {
+    isAccepted: false,
+    message: 'Duration maximum is 180 minutes',
+    field: 'duration'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: serviceData
+  };
+};
+
+var updateServiceActivity = function updateServiceActivity(serviceData) {
+  var isActive = serviceData.isActive;
+  if (typeof isActive != 'boolean') return {
+    isAccepted: false,
+    message: 'isActive format is invalid',
+    field: 'isActive'
   };
   return {
     isAccepted: true,
@@ -75,5 +153,6 @@ var updateService = function updateService(serviceData) {
 
 module.exports = {
   addService: addService,
-  updateService: updateService
+  updateService: updateService,
+  updateServiceActivity: updateServiceActivity
 };

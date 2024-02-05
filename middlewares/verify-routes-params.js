@@ -5,6 +5,7 @@ const SpecialityModel = require('../models/SpecialityModel')
 const OpeningTimeModel = require('../models/OpeningTimeModel')
 const ReviewModel = require('../models/ReviewModel')
 const ExpertVerificationModel = require('../models/ExpertVerificationModel')
+const ServiceModel = require('../models/ServiceModel')
 
 
 const verifyUserId = async (request, response, next) => {
@@ -216,11 +217,47 @@ const verifyExpertVerificationId = async (request, response, next) => {
     }
 }
 
+const verifyServiceId = async (request, response, next) => {
+
+    try {
+
+        const { serviceId } = request.params
+
+        if(!utils.isObjectId(serviceId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid service ID format',
+                field: 'serviceId'
+            })
+        }
+
+        const service = await ServiceModel.findById(serviceId)
+        if(!service) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Service ID does not exist',
+                field: 'serviceId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyUserId,
     verifyAppointmentId,
     verifySpecialityId,
     verifyOpeningTimeId,
     verifyReviewId,
-    verifyExpertVerificationId
+    verifyExpertVerificationId,
+    verifyServiceId
 }

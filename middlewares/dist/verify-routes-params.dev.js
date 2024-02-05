@@ -14,6 +14,8 @@ var ReviewModel = require('../models/ReviewModel');
 
 var ExpertVerificationModel = require('../models/ExpertVerificationModel');
 
+var ServiceModel = require('../models/ServiceModel');
+
 var verifyUserId = function verifyUserId(request, response, next) {
   var userId, user;
   return regeneratorRuntime.async(function verifyUserId$(_context) {
@@ -366,11 +368,71 @@ var verifyExpertVerificationId = function verifyExpertVerificationId(request, re
   }, null, null, [[0, 12]]);
 };
 
+var verifyServiceId = function verifyServiceId(request, response, next) {
+  var serviceId, service;
+  return regeneratorRuntime.async(function verifyServiceId$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          serviceId = request.params.serviceId;
+
+          if (utils.isObjectId(serviceId)) {
+            _context7.next = 4;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid service ID format',
+            field: 'serviceId'
+          }));
+
+        case 4:
+          _context7.next = 6;
+          return regeneratorRuntime.awrap(ServiceModel.findById(serviceId));
+
+        case 6:
+          service = _context7.sent;
+
+          if (service) {
+            _context7.next = 9;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Service ID does not exist',
+            field: 'serviceId'
+          }));
+
+        case 9:
+          return _context7.abrupt("return", next());
+
+        case 12:
+          _context7.prev = 12;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context7.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyUserId: verifyUserId,
   verifyAppointmentId: verifyAppointmentId,
   verifySpecialityId: verifySpecialityId,
   verifyOpeningTimeId: verifyOpeningTimeId,
   verifyReviewId: verifyReviewId,
-  verifyExpertVerificationId: verifyExpertVerificationId
+  verifyExpertVerificationId: verifyExpertVerificationId,
+  verifyServiceId: verifyServiceId
 };
