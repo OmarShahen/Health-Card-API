@@ -412,10 +412,72 @@ var deleteExpertVerification = function deleteExpertVerification(request, respon
   }, null, null, [[0, 8]]);
 };
 
+var getExpertVerificationsGrowthStats = function getExpertVerificationsGrowthStats(request, response) {
+  var groupBy, format, countMethod, expertsVerificationsGrowth;
+  return regeneratorRuntime.async(function getExpertVerificationsGrowthStats$(_context6) {
+    while (1) {
+      switch (_context6.prev = _context6.next) {
+        case 0:
+          _context6.prev = 0;
+          groupBy = request.query.groupBy;
+          format = '%Y-%m-%d';
+          countMethod = {
+            $sum: 1
+          };
+
+          if (groupBy == 'MONTH') {
+            format = '%Y-%m';
+          } else if (groupBy == 'YEAR') {
+            format = '%Y';
+          }
+
+          _context6.next = 7;
+          return regeneratorRuntime.awrap(ExpertVerificationModel.aggregate([{
+            $group: {
+              _id: {
+                $dateToString: {
+                  format: format,
+                  date: '$createdAt'
+                }
+              },
+              count: countMethod
+            }
+          }, {
+            $sort: {
+              '_id': 1
+            }
+          }]));
+
+        case 7:
+          expertsVerificationsGrowth = _context6.sent;
+          return _context6.abrupt("return", response.status(200).json({
+            accepted: true,
+            expertsVerificationsGrowth: expertsVerificationsGrowth
+          }));
+
+        case 11:
+          _context6.prev = 11;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context6.t0.message
+          }));
+
+        case 15:
+        case "end":
+          return _context6.stop();
+      }
+    }
+  }, null, null, [[0, 11]]);
+};
+
 module.exports = {
   getExpertVerifications: getExpertVerifications,
   addExpertVerification: addExpertVerification,
   searchExpertsVerificationsByName: searchExpertsVerificationsByName,
   deleteExpertVerification: deleteExpertVerification,
-  updateExpertVerificationStatus: updateExpertVerificationStatus
+  updateExpertVerificationStatus: updateExpertVerificationStatus,
+  getExpertVerificationsGrowthStats: getExpertVerificationsGrowthStats
 };

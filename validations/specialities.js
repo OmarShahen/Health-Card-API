@@ -39,6 +39,17 @@ const updateSpeciality = (specialData) => {
 
 }
 
+const updateSpecialityShowStatus = (specialData) => {
+
+    const { isShow } = specialData
+
+    if(typeof isShow != 'boolean') return { isAccepted: false, message: 'Invalid isShow format', field: 'isShow' }
+    
+
+    return { isAccepted: true, message: 'data is valid', data: specialData }
+
+}
 
 
-module.exports = { addSpeciality, updateSpeciality }
+
+module.exports = { addSpeciality, updateSpeciality, updateSpecialityShowStatus }

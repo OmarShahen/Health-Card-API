@@ -16,8 +16,11 @@ router.post('/v1/appointments', authorization.allPermission, function (request, 
 router.get('/v1/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointments(request, response);
 });
-router.get('/v1/100ms/rooms', authorization.allPermission, function (request, response) {
-  return appointmentsController.get100msRooms(request, response);
+router.get('/v1/stats/appointments', authorization.allPermission, function (request, response) {
+  return appointmentsController.getAppointmentsStats(request, response);
+});
+router.get('/v1/stats/appointments/growth', authorization.allPermission, function (request, response) {
+  return appointmentsController.getAppointmentsGrowthStats(request, response);
 });
 router.get('/v1/appointments/experts/:userId/status/:status/payments/paid', authorization.allPermission, verifyUserId, function (request, response) {
   return appointmentsController.getPaidAppointmentsByExpertIdAndStatus(request, response);
@@ -30,6 +33,9 @@ router.get('/v1/appointments/:appointmentId', authorization.allPermission, verif
 });
 router.patch('/v1/appointments/:appointmentId/status', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentStatus(request, response);
+});
+router.patch('/v1/appointments/:appointmentId/meeting-link', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.updateAppointmentMeetingLink(request, response);
 });
 router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.deleteAppointment(request, response);

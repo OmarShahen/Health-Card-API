@@ -35,6 +35,13 @@ router.put(
     (request, response) => specialitiesController.updateSpeciality(request, response)
 )
 
+router.patch(
+    '/v1/specialities/:specialityId/show', 
+    authorization.allPermission,
+    verifySpecialityId, 
+    (request, response) => specialitiesController.updateSpecialityShowStatus(request, response)
+)
+
 router.delete(
     '/v1/specialities/:specialityId', 
     authorization.allPermission,

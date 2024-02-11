@@ -108,7 +108,27 @@ var updateAppointmentStatus = function updateAppointmentStatus(appointmentData) 
   };
 };
 
+var updateAppointmentMeetingLink = function updateAppointmentMeetingLink(appointmentData) {
+  var meetingLink = appointmentData.meetingLink;
+  if (!meetingLink) return {
+    isAccepted: false,
+    message: 'Meeting link is required',
+    field: 'meetingLink'
+  };
+  if (!utils.isValidURL(meetingLink)) return {
+    isAccepted: false,
+    message: 'Meeting URL value is invalid',
+    field: 'meetingLink'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: appointmentData
+  };
+};
+
 module.exports = {
   addAppointment: addAppointment,
-  updateAppointmentStatus: updateAppointmentStatus
+  updateAppointmentStatus: updateAppointmentStatus,
+  updateAppointmentMeetingLink: updateAppointmentMeetingLink
 };

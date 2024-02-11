@@ -10,8 +10,8 @@ const { format } = require('date-fns')
 const translations = require('../i18n/index')
 const mongoose = require('mongoose')
 const config = require('../config/config')
-const { videoPlatformRequest } = require('../APIs/100ms/request')
 const email = require('../mails/send-email')
+const moment = require('moment')
 
 
 const addAppointment = async (request, response) => {
@@ -72,14 +72,6 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        if(duration > 60) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'Duration limit is 60 minutes',
-                field: 'duration'
-            })
-        }
-
         const expert = expertList[0]
         const seeker = seekerList[0]
 
@@ -90,8 +82,6 @@ const addAppointment = async (request, response) => {
         request.body.endTime = endTime
 
         const weekDay = config.WEEK_DAYS[startTime.getDay()]
-        const startingHour = startTime.getHours()
-        const startingMinute = startTime.getMinutes()
 
         const openingTimes = await OpeningTimeModel.find({
             expertId,
@@ -106,20 +96,6 @@ const addAppointment = async (request, response) => {
                 field: 'startTime'
             })
         }
-
-        /*const openingTime = openingTimes[0]
-
-        const combinedAvailableOpeningTime = (openingTime.openingTime.hour * 60) + openingTime.openingTime.minute
-        const combinedAvailableClosingTime = (openingTime.closingTime.hour * 60) + openingTime.closingTime.minute
-        const combinedTargetTime = (startingHour * 60) + startingMinute
-        
-        if(combinedAvailableOpeningTime > combinedTargetTime || combinedAvailableClosingTime < combinedTargetTime) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'This time slot is not available',
-                field: 'startTime'
-            })
-        }*/
 
         const existingAppointmentsQuery = {
             expertId,
@@ -141,13 +117,6 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        const roomData = {
-            template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
-            description: `${duration} minutes session with ${expert.firstName}`,
-            max_duration_seconds: (duration + 5) * 60
-        }
-        const newRoom = await videoPlatformRequest.post('/v2/rooms', roomData)
-
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'Appointment' },
             { $inc: { value: 1 } },
@@ -156,7 +125,6 @@ const addAppointment = async (request, response) => {
 
         const appointmentData = { 
             appointmentId: counter.value,
-            roomId: newRoom.data.id,
             ...request.body 
         }
 
@@ -434,6 +402,50 @@ const updateAppointmentStatus = async (request, response) => {
     }
 }
 
+const updateAppointmentMeetingLink = async (request, response) => {
+
+    try {
+
+        const { appointmentId } = request.params
+        const { meetingLink } = request.body
+
+        const dataValidation = appointmentValidation.updateAppointmentMeetingLink(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const appointmentsCount = await AppointmentModel.countDocuments({ meetingLink })
+        if(appointmentsCount != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'This link is registered with another appointment',
+                field: 'meetingLink'
+            })
+        }
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointmentId, { meetingLink }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment meeting link successfully!',
+            appointment: updatedAppointment,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const deleteAppointment = async (request, response) => {
 
     try {
@@ -564,7 +576,7 @@ const getAppointments = async (request, response) => {
 
     try {
 
-        const { status } = request.query
+        const { status, meetingLink } = request.query
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query, 'startTime')
 
         let matchQuery = { ...searchQuery }
@@ -573,6 +585,12 @@ const getAppointments = async (request, response) => {
             matchQuery.isPaid = true
         } else if(status == 'UNPAID') {
             matchQuery.isPaid = false
+        }
+
+        if(meetingLink == 'TRUE') {
+            matchQuery.meetingLink = { $exists: true }
+        } else if(meetingLink == 'FALSE') {
+            matchQuery.meetingLink = { $exists: false }
         }
 
         const appointments = await AppointmentModel.aggregate([
@@ -632,15 +650,88 @@ const getAppointments = async (request, response) => {
     }
 }
 
-const get100msRooms = async (request, response) => {
+const getAppointmentsStats = async (request, response) => {
 
     try {
 
-        const roomsResponse = await videoPlatformRequest.get('/v2/rooms')
+        const totalAppointments = await AppointmentModel.countDocuments()
+        const totalAppointmentsWithoutLink = await AppointmentModel.countDocuments({ meetingLink: { $exists: false } })
+        const totalAppointmentsNotPaid = await AppointmentModel.countDocuments({ isPaid: false })
+        const totalAppointmentsPaid = await AppointmentModel.countDocuments({ isPaid: true })
+        
+        const todayDate = new Date()
+
+        const totalUpcomingAppointments = await AppointmentModel.countDocuments({ startTime: { $gte: todayDate }, isPaid: true })
+        const totalPassedAppointments = await AppointmentModel.countDocuments({ startTime: { $lt: todayDate }, isPaid: true })
+
+        const startOfDay = moment(todayDate).startOf('day').toDate()
+        const endOfDay = moment(todayDate).endOf('day').toDate()
+
+        const totalTodayAppointments = await AppointmentModel.countDocuments({
+            isPaid: true,
+            startTime: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+        })
 
         return response.status(200).json({
             accepted: true,
-            rooms: roomsResponse.data.data
+            totalAppointments,
+            totalAppointmentsWithoutLink,
+            totalAppointmentsPaid,
+            totalAppointmentsNotPaid,
+            totalUpcomingAppointments,
+            totalPassedAppointments,
+            totalTodayAppointments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getAppointmentsGrowthStats = async (request, response) => {
+
+    try {
+
+        const { groupBy } = request.query
+
+        let format = '%Y-%m-%d'
+
+        if(groupBy == 'MONTH') {
+            format = '%Y-%m'
+        } else if(groupBy == 'YEAR') {
+            format = '%Y'
+        }
+
+        const appointmentsGrowth = await AppointmentModel.aggregate([
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: format,
+                    date: '$createdAt',
+                  },
+                },
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $sort: {
+                '_id': 1,
+              },
+            },
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            appointmentsGrowth
         })
 
     } catch(error) {
@@ -656,11 +747,13 @@ const get100msRooms = async (request, response) => {
 module.exports = { 
     addAppointment,
     updateAppointmentStatus, 
+    updateAppointmentMeetingLink,
     deleteAppointment,
     sendAppointmentReminder,
     getAppointment,
     getAppointments,
     getPaidAppointmentsByExpertIdAndStatus,
     getPaidAppointmentsBySeekerIdAndStatus,
-    get100msRooms
+    getAppointmentsStats,
+    getAppointmentsGrowthStats
 }

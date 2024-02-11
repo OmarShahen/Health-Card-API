@@ -16,9 +16,15 @@ router.get(
 )
 
 router.get(
-    '/v1/100ms/rooms',
+    '/v1/stats/appointments',
     authorization.allPermission,
-    (request, response) => appointmentsController.get100msRooms(request, response)
+    (request, response) => appointmentsController.getAppointmentsStats(request, response)
+)
+
+router.get(
+    '/v1/stats/appointments/growth',
+    authorization.allPermission,
+    (request, response) => appointmentsController.getAppointmentsGrowthStats(request, response)
 )
 
 router.get(
@@ -47,6 +53,13 @@ router.patch(
     authorization.allPermission,
     verifyAppointmentId, 
     (request, response) => appointmentsController.updateAppointmentStatus(request, response)
+)
+
+router.patch(
+    '/v1/appointments/:appointmentId/meeting-link', 
+    authorization.allPermission,
+    verifyAppointmentId, 
+    (request, response) => appointmentsController.updateAppointmentMeetingLink(request, response)
 )
 
 router.delete(

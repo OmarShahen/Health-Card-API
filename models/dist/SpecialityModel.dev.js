@@ -23,6 +23,10 @@ var SpecialitySchema = new mongoose.Schema({
   type: {
     type: String,
     "enum": config.SPECIALITIES_TYPES
+  },
+  isShow: {
+    type: Boolean,
+    "default": false
   }
 }, {
   timestamps: true

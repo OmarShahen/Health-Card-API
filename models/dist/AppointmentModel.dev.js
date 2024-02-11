@@ -24,8 +24,7 @@ var AppointmentSchema = new mongoose.Schema({
     required: true
   },
   roomId: {
-    type: String,
-    required: true
+    type: String
   },
   isPaid: {
     type: Boolean,
@@ -50,6 +49,9 @@ var AppointmentSchema = new mongoose.Schema({
   endTime: {
     type: Date,
     required: true
+  },
+  meetingLink: {
+    type: String
   }
 }, {
   timestamps: true

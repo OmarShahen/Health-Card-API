@@ -17,26 +17,35 @@ var UserModel = require('../models/UserModel');
 var mongoose = require('mongoose');
 
 var getSpecialities = function getSpecialities(request, response) {
-  var specialities;
+  var show, matchQuery, specialities;
   return regeneratorRuntime.async(function getSpecialities$(_context) {
     while (1) {
       switch (_context.prev = _context.next) {
         case 0:
           _context.prev = 0;
-          _context.next = 3;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
+          show = request.query.show;
+          matchQuery = {
             type: 'MAIN'
-          }));
+          };
 
-        case 3:
+          if (show == 'TRUE') {
+            matchQuery.isShow = true;
+          } else if (show == 'FALSE') {
+            matchQuery.isShow = false;
+          }
+
+          _context.next = 6;
+          return regeneratorRuntime.awrap(SpecialityModel.find(matchQuery));
+
+        case 6:
           specialities = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             specialities: specialities
           }));
 
-        case 7:
-          _context.prev = 7;
+        case 10:
+          _context.prev = 10;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -45,12 +54,12 @@ var getSpecialities = function getSpecialities(request, response) {
             error: _context.t0.message
           }));
 
-        case 11:
+        case 14:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 7]]);
+  }, null, null, [[0, 10]]);
 };
 
 var getSpeciality = function getSpeciality(request, response) {
@@ -448,6 +457,62 @@ var updateSpeciality = function updateSpeciality(request, response) {
   }, null, null, [[0, 22]]);
 };
 
+var updateSpecialityShowStatus = function updateSpecialityShowStatus(request, response) {
+  var dataValidation, specialityId, isShow, updatedspeciality;
+  return regeneratorRuntime.async(function updateSpecialityShowStatus$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          dataValidation = specialityValidation.updateSpecialityShowStatus(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context8.next = 4;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          specialityId = request.params.specialityId;
+          isShow = request.body.isShow;
+          _context8.next = 8;
+          return regeneratorRuntime.awrap(SpecialityModel.findByIdAndUpdate(specialityId, {
+            isShow: isShow
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedspeciality = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'updated speciality show successfully!',
+            speciality: updatedspeciality
+          }));
+
+        case 12:
+          _context8.prev = 12;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   getSpecialities: getSpecialities,
   getSpeciality: getSpeciality,
@@ -455,5 +520,6 @@ module.exports = {
   addSpeciality: addSpeciality,
   deleteSpeciality: deleteSpeciality,
   deleteSpecialities: deleteSpecialities,
-  updateSpeciality: updateSpeciality
+  updateSpeciality: updateSpeciality,
+  updateSpecialityShowStatus: updateSpecialityShowStatus
 };

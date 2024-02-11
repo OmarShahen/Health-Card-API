@@ -24,6 +24,9 @@ router.post('/v1/specialities', authorization.allPermission, function (request, 
 router.put('/v1/specialities/:specialityId', authorization.allPermission, verifySpecialityId, function (request, response) {
   return specialitiesController.updateSpeciality(request, response);
 });
+router.patch('/v1/specialities/:specialityId/show', authorization.allPermission, verifySpecialityId, function (request, response) {
+  return specialitiesController.updateSpecialityShowStatus(request, response);
+});
 router["delete"]('/v1/specialities/:specialityId', authorization.allPermission, verifySpecialityId, function (request, response) {
   return specialitiesController.deleteSpeciality(request, response);
 });

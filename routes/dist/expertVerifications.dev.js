@@ -15,7 +15,10 @@ router.get('/v1/experts-verifications', authorization.allPermission, function (r
 router.get('/v1/experts-verifications/search/name', authorization.allPermission, function (request, response) {
   return expertVerificationController.searchExpertsVerificationsByName(request, response);
 });
-router.post('/v1/experts-verifications', authorization.allPermission, function (request, response) {
+router.get('/v1/stats/experts-verifications/growth', authorization.allPermission, function (request, response) {
+  return expertVerificationController.getExpertVerificationsGrowthStats(request, response);
+});
+router.post('/v1/experts-verifications', function (request, response) {
   return expertVerificationController.addExpertVerification(request, response);
 });
 router.patch('/v1/experts-verifications/:expertVerificationId/status', authorization.allPermission, verifyExpertVerificationId, function (request, response) {

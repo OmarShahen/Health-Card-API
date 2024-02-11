@@ -269,10 +269,60 @@ const deleteExpertVerification = async (request, response) => {
     }
 }
 
+const getExpertVerificationsGrowthStats = async (request, response) => {
+
+    try {
+
+        const { groupBy } = request.query
+
+        let format = '%Y-%m-%d'
+        let countMethod = { $sum: 1 }
+
+        if(groupBy == 'MONTH') {
+            format = '%Y-%m'
+        } else if(groupBy == 'YEAR') {
+            format = '%Y'
+        }
+
+        const expertsVerificationsGrowth = await ExpertVerificationModel.aggregate([
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: format,
+                    date: '$createdAt',
+                  },
+                },
+                count: countMethod,
+              },
+            },
+            {
+              $sort: {
+                '_id': 1,
+              },
+            },
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            expertsVerificationsGrowth
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     getExpertVerifications, 
     addExpertVerification, 
     searchExpertsVerificationsByName,
     deleteExpertVerification,
-    updateExpertVerificationStatus
+    updateExpertVerificationStatus,
+    getExpertVerificationsGrowthStats
 }

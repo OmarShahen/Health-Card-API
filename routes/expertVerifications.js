@@ -16,6 +16,12 @@ router.get(
     (request, response) => expertVerificationController.searchExpertsVerificationsByName(request, response)
 )
 
+router.get(
+    '/v1/stats/experts-verifications/growth',
+    authorization.allPermission,
+    (request, response) => expertVerificationController.getExpertVerificationsGrowthStats(request, response)
+)
+
 router.post(
     '/v1/experts-verifications',
     (request, response) => expertVerificationController.addExpertVerification(request, response)

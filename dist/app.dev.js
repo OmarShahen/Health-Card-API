@@ -41,6 +41,7 @@ app.use('/api', require('./routes/opening-times'));
 app.use('/api', require('./routes/reviews'));
 app.use('/api', require('./routes/expertVerifications'));
 app.use('/api', require('./routes/services'));
+app.use('/api', require('./routes/analytics'));
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
 })["catch"](function (error) {
@@ -50,6 +51,8 @@ app.get('/', function (request, response) {
   return response.status(200).json({
     message: "welcome to RA'AYA"
   });
-}); //server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
-
+});
+server.listen(config.PORT, function () {
+  return console.log("server started on port ".concat(config.PORT, " [RA'AYA APP]"));
+});
 exports.app = functions.https.onRequest(app);

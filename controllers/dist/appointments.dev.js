@@ -39,13 +39,12 @@ var mongoose = require('mongoose');
 
 var config = require('../config/config');
 
-var _require2 = require('../APIs/100ms/request'),
-    videoPlatformRequest = _require2.videoPlatformRequest;
-
 var email = require('../mails/send-email');
 
+var moment = require('moment');
+
 var addAppointment = function addAppointment(request, response) {
-  var dataValidation, _request$body, seekerId, expertId, serviceId, startTime, duration, todayDate, expertListPromise, seekerListPromise, servicePromise, _ref, _ref2, expertList, seekerList, service, expert, seeker, endTime, weekDay, startingHour, startingMinute, openingTimes, existingAppointmentsQuery, existingAppointments, roomData, newRoom, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
+  var dataValidation, _request$body, seekerId, expertId, serviceId, startTime, duration, todayDate, expertListPromise, seekerListPromise, servicePromise, _ref, _ref2, expertList, seekerList, service, expert, seeker, endTime, weekDay, openingTimes, existingAppointmentsQuery, existingAppointments, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
 
   return regeneratorRuntime.async(function addAppointment$(_context) {
     while (1) {
@@ -135,18 +134,6 @@ var addAppointment = function addAppointment(request, response) {
           }));
 
         case 24:
-          if (!(duration > 60)) {
-            _context.next = 26;
-            break;
-          }
-
-          return _context.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Duration limit is 60 minutes',
-            field: 'duration'
-          }));
-
-        case 26:
           expert = expertList[0];
           seeker = seekerList[0];
           startTime = new Date(startTime);
@@ -154,20 +141,18 @@ var addAppointment = function addAppointment(request, response) {
           endTime.setMinutes(endTime.getMinutes() + duration);
           request.body.endTime = endTime;
           weekDay = config.WEEK_DAYS[startTime.getDay()];
-          startingHour = startTime.getHours();
-          startingMinute = startTime.getMinutes();
-          _context.next = 37;
+          _context.next = 33;
           return regeneratorRuntime.awrap(OpeningTimeModel.find({
             expertId: expertId,
             weekday: weekDay,
             isActive: true
           }));
 
-        case 37:
+        case 33:
           openingTimes = _context.sent;
 
           if (!(openingTimes.length == 0)) {
-            _context.next = 40;
+            _context.next = 36;
             break;
           }
 
@@ -177,19 +162,7 @@ var addAppointment = function addAppointment(request, response) {
             field: 'startTime'
           }));
 
-        case 40:
-          /*const openingTime = openingTimes[0]
-            const combinedAvailableOpeningTime = (openingTime.openingTime.hour * 60) + openingTime.openingTime.minute
-          const combinedAvailableClosingTime = (openingTime.closingTime.hour * 60) + openingTime.closingTime.minute
-          const combinedTargetTime = (startingHour * 60) + startingMinute
-          
-          if(combinedAvailableOpeningTime > combinedTargetTime || combinedAvailableClosingTime < combinedTargetTime) {
-              return response.status(400).json({
-                  accepted: false,
-                  message: 'This time slot is not available',
-                  field: 'startTime'
-              })
-          }*/
+        case 36:
           existingAppointmentsQuery = {
             expertId: expertId,
             isPaid: true,
@@ -215,14 +188,14 @@ var addAppointment = function addAppointment(request, response) {
               }
             }]
           };
-          _context.next = 43;
+          _context.next = 39;
           return regeneratorRuntime.awrap(AppointmentModel.find(existingAppointmentsQuery));
 
-        case 43:
+        case 39:
           existingAppointments = _context.sent;
 
           if (!(existingAppointments.length != 0)) {
-            _context.next = 46;
+            _context.next = 42;
             break;
           }
 
@@ -232,18 +205,8 @@ var addAppointment = function addAppointment(request, response) {
             field: 'startTime'
           }));
 
-        case 46:
-          roomData = {
-            template_id: config.VIDEO_PLATFORM.TEMPLATE_ID,
-            description: "".concat(duration, " minutes session with ").concat(expert.firstName),
-            max_duration_seconds: (duration + 5) * 60
-          };
-          _context.next = 49;
-          return regeneratorRuntime.awrap(videoPlatformRequest.post('/v2/rooms', roomData));
-
-        case 49:
-          newRoom = _context.sent;
-          _context.next = 52;
+        case 42:
+          _context.next = 44;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'Appointment'
           }, {
@@ -255,26 +218,25 @@ var addAppointment = function addAppointment(request, response) {
             upsert: true
           }));
 
-        case 52:
+        case 44:
           counter = _context.sent;
           appointmentData = _objectSpread({
-            appointmentId: counter.value,
-            roomId: newRoom.data.id
+            appointmentId: counter.value
           }, request.body);
           appointmentObj = new AppointmentModel(appointmentData);
-          _context.next = 57;
+          _context.next = 49;
           return regeneratorRuntime.awrap(appointmentObj.save());
 
-        case 57:
+        case 49:
           newAppointment = _context.sent;
-          _context.next = 60;
+          _context.next = 52;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalAppointments: expert.totalAppointments + 1
           }, {
             "new": true
           }));
 
-        case 60:
+        case 52:
           updatedUser = _context.sent;
           options = {
             hour: 'numeric',
@@ -290,10 +252,10 @@ var addAppointment = function addAppointment(request, response) {
             mailBodyText: "You have a new appointment with ID #".concat(newAppointment.appointmentId),
             mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newAppointment.appointmentId, "</span><br />\n            <strong>Expert: </strong><span>").concat(expert.firstName, "</span><br />\n            <strong>Seeker: </strong><span>").concat(seeker.firstName, "</span><br />\n            <strong>Price: </strong><span>").concat(newAppointment.price, " EGP</span><br />\n            <strong>Duration: </strong><span>").concat(newAppointment.duration, " minutes</span><br />\n            <strong>Date: </strong><span>").concat(format(newAppointment.startTime, 'dd MMM yyyy'), "</span><br />\n            <strong>Start Time: </strong><span>").concat(appointmentStartTime.toLocaleString('en-US', options), "</span><br />\n            <strong>End Time: </strong><span>").concat(appointmentEndTime.toLocaleString('en-US', options), "</span><br />\n            ")
           };
-          _context.next = 67;
+          _context.next = 59;
           return regeneratorRuntime.awrap(email.sendEmail(newUserEmailData));
 
-        case 67:
+        case 59:
           emailSent = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
@@ -303,8 +265,8 @@ var addAppointment = function addAppointment(request, response) {
             emailSent: emailSent
           }));
 
-        case 71:
-          _context.prev = 71;
+        case 63:
+          _context.prev = 63;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -313,12 +275,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 75:
+        case 67:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 71]]);
+  }, null, null, [[0, 63]]);
 };
 
 var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {
@@ -619,28 +581,66 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
   }, null, null, [[0, 34]]);
 };
 
-var deleteAppointment = function deleteAppointment(request, response) {
-  var lang, appointmentId, deletedAppointment;
-  return regeneratorRuntime.async(function deleteAppointment$(_context5) {
+var updateAppointmentMeetingLink = function updateAppointmentMeetingLink(request, response) {
+  var appointmentId, meetingLink, dataValidation, appointmentsCount, updatedAppointment;
+  return regeneratorRuntime.async(function updateAppointmentMeetingLink$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          lang = request.query.lang;
           appointmentId = request.params.appointmentId;
-          _context5.next = 5;
-          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndDelete(appointmentId));
+          meetingLink = request.body.meetingLink;
+          dataValidation = appointmentValidation.updateAppointmentMeetingLink(request.body);
 
-        case 5:
-          deletedAppointment = _context5.sent;
-          return _context5.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: translations[lang]['Deleted appointment successfully!'],
-            appointment: deletedAppointment
+          if (dataValidation.isAccepted) {
+            _context5.next = 6;
+            break;
+          }
+
+          return _context5.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
-        case 9:
-          _context5.prev = 9;
+        case 6:
+          _context5.next = 8;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            meetingLink: meetingLink
+          }));
+
+        case 8:
+          appointmentsCount = _context5.sent;
+
+          if (!(appointmentsCount != 0)) {
+            _context5.next = 11;
+            break;
+          }
+
+          return _context5.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'This link is registered with another appointment',
+            field: 'meetingLink'
+          }));
+
+        case 11:
+          _context5.next = 13;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
+            meetingLink: meetingLink
+          }, {
+            "new": true
+          }));
+
+        case 13:
+          updatedAppointment = _context5.sent;
+          return _context5.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment meeting link successfully!',
+            appointment: updatedAppointment
+          }));
+
+        case 17:
+          _context5.prev = 17;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -649,40 +649,36 @@ var deleteAppointment = function deleteAppointment(request, response) {
             error: _context5.t0.message
           }));
 
-        case 13:
+        case 21:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 17]]);
 };
 
-var sendAppointmentReminder = function sendAppointmentReminder(request, response) {
-  var mailData, emailSent;
-  return regeneratorRuntime.async(function sendAppointmentReminder$(_context6) {
+var deleteAppointment = function deleteAppointment(request, response) {
+  var lang, appointmentId, deletedAppointment;
+  return regeneratorRuntime.async(function deleteAppointment$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
-          mailData = {
-            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
-            subject: 'New User Sign Up',
-            mailBodyText: 'You have a new user with ID #123',
-            mailBodyHTML: "\n            <strong>ID: </strong><span>#123</span><br />\n            <strong>Name: </strong><span>Omar Reda</span><br />\n            <strong>Email: </strong><span>omar@gmail.com</span><br />\n            <strong>Phone: </strong><span>+201065630331</span><br />\n            <strong>Gender: </strong><span>Male</span><br />\n            <strong>Age: </strong><span>20</span><br />\n            "
-          };
-          _context6.next = 4;
-          return regeneratorRuntime.awrap(email.sendEmail(mailData));
+          lang = request.query.lang;
+          appointmentId = request.params.appointmentId;
+          _context6.next = 5;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndDelete(appointmentId));
 
-        case 4:
-          emailSent = _context6.sent;
+        case 5:
+          deletedAppointment = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Message sent successfully!',
-            emailSent: emailSent
+            message: translations[lang]['Deleted appointment successfully!'],
+            appointment: deletedAppointment
           }));
 
-        case 8:
-          _context6.prev = 8;
+        case 9:
+          _context6.prev = 9;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -691,9 +687,51 @@ var sendAppointmentReminder = function sendAppointmentReminder(request, response
             error: _context6.t0.message
           }));
 
-        case 12:
+        case 13:
         case "end":
           return _context6.stop();
+      }
+    }
+  }, null, null, [[0, 9]]);
+};
+
+var sendAppointmentReminder = function sendAppointmentReminder(request, response) {
+  var mailData, emailSent;
+  return regeneratorRuntime.async(function sendAppointmentReminder$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          mailData = {
+            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
+            subject: 'New User Sign Up',
+            mailBodyText: 'You have a new user with ID #123',
+            mailBodyHTML: "\n            <strong>ID: </strong><span>#123</span><br />\n            <strong>Name: </strong><span>Omar Reda</span><br />\n            <strong>Email: </strong><span>omar@gmail.com</span><br />\n            <strong>Phone: </strong><span>+201065630331</span><br />\n            <strong>Gender: </strong><span>Male</span><br />\n            <strong>Age: </strong><span>20</span><br />\n            "
+          };
+          _context7.next = 4;
+          return regeneratorRuntime.awrap(email.sendEmail(mailData));
+
+        case 4:
+          emailSent = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Message sent successfully!',
+            emailSent: emailSent
+          }));
+
+        case 8:
+          _context7.prev = 8;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 12:
+        case "end":
+          return _context7.stop();
       }
     }
   }, null, null, [[0, 8]]);
@@ -701,13 +739,13 @@ var sendAppointmentReminder = function sendAppointmentReminder(request, response
 
 var getAppointment = function getAppointment(request, response) {
   var appointmentId, appointmentList, appointment;
-  return regeneratorRuntime.async(function getAppointment$(_context7) {
+  return regeneratorRuntime.async(function getAppointment$(_context8) {
     while (1) {
-      switch (_context7.prev = _context7.next) {
+      switch (_context8.prev = _context8.next) {
         case 0:
-          _context7.prev = 0;
+          _context8.prev = 0;
           appointmentId = request.params.appointmentId;
-          _context7.next = 4;
+          _context8.next = 4;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $match: {
               _id: mongoose.Types.ObjectId(appointmentId)
@@ -741,45 +779,45 @@ var getAppointment = function getAppointment(request, response) {
           }]));
 
         case 4:
-          appointmentList = _context7.sent;
+          appointmentList = _context8.sent;
           appointmentList.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
             appointment.service = appointment.service[0];
           });
           appointment = appointmentList[0];
-          return _context7.abrupt("return", response.status(200).json({
+          return _context8.abrupt("return", response.status(200).json({
             accepted: true,
             appointment: appointment
           }));
 
         case 10:
-          _context7.prev = 10;
-          _context7.t0 = _context7["catch"](0);
-          console.error(_context7.t0);
-          return _context7.abrupt("return", response.status(500).json({
+          _context8.prev = 10;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context7.t0.message
+            error: _context8.t0.message
           }));
 
         case 14:
         case "end":
-          return _context7.stop();
+          return _context8.stop();
       }
     }
   }, null, null, [[0, 10]]);
 };
 
 var getAppointments = function getAppointments(request, response) {
-  var status, _utils$statsQueryGene, searchQuery, matchQuery, appointments, totalAppointments;
+  var _request$query, status, meetingLink, _utils$statsQueryGene, searchQuery, matchQuery, appointments, totalAppointments;
 
-  return regeneratorRuntime.async(function getAppointments$(_context8) {
+  return regeneratorRuntime.async(function getAppointments$(_context9) {
     while (1) {
-      switch (_context8.prev = _context8.next) {
+      switch (_context9.prev = _context9.next) {
         case 0:
-          _context8.prev = 0;
-          status = request.query.status;
+          _context9.prev = 0;
+          _request$query = request.query, status = _request$query.status, meetingLink = _request$query.meetingLink;
           _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query, 'startTime'), searchQuery = _utils$statsQueryGene.searchQuery;
           matchQuery = _objectSpread({}, searchQuery);
 
@@ -789,7 +827,17 @@ var getAppointments = function getAppointments(request, response) {
             matchQuery.isPaid = false;
           }
 
-          _context8.next = 7;
+          if (meetingLink == 'TRUE') {
+            matchQuery.meetingLink = {
+              $exists: true
+            };
+          } else if (meetingLink == 'FALSE') {
+            matchQuery.meetingLink = {
+              $exists: false
+            };
+          }
+
+          _context9.next = 8;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $match: matchQuery
           }, {
@@ -819,60 +867,25 @@ var getAppointments = function getAppointments(request, response) {
             }
           }]));
 
-        case 7:
-          appointments = _context8.sent;
+        case 8:
+          appointments = _context9.sent;
           appointments.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
           });
-          _context8.next = 11;
+          _context9.next = 12;
           return regeneratorRuntime.awrap(AppointmentModel.countDocuments(matchQuery));
 
-        case 11:
-          totalAppointments = _context8.sent;
-          return _context8.abrupt("return", response.status(200).json({
+        case 12:
+          totalAppointments = _context9.sent;
+          return _context9.abrupt("return", response.status(200).json({
             accepted: true,
             totalAppointments: totalAppointments,
             appointments: appointments
           }));
 
-        case 15:
-          _context8.prev = 15;
-          _context8.t0 = _context8["catch"](0);
-          console.error(_context8.t0);
-          return _context8.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context8.t0.message
-          }));
-
-        case 19:
-        case "end":
-          return _context8.stop();
-      }
-    }
-  }, null, null, [[0, 15]]);
-};
-
-var get100msRooms = function get100msRooms(request, response) {
-  var roomsResponse;
-  return regeneratorRuntime.async(function get100msRooms$(_context9) {
-    while (1) {
-      switch (_context9.prev = _context9.next) {
-        case 0:
-          _context9.prev = 0;
-          _context9.next = 3;
-          return regeneratorRuntime.awrap(videoPlatformRequest.get('/v2/rooms'));
-
-        case 3:
-          roomsResponse = _context9.sent;
-          return _context9.abrupt("return", response.status(200).json({
-            accepted: true,
-            rooms: roomsResponse.data.data
-          }));
-
-        case 7:
-          _context9.prev = 7;
+        case 16:
+          _context9.prev = 16;
           _context9.t0 = _context9["catch"](0);
           console.error(_context9.t0);
           return _context9.abrupt("return", response.status(500).json({
@@ -881,22 +894,183 @@ var get100msRooms = function get100msRooms(request, response) {
             error: _context9.t0.message
           }));
 
-        case 11:
+        case 20:
         case "end":
           return _context9.stop();
       }
     }
-  }, null, null, [[0, 7]]);
+  }, null, null, [[0, 16]]);
+};
+
+var getAppointmentsStats = function getAppointmentsStats(request, response) {
+  var totalAppointments, totalAppointmentsWithoutLink, totalAppointmentsNotPaid, totalAppointmentsPaid, todayDate, totalUpcomingAppointments, totalPassedAppointments, startOfDay, endOfDay, totalTodayAppointments;
+  return regeneratorRuntime.async(function getAppointmentsStats$(_context10) {
+    while (1) {
+      switch (_context10.prev = _context10.next) {
+        case 0:
+          _context10.prev = 0;
+          _context10.next = 3;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments());
+
+        case 3:
+          totalAppointments = _context10.sent;
+          _context10.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            meetingLink: {
+              $exists: false
+            }
+          }));
+
+        case 6:
+          totalAppointmentsWithoutLink = _context10.sent;
+          _context10.next = 9;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isPaid: false
+          }));
+
+        case 9:
+          totalAppointmentsNotPaid = _context10.sent;
+          _context10.next = 12;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isPaid: true
+          }));
+
+        case 12:
+          totalAppointmentsPaid = _context10.sent;
+          todayDate = new Date();
+          _context10.next = 16;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            startTime: {
+              $gte: todayDate
+            },
+            isPaid: true
+          }));
+
+        case 16:
+          totalUpcomingAppointments = _context10.sent;
+          _context10.next = 19;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            startTime: {
+              $lt: todayDate
+            },
+            isPaid: true
+          }));
+
+        case 19:
+          totalPassedAppointments = _context10.sent;
+          startOfDay = moment(todayDate).startOf('day').toDate();
+          endOfDay = moment(todayDate).endOf('day').toDate();
+          _context10.next = 24;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isPaid: true,
+            startTime: {
+              $gte: startOfDay,
+              $lt: endOfDay
+            }
+          }));
+
+        case 24:
+          totalTodayAppointments = _context10.sent;
+          return _context10.abrupt("return", response.status(200).json({
+            accepted: true,
+            totalAppointments: totalAppointments,
+            totalAppointmentsWithoutLink: totalAppointmentsWithoutLink,
+            totalAppointmentsPaid: totalAppointmentsPaid,
+            totalAppointmentsNotPaid: totalAppointmentsNotPaid,
+            totalUpcomingAppointments: totalUpcomingAppointments,
+            totalPassedAppointments: totalPassedAppointments,
+            totalTodayAppointments: totalTodayAppointments
+          }));
+
+        case 28:
+          _context10.prev = 28;
+          _context10.t0 = _context10["catch"](0);
+          console.error(_context10.t0);
+          return _context10.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context10.t0.message
+          }));
+
+        case 32:
+        case "end":
+          return _context10.stop();
+      }
+    }
+  }, null, null, [[0, 28]]);
+};
+
+var getAppointmentsGrowthStats = function getAppointmentsGrowthStats(request, response) {
+  var groupBy, _format, appointmentsGrowth;
+
+  return regeneratorRuntime.async(function getAppointmentsGrowthStats$(_context11) {
+    while (1) {
+      switch (_context11.prev = _context11.next) {
+        case 0:
+          _context11.prev = 0;
+          groupBy = request.query.groupBy;
+          _format = '%Y-%m-%d';
+
+          if (groupBy == 'MONTH') {
+            _format = '%Y-%m';
+          } else if (groupBy == 'YEAR') {
+            _format = '%Y';
+          }
+
+          _context11.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
+            $group: {
+              _id: {
+                $dateToString: {
+                  format: _format,
+                  date: '$createdAt'
+                }
+              },
+              count: {
+                $sum: 1
+              }
+            }
+          }, {
+            $sort: {
+              '_id': 1
+            }
+          }]));
+
+        case 6:
+          appointmentsGrowth = _context11.sent;
+          return _context11.abrupt("return", response.status(200).json({
+            accepted: true,
+            appointmentsGrowth: appointmentsGrowth
+          }));
+
+        case 10:
+          _context11.prev = 10;
+          _context11.t0 = _context11["catch"](0);
+          console.error(_context11.t0);
+          return _context11.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context11.t0.message
+          }));
+
+        case 14:
+        case "end":
+          return _context11.stop();
+      }
+    }
+  }, null, null, [[0, 10]]);
 };
 
 module.exports = {
   addAppointment: addAppointment,
   updateAppointmentStatus: updateAppointmentStatus,
+  updateAppointmentMeetingLink: updateAppointmentMeetingLink,
   deleteAppointment: deleteAppointment,
   sendAppointmentReminder: sendAppointmentReminder,
   getAppointment: getAppointment,
   getAppointments: getAppointments,
   getPaidAppointmentsByExpertIdAndStatus: getPaidAppointmentsByExpertIdAndStatus,
   getPaidAppointmentsBySeekerIdAndStatus: getPaidAppointmentsBySeekerIdAndStatus,
-  get100msRooms: get100msRooms
+  getAppointmentsStats: getAppointmentsStats,
+  getAppointmentsGrowthStats: getAppointmentsGrowthStats
 };

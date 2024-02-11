@@ -8,7 +8,17 @@ const getSpecialities = async (request, response) => {
 
     try {
 
-        const specialities = await SpecialityModel.find({ type: 'MAIN' })
+        const { show } = request.query
+
+        let matchQuery = { type: 'MAIN' }
+
+        if(show == 'TRUE') {
+            matchQuery.isShow = true
+        } else if(show == 'FALSE') {
+            matchQuery.isShow = false
+        }
+
+        const specialities = await SpecialityModel.find(matchQuery)
 
         return response.status(200).json({
             accepted: true,
@@ -248,6 +258,41 @@ const updateSpeciality = async (request, response) => {
     }
 }
 
+const updateSpecialityShowStatus = async (request, response) => {
+
+    try {
+
+        const dataValidation = specialityValidation.updateSpecialityShowStatus(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { specialityId } = request.params
+        const { isShow } = request.body
+
+        const updatedspeciality = await SpecialityModel
+        .findByIdAndUpdate(specialityId, { isShow }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'updated speciality show successfully!',
+            speciality: updatedspeciality
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     getSpecialities, 
@@ -256,5 +301,6 @@ module.exports = {
     addSpeciality,
     deleteSpeciality, 
     deleteSpecialities, 
-    updateSpeciality 
+    updateSpeciality,
+    updateSpecialityShowStatus
 }

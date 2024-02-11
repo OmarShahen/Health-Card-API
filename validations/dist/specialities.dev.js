@@ -76,7 +76,22 @@ var updateSpeciality = function updateSpeciality(specialData) {
   };
 };
 
+var updateSpecialityShowStatus = function updateSpecialityShowStatus(specialData) {
+  var isShow = specialData.isShow;
+  if (typeof isShow != 'boolean') return {
+    isAccepted: false,
+    message: 'Invalid isShow format',
+    field: 'isShow'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: specialData
+  };
+};
+
 module.exports = {
   addSpeciality: addSpeciality,
-  updateSpeciality: updateSpeciality
+  updateSpeciality: updateSpeciality,
+  updateSpecialityShowStatus: updateSpecialityShowStatus
 };
