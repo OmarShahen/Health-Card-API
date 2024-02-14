@@ -12,6 +12,8 @@ const mongoose = require('mongoose')
 const config = require('../config/config')
 const email = require('../mails/send-email')
 const moment = require('moment')
+const PaymentModel = require('../models/PaymentModel')
+const emailTemplates = require('../mails/templates/messages')
 
 
 const addAppointment = async (request, response) => {
@@ -252,13 +254,13 @@ const getPaidAppointmentsByExpertIdAndStatus = async (request, response) => {
     }
 }
 
-const getPaidAppointmentsBySeekerIdAndStatus = async (request, response) => {
+const getAppointmentsBySeekerIdAndStatus = async (request, response) => {
 
     try {
 
         const { userId, status } = request.params
 
-        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId), isPaid: true }
+        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId) }
 
         if(status === 'UPCOMING') {
             matchQuery.startTime = { $gte: new Date() }
@@ -576,10 +578,14 @@ const getAppointments = async (request, response) => {
 
     try {
 
-        const { status, meetingLink } = request.query
+        const { status, meetingLink, verification } = request.query
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query, 'startTime')
 
         let matchQuery = { ...searchQuery }
+
+        if(verification) {
+            matchQuery.verification = verification
+        }
 
         if(status == 'PAID') {
             matchQuery.isPaid = true
@@ -658,6 +664,10 @@ const getAppointmentsStats = async (request, response) => {
         const totalAppointmentsWithoutLink = await AppointmentModel.countDocuments({ meetingLink: { $exists: false } })
         const totalAppointmentsNotPaid = await AppointmentModel.countDocuments({ isPaid: false })
         const totalAppointmentsPaid = await AppointmentModel.countDocuments({ isPaid: true })
+
+        const totalAcceptedVerifications = await AppointmentModel.countDocuments({ verification: 'ACCEPTED' })
+        const totalRejectedVerifications = await AppointmentModel.countDocuments({ verification: 'REJECTED' })
+        const totalReviewedVerifications = await AppointmentModel.countDocuments({ verification: 'REVIEW' })
         
         const todayDate = new Date()
 
@@ -683,7 +693,10 @@ const getAppointmentsStats = async (request, response) => {
             totalAppointmentsNotPaid,
             totalUpcomingAppointments,
             totalPassedAppointments,
-            totalTodayAppointments
+            totalTodayAppointments,
+            totalAcceptedVerifications,
+            totalRejectedVerifications,
+            totalReviewedVerifications
         })
 
     } catch(error) {
@@ -744,6 +757,362 @@ const getAppointmentsGrowthStats = async (request, response) => {
     }
 }
 
+const updateAppointmentPaymentVerification = async (request, response) => {
+
+    try {
+
+        const dataValidation = appointmentValidation.updateAppointmentPaymentVerification(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { appointmentId } = request.params
+        const { transactionId, gateway } = request.body
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+        if(appointment.verification && appointment.verification != 'REVIEW') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is not in review mode!',
+                field: 'appointmentId'
+            })
+        }
+
+        const matchQuery = { verification: 'ACCEPTED', payment: { transactionId, gateway } }
+        const appointmentsCount = await AppointmentModel.countDocuments(matchQuery)
+
+        if(appointmentsCount != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Transaction ID is already registered',
+                field: 'transactionId'
+            })
+        }
+
+        const paymentVerificationData = {
+            verification: 'REVIEW',
+            payment: { transactionId, gateway: gateway.toUpperCase() }
+        }
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointmentId, paymentVerificationData, { new: true })
+
+        const options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+        }
+
+        const appointmentStartTime = new Date(updatedAppointment.startTime)
+        const appointmentEndTime = new Date(updatedAppointment.endTime)
+
+        const seeker = await UserModel.findById(updatedAppointment.seekerId)
+        const expert = await UserModel.findById(updatedAppointment.expertId)
+
+        const emailDataList = [
+            { field: 'ID', data: `#${updatedAppointment.appointmentId}` },
+            { field: 'Expert', data: expert.firstName },
+            { field: 'Seeker', data: seeker.firstName },
+            { field: 'Transaction ID', data: transactionId },
+            { field: 'Gateway', data: gateway.toLowerCase() },
+            { field: 'Price', data: updatedAppointment.price },
+            { field: 'Duration', data: updatedAppointment.duration },
+            { field: 'Date', data: format(updatedAppointment.startTime, 'dd MMM yyyy') },
+            { field: 'Start Time', data: appointmentStartTime.toLocaleString('en-US', options) },
+            { field: 'End Time', data: appointmentEndTime.toLocaleString('en-US', options) },
+        ]
+
+        const newAppointmentPaymentData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New Appointment Payment Verification',
+            mailBodyText: `You have a new appointment payment with ID #${updatedAppointment.appointmentId} to verify`,
+            mailBodyHTML: emailTemplates.createListMessage(emailDataList)
+        }
+
+        const emailSent = await email.sendEmail(newAppointmentPaymentData)
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment payment verification data!',
+            emailSent,
+            appointment: updatedAppointment,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateAppointmentVerificationStatus = async (request, response) => {
+
+    try {
+
+        const dataValidation = appointmentValidation.updateAppointmentVerification(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { appointmentId } = request.params
+        const { verification } = request.body
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        if(!appointment.payment || !appointment.payment.transactionId || !appointment.payment.gateway) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment payment verification data is missing',
+                field: 'appointmentId'
+            })
+        }
+
+        if(appointment.verification == verification) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment verification is already in this status',
+                field: 'verification'
+            })
+        }
+
+        let newPayment
+        let updatedAppointment
+        let updatedPayment
+
+        const seeker = await UserModel.findById(appointment.seekerId)
+        const expert = await UserModel.findById(appointment.expertId)
+
+        if(verification == 'ACCEPTED') {
+
+            const counter = await CounterModel.findOneAndUpdate(
+                { name: 'payment' },
+                { $inc: { value: 1 } },
+                { new: true, upsert: true }
+            )
+            
+            const paymentData = {
+                paymentId: counter.value,
+                appointmentId: appointment._id,
+                expertId: appointment.expertId,
+                seekerId: appointment.seekerId,
+                transactionId: appointment.payment.transactionId,
+                success: true,
+                pending: false,
+                gateway: appointment.payment.gateway,
+                method: 'MANUAL',
+                amountCents: appointment.price * 100,
+                commission: config.PAYMENT_COMMISSION
+            }
+
+            const paymentObj = new PaymentModel(paymentData)
+            newPayment = await paymentObj.save()
+
+            const updateAppointmentData = {
+                verification,
+                isPaid: true,
+                paymentId: newPayment._id
+            }
+
+            updatedAppointment = await AppointmentModel
+            .findByIdAndUpdate(appointmentId, updateAppointmentData, { new: true })
+
+            const appointmentStartTime = new Date(updatedAppointment.startTime)
+
+            const options = {
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+                timeZone: 'Africa/Cairo'
+            }
+
+            const seekerEmailData = {
+                seekerName: seeker.firstName,
+                expertName: expert.firstName,
+                appointmentDate: format(updatedAppointment.startTime, 'dd MMM yyyy'),
+                appointmentTime: appointmentStartTime.toLocaleString('en-US', options)
+            }
+
+            const seekerAppointmentVerificationData = {
+                receiverEmail: seeker.email,
+                subject: 'Payment Accepted - Your Appointment is Confirmed!',
+                mailBodyText: `Your appointment is confirmed!`,
+                mailBodyHTML: emailTemplates.getAppointmentAcceptancePaymentVerification(seekerEmailData)
+            }
+
+            const expertEmailData = {
+                expertName: expert.firstName,
+                link: "https://ra-aya.web.app/appointments/status/upcoming"
+            }
+
+            const expertAppointmentVerificationData = {
+                receiverEmail: expert.email,
+                subject: 'New Appointment - Action Required',
+                mailBodyText: `You got a new appointment!`,
+                mailBodyHTML: emailTemplates.getExpertNewAppointmentMessage(expertEmailData)
+            }
+
+            await Promise.all([
+                email.sendEmail(seekerAppointmentVerificationData),
+                email.sendEmail(expertAppointmentVerificationData)  
+            ])
+
+        } else if(verification == 'REVIEW' || verification == 'REJECTED') {
+            
+            const updateAppointmentData = { verification, isPaid: false }
+            const updatePaymentData = { success: false }
+
+            updatedPayment = await PaymentModel
+            .findByIdAndUpdate(appointment.paymentId, updatePaymentData, { new: true })
+
+            updatedAppointment = await AppointmentModel
+            .findByIdAndUpdate(appointmentId, updateAppointmentData, { new: true })
+
+            if(verification == 'REJECTED') {
+
+                const appointmentStartTime = new Date(updatedAppointment.startTime)
+
+                const options = {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: 'Africa/Cairo'
+                }
+
+                const seekerEmailData = {
+                    seekerName: seeker.firstName,
+                    expertName: expert.firstName,
+                    appointmentDate: format(updatedAppointment.startTime, 'dd MMM yyyy'),
+                    appointmentTime: appointmentStartTime.toLocaleString('en-US', options)
+                }
+
+                const seekerAppointmentVerificationData = {
+                    receiverEmail: seeker.email,
+                    subject: 'Payment Rejected - Action Required',
+                    mailBodyText: `Your payment is rejected!`,
+                    mailBodyHTML: emailTemplates.getAppointmentRejectionPaymentVerification(seekerEmailData)
+                }
+
+                const expertEmailData = {
+                    expertName: expert.firstName,
+                    seekerName: seeker.firstName,
+                    appointmentId: `#${updatedAppointment.appointmentId}`
+                }
+
+                const expertAppointmentVerificationData = {
+                    receiverEmail: expert.email,
+                    subject: 'Appointment Update - Cancellation',
+                    mailBodyText: `You got a cancelled appointment!`,
+                    mailBodyHTML: emailTemplates.getExpertCancelledAppointmentMessage(expertEmailData)
+                }
+
+                await Promise.all([
+                    email.sendEmail(seekerAppointmentVerificationData),
+                    email.sendEmail(expertAppointmentVerificationData)  
+                ])
+            }
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment verification successfully!',
+            appointment: updatedAppointment,
+            payment: newPayment,
+            updatedPayment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const searchAppointmentsByExpertAndSeekerName = async (request, response) => {
+
+    try {
+
+        const { name } = request.query
+
+        if(!name) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'No name to search for',
+                field: 'name'
+            })
+        }
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $match: {
+                  $or: [
+                    { 'expert.firstName': { $regex: new RegExp(name, 'i') } },
+                    { 'seeker.firstName': { $regex: new RegExp(name, 'i') } },
+                  ],
+                }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0,
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+
 module.exports = { 
     addAppointment,
     updateAppointmentStatus, 
@@ -753,7 +1122,10 @@ module.exports = {
     getAppointment,
     getAppointments,
     getPaidAppointmentsByExpertIdAndStatus,
-    getPaidAppointmentsBySeekerIdAndStatus,
+    getAppointmentsBySeekerIdAndStatus,
     getAppointmentsStats,
-    getAppointmentsGrowthStats
+    getAppointmentsGrowthStats,
+    updateAppointmentPaymentVerification,
+    updateAppointmentVerificationStatus,
+    searchAppointmentsByExpertAndSeekerName
 }

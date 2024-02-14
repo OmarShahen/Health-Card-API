@@ -43,6 +43,10 @@ var email = require('../mails/send-email');
 
 var moment = require('moment');
 
+var PaymentModel = require('../models/PaymentModel');
+
+var emailTemplates = require('../mails/templates/messages');
+
 var addAppointment = function addAppointment(request, response) {
   var dataValidation, _request$body, seekerId, expertId, serviceId, startTime, duration, todayDate, expertListPromise, seekerListPromise, servicePromise, _ref, _ref2, expertList, seekerList, service, expert, seeker, endTime, weekDay, openingTimes, existingAppointmentsQuery, existingAppointments, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
 
@@ -810,16 +814,20 @@ var getAppointment = function getAppointment(request, response) {
 };
 
 var getAppointments = function getAppointments(request, response) {
-  var _request$query, status, meetingLink, _utils$statsQueryGene, searchQuery, matchQuery, appointments, totalAppointments;
+  var _request$query, status, meetingLink, verification, _utils$statsQueryGene, searchQuery, matchQuery, appointments, totalAppointments;
 
   return regeneratorRuntime.async(function getAppointments$(_context9) {
     while (1) {
       switch (_context9.prev = _context9.next) {
         case 0:
           _context9.prev = 0;
-          _request$query = request.query, status = _request$query.status, meetingLink = _request$query.meetingLink;
+          _request$query = request.query, status = _request$query.status, meetingLink = _request$query.meetingLink, verification = _request$query.verification;
           _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query, 'startTime'), searchQuery = _utils$statsQueryGene.searchQuery;
           matchQuery = _objectSpread({}, searchQuery);
+
+          if (verification) {
+            matchQuery.verification = verification;
+          }
 
           if (status == 'PAID') {
             matchQuery.isPaid = true;
@@ -837,7 +845,7 @@ var getAppointments = function getAppointments(request, response) {
             };
           }
 
-          _context9.next = 8;
+          _context9.next = 9;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $match: matchQuery
           }, {
@@ -867,16 +875,16 @@ var getAppointments = function getAppointments(request, response) {
             }
           }]));
 
-        case 8:
+        case 9:
           appointments = _context9.sent;
           appointments.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
           });
-          _context9.next = 12;
+          _context9.next = 13;
           return regeneratorRuntime.awrap(AppointmentModel.countDocuments(matchQuery));
 
-        case 12:
+        case 13:
           totalAppointments = _context9.sent;
           return _context9.abrupt("return", response.status(200).json({
             accepted: true,
@@ -884,8 +892,8 @@ var getAppointments = function getAppointments(request, response) {
             appointments: appointments
           }));
 
-        case 16:
-          _context9.prev = 16;
+        case 17:
+          _context9.prev = 17;
           _context9.t0 = _context9["catch"](0);
           console.error(_context9.t0);
           return _context9.abrupt("return", response.status(500).json({
@@ -894,12 +902,12 @@ var getAppointments = function getAppointments(request, response) {
             error: _context9.t0.message
           }));
 
-        case 20:
+        case 21:
         case "end":
           return _context9.stop();
       }
     }
-  }, null, null, [[0, 16]]);
+  }, null, null, [[0, 17]]);
 };
 
 var getAppointmentsStats = function getAppointmentsStats(request, response) {
@@ -1061,6 +1069,502 @@ var getAppointmentsGrowthStats = function getAppointmentsGrowthStats(request, re
   }, null, null, [[0, 10]]);
 };
 
+var updateAppointmentPaymentVerification = function updateAppointmentPaymentVerification(request, response) {
+  var dataValidation, appointmentId, _request$body2, transactionId, gateway, appointment, matchQuery, appointmentsCount, paymentVerificationData, updatedAppointment, options, appointmentStartTime, appointmentEndTime, seeker, expert, emailDataList, newAppointmentPaymentData, emailSent;
+
+  return regeneratorRuntime.async(function updateAppointmentPaymentVerification$(_context12) {
+    while (1) {
+      switch (_context12.prev = _context12.next) {
+        case 0:
+          _context12.prev = 0;
+          dataValidation = appointmentValidation.updateAppointmentPaymentVerification(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context12.next = 4;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          appointmentId = request.params.appointmentId;
+          _request$body2 = request.body, transactionId = _request$body2.transactionId, gateway = _request$body2.gateway;
+          _context12.next = 8;
+          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
+
+        case 8:
+          appointment = _context12.sent;
+
+          if (!(appointment.verification && appointment.verification != 'REVIEW')) {
+            _context12.next = 11;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment is not in review mode!',
+            field: 'appointmentId'
+          }));
+
+        case 11:
+          matchQuery = {
+            verification: 'ACCEPTED',
+            payment: {
+              transactionId: transactionId,
+              gateway: gateway
+            }
+          };
+          _context12.next = 14;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments(matchQuery));
+
+        case 14:
+          appointmentsCount = _context12.sent;
+
+          if (!(appointmentsCount != 0)) {
+            _context12.next = 17;
+            break;
+          }
+
+          return _context12.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Transaction ID is already registered',
+            field: 'transactionId'
+          }));
+
+        case 17:
+          paymentVerificationData = {
+            verification: 'REVIEW',
+            payment: {
+              transactionId: transactionId,
+              gateway: gateway.toUpperCase()
+            }
+          };
+          _context12.next = 20;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, paymentVerificationData, {
+            "new": true
+          }));
+
+        case 20:
+          updatedAppointment = _context12.sent;
+          options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          appointmentStartTime = new Date(updatedAppointment.startTime);
+          appointmentEndTime = new Date(updatedAppointment.endTime);
+          _context12.next = 26;
+          return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.seekerId));
+
+        case 26:
+          seeker = _context12.sent;
+          _context12.next = 29;
+          return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.expertId));
+
+        case 29:
+          expert = _context12.sent;
+          emailDataList = [{
+            field: 'ID',
+            data: "#".concat(updatedAppointment.appointmentId)
+          }, {
+            field: 'Expert',
+            data: expert.firstName
+          }, {
+            field: 'Seeker',
+            data: seeker.firstName
+          }, {
+            field: 'Transaction ID',
+            data: transactionId
+          }, {
+            field: 'Gateway',
+            data: gateway.toLowerCase()
+          }, {
+            field: 'Price',
+            data: updatedAppointment.price
+          }, {
+            field: 'Duration',
+            data: updatedAppointment.duration
+          }, {
+            field: 'Date',
+            data: format(updatedAppointment.startTime, 'dd MMM yyyy')
+          }, {
+            field: 'Start Time',
+            data: appointmentStartTime.toLocaleString('en-US', options)
+          }, {
+            field: 'End Time',
+            data: appointmentEndTime.toLocaleString('en-US', options)
+          }];
+          newAppointmentPaymentData = {
+            receiverEmail: config.NOTIFICATION_EMAIL,
+            subject: 'New Appointment Payment Verification',
+            mailBodyText: "You have a new appointment payment with ID #".concat(updatedAppointment.appointmentId, " to verify"),
+            mailBodyHTML: emailTemplates.createListMessage(emailDataList)
+          };
+          _context12.next = 34;
+          return regeneratorRuntime.awrap(email.sendEmail(newAppointmentPaymentData));
+
+        case 34:
+          emailSent = _context12.sent;
+          return _context12.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment payment verification data!',
+            emailSent: emailSent,
+            appointment: updatedAppointment
+          }));
+
+        case 38:
+          _context12.prev = 38;
+          _context12.t0 = _context12["catch"](0);
+          console.error(_context12.t0);
+          return _context12.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context12.t0.message
+          }));
+
+        case 42:
+        case "end":
+          return _context12.stop();
+      }
+    }
+  }, null, null, [[0, 38]]);
+};
+
+var updateAppointmentVerificationStatus = function updateAppointmentVerificationStatus(request, response) {
+  var dataValidation, appointmentId, verification, appointment, newPayment, updatedAppointment, updatedPayment, seeker, expert, counter, paymentData, paymentObj, updateAppointmentData, appointmentStartTime, options, seekerEmailData, seekerAppointmentVerificationData, expertEmailData, expertAppointmentVerificationData, _updateAppointmentData, updatePaymentData, _appointmentStartTime, _options, _seekerEmailData, _seekerAppointmentVerificationData, _expertEmailData, _expertAppointmentVerificationData;
+
+  return regeneratorRuntime.async(function updateAppointmentVerificationStatus$(_context13) {
+    while (1) {
+      switch (_context13.prev = _context13.next) {
+        case 0:
+          _context13.prev = 0;
+          dataValidation = appointmentValidation.updateAppointmentVerification(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context13.next = 4;
+            break;
+          }
+
+          return _context13.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          appointmentId = request.params.appointmentId;
+          verification = request.body.verification;
+          _context13.next = 8;
+          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
+
+        case 8:
+          appointment = _context13.sent;
+
+          if (!(!appointment.payment || !appointment.payment.transactionId || !appointment.payment.gateway)) {
+            _context13.next = 11;
+            break;
+          }
+
+          return _context13.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment payment verification data is missing',
+            field: 'appointmentId'
+          }));
+
+        case 11:
+          if (!(appointment.verification == verification)) {
+            _context13.next = 13;
+            break;
+          }
+
+          return _context13.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment verification is already in this status',
+            field: 'verification'
+          }));
+
+        case 13:
+          _context13.next = 15;
+          return regeneratorRuntime.awrap(UserModel.findById(appointment.seekerId));
+
+        case 15:
+          seeker = _context13.sent;
+          _context13.next = 18;
+          return regeneratorRuntime.awrap(UserModel.findById(appointment.expertId));
+
+        case 18:
+          expert = _context13.sent;
+
+          if (!(verification == 'ACCEPTED')) {
+            _context13.next = 42;
+            break;
+          }
+
+          _context13.next = 22;
+          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
+            name: 'payment'
+          }, {
+            $inc: {
+              value: 1
+            }
+          }, {
+            "new": true,
+            upsert: true
+          }));
+
+        case 22:
+          counter = _context13.sent;
+          paymentData = {
+            paymentId: counter.value,
+            appointmentId: appointment._id,
+            expertId: appointment.expertId,
+            seekerId: appointment.seekerId,
+            transactionId: appointment.payment.transactionId,
+            success: true,
+            pending: false,
+            gateway: appointment.payment.gateway,
+            method: 'MANUAL',
+            amountCents: appointment.price * 100,
+            commission: config.PAYMENT_COMMISSION
+          };
+          paymentObj = new PaymentModel(paymentData);
+          _context13.next = 27;
+          return regeneratorRuntime.awrap(paymentObj.save());
+
+        case 27:
+          newPayment = _context13.sent;
+          updateAppointmentData = {
+            verification: verification,
+            isPaid: true,
+            paymentId: newPayment._id
+          };
+          _context13.next = 31;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, updateAppointmentData, {
+            "new": true
+          }));
+
+        case 31:
+          updatedAppointment = _context13.sent;
+          appointmentStartTime = new Date(updatedAppointment.startTime);
+          options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          seekerEmailData = {
+            seekerName: seeker.firstName,
+            expertName: expert.firstName,
+            appointmentDate: format(updatedAppointment.startTime, 'dd MMM yyyy'),
+            appointmentTime: appointmentStartTime.toLocaleString('en-US', options)
+          };
+          seekerAppointmentVerificationData = {
+            receiverEmail: seeker.email,
+            subject: 'Payment Accepted - Your Appointment is Confirmed!',
+            mailBodyText: "Your appointment is confirmed!",
+            mailBodyHTML: emailTemplates.getAppointmentAcceptancePaymentVerification(seekerEmailData)
+          };
+          expertEmailData = {
+            expertName: expert.firstName,
+            link: "https://ra-aya.web.app/appointments/status/upcoming"
+          };
+          expertAppointmentVerificationData = {
+            receiverEmail: expert.email,
+            subject: 'New Appointment - Action Required',
+            mailBodyText: "You got a new appointment!",
+            mailBodyHTML: emailTemplates.getExpertNewAppointmentMessage(expertEmailData)
+          };
+          _context13.next = 40;
+          return regeneratorRuntime.awrap(Promise.all([email.sendEmail(seekerAppointmentVerificationData), email.sendEmail(expertAppointmentVerificationData)]));
+
+        case 40:
+          _context13.next = 60;
+          break;
+
+        case 42:
+          if (!(verification == 'REVIEW' || verification == 'REJECTED')) {
+            _context13.next = 60;
+            break;
+          }
+
+          _updateAppointmentData = {
+            verification: verification,
+            isPaid: false
+          };
+          updatePaymentData = {
+            success: false
+          };
+          _context13.next = 47;
+          return regeneratorRuntime.awrap(PaymentModel.findByIdAndUpdate(appointment.paymentId, updatePaymentData, {
+            "new": true
+          }));
+
+        case 47:
+          updatedPayment = _context13.sent;
+          _context13.next = 50;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, _updateAppointmentData, {
+            "new": true
+          }));
+
+        case 50:
+          updatedAppointment = _context13.sent;
+
+          if (!(verification == 'REJECTED')) {
+            _context13.next = 60;
+            break;
+          }
+
+          _appointmentStartTime = new Date(updatedAppointment.startTime);
+          _options = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          _seekerEmailData = {
+            seekerName: seeker.firstName,
+            expertName: expert.firstName,
+            appointmentDate: format(updatedAppointment.startTime, 'dd MMM yyyy'),
+            appointmentTime: _appointmentStartTime.toLocaleString('en-US', _options)
+          };
+          _seekerAppointmentVerificationData = {
+            receiverEmail: seeker.email,
+            subject: 'Payment Rejected - Action Required',
+            mailBodyText: "Your payment is rejected!",
+            mailBodyHTML: emailTemplates.getAppointmentRejectionPaymentVerification(_seekerEmailData)
+          };
+          _expertEmailData = {
+            expertName: expert.firstName,
+            seekerName: seeker.firstName,
+            appointmentId: "#".concat(updatedAppointment.appointmentId)
+          };
+          _expertAppointmentVerificationData = {
+            receiverEmail: expert.email,
+            subject: 'Appointment Update - Cancellation',
+            mailBodyText: "You got a cancelled appointment!",
+            mailBodyHTML: emailTemplates.getExpertCancelledAppointmentMessage(_expertEmailData)
+          };
+          _context13.next = 60;
+          return regeneratorRuntime.awrap(Promise.all([email.sendEmail(_seekerAppointmentVerificationData), email.sendEmail(_expertAppointmentVerificationData)]));
+
+        case 60:
+          return _context13.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment verification successfully!',
+            appointment: updatedAppointment,
+            payment: newPayment,
+            updatedPayment: updatedPayment
+          }));
+
+        case 63:
+          _context13.prev = 63;
+          _context13.t0 = _context13["catch"](0);
+          console.error(_context13.t0);
+          return _context13.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context13.t0.message
+          }));
+
+        case 67:
+        case "end":
+          return _context13.stop();
+      }
+    }
+  }, null, null, [[0, 63]]);
+};
+
+var searchAppointmentsByExpertAndSeekerName = function searchAppointmentsByExpertAndSeekerName(request, response) {
+  var name, appointments;
+  return regeneratorRuntime.async(function searchAppointmentsByExpertAndSeekerName$(_context14) {
+    while (1) {
+      switch (_context14.prev = _context14.next) {
+        case 0:
+          _context14.prev = 0;
+          name = request.query.name;
+
+          if (name) {
+            _context14.next = 4;
+            break;
+          }
+
+          return _context14.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'No name to search for',
+            field: 'name'
+          }));
+
+        case 4:
+          _context14.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
+            $lookup: {
+              from: 'users',
+              localField: 'expertId',
+              foreignField: '_id',
+              as: 'expert'
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'seekerId',
+              foreignField: '_id',
+              as: 'seeker'
+            }
+          }, {
+            $match: {
+              $or: [{
+                'expert.firstName': {
+                  $regex: new RegExp(name, 'i')
+                }
+              }, {
+                'seeker.firstName': {
+                  $regex: new RegExp(name, 'i')
+                }
+              }]
+            }
+          }, {
+            $limit: 25
+          }, {
+            $project: {
+              'expert.password': 0,
+              'seeker.password': 0
+            }
+          }]));
+
+        case 6:
+          appointments = _context14.sent;
+          appointments.forEach(function (appointment) {
+            appointment.expert = appointment.expert[0];
+            appointment.seeker = appointment.seeker[0];
+          });
+          return _context14.abrupt("return", response.status(200).json({
+            accepted: true,
+            appointments: appointments
+          }));
+
+        case 11:
+          _context14.prev = 11;
+          _context14.t0 = _context14["catch"](0);
+          console.error(_context14.t0);
+          return _context14.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context14.t0.message
+          }));
+
+        case 15:
+        case "end":
+          return _context14.stop();
+      }
+    }
+  }, null, null, [[0, 11]]);
+};
+
 module.exports = {
   addAppointment: addAppointment,
   updateAppointmentStatus: updateAppointmentStatus,
@@ -1072,5 +1576,8 @@ module.exports = {
   getPaidAppointmentsByExpertIdAndStatus: getPaidAppointmentsByExpertIdAndStatus,
   getPaidAppointmentsBySeekerIdAndStatus: getPaidAppointmentsBySeekerIdAndStatus,
   getAppointmentsStats: getAppointmentsStats,
-  getAppointmentsGrowthStats: getAppointmentsGrowthStats
+  getAppointmentsGrowthStats: getAppointmentsGrowthStats,
+  updateAppointmentPaymentVerification: updateAppointmentPaymentVerification,
+  updateAppointmentVerificationStatus: updateAppointmentVerificationStatus,
+  searchAppointmentsByExpertAndSeekerName: searchAppointmentsByExpertAndSeekerName
 };

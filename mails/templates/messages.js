@@ -61,4 +61,142 @@ const getExpertVerificationAcceptanceMessage = ({ expertName, signupLink }) => {
     `
 }
 
-module.exports = { getExpertVerificationRejectionMessage, getExpertVerificationAcceptanceMessage }
+const createListMessage = (dataList) => {
+    let message = ``
+    for(let i=0;i<dataList.length;i++) {
+        let item = dataList[i]
+        message += `<strong>${item.field}: </strong><span>${item.data}</span><br />`
+    }
+
+    return message
+}
+
+const getAppointmentAcceptancePaymentVerification = (templateData) => {
+
+    const { seekerName, expertName, appointmentDate, appointmentTime } = templateData
+
+    return `
+    <p>
+        Dear <strong>${seekerName}</strong>,
+    </p
+    <p>
+        We are pleased to inform you that your payment has been successfully accepted. Your appointment with <strong>${expertName}</strong> is now confirmed!    
+    </p>
+    <strong>
+        Appointment Details:
+    </strong>
+    <ul>
+        <li>
+            Date: ${appointmentDate}
+        </li>
+        <li>
+            Time: ${appointmentTime}
+        </li>
+        <li>
+            Expert: ${expertName}
+        </li>
+    </ul>
+    <p>
+        Thank you for choosing our platform. We look forward to serving you!    
+    </p>
+    <p>
+        Best regards,
+    </p>
+    <p>
+        ${config.APP_NAME}
+    </p>
+    `
+}
+
+const getAppointmentRejectionPaymentVerification = (templateData) => {
+
+    const { seekerName, expertName, appointmentDate, appointmentTime } = templateData
+
+    return `
+    <p>
+        Dear <strong>${seekerName}</strong>,
+    </p
+    <p>
+        We regret to inform you that your payment for the appointment with <strong>${expertName}</strong> has been rejected. To ensure your booking, please review your payment details and try again.    
+    </p>
+    <strong>
+        Appointment Details:
+    </strong>
+    <ul>
+        <li>
+            Date: ${appointmentDate}
+        </li>
+        <li>
+            Time: ${appointmentTime}
+        </li>
+        <li>
+            Expert: ${expertName}
+        </li>
+    </ul>
+    <p>
+        If you encounter any issues, please contact our support team at <strong>${config.SUPPORT_NUMBER}</strong>.
+    </p>
+    <p>
+        Thank you for your understanding.    
+    </p>
+    <p>
+        Best regards,
+    </p>
+    <p>
+        ${config.APP_NAME}
+    </p>
+    `
+}
+
+const getExpertNewAppointmentMessage = (templateData) => {
+
+    const { expertName, link } = templateData
+
+    return `
+    <p>
+        Dear <strong>${expertName}</strong>,
+    </p
+    <p>
+        Congratulations! You have a new appointment. Please check your Sessions Page <a href='${link}'>${link}</a> for more details.    
+    </p>
+    <p>
+        Best regards,
+    </p>
+    <p>
+        ${config.APP_NAME}
+    </p>
+    `
+}
+
+const getExpertCancelledAppointmentMessage = (templateData) => {
+
+    const { expertName, seekerName, appointmentId } = templateData
+
+    return `
+    <p>
+        Dear <strong>${expertName}</strong>,
+    </p
+    <p>
+        We regret to inform you that your upcoming appointment with Appointment ID <strong>${appointmentId}</strong> with <strong>${seekerName}</strong> has been cancelled. Please check your Sessions Page for more details.
+    </p>
+    <p>
+        Thank you for your understanding.
+    </p>
+    <p>
+        Best regards,
+    </p>
+    <p>
+        ${config.APP_NAME}
+    </p>
+    `
+}
+
+module.exports = { 
+    getExpertVerificationRejectionMessage, 
+    getExpertVerificationAcceptanceMessage,
+    createListMessage,
+    getAppointmentAcceptancePaymentVerification,
+    getAppointmentRejectionPaymentVerification,
+    getExpertNewAppointmentMessage,
+    getExpertCancelledAppointmentMessage
+}

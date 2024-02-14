@@ -48,8 +48,7 @@ var PaymentSchema = new mongoose.Schema({
     type: String
   },
   orderId: {
-    type: Number,
-    required: true
+    type: Number
   },
   amountCents: {
     type: Number,
@@ -60,9 +59,11 @@ var PaymentSchema = new mongoose.Schema({
     required: true
   },
   currency: {
-    type: String
+    type: String,
+    "default": 'EGP'
   }
 }, {
   timestamps: true
 });
+0;
 module.exports = mongoose.model('Payment', PaymentSchema);

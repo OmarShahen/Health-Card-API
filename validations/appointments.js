@@ -59,4 +59,40 @@ const updateAppointmentMeetingLink = (appointmentData) => {
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }
 
-module.exports = { addAppointment, updateAppointmentStatus, updateAppointmentMeetingLink }
+const updateAppointmentPaymentVerification = (appointmentData) => {
+
+    const { transactionId, gateway } = appointmentData
+
+    if(!transactionId) return { isAccepted: false, message: 'Transaction ID is required', field: 'transactionId' }
+
+    if(typeof transactionId != 'string') return { isAccepted: false, message: 'Transaction ID format is invalid', field: 'transactionId' }
+
+    if(!gateway) return { isAccepted: false, message: 'Gateway is required', field: 'gateway' }
+
+    if(typeof gateway != 'string') return { isAccepted: false, message: 'Gateway format is invalid', field: 'gateway' }
+
+    if(!config.PAYMENT_GATEWAYS.includes(gateway)) return { isAccepted: false, message: 'Gateway is not registered', field: 'gateway' }
+
+    return { isAccepted: true, message: 'data is valid', data: appointmentData }
+}
+
+const updateAppointmentVerification = (appointmentData) => {
+
+    const { verification } = appointmentData
+
+    if(!verification) return { isAccepted: false, message: 'Verification is required', field: 'verification' }
+
+    if(typeof verification != 'string') return { isAccepted: false, message: 'Verification format is invalid', field: 'verification' }
+
+    if(!config.VERIFICATION_STATUS.includes(verification)) return { isAccepted: false, message: 'Verification is not registered', field: 'verification' }
+
+    return { isAccepted: true, message: 'data is valid', data: appointmentData }
+}
+
+module.exports = { 
+    addAppointment, 
+    updateAppointmentStatus, 
+    updateAppointmentMeetingLink, 
+    updateAppointmentPaymentVerification,
+    updateAppointmentVerification
+}

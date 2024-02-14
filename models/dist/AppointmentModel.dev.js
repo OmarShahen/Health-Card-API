@@ -52,6 +52,17 @@ var AppointmentSchema = new mongoose.Schema({
   },
   meetingLink: {
     type: String
+  },
+  verification: {
+    type: String
+  },
+  payment: {
+    transactionId: {
+      type: Number
+    },
+    gateway: {
+      type: String
+    }
   }
 }, {
   timestamps: true

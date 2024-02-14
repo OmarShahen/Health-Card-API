@@ -31,11 +31,20 @@ router.get('/v1/appointments/seekers/:userId/status/:status/payments/paid', auth
 router.get('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.getAppointment(request, response);
 });
+router.get('/v1/appointments/search/name', authorization.allPermission, function (request, response) {
+  return appointmentsController.searchAppointmentsByExpertAndSeekerName(request, response);
+});
 router.patch('/v1/appointments/:appointmentId/status', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentStatus(request, response);
 });
 router.patch('/v1/appointments/:appointmentId/meeting-link', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentMeetingLink(request, response);
+});
+router.patch('/v1/appointments/:appointmentId/payment-verification', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.updateAppointmentPaymentVerification(request, response);
+});
+router.patch('/v1/appointments/:appointmentId/verification', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.updateAppointmentVerificationStatus(request, response);
 });
 router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.deleteAppointment(request, response);

@@ -38,7 +38,7 @@ router.get(
     '/v1/appointments/seekers/:userId/status/:status/payments/paid',
     authorization.allPermission,
     verifyUserId,
-    (request, response) => appointmentsController.getPaidAppointmentsBySeekerIdAndStatus(request, response)
+    (request, response) => appointmentsController.getAppointmentsBySeekerIdAndStatus(request, response)
 )
 
 router.get(
@@ -46,6 +46,12 @@ router.get(
     authorization.allPermission,
     verifyAppointmentId,
     (request, response) => appointmentsController.getAppointment(request, response)
+)
+
+router.get(
+    '/v1/appointments/search/name',
+    authorization.allPermission,
+    (request, response) => appointmentsController.searchAppointmentsByExpertAndSeekerName(request, response)
 )
 
 router.patch(
@@ -60,6 +66,20 @@ router.patch(
     authorization.allPermission,
     verifyAppointmentId, 
     (request, response) => appointmentsController.updateAppointmentMeetingLink(request, response)
+)
+
+router.patch(
+    '/v1/appointments/:appointmentId/payment-verification', 
+    authorization.allPermission,
+    verifyAppointmentId, 
+    (request, response) => appointmentsController.updateAppointmentPaymentVerification(request, response)
+)
+
+router.patch(
+    '/v1/appointments/:appointmentId/verification', 
+    authorization.allPermission,
+    verifyAppointmentId, 
+    (request, response) => appointmentsController.updateAppointmentVerificationStatus(request, response)
 )
 
 router.delete(

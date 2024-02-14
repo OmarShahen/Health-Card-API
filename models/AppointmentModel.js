@@ -15,7 +15,12 @@ const AppointmentSchema = new mongoose.Schema({
     status: { type: String, default: 'UPCOMING', enum: config.APPOINTMENT_STATUS },
     startTime: { type: Date, required: true },
     endTime: { type: Date, required: true },
-    meetingLink: { type: String }
+    meetingLink: { type: String },
+    verification: { type: String },
+    payment: {
+        transactionId: { type: String },
+        gateway: { type: String }
+    }
 
 }, { timestamps: true })
 
