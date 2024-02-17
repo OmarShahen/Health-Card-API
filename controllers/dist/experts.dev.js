@@ -316,19 +316,27 @@ var addExpert = function addExpert(request, response) {
 };
 
 var getExperts = function getExperts(request, response) {
-  var _utils$statsQueryGene, searchQuery, matchQuery, experts, totalExperts;
+  var speciality, _utils$statsQueryGene, searchQuery, matchQuery, experts, totalExperts;
 
   return regeneratorRuntime.async(function getExperts$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
+          speciality = request.query.speciality;
           _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
           matchQuery = _objectSpread({}, searchQuery, {
             type: 'EXPERT',
             isVerified: true
           });
-          _context4.next = 5;
+
+          if (speciality) {
+            matchQuery.speciality = {
+              $in: [mongoose.Types.ObjectId(speciality)]
+            };
+          }
+
+          _context4.next = 7;
           return regeneratorRuntime.awrap(UserModel.aggregate([{
             $match: matchQuery
           }, {
@@ -338,17 +346,24 @@ var getExperts = function getExperts(request, response) {
           }, {
             $limit: 25
           }, {
+            $lookup: {
+              from: 'specialities',
+              localField: 'speciality',
+              foreignField: '_id',
+              as: 'speciality'
+            }
+          }, {
             $project: {
               password: 0
             }
           }]));
 
-        case 5:
+        case 7:
           experts = _context4.sent;
-          _context4.next = 8;
+          _context4.next = 10;
           return regeneratorRuntime.awrap(UserModel.countDocuments(matchQuery));
 
-        case 8:
+        case 10:
           totalExperts = _context4.sent;
           experts.forEach(function (expert) {
             try {
@@ -363,8 +378,8 @@ var getExperts = function getExperts(request, response) {
             experts: experts
           }));
 
-        case 13:
-          _context4.prev = 13;
+        case 15:
+          _context4.prev = 15;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -373,12 +388,12 @@ var getExperts = function getExperts(request, response) {
             error: _context4.t0.message
           }));
 
-        case 17:
+        case 19:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 13]]);
+  }, null, null, [[0, 15]]);
 };
 
 var searchExpertsByName = function searchExpertsByName(request, response) {

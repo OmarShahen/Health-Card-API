@@ -231,12 +231,17 @@ const getExperts = async (request, response) => {
 
     try {
 
+        const { speciality } = request.query
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
 
         const matchQuery = {
             ...searchQuery,
             type: 'EXPERT',
             isVerified: true
+        }
+
+        if(speciality) {
+            matchQuery.speciality = { $in: [mongoose.Types.ObjectId(speciality)] }
         }
 
         const experts = await UserModel.aggregate([
@@ -248,6 +253,14 @@ const getExperts = async (request, response) => {
             },
             {
                 $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'speciality',
+                    foreignField: '_id',
+                    as: 'speciality'
+                }
             },
             {
                 $project: {
