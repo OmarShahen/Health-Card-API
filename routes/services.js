@@ -12,7 +12,6 @@ router.get(
 
 router.get(
     '/v1/services/experts/:userId',
-    authorization.allPermission,
     verifyUserId,
     (request, response) => servicesController.getServicesByExpertId(request, response)
 )

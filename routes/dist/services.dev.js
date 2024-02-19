@@ -13,7 +13,7 @@ var authorization = require('../middlewares/verify-permission');
 router.get('/v1/services', authorization.allPermission, function (request, response) {
   return servicesController.getServices(request, response);
 });
-router.get('/v1/services/experts/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+router.get('/v1/services/experts/:userId', verifyUserId, function (request, response) {
   return servicesController.getServicesByExpertId(request, response);
 });
 router.post('/v1/services', authorization.allPermission, function (request, response) {
