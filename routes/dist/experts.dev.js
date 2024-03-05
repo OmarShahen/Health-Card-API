@@ -10,6 +10,9 @@ var _require = require('../middlewares/verify-routes-params'),
 
 var authorization = require('../middlewares/verify-permission');
 
+router.put('/v1/experts/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.updateExpert(request, response);
+});
 router.get('/v1/experts/specialities/:specialityId', verifySpecialityId, function (request, response) {
   return expertsController.searchExperts(request, response);
 });
@@ -36,6 +39,12 @@ router.patch('/v1/experts/:userId/mobile-wallet', authorization.allPermission, v
 });
 router.patch('/v1/experts/:userId/onboarding', authorization.allPermission, verifyUserId, function (request, response) {
   return expertsController.updateExpertOnBoarding(request, response);
+});
+router.patch('/v1/experts/:userId/promo-codes-acceptance', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.updateExpertPromoCodeAcceptance(request, response);
+});
+router.patch('/v1/experts/:userId/online', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.updateExpertOnlineStatus(request, response);
 });
 router.get('/v1/experts/:userId/profile-completion-percentage', authorization.allPermission, verifyUserId, function (request, response) {
   return expertsController.getExpertProfileCompletionPercentage(request, response);

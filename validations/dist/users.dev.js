@@ -14,16 +14,11 @@ var checkSpeciality = function checkSpeciality(specialities) {
   return true;
 };
 
-var updateUser = function updateUser(userData) {
+var updateUserMainData = function updateUserMainData(userData) {
   var firstName = userData.firstName,
-      title = userData.title,
-      description = userData.description,
       phone = userData.phone,
       gender = userData.gender,
-      dateOfBirth = userData.dateOfBirth,
-      speciality = userData.speciality,
-      subSpeciality = userData.subSpeciality,
-      languages = userData.languages;
+      dateOfBirth = userData.dateOfBirth;
   if (firstName && !utils.isNameValid(firstName)) return {
     isAccepted: false,
     message: 'Invalid name formate',
@@ -33,16 +28,6 @@ var updateUser = function updateUser(userData) {
     isAccepted: false,
     message: 'Invalid phone format',
     field: 'phone'
-  };
-  if (title && typeof title != 'string') return {
-    isAccepted: false,
-    message: 'Invalid title format',
-    field: 'title'
-  };
-  if (description && typeof description != 'string') return {
-    isAccepted: false,
-    message: 'Invalid description format',
-    field: 'description'
   };
   if (gender && !config.GENDER.includes(gender)) return {
     isAccepted: false,
@@ -54,56 +39,6 @@ var updateUser = function updateUser(userData) {
     message: 'Date of birth format is invalid',
     field: 'dateOfBirth'
   };
-
-  if (speciality) {
-    if (!Array.isArray(speciality)) return {
-      isAccepted: false,
-      message: 'Speciality must be a list',
-      field: 'speciality'
-    };
-    if (speciality.length == 0) return {
-      isAccepted: false,
-      message: 'Speciality must be atleast one',
-      field: 'speciality'
-    };
-    if (!checkSpeciality(speciality)) return {
-      isAccepted: false,
-      message: 'Speciality Ids is invalid',
-      field: 'speciality'
-    };
-  }
-
-  if (subSpeciality) {
-    if (!Array.isArray(subSpeciality)) return {
-      isAccepted: false,
-      message: 'Subspeciality must be a list',
-      field: 'subSpeciality'
-    };
-    if (subSpeciality.length == 0) return {
-      isAccepted: false,
-      message: 'Subspeciality must be atleast one',
-      field: 'subSpeciality'
-    };
-    if (!checkSpeciality(subSpeciality)) return {
-      isAccepted: false,
-      message: 'Subspeciality Ids is invalid',
-      field: 'subSpeciality'
-    };
-  }
-
-  if (languages) {
-    if (!Array.isArray(languages)) return {
-      isAccepted: false,
-      message: 'Languages must be a list',
-      field: 'languages'
-    };
-    if (languages.length == 0) return {
-      isAccepted: false,
-      message: 'Languages must be atleast one',
-      field: 'languages'
-    };
-  }
-
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -369,7 +304,7 @@ var addEmployeeUser = function addEmployeeUser(userData) {
 };
 
 module.exports = {
-  updateUser: updateUser,
+  updateUserMainData: updateUserMainData,
   updateUserProfileImage: updateUserProfileImage,
   updateUserEmail: updateUserEmail,
   updateUserPassword: updateUserPassword,

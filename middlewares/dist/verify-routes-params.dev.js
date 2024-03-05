@@ -16,6 +16,8 @@ var ExpertVerificationModel = require('../models/ExpertVerificationModel');
 
 var ServiceModel = require('../models/ServiceModel');
 
+var PromoCodeModel = require('../models/PromoCodeModel');
+
 var verifyUserId = function verifyUserId(request, response, next) {
   var userId, user;
   return regeneratorRuntime.async(function verifyUserId$(_context) {
@@ -427,6 +429,65 @@ var verifyServiceId = function verifyServiceId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyPromoCodeId = function verifyPromoCodeId(request, response, next) {
+  var promoCodeId, promoCode;
+  return regeneratorRuntime.async(function verifyPromoCodeId$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          promoCodeId = request.params.promoCodeId;
+
+          if (utils.isObjectId(promoCodeId)) {
+            _context8.next = 4;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid promo code ID format',
+            field: 'promoCodeId'
+          }));
+
+        case 4:
+          _context8.next = 6;
+          return regeneratorRuntime.awrap(PromoCodeModel.findById(promoCodeId));
+
+        case 6:
+          promoCode = _context8.sent;
+
+          if (promoCode) {
+            _context8.next = 9;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Promo code ID does not exist',
+            field: 'promoCodeId'
+          }));
+
+        case 9:
+          return _context8.abrupt("return", next());
+
+        case 12:
+          _context8.prev = 12;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyUserId: verifyUserId,
   verifyAppointmentId: verifyAppointmentId,
@@ -434,5 +495,6 @@ module.exports = {
   verifyOpeningTimeId: verifyOpeningTimeId,
   verifyReviewId: verifyReviewId,
   verifyExpertVerificationId: verifyExpertVerificationId,
-  verifyServiceId: verifyServiceId
+  verifyServiceId: verifyServiceId,
+  verifyPromoCodeId: verifyPromoCodeId
 };

@@ -16,8 +16,6 @@ const addService = (serviceData) => {
 
     if(typeof description != 'string') return { isAccepted: false, message: 'Description format is invalid', field: 'description' }
 
-    if(!price) return { isAccepted: false, message: 'Price is required', field: 'price' }
-
     if(typeof price != 'number') return { isAccepted: false, message: 'Price format is invalid', field: 'price' }
 
     if(!duration) return { isAccepted: false, message: 'Duration is required', field: 'duration' }

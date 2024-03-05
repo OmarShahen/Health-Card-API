@@ -11,7 +11,8 @@ var addAppointment = function addAppointment(appointmentData) {
       status = appointmentData.status,
       price = appointmentData.price,
       startTime = appointmentData.startTime,
-      duration = appointmentData.duration;
+      duration = appointmentData.duration,
+      isOnlineBooking = appointmentData.isOnlineBooking;
   if (!seekerId) return {
     isAccepted: false,
     message: 'Seeker Id is required',
@@ -82,6 +83,11 @@ var addAppointment = function addAppointment(appointmentData) {
     message: 'invalid start time format',
     field: 'startTime'
   };
+  if (typeof isOnlineBooking != 'boolean') return {
+    isAccepted: false,
+    message: 'Invalid isOnlineBooking format',
+    field: 'isOnlineBooking'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -100,6 +106,25 @@ var updateAppointmentStatus = function updateAppointmentStatus(appointmentData) 
     isAccepted: false,
     message: 'Status value is invalid',
     field: 'status'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: appointmentData
+  };
+};
+
+var applyAppointmentPromoCode = function applyAppointmentPromoCode(appointmentData) {
+  var promoCode = appointmentData.promoCode;
+  if (!promoCode) return {
+    isAccepted: false,
+    message: 'Promo Code is required',
+    field: 'promoCode'
+  };
+  if (typeof promoCode != 'string') return {
+    isAccepted: false,
+    message: 'Promo Code value is invalid',
+    field: 'promoCode'
   };
   return {
     isAccepted: true,
@@ -135,7 +160,7 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
     message: 'Transaction ID is required',
     field: 'transactionId'
   };
-  if (typeof transactionId != 'number') return {
+  if (typeof transactionId != 'string') return {
     isAccepted: false,
     message: 'Transaction ID format is invalid',
     field: 'transactionId'
@@ -188,6 +213,7 @@ var updateAppointmentVerification = function updateAppointmentVerification(appoi
 
 module.exports = {
   addAppointment: addAppointment,
+  applyAppointmentPromoCode: applyAppointmentPromoCode,
   updateAppointmentStatus: updateAppointmentStatus,
   updateAppointmentMeetingLink: updateAppointmentMeetingLink,
   updateAppointmentPaymentVerification: updateAppointmentPaymentVerification,

@@ -36,6 +36,8 @@ app.use('/api', require('./routes/reviews'))
 app.use('/api', require('./routes/expertVerifications'))
 app.use('/api', require('./routes/services'))
 app.use('/api', require('./routes/analytics'))
+app.use('/api', require('./routes/promoCodes'))
+
 
 db()
 .then(data => console.log('Mongo is up and running... ;)'))

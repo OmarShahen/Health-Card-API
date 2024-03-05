@@ -3,7 +3,7 @@ const config = require('../config/config')
 
 const addAppointment = (appointmentData) => {
 
-    const { seekerId, expertId, serviceId, status, price, startTime, duration } = appointmentData
+    const { seekerId, expertId, serviceId, status, price, startTime, duration, isOnlineBooking } = appointmentData
 
     if(!seekerId) return { isAccepted: false, message: 'Seeker Id is required', field: 'seekerId' }
 
@@ -21,8 +21,6 @@ const addAppointment = (appointmentData) => {
 
     if(!config.APPOINTMENT_STATUS.includes(status)) return { isAccepted: false, message: 'invalid status value', field: 'status' }
 
-    if(!price) return { isAccepted: false, message: 'Price is required', field: 'price' }
-
     if(typeof price != 'number') return { isAccepted: false, message: 'Price format is invalid', field: 'price' }
 
     if(!duration) return { isAccepted: false, message: 'Duration is required', field: 'duration' }
@@ -33,6 +31,7 @@ const addAppointment = (appointmentData) => {
 
     if(!utils.isDateTimeValid(startTime)) return { isAccepted: false, message: 'invalid start time format', field: 'startTime' }
 
+    if(typeof isOnlineBooking != 'boolean') return { isAccepted: false, message: 'Invalid isOnlineBooking format', field: 'isOnlineBooking' }
 
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }
@@ -44,6 +43,17 @@ const updateAppointmentStatus = (appointmentData) => {
     if(!status) return { isAccepted: false, message: 'Status is required', field: 'status' }
 
     if(!config.APPOINTMENT_STATUS.includes(status)) return { isAccepted: false, message: 'Status value is invalid', field: 'status' }
+
+    return { isAccepted: true, message: 'data is valid', data: appointmentData }
+}
+
+const applyAppointmentPromoCode = (appointmentData) => {
+
+    const { promoCode } = appointmentData
+
+    if(!promoCode) return { isAccepted: false, message: 'Promo Code is required', field: 'promoCode' }
+
+    if(typeof promoCode != 'string') return { isAccepted: false, message: 'Promo Code value is invalid', field: 'promoCode' }
 
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }
@@ -89,8 +99,10 @@ const updateAppointmentVerification = (appointmentData) => {
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }
 
+
 module.exports = { 
-    addAppointment, 
+    addAppointment,
+    applyAppointmentPromoCode,
     updateAppointmentStatus, 
     updateAppointmentMeetingLink, 
     updateAppointmentPaymentVerification,

@@ -3,6 +3,7 @@ const OpeningTimeModel = require('../models/OpeningTimeModel')
 const CounterModel = require('../models/CounterModel')
 const UserModel = require('../models/UserModel')
 const ServiceModel = require('../models/ServiceModel')
+const PromoCodeModel = require('../models/PromoCodeModel')
 const appointmentValidation = require('../validations/appointments')
 const utils = require('../utils/utils')
 const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointment')
@@ -14,7 +15,6 @@ const email = require('../mails/send-email')
 const moment = require('moment')
 const PaymentModel = require('../models/PaymentModel')
 const emailTemplates = require('../mails/templates/messages')
-
 
 const addAppointment = async (request, response) => {
 
@@ -29,7 +29,7 @@ const addAppointment = async (request, response) => {
             })
         }
 
-        let { seekerId, expertId, serviceId, startTime, duration } = request.body
+        let { seekerId, expertId, serviceId, startTime, price, duration, isOnlineBooking } = request.body
 
         const todayDate = new Date() 
         if(todayDate > new Date(startTime)) {
@@ -83,20 +83,33 @@ const addAppointment = async (request, response) => {
 
         request.body.endTime = endTime
 
-        const weekDay = config.WEEK_DAYS[startTime.getDay()]
+        if(isOnlineBooking) {
 
-        const openingTimes = await OpeningTimeModel.find({
-            expertId,
-            weekday: weekDay,
-            isActive: true,
-        })
+            if(!expert.isOnline) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Expert is not online to book it now',
+                    field: 'isOnlineBooking'
+                })
+            }
 
-        if(openingTimes.length == 0) {
-            return response.status(400).json({
-                accepted: false,
-                message: 'This day is not available in the schedule',
-                field: 'startTime'
+        } else {
+
+            const weekDay = config.WEEK_DAYS[startTime.getDay()]
+
+            const openingTimes = await OpeningTimeModel.find({
+                expertId,
+                weekday: weekDay,
+                isActive: true,
             })
+
+            if(openingTimes.length == 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'This day is not available in the schedule',
+                    field: 'startTime'
+                })
+            }
         }
 
         const existingAppointmentsQuery = {
@@ -125,8 +138,13 @@ const addAppointment = async (request, response) => {
             { new: true, upsert: true }
         )
 
+        if(price == 0) {
+            request.body.isPaid = true
+        }
+
         const appointmentData = { 
             appointmentId: counter.value,
+            originalPrice: request.body.price,
             ...request.body 
         }
 
@@ -148,7 +166,7 @@ const addAppointment = async (request, response) => {
 
         const newUserEmailData = {
             receiverEmail: config.NOTIFICATION_EMAIL,
-            subject: 'New Appointment',
+            subject: isOnlineBooking ? 'New Online Appointment' : 'New Appointment',
             mailBodyText: `You have a new appointment with ID #${newAppointment.appointmentId}`,
             mailBodyHTML: `
             <strong>ID: </strong><span>#${newAppointment.appointmentId}</span><br />
@@ -254,13 +272,13 @@ const getPaidAppointmentsByExpertIdAndStatus = async (request, response) => {
     }
 }
 
-const getAppointmentsBySeekerIdAndStatus = async (request, response) => {
+const getPaidAppointmentsBySeekerIdAndStatus = async (request, response) => {
 
     try {
 
         const { userId, status } = request.params
 
-        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId) }
+        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId), isPaid: true }
 
         if(status === 'UPCOMING') {
             matchQuery.startTime = { $gte: new Date() }
@@ -544,6 +562,14 @@ const getAppointment = async (request, response) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'promocodes',
+                    localField: 'promoCodeId',
+                    foreignField: '_id',
+                    as: 'promoCode'
+                }
+            },
+            {
                 $project: {
                     'expert.password': 0,
                     'seeker.password': 0,
@@ -555,6 +581,7 @@ const getAppointment = async (request, response) => {
             appointment.expert = appointment.expert[0]
             appointment.seeker = appointment.seeker[0]
             appointment.service = appointment.service[0]
+            appointment.promoCode = appointment.promoCode[0]
         })
 
         const appointment = appointmentList[0]
@@ -578,7 +605,7 @@ const getAppointments = async (request, response) => {
 
     try {
 
-        const { status, meetingLink, verification } = request.query
+        const { status, meetingLink, verification, isOnlineBooking } = request.query
         const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query, 'startTime')
 
         let matchQuery = { ...searchQuery }
@@ -599,12 +626,18 @@ const getAppointments = async (request, response) => {
             matchQuery.meetingLink = { $exists: false }
         }
 
+        if(isOnlineBooking == 'TRUE') {
+            matchQuery.isOnlineBooking = true
+        } else if(isOnlineBooking == 'FALSE') {
+            matchQuery.isOnlineBooking = false
+        }
+
         const appointments = await AppointmentModel.aggregate([
             {
                 $match: matchQuery
             },
             {
-                $sort: { startTime: -1 }
+                $sort: { createdAt: -1 }
             },
             {
                 $limit: 25
@@ -1112,6 +1145,226 @@ const searchAppointmentsByExpertAndSeekerName = async (request, response) => {
     }
 }
 
+const applyAppointmentPromoCode = async (request, response) => {
+
+    try {
+
+        const dataValidation = appointmentValidation.applyAppointmentPromoCode(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { appointmentId } = request.params
+        const { promoCode } = request.body
+
+        const promoCodesList = await PromoCodeModel.find({ code: promoCode })
+        if(promoCodesList.length == 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Promo code is not registered',
+                field: 'promoCode'
+            })
+        }
+
+        const targetPromoCode = promoCodesList[0]
+        
+        if(!targetPromoCode.isActive) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Promo code is not active',
+                field: 'promoCode'
+            })
+        }
+        
+        if(targetPromoCode.maxUsage != 0) {
+            const totalPromoCodeAppointments = await AppointmentModel.countDocuments({ promoCodeId: targetPromoCode._id })
+            if(totalPromoCodeAppointments >= targetPromoCode.maxUsage) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Promo code has passed the max usage',
+                    field: 'promoCode'
+                })
+            }
+        }
+
+        if(targetPromoCode.expirationDate) {
+            const todayDate = new Date()
+            const expirationDate = new Date(targetPromoCode.expirationDate)
+
+            if(todayDate > expirationDate) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Promo code has expired',
+                    field: 'promoCode'
+                })
+            }
+        }
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+        const expertId = appointment.expertId
+        const seekerId = appointment.seekerId
+
+        if(appointment.isPaid) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is already paid',
+                field: 'promoCode'
+            })
+        }
+
+        if(appointment.promoCodeId) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is registered with another promo code',
+                field: 'promoCode'
+            })
+        }
+
+        const totalSeekerAppointments = await AppointmentModel
+        .countDocuments({ seekerId, promoCodeId: targetPromoCode._id, isPaid: true })
+
+        if(totalSeekerAppointments >= targetPromoCode.userMaxUsage) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Promo code has passed the user maximum usage',
+                field: 'promoCode'
+            })
+        }
+        
+        const expert = await UserModel.findById(expertId)
+        if(!expert.isAcceptPromoCodes) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Expert does not accept promo codes',
+                field: 'promoCode'
+            })
+        }
+
+        const DEDUCTION_AMOUNT = appointment.price * targetPromoCode.percentage
+        const NEW_PRICE = appointment.price - DEDUCTION_AMOUNT
+
+        const updateAppointmentData = {
+            price: NEW_PRICE,
+            promoCodeId: targetPromoCode._id,
+            discountPercentage: targetPromoCode.percentage
+        }
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointmentId, updateAppointmentData, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Applied Promo code successfully!',
+            appointment: updatedAppointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+} 
+
+const removeAppointmentPromoCode = async (request, response) => {
+
+    try {
+
+        const { appointmentId } = request.params
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        if(appointment.isPaid) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is already paid',
+                field: 'promoCode'
+            })
+        }
+
+        const updateAppointmentData = {
+            price: appointment.originalPrice,
+            promoCodeId: null,
+            discountPercentage: null
+        }
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointmentId, updateAppointmentData, { new: true })
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Removed Promo code successfully!',
+            appointment: updatedAppointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+} 
+
+const cancelFreeSession = async (request, response) => {
+
+    try {
+
+        const { appointmentId } = request.params
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        if(appointment.status == 'CANCELLED') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is already cancelled',
+                field: 'appointmentId'
+            })
+        }
+
+        if(appointment.paymentId) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is registered with payment',
+                field: 'appointmentId'
+            })
+        }
+
+        if(appointment.price != 0) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is not free to be cancelled',
+                field: 'appointmentId'
+            })
+        }
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointmentId, { status: 'CANCELLED' }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Cancelled appointment successfully!',
+            appointment: updatedAppointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addAppointment,
@@ -1122,10 +1375,13 @@ module.exports = {
     getAppointment,
     getAppointments,
     getPaidAppointmentsByExpertIdAndStatus,
-    getAppointmentsBySeekerIdAndStatus,
+    getPaidAppointmentsBySeekerIdAndStatus,
     getAppointmentsStats,
     getAppointmentsGrowthStats,
     updateAppointmentPaymentVerification,
     updateAppointmentVerificationStatus,
-    searchAppointmentsByExpertAndSeekerName
+    searchAppointmentsByExpertAndSeekerName,
+    applyAppointmentPromoCode,
+    removeAppointmentPromoCode,
+    cancelFreeSession
 }

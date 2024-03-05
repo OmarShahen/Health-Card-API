@@ -2,6 +2,7 @@ const UserModel = require('../models/UserModel')
 const AppointmentModel = require('../models/AppointmentModel')
 const PaymentModel = require('../models/PaymentModel')
 const ReviewModel = require('../models/ReviewModel')
+const SpecialityModel = require('../models/SpecialityModel')
 const expertValidation = require('../validations/experts')
 const mongoose = require('mongoose')
 const CounterModel = require('../models/CounterModel')
@@ -9,12 +10,77 @@ const bcrypt = require('bcrypt')
 const config = require('../config/config')
 const utils = require('../utils/utils')
 
+
+const updateExpert = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const dataValidation = expertValidation.updateExpert(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { speciality, subSpeciality } = request.body
+
+        if(speciality) {
+            const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
+            if(specialitiesList.length != speciality.length) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'invalid specialities Ids',
+                    field: 'speciality'
+                })
+            }
+
+            request.body.speciality = specialitiesList.map(special => special._id)
+        }
+
+        if(subSpeciality) {
+            const specialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
+            if(specialitiesList.length != subSpeciality.length) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'invalid subspecialities Ids',
+                    field: 'subSpeciality'
+                })
+            }
+
+            request.body.subSpeciality = specialitiesList.map(special => special._id)
+        }
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, request.body, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated expert successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const searchExperts = async (request, response) => {
 
     try {
 
         const { specialityId } = request.params
-        let { gender, sortBy, subSpecialityId, page, limit } = request.query
+        let { gender, sortBy, subSpecialityId, page, limit, isAcceptPromoCodes, isOnline } = request.query
 
         page = page ? page : 1
         limit = limit ? limit : 10
@@ -46,6 +112,18 @@ const searchExperts = async (request, response) => {
             sortQuery['pricing.price'] = -1
         } else if(sortBy == 'LOW-PRICE') {
             sortQuery['pricing.price'] = 1
+        }
+
+        if(isAcceptPromoCodes == 'TRUE') {
+            matchQuery.isAcceptPromoCodes = true
+        } else if(isAcceptPromoCodes == 'FALSE') {
+            matchQuery.isAcceptPromoCodes = false
+        }
+
+        if(isOnline == 'TRUE') {
+            matchQuery.isOnline = true
+        } else if(isOnline == 'FALSE') {
+            matchQuery.isOnline = false
         }
 
 
@@ -522,6 +600,80 @@ const updateExpertOnBoarding = async (request, response) => {
     }
 }
 
+const updateExpertPromoCodeAcceptance = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { isAcceptPromoCodes } = request.body
+
+        const dataValidation = expertValidation.updateExpertPromoCodesAcceptance(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isAcceptPromoCodes }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated expert promo code acceptance successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const updateExpertOnlineStatus = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { isOnline } = request.body
+
+        const dataValidation = expertValidation.updateExpertOnline(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isOnline }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated expert online status successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getExpertProfileCompletionPercentage = async (request, response) => {
 
     try {
@@ -550,6 +702,7 @@ const getExpertProfileCompletionPercentage = async (request, response) => {
 }
 
 module.exports = { 
+    updateExpert,
     searchExperts, 
     searchExpertsByNameAndSpeciality, 
     searchExpertsByName,
@@ -559,5 +712,7 @@ module.exports = {
     addExpertBankInfo,
     addExpertMobileWalletInfo,
     updateExpertOnBoarding,
-    getExpertProfileCompletionPercentage
+    updateExpertOnlineStatus,
+    getExpertProfileCompletionPercentage,
+    updateExpertPromoCodeAcceptance
 }

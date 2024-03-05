@@ -13,6 +13,12 @@ var authorization = require('../middlewares/verify-permission');
 router.post('/v1/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.addAppointment(request, response);
 });
+router.patch('/v1/appointments/:appointmentId/promo-codes/apply', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.applyAppointmentPromoCode(request, response);
+});
+router.patch('/v1/appointments/:appointmentId/promo-codes/remove', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.removeAppointmentPromoCode(request, response);
+});
 router.get('/v1/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointments(request, response);
 });
@@ -45,6 +51,9 @@ router.patch('/v1/appointments/:appointmentId/payment-verification', authorizati
 });
 router.patch('/v1/appointments/:appointmentId/verification', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentVerificationStatus(request, response);
+});
+router.patch('/v1/appointments/:appointmentId/status/cancellation/free', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.cancelFreeSession(request, response);
 });
 router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.deleteAppointment(request, response);

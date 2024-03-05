@@ -4,6 +4,16 @@ var utils = require('../utils/utils');
 
 var config = require('../config/config');
 
+var checkSpeciality = function checkSpeciality(specialities) {
+  for (var i = 0; i < specialities.length; i++) {
+    if (!utils.isObjectId(specialities[i])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 var addExpert = function addExpert(expertData) {
   var firstName = expertData.firstName,
       email = expertData.email,
@@ -76,6 +86,79 @@ var addExpert = function addExpert(expertData) {
     isAccepted: true,
     message: 'data is valid',
     data: expertData
+  };
+};
+
+var updateExpert = function updateExpert(userData) {
+  var title = userData.title,
+      description = userData.description,
+      speciality = userData.speciality,
+      subSpeciality = userData.subSpeciality,
+      languages = userData.languages;
+  if (title && typeof title != 'string') return {
+    isAccepted: false,
+    message: 'Invalid title format',
+    field: 'title'
+  };
+  if (description && typeof description != 'string') return {
+    isAccepted: false,
+    message: 'Invalid description format',
+    field: 'description'
+  };
+
+  if (speciality) {
+    if (!Array.isArray(speciality)) return {
+      isAccepted: false,
+      message: 'Speciality must be a list',
+      field: 'speciality'
+    };
+    if (speciality.length == 0) return {
+      isAccepted: false,
+      message: 'Speciality must be atleast one',
+      field: 'speciality'
+    };
+    if (!checkSpeciality(speciality)) return {
+      isAccepted: false,
+      message: 'Speciality Ids is invalid',
+      field: 'speciality'
+    };
+  }
+
+  if (subSpeciality) {
+    if (!Array.isArray(subSpeciality)) return {
+      isAccepted: false,
+      message: 'Subspeciality must be a list',
+      field: 'subSpeciality'
+    };
+    if (subSpeciality.length == 0) return {
+      isAccepted: false,
+      message: 'Subspeciality must be atleast one',
+      field: 'subSpeciality'
+    };
+    if (!checkSpeciality(subSpeciality)) return {
+      isAccepted: false,
+      message: 'Subspeciality Ids is invalid',
+      field: 'subSpeciality'
+    };
+  }
+
+  if (languages) {
+    if (!Array.isArray(languages)) return {
+      isAccepted: false,
+      message: 'Languages must be a list',
+      field: 'languages'
+    };
+    if (languages.length == 0) return {
+      isAccepted: false,
+      message: 'Languages must be atleast one',
+      field: 'languages'
+    };
+  }
+
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
   };
 };
 
@@ -158,9 +241,40 @@ var updateExpertOnBoarding = function updateExpertOnBoarding(expertData) {
   };
 };
 
+var updateExpertPromoCodesAcceptance = function updateExpertPromoCodesAcceptance(expertData) {
+  var isAcceptPromoCodes = expertData.isAcceptPromoCodes;
+  if (typeof isAcceptPromoCodes != 'boolean') return {
+    isAccepted: false,
+    message: 'isAcceptPromoCodes format is invalid',
+    field: 'isAcceptPromoCodes'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: expertData
+  };
+};
+
+var updateExpertOnline = function updateExpertOnline(userData) {
+  var isOnline = userData.isOnline;
+  if (typeof isOnline != 'boolean') return {
+    isAccepted: false,
+    message: 'Invalid isOnline format',
+    field: 'isOnline'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
 module.exports = {
   addExpert: addExpert,
+  updateExpert: updateExpert,
   addBankInfo: addBankInfo,
   addMobileWalletInfo: addMobileWalletInfo,
-  updateExpertOnBoarding: updateExpertOnBoarding
+  updateExpertOnBoarding: updateExpertOnBoarding,
+  updateExpertPromoCodesAcceptance: updateExpertPromoCodesAcceptance,
+  updateExpertOnline: updateExpertOnline
 };

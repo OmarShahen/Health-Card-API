@@ -42,6 +42,10 @@ app.use('/api', require('./routes/reviews'));
 app.use('/api', require('./routes/expertVerifications'));
 app.use('/api', require('./routes/services'));
 app.use('/api', require('./routes/analytics'));
+app.use('/api', require('./routes/promoCodes'));
+
+require('./APIs/zoom/zoom');
+
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
 })["catch"](function (error) {

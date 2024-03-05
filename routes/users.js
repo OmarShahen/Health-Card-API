@@ -42,7 +42,7 @@ router.put(
     '/v1/users/:userId',
     authorization.allPermission,
     verifyUserId, 
-    (request, response) => usersController.updateUser(request, response)
+    (request, response) => usersController.updateUserMainData(request, response)
 )
 
 router.patch(

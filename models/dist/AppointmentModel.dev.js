@@ -23,6 +23,9 @@ var AppointmentSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     required: true
   },
+  promoCodeId: {
+    type: mongoose.Types.ObjectId
+  },
   roomId: {
     type: String
   },
@@ -30,8 +33,16 @@ var AppointmentSchema = new mongoose.Schema({
     type: Boolean,
     "default": false
   },
+  isOnlineBooking: {
+    type: Boolean,
+    "default": false
+  },
   duration: {
     type: Number
+  },
+  originalPrice: {
+    type: Number,
+    "default": 0
   },
   price: {
     type: Number,
@@ -56,9 +67,12 @@ var AppointmentSchema = new mongoose.Schema({
   verification: {
     type: String
   },
+  discountPercentage: {
+    type: Number
+  },
   payment: {
     transactionId: {
-      type: Number
+      type: String
     },
     gateway: {
       type: String

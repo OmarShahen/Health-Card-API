@@ -119,6 +119,14 @@ var UserSchema = new mongoose.Schema({
   lastLoginDate: {
     type: Date
   },
+  isAcceptPromoCodes: {
+    type: Boolean,
+    "default": true
+  },
+  isOnline: {
+    type: Boolean,
+    "default": false
+  },
   paymentInfo: {
     paymentMethod: {
       type: String,

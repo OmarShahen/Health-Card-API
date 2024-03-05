@@ -9,6 +9,20 @@ router.post(
     (request, response) => appointmentsController.addAppointment(request, response)
 )
 
+router.patch(
+    '/v1/appointments/:appointmentId/promo-codes/apply',
+    authorization.allPermission,
+    verifyAppointmentId,
+    (request, response) => appointmentsController.applyAppointmentPromoCode(request, response)
+)
+
+router.patch(
+    '/v1/appointments/:appointmentId/promo-codes/remove',
+    authorization.allPermission,
+    verifyAppointmentId,
+    (request, response) => appointmentsController.removeAppointmentPromoCode(request, response)
+)
+
 router.get(
     '/v1/appointments',
     authorization.allPermission,
@@ -38,7 +52,7 @@ router.get(
     '/v1/appointments/seekers/:userId/status/:status/payments/paid',
     authorization.allPermission,
     verifyUserId,
-    (request, response) => appointmentsController.getAppointmentsBySeekerIdAndStatus(request, response)
+    (request, response) => appointmentsController.getPaidAppointmentsBySeekerIdAndStatus(request, response)
 )
 
 router.get(
@@ -80,6 +94,13 @@ router.patch(
     authorization.allPermission,
     verifyAppointmentId, 
     (request, response) => appointmentsController.updateAppointmentVerificationStatus(request, response)
+)
+
+router.patch(
+    '/v1/appointments/:appointmentId/status/cancellation/free',
+    authorization.allPermission,
+    verifyAppointmentId, 
+    (request, response)=> appointmentsController.cancelFreeSession(request, response)
 )
 
 router.delete(

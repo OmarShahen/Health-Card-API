@@ -3,6 +3,12 @@ const expertsController = require('../controllers/experts')
 const { verifySpecialityId, verifyUserId } = require('../middlewares/verify-routes-params')
 const authorization = require('../middlewares/verify-permission')
 
+router.put(
+    '/v1/experts/:userId',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.updateExpert(request, response)
+)
 
 router.get(
     '/v1/experts/specialities/:specialityId',
@@ -60,6 +66,20 @@ router.patch(
     authorization.allPermission,
     verifyUserId,
     (request, response) => expertsController.updateExpertOnBoarding(request, response)
+)
+
+router.patch(
+    '/v1/experts/:userId/promo-codes-acceptance',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.updateExpertPromoCodeAcceptance(request, response)
+)
+
+router.patch(
+    '/v1/experts/:userId/online',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.updateExpertOnlineStatus(request, response)
 )
 
 router.get(

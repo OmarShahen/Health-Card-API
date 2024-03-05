@@ -6,6 +6,7 @@ const OpeningTimeModel = require('../models/OpeningTimeModel')
 const ReviewModel = require('../models/ReviewModel')
 const ExpertVerificationModel = require('../models/ExpertVerificationModel')
 const ServiceModel = require('../models/ServiceModel')
+const PromoCodeModel = require('../models/PromoCodeModel')
 
 
 const verifyUserId = async (request, response, next) => {
@@ -252,6 +253,41 @@ const verifyServiceId = async (request, response, next) => {
     }
 }
 
+const verifyPromoCodeId = async (request, response, next) => {
+
+    try {
+
+        const { promoCodeId } = request.params
+
+        if(!utils.isObjectId(promoCodeId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid promo code ID format',
+                field: 'promoCodeId'
+            })
+        }
+
+        const promoCode = await PromoCodeModel.findById(promoCodeId)
+        if(!promoCode) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Promo code ID does not exist',
+                field: 'promoCodeId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyUserId,
     verifyAppointmentId,
@@ -259,5 +295,6 @@ module.exports = {
     verifyOpeningTimeId,
     verifyReviewId,
     verifyExpertVerificationId,
-    verifyServiceId
+    verifyServiceId,
+    verifyPromoCodeId
 }

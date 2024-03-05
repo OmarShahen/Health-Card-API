@@ -25,7 +25,7 @@ router.get('/v1/users/:userId/speciality', authorization.allPermission, verifyUs
   return usersController.getUserSpeciality(request, response);
 });
 router.put('/v1/users/:userId', authorization.allPermission, verifyUserId, function (request, response) {
-  return usersController.updateUser(request, response);
+  return usersController.updateUserMainData(request, response);
 });
 router.patch('/v1/users/:userId/profile-image', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.updateUserProfileImage(request, response);

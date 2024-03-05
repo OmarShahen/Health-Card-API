@@ -158,49 +158,20 @@ const getUserSpeciality = async (request, response) => {
     }
 }
 
-const updateUser = async (request, response) => {
+
+const updateUserMainData = async (request, response) => {
 
     try {
 
         const { userId } = request.params
 
-        const dataValidation = userValidation.updateUser(request.body)
+        const dataValidation = userValidation.updateUserMainData(request.body)
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
                 message: dataValidation.message,
                 field: dataValidation.field
             })
-        }
-
-        const { speciality, subSpeciality } = request.body
-
-        if(speciality) {
-
-            const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
-            if(specialitiesList.length != speciality.length) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'invalid specialities Ids',
-                    field: 'speciality'
-                })
-            }
-
-            request.body.speciality = specialitiesList.map(special => special._id)
-        }
-
-        if(subSpeciality) {
-
-            const specialitiesList = await SpecialityModel.find({ _id: { $in: subSpeciality }, type: 'SUB' })
-            if(specialitiesList.length != subSpeciality.length) {
-                return response.status(400).json({
-                    accepted: false,
-                    message: 'invalid subspecialities Ids',
-                    field: 'subSpeciality'
-                })
-            }
-
-            request.body.subSpeciality = specialitiesList.map(special => special._id)
         }
 
         const updatedUser = await UserModel
@@ -725,7 +696,7 @@ module.exports = {
     getExpertUser,
     getAppUsers,
     getUserSpeciality,
-    updateUser, 
+    updateUserMainData, 
     updateUserSpeciality,
     updateUserEmail, 
     updateUserLanguage,

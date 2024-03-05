@@ -11,49 +11,18 @@ const checkSpeciality = (specialities) => {
     return true
 }
 
+const updateUserMainData = (userData) => {
 
-const updateUser = (userData) => {
-
-    const { firstName, title, description, phone, gender, dateOfBirth, speciality, subSpeciality, languages } = userData
+    const { firstName, phone, gender, dateOfBirth } = userData
 
 
     if(firstName && !utils.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
 
     if(phone && typeof phone != 'number') return { isAccepted: false, message: 'Invalid phone format', field: 'phone' }
 
-    if(title && typeof title != 'string') return { isAccepted: false, message: 'Invalid title format', field: 'title' }
-
-    if(description && typeof description != 'string') return { isAccepted: false, message: 'Invalid description format', field: 'description' }
-
     if(gender && !config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
 
     if(dateOfBirth && !utils.isDateValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
-
-    if(speciality) {
-
-        if(!Array.isArray(speciality)) return { isAccepted: false, message: 'Speciality must be a list', field: 'speciality' }    
-
-        if(speciality.length == 0) return { isAccepted: false, message: 'Speciality must be atleast one', field: 'speciality' }
-
-        if(!checkSpeciality(speciality)) return { isAccepted: false, message: 'Speciality Ids is invalid', field: 'speciality' }
-    }
-
-    if(subSpeciality) {
-
-        if(!Array.isArray(subSpeciality)) return { isAccepted: false, message: 'Subspeciality must be a list', field: 'subSpeciality' }    
-
-        if(subSpeciality.length == 0) return { isAccepted: false, message: 'Subspeciality must be atleast one', field: 'subSpeciality' }
-
-        if(!checkSpeciality(subSpeciality)) return { isAccepted: false, message: 'Subspeciality Ids is invalid', field: 'subSpeciality' }
-    }
-
-    if(languages) {
-
-        if(!Array.isArray(languages)) return { isAccepted: false, message: 'Languages must be a list', field: 'languages' }    
-
-        if(languages.length == 0) return { isAccepted: false, message: 'Languages must be atleast one', field: 'languages' }
-
-    }
 
 
     return { isAccepted: true, message: 'data is valid', data: userData }
@@ -201,7 +170,7 @@ const addEmployeeUser = (userData) => {
 
 
 module.exports = { 
-    updateUser, 
+    updateUserMainData, 
     updateUserProfileImage,
     updateUserEmail, 
     updateUserPassword,

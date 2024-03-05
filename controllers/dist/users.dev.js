@@ -231,16 +231,15 @@ var getUserSpeciality = function getUserSpeciality(request, response) {
   }, null, null, [[0, 13]]);
 };
 
-var updateUser = function updateUser(request, response) {
-  var userId, dataValidation, _request$body, speciality, subSpeciality, specialitiesList, _specialitiesList, updatedUser;
-
-  return regeneratorRuntime.async(function updateUser$(_context5) {
+var updateUserMainData = function updateUserMainData(request, response) {
+  var userId, dataValidation, updatedUser;
+  return regeneratorRuntime.async(function updateUserMainData$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
           userId = request.params.userId;
-          dataValidation = userValidation.updateUser(request.body);
+          dataValidation = userValidation.updateUserMainData(request.body);
 
           if (dataValidation.isAccepted) {
             _context5.next = 5;
@@ -254,80 +253,12 @@ var updateUser = function updateUser(request, response) {
           }));
 
         case 5:
-          _request$body = request.body, speciality = _request$body.speciality, subSpeciality = _request$body.subSpeciality;
-
-          if (!speciality) {
-            _context5.next = 13;
-            break;
-          }
-
-          _context5.next = 9;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
-            _id: {
-              $in: speciality
-            },
-            type: 'MAIN'
-          }));
-
-        case 9:
-          specialitiesList = _context5.sent;
-
-          if (!(specialitiesList.length != speciality.length)) {
-            _context5.next = 12;
-            break;
-          }
-
-          return _context5.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid specialities Ids',
-            field: 'speciality'
-          }));
-
-        case 12:
-          request.body.speciality = specialitiesList.map(function (special) {
-            return special._id;
-          });
-
-        case 13:
-          if (!subSpeciality) {
-            _context5.next = 20;
-            break;
-          }
-
-          _context5.next = 16;
-          return regeneratorRuntime.awrap(SpecialityModel.find({
-            _id: {
-              $in: subSpeciality
-            },
-            type: 'SUB'
-          }));
-
-        case 16:
-          _specialitiesList = _context5.sent;
-
-          if (!(_specialitiesList.length != subSpeciality.length)) {
-            _context5.next = 19;
-            break;
-          }
-
-          return _context5.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'invalid subspecialities Ids',
-            field: 'subSpeciality'
-          }));
-
-        case 19:
-          request.body.subSpeciality = _specialitiesList.map(function (special) {
-            return special._id;
-          });
-
-        case 20:
-          _context5.next = 22;
+          _context5.next = 7;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, request.body, {
             "new": true
           }));
 
-        case 22:
+        case 7:
           updatedUser = _context5.sent;
           updatedUser.password = undefined;
           return _context5.abrupt("return", response.status(200).json({
@@ -336,8 +267,8 @@ var updateUser = function updateUser(request, response) {
             user: updatedUser
           }));
 
-        case 27:
-          _context5.prev = 27;
+        case 12:
+          _context5.prev = 12;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -346,12 +277,12 @@ var updateUser = function updateUser(request, response) {
             error: _context5.t0.message
           }));
 
-        case 31:
+        case 16:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 27]]);
+  }, null, null, [[0, 12]]);
 };
 
 var updateUserProfileImage = function updateUserProfileImage(request, response) {
@@ -703,7 +634,7 @@ var updateUserPassword = function updateUserPassword(request, response) {
 };
 
 var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, response) {
-  var userId, dataValidation, _request$body2, newPassword, currentPassword, user, newUserPassword, updatedUser;
+  var userId, dataValidation, _request$body, newPassword, currentPassword, user, newUserPassword, updatedUser;
 
   return regeneratorRuntime.async(function verifyAndUpdateUserPassword$(_context11) {
     while (1) {
@@ -725,7 +656,7 @@ var verifyAndUpdateUserPassword = function verifyAndUpdateUserPassword(request, 
           }));
 
         case 5:
-          _request$body2 = request.body, newPassword = _request$body2.newPassword, currentPassword = _request$body2.currentPassword;
+          _request$body = request.body, newPassword = _request$body.newPassword, currentPassword = _request$body.currentPassword;
 
           if (!(newPassword == currentPassword)) {
             _context11.next = 8;
@@ -861,7 +792,7 @@ var deleteUser = function deleteUser(request, response) {
 };
 
 var addEmployeeUser = function addEmployeeUser(request, response) {
-  var dataValidation, _request$body3, email, password, emailList, userPassword, counter, userData, userObj, newUser;
+  var dataValidation, _request$body2, email, password, emailList, userPassword, counter, userData, userObj, newUser;
 
   return regeneratorRuntime.async(function addEmployeeUser$(_context13) {
     while (1) {
@@ -882,7 +813,7 @@ var addEmployeeUser = function addEmployeeUser(request, response) {
           }));
 
         case 4:
-          _request$body3 = request.body, email = _request$body3.email, password = _request$body3.password;
+          _request$body2 = request.body, email = _request$body2.email, password = _request$body2.password;
           _context13.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
@@ -1133,7 +1064,7 @@ module.exports = {
   getExpertUser: getExpertUser,
   getAppUsers: getAppUsers,
   getUserSpeciality: getUserSpeciality,
-  updateUser: updateUser,
+  updateUserMainData: updateUserMainData,
   updateUserSpeciality: updateUserSpeciality,
   updateUserEmail: updateUserEmail,
   updateUserLanguage: updateUserLanguage,

@@ -43,6 +43,9 @@ const UserSchema = new mongoose.Schema({
     isDeactivated: { type: Boolean, default: false },
     lastLoginDate: { type: Date },
 
+    isAcceptPromoCodes: { type: Boolean, default: true },
+    isOnline: { type: Boolean, default: false },
+
     paymentInfo: {
         paymentMethod: { type: String, default: 'BANK', enum: ['BANK', 'MOBILE_WALLET'] },
         bankAccount: {
