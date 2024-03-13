@@ -23,7 +23,7 @@ app.use(verifyLanguage)
 /*const bree = new Bree({ jobs: [{ name: 'mail-report', interval: 'at 11:24pm' }]})
 bree.start()*/
 
-
+app.use('/api', require('./routes/settings'))
 app.use('/api', require('./routes/auth'))
 app.use('/api', require('./routes/appointments'))
 app.use('/api', require('./routes/users'))

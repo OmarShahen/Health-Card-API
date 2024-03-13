@@ -1,0 +1,22 @@
+const config = require('../config/config')
+
+const getSettings = async (request, response) => {
+
+    try {
+
+        return response.status(200).json({
+            accepted: true,
+            config
+        })
+
+    } catch(error) {
+        consol.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { getSettings }

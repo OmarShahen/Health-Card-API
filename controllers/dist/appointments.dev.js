@@ -142,18 +142,31 @@ var addAppointment = function addAppointment(request, response) {
         case 24:
           expert = expertList[0];
           seeker = seekerList[0];
+
+          if (!expert.isDeactivated) {
+            _context.next = 28;
+            break;
+          }
+
+          return _context.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Expert is not receiving any appointment now',
+            field: 'expertId'
+          }));
+
+        case 28:
           startTime = new Date(startTime);
           endTime = new Date(startTime);
           endTime.setMinutes(endTime.getMinutes() + duration);
           request.body.endTime = endTime;
 
           if (!isOnlineBooking) {
-            _context.next = 35;
+            _context.next = 37;
             break;
           }
 
           if (expert.isOnline) {
-            _context.next = 33;
+            _context.next = 35;
             break;
           }
 
@@ -163,24 +176,24 @@ var addAppointment = function addAppointment(request, response) {
             field: 'isOnlineBooking'
           }));
 
-        case 33:
-          _context.next = 41;
+        case 35:
+          _context.next = 43;
           break;
 
-        case 35:
+        case 37:
           weekDay = config.WEEK_DAYS[startTime.getDay()];
-          _context.next = 38;
+          _context.next = 40;
           return regeneratorRuntime.awrap(OpeningTimeModel.find({
             expertId: expertId,
             weekday: weekDay,
             isActive: true
           }));
 
-        case 38:
+        case 40:
           openingTimes = _context.sent;
 
           if (!(openingTimes.length == 0)) {
-            _context.next = 41;
+            _context.next = 43;
             break;
           }
 
@@ -190,7 +203,7 @@ var addAppointment = function addAppointment(request, response) {
             field: 'startTime'
           }));
 
-        case 41:
+        case 43:
           existingAppointmentsQuery = {
             expertId: expertId,
             isPaid: true,
@@ -216,14 +229,14 @@ var addAppointment = function addAppointment(request, response) {
               }
             }]
           };
-          _context.next = 44;
+          _context.next = 46;
           return regeneratorRuntime.awrap(AppointmentModel.find(existingAppointmentsQuery));
 
-        case 44:
+        case 46:
           existingAppointments = _context.sent;
 
           if (!(existingAppointments.length != 0)) {
-            _context.next = 47;
+            _context.next = 49;
             break;
           }
 
@@ -233,8 +246,8 @@ var addAppointment = function addAppointment(request, response) {
             field: 'startTime'
           }));
 
-        case 47:
-          _context.next = 49;
+        case 49:
+          _context.next = 51;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'Appointment'
           }, {
@@ -246,7 +259,7 @@ var addAppointment = function addAppointment(request, response) {
             upsert: true
           }));
 
-        case 49:
+        case 51:
           counter = _context.sent;
 
           if (price == 0) {
@@ -258,19 +271,19 @@ var addAppointment = function addAppointment(request, response) {
             originalPrice: request.body.price
           }, request.body);
           appointmentObj = new AppointmentModel(appointmentData);
-          _context.next = 55;
+          _context.next = 57;
           return regeneratorRuntime.awrap(appointmentObj.save());
 
-        case 55:
+        case 57:
           newAppointment = _context.sent;
-          _context.next = 58;
+          _context.next = 60;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalAppointments: expert.totalAppointments + 1
           }, {
             "new": true
           }));
 
-        case 58:
+        case 60:
           updatedUser = _context.sent;
           options = {
             hour: 'numeric',
@@ -286,10 +299,10 @@ var addAppointment = function addAppointment(request, response) {
             mailBodyText: "You have a new appointment with ID #".concat(newAppointment.appointmentId),
             mailBodyHTML: "\n            <strong>ID: </strong><span>#".concat(newAppointment.appointmentId, "</span><br />\n            <strong>Expert: </strong><span>").concat(expert.firstName, "</span><br />\n            <strong>Seeker: </strong><span>").concat(seeker.firstName, "</span><br />\n            <strong>Price: </strong><span>").concat(newAppointment.price, " EGP</span><br />\n            <strong>Duration: </strong><span>").concat(newAppointment.duration, " minutes</span><br />\n            <strong>Date: </strong><span>").concat(format(newAppointment.startTime, 'dd MMM yyyy'), "</span><br />\n            <strong>Start Time: </strong><span>").concat(appointmentStartTime.toLocaleString('en-US', options), "</span><br />\n            <strong>End Time: </strong><span>").concat(appointmentEndTime.toLocaleString('en-US', options), "</span><br />\n            ")
           };
-          _context.next = 65;
+          _context.next = 67;
           return regeneratorRuntime.awrap(email.sendEmail(newUserEmailData));
 
-        case 65:
+        case 67:
           emailSent = _context.sent;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
@@ -299,8 +312,8 @@ var addAppointment = function addAppointment(request, response) {
             emailSent: emailSent
           }));
 
-        case 69:
-          _context.prev = 69;
+        case 71:
+          _context.prev = 71;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -309,12 +322,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 73:
+        case 75:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 69]]);
+  }, null, null, [[0, 71]]);
 };
 
 var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {

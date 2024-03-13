@@ -179,7 +179,7 @@ const createPaymentURL = async (request, response) => {
             })
         }
 
-        const { appointmentId, firstName, lastName, phone, email, planName, planPrice } = request.body
+        const { appointmentId, planName, planPrice } = request.body
 
         const appointment = await AppointmentModel.findById(appointmentId)
         if(!appointment) {
@@ -189,6 +189,12 @@ const createPaymentURL = async (request, response) => {
                 field: 'appointmentId'
             })
         }
+
+        const seeker = await UserModel.findById(appointment.seekerId)
+        const firstName = seeker.firstName
+        const lastName = seeker.firstName
+        const email = seeker.email
+        const phone = `${seeker.countryCode}${seeker.phone}`
 
         const authData = {
             api_key: config.PAYMOB_API_KEYS
@@ -266,7 +272,7 @@ const createMobileWalletPaymentURL = async (request, response) => {
             })
         }
 
-        const { appointmentId, walletPhone, firstName, lastName, phone, email, planName, planPrice } = request.body
+        const { appointmentId, walletPhone, planName, planPrice } = request.body
 
         const appointment = await AppointmentModel.findById(appointmentId)
         if(!appointment) {
@@ -276,6 +282,12 @@ const createMobileWalletPaymentURL = async (request, response) => {
                 field: 'appointmentId'
             })
         }
+
+        const seeker = await UserModel.findById(appointment.seekerId)
+        const firstName = seeker.firstName
+        const lastName = seeker.firstName
+        const email = seeker.email
+        const phone = `${seeker.countryCode}${seeker.phone}`
 
         const authData = {
             api_key: config.PAYMOB_API_KEYS

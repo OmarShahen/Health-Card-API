@@ -381,7 +381,10 @@ const deleteReview = async (request, response) => {
             }
         ])
 
-        const newRating = averageRatingList[0].averageRating
+        const newRating = 5
+        if(averageRatingList.length != 0) {
+            newRating = averageRatingList[0].total / 100
+        }
 
         const updatedUser = await UserModel
         .findByIdAndUpdate(expert._id, { totalReviews: expert.totalReviews - 1, rating: newRating }, { new: true })

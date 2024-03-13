@@ -77,6 +77,14 @@ const addAppointment = async (request, response) => {
         const expert = expertList[0]
         const seeker = seekerList[0]
 
+        if(expert.isDeactivated) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Expert is not receiving any appointment now',
+                field: 'expertId'
+            })
+        }
+
         startTime = new Date(startTime)
         const endTime = new Date(startTime)
         endTime.setMinutes(endTime.getMinutes() + duration)

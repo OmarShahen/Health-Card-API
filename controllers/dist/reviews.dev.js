@@ -1,5 +1,7 @@
 "use strict";
 
+function _readOnlyError(name) { throw new Error("\"" + name + "\" is read-only"); }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(source, true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(source).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -227,11 +229,32 @@ var getExpertReviewsStats = function getExpertReviewsStats(request, response) {
 
         case 17:
           reviewsCommitmentList = _context3.sent;
-          reviewsRating = reviewsRatingList[0].averageRating;
-          reviewsCommunication = reviewsCommunicationList[0].averageCommunication;
-          reviewsUnderstanding = reviewsUnderstandingList[0].averageUnderstanding;
-          reviewsSolutions = reviewsSolutionsList[0].averageSolutions;
-          reviewsCommitment = reviewsCommitmentList[0].averageCommitment;
+          reviewsRating = 0;
+          reviewsCommunication = 0;
+          reviewsUnderstanding = 0;
+          reviewsSolutions = 0;
+          reviewsCommitment = 0;
+
+          if (reviewsRatingList.length != 0) {
+            reviewsRating = reviewsRatingList[0].averageRating;
+          }
+
+          if (reviewsCommunicationList.length != 0) {
+            reviewsCommunication = reviewsCommunicationList[0].averageCommunication;
+          }
+
+          if (reviewsUnderstandingList.length != 0) {
+            reviewsUnderstanding = reviewsUnderstandingList[0].averageUnderstanding;
+          }
+
+          if (reviewsSolutionsList.length != 0) {
+            reviewsSolutions = reviewsSolutionsList[0].averageSolutions;
+          }
+
+          if (reviewsCommitmentList.length != 0) {
+            reviewsCommitment = reviewsCommitmentList[0].averageCommitment;
+          }
+
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
             reviewsRating: reviewsRating,
@@ -241,8 +264,8 @@ var getExpertReviewsStats = function getExpertReviewsStats(request, response) {
             reviewsCommitment: reviewsCommitment
           }));
 
-        case 26:
-          _context3.prev = 26;
+        case 31:
+          _context3.prev = 31;
           _context3.t0 = _context3["catch"](0);
           console.error(_context3.t0);
           return _context3.abrupt("return", response.status(500).json({
@@ -251,12 +274,12 @@ var getExpertReviewsStats = function getExpertReviewsStats(request, response) {
             error: _context3.t0.message
           }));
 
-        case 30:
+        case 35:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 26]]);
+  }, null, null, [[0, 31]]);
 };
 
 var getReviewsByExpertId = function getReviewsByExpertId(request, response) {
@@ -495,8 +518,13 @@ var deleteReview = function deleteReview(request, response) {
 
         case 10:
           averageRatingList = _context6.sent;
-          newRating = averageRatingList[0].averageRating;
-          _context6.next = 14;
+          newRating = 5;
+
+          if (averageRatingList.length != 0) {
+            newRating = (_readOnlyError("newRating"), averageRatingList[0].total / 100);
+          }
+
+          _context6.next = 15;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalReviews: expert.totalReviews - 1,
             rating: newRating
@@ -504,7 +532,7 @@ var deleteReview = function deleteReview(request, response) {
             "new": true
           }));
 
-        case 14:
+        case 15:
           updatedUser = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
@@ -513,8 +541,8 @@ var deleteReview = function deleteReview(request, response) {
             expert: updatedUser
           }));
 
-        case 18:
-          _context6.prev = 18;
+        case 19:
+          _context6.prev = 19;
           _context6.t0 = _context6["catch"](0);
           console.error(_context6.t0);
           return _context6.abrupt("return", response.status(500).json({
@@ -523,12 +551,12 @@ var deleteReview = function deleteReview(request, response) {
             error: _context6.t0.message
           }));
 
-        case 22:
+        case 23:
         case "end":
           return _context6.stop();
       }
     }
-  }, null, null, [[0, 18]]);
+  }, null, null, [[0, 19]]);
 };
 
 module.exports = {

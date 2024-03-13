@@ -30,6 +30,7 @@ app.use(verifyLanguage);
 /*const bree = new Bree({ jobs: [{ name: 'mail-report', interval: 'at 11:24pm' }]})
 bree.start()*/
 
+app.use('/api', require('./routes/settings'));
 app.use('/api', require('./routes/auth'));
 app.use('/api', require('./routes/appointments'));
 app.use('/api', require('./routes/users'));
@@ -43,9 +44,6 @@ app.use('/api', require('./routes/expertVerifications'));
 app.use('/api', require('./routes/services'));
 app.use('/api', require('./routes/analytics'));
 app.use('/api', require('./routes/promoCodes'));
-
-require('./APIs/zoom/zoom');
-
 db().then(function (data) {
   return console.log('Mongo is up and running... ;)');
 })["catch"](function (error) {
@@ -55,8 +53,6 @@ app.get('/', function (request, response) {
   return response.status(200).json({
     message: "welcome to RA'AYA"
   });
-});
-server.listen(config.PORT, function () {
-  return console.log("server started on port ".concat(config.PORT, " [RA'AYA APP]"));
-});
+}); //server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
+
 exports.app = functions.https.onRequest(app);

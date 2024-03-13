@@ -3,33 +3,9 @@
 var utils = require('../utils/utils');
 
 var createPaymentURL = function createPaymentURL(paymentData) {
-  var firstName = paymentData.firstName,
-      lastName = paymentData.lastName,
-      appointmentId = paymentData.appointmentId,
-      email = paymentData.email,
-      phone = paymentData.phone,
+  var appointmentId = paymentData.appointmentId,
       planName = paymentData.planName,
       planPrice = paymentData.planPrice;
-  if (!firstName) return {
-    isAccepted: false,
-    message: 'first name is required',
-    field: 'firstName'
-  };
-  if (typeof firstName != 'string') return {
-    isAccepted: false,
-    message: 'first name format is invalid',
-    field: 'firstName'
-  };
-  if (!lastName) return {
-    isAccepted: false,
-    message: 'last name is required',
-    field: 'lastName'
-  };
-  if (typeof lastName != 'string') return {
-    isAccepted: false,
-    message: 'last name format is invalid',
-    field: 'lastName'
-  };
   if (!appointmentId) return {
     isAccepted: false,
     message: 'appointment ID is required',
@@ -39,26 +15,6 @@ var createPaymentURL = function createPaymentURL(paymentData) {
     isAccepted: false,
     message: 'appointment ID format is invalid',
     field: 'appointmentId'
-  };
-  if (!email) return {
-    isAccepted: false,
-    message: 'email is required',
-    field: 'email'
-  };
-  if (!utils.isEmailValid(email)) return {
-    isAccepted: false,
-    message: 'email format is invalid',
-    field: 'email'
-  };
-  if (!phone) return {
-    isAccepted: false,
-    message: 'phone is required',
-    field: 'phone'
-  };
-  if (typeof phone != 'number') return {
-    isAccepted: false,
-    message: 'phone format is invalid',
-    field: 'phone'
   };
   if (!planName) return {
     isAccepted: false,
@@ -89,11 +45,7 @@ var createPaymentURL = function createPaymentURL(paymentData) {
 
 var createMobileWalletPaymentURL = function createMobileWalletPaymentURL(paymentData) {
   var walletPhone = paymentData.walletPhone,
-      firstName = paymentData.firstName,
-      lastName = paymentData.lastName,
       appointmentId = paymentData.appointmentId,
-      email = paymentData.email,
-      phone = paymentData.phone,
       planName = paymentData.planName,
       planPrice = paymentData.planPrice;
   if (!walletPhone) return {
@@ -106,26 +58,6 @@ var createMobileWalletPaymentURL = function createMobileWalletPaymentURL(payment
     message: 'Wallet phone format is invalid',
     field: 'walletPhone'
   };
-  if (!firstName) return {
-    isAccepted: false,
-    message: 'first name is required',
-    field: 'firstName'
-  };
-  if (typeof firstName != 'string') return {
-    isAccepted: false,
-    message: 'first name format is invalid',
-    field: 'firstName'
-  };
-  if (!lastName) return {
-    isAccepted: false,
-    message: 'last name is required',
-    field: 'lastName'
-  };
-  if (typeof lastName != 'string') return {
-    isAccepted: false,
-    message: 'last name format is invalid',
-    field: 'lastName'
-  };
   if (!appointmentId) return {
     isAccepted: false,
     message: 'appointment ID is required',
@@ -135,26 +67,6 @@ var createMobileWalletPaymentURL = function createMobileWalletPaymentURL(payment
     isAccepted: false,
     message: 'appointment ID format is invalid',
     field: 'appointmentId'
-  };
-  if (!email) return {
-    isAccepted: false,
-    message: 'email is required',
-    field: 'email'
-  };
-  if (!utils.isEmailValid(email)) return {
-    isAccepted: false,
-    message: 'email format is invalid',
-    field: 'email'
-  };
-  if (!phone) return {
-    isAccepted: false,
-    message: 'phone is required',
-    field: 'phone'
-  };
-  if (typeof phone != 'number') return {
-    isAccepted: false,
-    message: 'phone format is invalid',
-    field: 'phone'
   };
   if (!planName) return {
     isAccepted: false,
