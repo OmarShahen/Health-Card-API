@@ -3,6 +3,7 @@ const { concatenateHmacString } = require('../utils/utils')
 const crypto = require('crypto')
 const PaymentModel = require('../models/PaymentModel')
 const CounterModel = require('../models/CounterModel')
+const SettingsModel = require('../models/SettingModel')
 const paymentValidation = require('../validations/payments')
 const axios = require('axios')
 const AppointmentModel = require('../models/AppointmentModel')
@@ -88,6 +89,8 @@ const processPayment = async (request, response) => {
             })
         }
 
+        const settings = await SettingsModel.getSettings()
+
         const counter = await CounterModel.findOneAndUpdate(
             { name: 'payment' },
             { $inc: { value: 1 } },
@@ -108,7 +111,7 @@ const processPayment = async (request, response) => {
             amountCents: payment.amount_cents,
             currency: payment.currency,
             createdAt: payment.created_at,
-            commission: config.PAYMENT_COMMISSION
+            commission: settings.paymentCommission
         }
 
         const paymentObj = new PaymentModel(paymentData)
@@ -533,7 +536,6 @@ const getPaymentsStatistics = async (request, response) => {
         })
     }
 }
-
 const refundPayment = async (request, response) => {
 
     try {

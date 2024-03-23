@@ -14,45 +14,6 @@ var checkSpeciality = function checkSpeciality(specialities) {
   return true;
 };
 
-var checkPricing = function checkPricing(pricingList) {
-  for (var i = 0; i < pricingList.length; i++) {
-    var price = pricingList[i];
-    if (!price.duration) return false;
-    if (typeof price.duration != 'number') return false;
-    if (!price.price) return false;
-    if (typeof price.price != 'number') return false;
-  }
-
-  return true;
-};
-
-var checkRoles = function checkRoles(roles) {
-  for (var i = 0; i < roles.length; i++) {
-    var isValid = false;
-
-    for (var j = 0; j < config.ROLES.length; j++) {
-      if (roles[i] == config.ROLES[j]) {
-        isValid = true;
-        break;
-      }
-    }
-
-    if (!isValid) {
-      return {
-        isAccepted: false,
-        message: 'roles format is invalid',
-        field: 'roles'
-      };
-    }
-  }
-
-  return {
-    isAccepted: true,
-    message: 'data is valid',
-    data: roles
-  };
-};
-
 var seekerSignup = function seekerSignup(userData) {
   var firstName = userData.firstName,
       email = userData.email,
@@ -61,7 +22,11 @@ var seekerSignup = function seekerSignup(userData) {
       gender = userData.gender,
       dateOfBirth = userData.dateOfBirth,
       timeZone = userData.timeZone,
-      password = userData.password;
+      password = userData.password,
+      nationality = userData.nationality,
+      nationCode = userData.nationCode,
+      currency = userData.currency,
+      currencyName = userData.currencyName;
   if (!firstName) return {
     isAccepted: false,
     message: 'Name is required',
@@ -143,6 +108,26 @@ var seekerSignup = function seekerSignup(userData) {
     message: 'Date of birth format is invalid',
     field: 'dateOfBirth'
   };
+  if (nationality && typeof nationality != 'string') return {
+    isAccepted: false,
+    message: 'Nationality format is invalid',
+    field: 'nationality'
+  };
+  if (nationCode && typeof nationCode != 'string') return {
+    isAccepted: false,
+    message: 'Nation code format is invalid',
+    field: 'nationCode'
+  };
+  if (currency && typeof currency != 'string') return {
+    isAccepted: false,
+    message: 'Currency format is invalid',
+    field: 'currency'
+  };
+  if (currencyName && typeof currencyName != 'string') return {
+    isAccepted: false,
+    message: 'Currency name format is invalid',
+    field: 'currencyName'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -159,7 +144,11 @@ var seekerGoogleSignup = function seekerGoogleSignup(userData) {
       gender = userData.gender,
       dateOfBirth = userData.dateOfBirth,
       timeZone = userData.timeZone,
-      profileImageURL = userData.profileImageURL;
+      profileImageURL = userData.profileImageURL,
+      nationality = userData.nationality,
+      nationCode = userData.nationCode,
+      currency = userData.currency,
+      currencyName = userData.currencyName;
   if (!firstName) return {
     isAccepted: false,
     message: 'Name is required',
@@ -245,6 +234,26 @@ var seekerGoogleSignup = function seekerGoogleSignup(userData) {
     isAccepted: false,
     message: 'Profile image URL is invalid',
     field: 'profileImageURL'
+  };
+  if (nationality && typeof nationality != 'string') return {
+    isAccepted: false,
+    message: 'Nationality format is invalid',
+    field: 'nationality'
+  };
+  if (nationCode && typeof nationCode != 'string') return {
+    isAccepted: false,
+    message: 'Nation code format is invalid',
+    field: 'nationCode'
+  };
+  if (currency && typeof currency != 'string') return {
+    isAccepted: false,
+    message: 'Currency format is invalid',
+    field: 'currency'
+  };
+  if (currencyName && typeof currencyName != 'string') return {
+    isAccepted: false,
+    message: 'Currency name format is invalid',
+    field: 'currencyName'
   };
   return {
     isAccepted: true,

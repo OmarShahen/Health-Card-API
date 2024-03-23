@@ -40,14 +40,10 @@ var UserSchema = new mongoose.Schema({
   dateOfBirth: {
     type: Date
   },
-  nationality: {
-    type: String,
-    "default": 'EGYPT'
-  },
   languages: [],
   lang: {
     type: String,
-    "default": 'ar',
+    "default": 'en',
     "enum": config.LANGUAGES
   },
   timeZone: {
@@ -56,6 +52,22 @@ var UserSchema = new mongoose.Schema({
   },
   profileImageURL: {
     type: String
+  },
+  nationality: {
+    type: String,
+    "default": 'EGYPT'
+  },
+  nationCode: {
+    type: String,
+    "default": 'EG'
+  },
+  currency: {
+    type: String,
+    "default": 'EGP'
+  },
+  currencyName: {
+    type: String,
+    "default": 'POUND'
   },
   oauth: {
     isGoogleAuth: {

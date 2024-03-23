@@ -11,44 +11,23 @@ const checkSpeciality = (specialities) => {
     return true
 }
 
-const checkPricing = (pricingList) => {
-    for(let i=0;i<pricingList.length;i++) {
-        const price = pricingList[i]
-
-        if(!price.duration) return false
-
-        if(typeof price.duration != 'number') return false
-
-        if(!price.price) return false
-
-        if(typeof price.price != 'number') return false
-
-    }
-
-    return true
-}
-
-const checkRoles = (roles) => {
-    for(let i=0;i<roles.length;i++) {
-        let isValid = false
-        for(let j=0;j<config.ROLES.length;j++) {
-            if(roles[i] == config.ROLES[j]) {
-                isValid = true
-                break
-            }
-        }
-
-        if(!isValid) {
-            return { isAccepted: false, message: 'roles format is invalid', field: 'roles' }
-        }
-    }
-
-    return { isAccepted: true, message: 'data is valid', data: roles }
-}
 
 const seekerSignup = (userData) => {
 
-    const { firstName, email, countryCode, phone, gender, dateOfBirth, timeZone, password } = userData
+    const { 
+        firstName, 
+        email, 
+        countryCode, 
+        phone, 
+        gender, 
+        dateOfBirth, 
+        timeZone, 
+        password,
+        nationality,
+        nationCode,
+        currency,
+        currencyName
+    } = userData
 
     if(!firstName) return { isAccepted: false, message: 'Name is required', field: 'firstName' }
 
@@ -84,13 +63,36 @@ const seekerSignup = (userData) => {
 
     if(!validator.isDateTimeValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
             
+    if(nationality && typeof nationality != 'string') return { isAccepted: false, message: 'Nationality format is invalid', field: 'nationality' }
+
+    if(nationCode && typeof nationCode != 'string') return { isAccepted: false, message: 'Nation code format is invalid', field: 'nationCode' }
+
+    if(currency && typeof currency != 'string') return { isAccepted: false, message: 'Currency format is invalid', field: 'currency' }
+
+    if(currencyName && typeof currencyName != 'string') return { isAccepted: false, message: 'Currency name format is invalid', field: 'currencyName' }
+
+
     return { isAccepted: true, message: 'data is valid', data: userData }
 
 }
 
 const seekerGoogleSignup = (userData) => {
 
-    const { firstName, email, password, countryCode, phone, gender, dateOfBirth, timeZone, profileImageURL } = userData
+    const { 
+        firstName, 
+        email, 
+        password, 
+        countryCode, 
+        phone, 
+        gender, 
+        dateOfBirth, 
+        timeZone, 
+        profileImageURL,
+        nationality,
+        nationCode,
+        currency,
+        currencyName
+    } = userData
 
     if(!firstName) return { isAccepted: false, message: 'Name is required', field: 'firstName' }
 
@@ -127,6 +129,15 @@ const seekerGoogleSignup = (userData) => {
     if(!validator.isDateTimeValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
             
     if(profileImageURL && !validator.isValidURL(profileImageURL)) return { isAccepted: false, message: 'Profile image URL is invalid', field: 'profileImageURL' }
+
+    if(nationality && typeof nationality != 'string') return { isAccepted: false, message: 'Nationality format is invalid', field: 'nationality' }
+
+    if(nationCode && typeof nationCode != 'string') return { isAccepted: false, message: 'Nation code format is invalid', field: 'nationCode' }
+
+    if(currency && typeof currency != 'string') return { isAccepted: false, message: 'Currency format is invalid', field: 'currency' }
+
+    if(currencyName && typeof currencyName != 'string') return { isAccepted: false, message: 'Currency name format is invalid', field: 'currencyName' }
+
 
     return { isAccepted: true, message: 'data is valid', data: userData }
 

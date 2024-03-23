@@ -26,9 +26,6 @@ var AppointmentSchema = new mongoose.Schema({
   promoCodeId: {
     type: mongoose.Types.ObjectId
   },
-  roomId: {
-    type: String
-  },
   isPaid: {
     type: Boolean,
     "default": false
@@ -47,6 +44,15 @@ var AppointmentSchema = new mongoose.Schema({
   price: {
     type: Number,
     "default": 0
+  },
+  // The price is in EGP
+  currency: {
+    type: String,
+    "default": 'EGP'
+  },
+  currencyPrice: {
+    type: Number,
+    "default": 1
   },
   status: {
     type: String,

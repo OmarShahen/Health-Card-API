@@ -54,6 +54,8 @@ app.get('/', function (request, response) {
   return response.status(200).json({
     message: "welcome to RA'AYA"
   });
-}); //server.listen(config.PORT, () => console.log(`server started on port ${config.PORT} [RA'AYA APP]`))
-
+});
+server.listen(config.PORT, function () {
+  return console.log("server started on port ".concat(config.PORT, " [RA'AYA APP]"));
+});
 exports.app = functions.https.onRequest(app);

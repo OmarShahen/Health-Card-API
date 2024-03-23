@@ -13,7 +13,7 @@ const checkSpeciality = (specialities) => {
 
 const updateUserMainData = (userData) => {
 
-    const { firstName, phone, gender, dateOfBirth } = userData
+    const { firstName, phone, gender, dateOfBirth, nationality, nationCode, currency, currencyName } = userData
 
 
     if(firstName && !utils.isNameValid(firstName)) return { isAccepted: false, message: 'Invalid name formate', field: 'firstName' }
@@ -23,6 +23,14 @@ const updateUserMainData = (userData) => {
     if(gender && !config.GENDER.includes(gender)) return { isAccepted: false, message: 'Invalid gender', field: 'gender' }
 
     if(dateOfBirth && !utils.isDateValid(dateOfBirth)) return { isAccepted: false, message: 'Date of birth format is invalid', field: 'dateOfBirth' }
+
+    if(nationality && typeof nationality != 'string') return { isAccepted: false, message: 'Nationality format is invalid', field: 'nationality' }
+
+    if(nationCode && typeof nationCode != 'string') return { isAccepted: false, message: 'Nation code format is invalid', field: 'nationCode' }
+
+    if(currency && typeof currency != 'string') return { isAccepted: false, message: 'Currency format is invalid', field: 'currency' }
+
+    if(currencyName && typeof currencyName != 'string') return { isAccepted: false, message: 'Currency name format is invalid', field: 'currencyName' }
 
 
     return { isAccepted: true, message: 'data is valid', data: userData }

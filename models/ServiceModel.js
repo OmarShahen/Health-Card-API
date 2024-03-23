@@ -7,6 +7,7 @@ const ServiceSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
     price: { type: Number, required: true, default: 0 },
+    internationalPrice: { type: Number, default: 0 },
     duration: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
     format: { type: String, default: 'ONE-ON-ONE' }

@@ -2,7 +2,7 @@ const utils = require('../utils/utils')
 
 const addService = (serviceData) => {
 
-    const { expertId, title, description, price, duration } = serviceData
+    const { expertId, title, description, price, internationalPrice, duration } = serviceData
 
     if(!expertId) return { isAccepted: false, message: 'Expert ID is required', field: 'expertId' }
 
@@ -17,6 +17,8 @@ const addService = (serviceData) => {
     if(typeof description != 'string') return { isAccepted: false, message: 'Description format is invalid', field: 'description' }
 
     if(typeof price != 'number') return { isAccepted: false, message: 'Price format is invalid', field: 'price' }
+
+    if(internationalPrice && typeof internationalPrice != 'number') return { isAccepted: false, message: 'International price format is invalid', field: 'internationalPrice' }
 
     if(!duration) return { isAccepted: false, message: 'Duration is required', field: 'duration' }
 

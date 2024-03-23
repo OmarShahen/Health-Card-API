@@ -3,7 +3,18 @@ const config = require('../config/config')
 
 const addAppointment = (appointmentData) => {
 
-    const { seekerId, expertId, serviceId, status, price, startTime, duration, isOnlineBooking } = appointmentData
+    const { 
+        seekerId, 
+        expertId, 
+        serviceId, 
+        status, 
+        price, 
+        startTime, 
+        duration, 
+        isOnlineBooking,
+        currency,
+        currencyPrice
+    } = appointmentData
 
     if(!seekerId) return { isAccepted: false, message: 'Seeker Id is required', field: 'seekerId' }
 
@@ -32,6 +43,12 @@ const addAppointment = (appointmentData) => {
     if(!utils.isDateTimeValid(startTime)) return { isAccepted: false, message: 'invalid start time format', field: 'startTime' }
 
     if(typeof isOnlineBooking != 'boolean') return { isAccepted: false, message: 'Invalid isOnlineBooking format', field: 'isOnlineBooking' }
+
+    if(currency && typeof currency != 'string') return { isAccepted: false, message: 'Invalid currency format', field: 'currency' }
+
+    if(currency && typeof currencyPrice != 'number') return { isAccepted: false, message: 'Invalid currency price format', field: 'currencyPrice' }
+
+    if(currencyPrice <= 0) return { isAccepted: false, message: 'Currency price must be more than 0', field: 'currencyPrice' }
 
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }

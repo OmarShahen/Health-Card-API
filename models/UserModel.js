@@ -13,11 +13,15 @@ const UserSchema = new mongoose.Schema({
     password: { type: String },
     gender: { type: String, default: 'MALE' },
     dateOfBirth: { type: Date },
-    nationality: { type: String, default: 'EGYPT' },
     languages: [],
-    lang: { type: String, default: 'ar', enum: config.LANGUAGES },
+    lang: { type: String, default: 'en', enum: config.LANGUAGES },
     timeZone: { type: String, default: "Africa/Cairo" },
     profileImageURL: { type: String },
+
+    nationality: { type: String, default: 'EGYPT' },
+    nationCode: { type: String, default: 'EG' },
+    currency: { type: String, default: 'EGP' },
+    currencyName: { type: String, default: 'POUND' },
 
     oauth: {
         isGoogleAuth: { type: Boolean, default: false }

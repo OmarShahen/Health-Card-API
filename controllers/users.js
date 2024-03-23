@@ -158,7 +158,6 @@ const getUserSpeciality = async (request, response) => {
     }
 }
 
-
 const updateUserMainData = async (request, response) => {
 
     try {
@@ -173,6 +172,8 @@ const updateUserMainData = async (request, response) => {
                 field: dataValidation.field
             })
         }
+
+        console.log(request.body)
 
         const updatedUser = await UserModel
         .findByIdAndUpdate(userId, request.body, { new: true })

@@ -21,7 +21,12 @@ var ServiceSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: true
+    required: true,
+    "default": 0
+  },
+  internationalPrice: {
+    type: Number,
+    "default": 0
   },
   duration: {
     type: Number,

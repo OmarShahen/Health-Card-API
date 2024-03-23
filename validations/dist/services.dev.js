@@ -7,6 +7,7 @@ var addService = function addService(serviceData) {
       title = serviceData.title,
       description = serviceData.description,
       price = serviceData.price,
+      internationalPrice = serviceData.internationalPrice,
       duration = serviceData.duration;
   if (!expertId) return {
     isAccepted: false,
@@ -38,15 +39,15 @@ var addService = function addService(serviceData) {
     message: 'Description format is invalid',
     field: 'description'
   };
-  if (!price) return {
-    isAccepted: false,
-    message: 'Price is required',
-    field: 'price'
-  };
   if (typeof price != 'number') return {
     isAccepted: false,
     message: 'Price format is invalid',
     field: 'price'
+  };
+  if (internationalPrice && typeof internationalPrice != 'number') return {
+    isAccepted: false,
+    message: 'International price format is invalid',
+    field: 'internationalPrice'
   };
   if (!duration) return {
     isAccepted: false,

@@ -12,7 +12,9 @@ var addAppointment = function addAppointment(appointmentData) {
       price = appointmentData.price,
       startTime = appointmentData.startTime,
       duration = appointmentData.duration,
-      isOnlineBooking = appointmentData.isOnlineBooking;
+      isOnlineBooking = appointmentData.isOnlineBooking,
+      currency = appointmentData.currency,
+      currencyPrice = appointmentData.currencyPrice;
   if (!seekerId) return {
     isAccepted: false,
     message: 'Seeker Id is required',
@@ -53,11 +55,6 @@ var addAppointment = function addAppointment(appointmentData) {
     message: 'invalid status value',
     field: 'status'
   };
-  if (!price) return {
-    isAccepted: false,
-    message: 'Price is required',
-    field: 'price'
-  };
   if (typeof price != 'number') return {
     isAccepted: false,
     message: 'Price format is invalid',
@@ -87,6 +84,21 @@ var addAppointment = function addAppointment(appointmentData) {
     isAccepted: false,
     message: 'Invalid isOnlineBooking format',
     field: 'isOnlineBooking'
+  };
+  if (currency && typeof currency != 'string') return {
+    isAccepted: false,
+    message: 'Invalid currency format',
+    field: 'currency'
+  };
+  if (currency && typeof currencyPrice != 'number') return {
+    isAccepted: false,
+    message: 'Invalid currency price format',
+    field: 'currencyPrice'
+  };
+  if (currencyPrice <= 0) return {
+    isAccepted: false,
+    message: 'Currency price must be more than 0',
+    field: 'currencyPrice'
   };
   return {
     isAccepted: true,
