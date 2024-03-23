@@ -11,6 +11,7 @@ const AppointmentSchema = new mongoose.Schema({
     promoCodeId: { type: mongoose.Types.ObjectId },
     isPaid: { type: Boolean, default: false },
     isOnlineBooking: { type: Boolean, default: false },
+    isReminderSent: { type: Boolean, default: false },
     duration: { type: Number },
     originalPrice: { type: Number, default: 0 },
     price: { type: Number, default: 0 }, // The price is in EGP
