@@ -61,4 +61,7 @@ router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission,
 router.post('/v1/appointments/:appointmentId/reminder/send', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.sendAppointmentReminder(request, response);
 });
+router.post('/v1/appointments/reminder/send', authorization.allPermission, function (request, response) {
+  return appointmentsController.sendReminderForUpcomingAppointments(request, response);
+});
 module.exports = router;

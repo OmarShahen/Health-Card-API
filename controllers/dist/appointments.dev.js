@@ -43,11 +43,13 @@ var config = require('../config/config');
 
 var email = require('../mails/send-email');
 
+var mailTemplates = require('../mails/templates/reminder');
+
 var moment = require('moment');
 
 var PaymentModel = require('../models/PaymentModel');
 
-var emailTemplates = require('../mails/templates/messages');
+var meetingLinkTemplate = require('../mails/templates/meeting-link');
 
 var addAppointment = function addAppointment(request, response) {
   var dataValidation, _request$body, seekerId, expertId, serviceId, startTime, price, duration, isOnlineBooking, todayDate, expertListPromise, seekerListPromise, servicePromise, _ref, _ref2, expertList, seekerList, service, expert, seeker, endTime, weekDay, openingTimes, existingAppointmentsQuery, existingAppointments, counter, appointmentData, appointmentObj, newAppointment, updatedUser, options, appointmentStartTime, appointmentEndTime, newUserEmailData, emailSent;
@@ -304,6 +306,7 @@ var addAppointment = function addAppointment(request, response) {
 
         case 67:
           emailSent = _context.sent;
+          updatedUser.password = undefined;
           return _context.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Appointment is booked successfully!',
@@ -312,8 +315,8 @@ var addAppointment = function addAppointment(request, response) {
             emailSent: emailSent
           }));
 
-        case 71:
-          _context.prev = 71;
+        case 72:
+          _context.prev = 72;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -322,12 +325,12 @@ var addAppointment = function addAppointment(request, response) {
             error: _context.t0.message
           }));
 
-        case 75:
+        case 76:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 71]]);
+  }, null, null, [[0, 72]]);
 };
 
 var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {
@@ -629,7 +632,7 @@ var updateAppointmentStatus = function updateAppointmentStatus(request, response
 };
 
 var updateAppointmentMeetingLink = function updateAppointmentMeetingLink(request, response) {
-  var appointmentId, meetingLink, dataValidation, appointmentsCount, updatedAppointment;
+  var appointmentId, meetingLink, dataValidation, updatedAppointment, expert, seeker, dateOptions, appointmentStartTime, formattedDate, formattedTime, formattedDateTime, expertMailTemplateData, expertMailTemplate, expertMailData, expertMailSent, seekerMailTemplateData, seekerMailTemplate, seekerMailData, seekerMailSent;
   return regeneratorRuntime.async(function updateAppointmentMeetingLink$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
@@ -652,42 +655,78 @@ var updateAppointmentMeetingLink = function updateAppointmentMeetingLink(request
 
         case 6:
           _context5.next = 8;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            meetingLink: meetingLink
-          }));
-
-        case 8:
-          appointmentsCount = _context5.sent;
-
-          if (!(appointmentsCount != 0)) {
-            _context5.next = 11;
-            break;
-          }
-
-          return _context5.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'This link is registered with another appointment',
-            field: 'meetingLink'
-          }));
-
-        case 11:
-          _context5.next = 13;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
             meetingLink: meetingLink
           }, {
             "new": true
           }));
 
-        case 13:
+        case 8:
           updatedAppointment = _context5.sent;
+          _context5.next = 11;
+          return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.expertId));
+
+        case 11:
+          expert = _context5.sent;
+          _context5.next = 14;
+          return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.seekerId));
+
+        case 14:
+          seeker = _context5.sent;
+          dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          appointmentStartTime = updatedAppointment.startTime;
+          formattedDate = format(appointmentStartTime, 'dd MMMM yyyy');
+          formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions);
+          formattedDateTime = "".concat(formattedDate, " ").concat(formattedTime);
+          expertMailTemplateData = {
+            receiverName: expert.firstName,
+            startTime: formattedDateTime,
+            meetingLink: meetingLink,
+            senderName: "RA'AYA"
+          };
+          expertMailTemplate = meetingLinkTemplate.meetingLinkTemplate(expertMailTemplateData);
+          expertMailData = {
+            receiverEmail: expert.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: expertMailTemplate
+          };
+          _context5.next = 25;
+          return regeneratorRuntime.awrap(email.sendEmail(expertMailData));
+
+        case 25:
+          expertMailSent = _context5.sent;
+          seekerMailTemplateData = {
+            receiverName: seeker.firstName,
+            startTime: formattedDateTime,
+            meetingLink: meetingLink,
+            senderName: "RA'AYA"
+          };
+          seekerMailTemplate = meetingLinkTemplate.meetingLinkTemplate(seekerMailTemplateData);
+          seekerMailData = {
+            receiverEmail: seeker.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: seekerMailTemplate
+          };
+          _context5.next = 31;
+          return regeneratorRuntime.awrap(email.sendEmail(seekerMailData));
+
+        case 31:
+          seekerMailSent = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Updated appointment meeting link successfully!',
+            expertMailSent: expertMailSent,
+            seekerMailSent: seekerMailSent,
             appointment: updatedAppointment
           }));
 
-        case 17:
-          _context5.prev = 17;
+        case 35:
+          _context5.prev = 35;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -696,12 +735,12 @@ var updateAppointmentMeetingLink = function updateAppointmentMeetingLink(request
             error: _context5.t0.message
           }));
 
-        case 21:
+        case 39:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 17]]);
+  }, null, null, [[0, 35]]);
 };
 
 var deleteAppointment = function deleteAppointment(request, response) {
@@ -743,31 +782,89 @@ var deleteAppointment = function deleteAppointment(request, response) {
 };
 
 var sendAppointmentReminder = function sendAppointmentReminder(request, response) {
-  var mailData, emailSent;
+  var appointmentId, appointment, expert, seeker, dateOptions, appointmentStartTime, formattedDate, formattedTime, formattedDateTime, expertTemplateData, expertTemplate, expertMailData, expertMailSent, seekerTemplateData, seekerTemplate, seekerMailData, seekerMailSent, updatedAppointment;
   return regeneratorRuntime.async(function sendAppointmentReminder$(_context7) {
     while (1) {
       switch (_context7.prev = _context7.next) {
         case 0:
           _context7.prev = 0;
-          mailData = {
-            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
-            subject: 'New User Sign Up',
-            mailBodyText: 'You have a new user with ID #123',
-            mailBodyHTML: "\n            <strong>ID: </strong><span>#123</span><br />\n            <strong>Name: </strong><span>Omar Reda</span><br />\n            <strong>Email: </strong><span>omar@gmail.com</span><br />\n            <strong>Phone: </strong><span>+201065630331</span><br />\n            <strong>Gender: </strong><span>Male</span><br />\n            <strong>Age: </strong><span>20</span><br />\n            "
-          };
+          appointmentId = request.params.appointmentId;
           _context7.next = 4;
-          return regeneratorRuntime.awrap(email.sendEmail(mailData));
+          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 4:
-          emailSent = _context7.sent;
-          return _context7.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'Message sent successfully!',
-            emailSent: emailSent
+          appointment = _context7.sent;
+          _context7.next = 7;
+          return regeneratorRuntime.awrap(UserModel.findById(appointment.expertId));
+
+        case 7:
+          expert = _context7.sent;
+          _context7.next = 10;
+          return regeneratorRuntime.awrap(UserModel.findById(appointment.seekerId));
+
+        case 10:
+          seeker = _context7.sent;
+          dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          appointmentStartTime = appointment.startTime;
+          formattedDate = format(appointmentStartTime, 'dd MMMM yyyy');
+          formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions);
+          formattedDateTime = "".concat(formattedDate, " ").concat(formattedTime);
+          expertTemplateData = {
+            receiverName: expert.firstName,
+            senderName: "RA'AYA",
+            startTime: formattedDateTime
+          };
+          expertTemplate = mailTemplates.reminderTemplate(expertTemplateData);
+          expertMailData = {
+            receiverEmail: expert.email,
+            subject: 'Reminder: Upcoming Appointment',
+            mailBodyHTML: expertTemplate
+          };
+          _context7.next = 21;
+          return regeneratorRuntime.awrap(email.sendEmail(expertMailData));
+
+        case 21:
+          expertMailSent = _context7.sent;
+          seekerTemplateData = {
+            receiverName: seeker.firstName,
+            senderName: "RA'AYA",
+            startTime: formattedDateTime
+          };
+          seekerTemplate = mailTemplates.reminderTemplate(seekerTemplateData);
+          seekerMailData = {
+            receiverEmail: seeker.email,
+            subject: 'Reminder: Upcoming Appointment',
+            mailBodyHTML: seekerTemplate
+          };
+          _context7.next = 27;
+          return regeneratorRuntime.awrap(email.sendEmail(seekerMailData));
+
+        case 27:
+          seekerMailSent = _context7.sent;
+          _context7.next = 30;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointment._id, {
+            isReminderSent: true
+          }, {
+            "new": true
           }));
 
-        case 8:
-          _context7.prev = 8;
+        case 30:
+          updatedAppointment = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Reminder is sent successfully!',
+            expertMailSent: expertMailSent,
+            seekerMailSent: seekerMailSent,
+            appointment: updatedAppointment
+          }));
+
+        case 34:
+          _context7.prev = 34;
           _context7.t0 = _context7["catch"](0);
           console.error(_context7.t0);
           return _context7.abrupt("return", response.status(500).json({
@@ -776,23 +873,207 @@ var sendAppointmentReminder = function sendAppointmentReminder(request, response
             error: _context7.t0.message
           }));
 
-        case 12:
+        case 38:
         case "end":
           return _context7.stop();
       }
     }
-  }, null, null, [[0, 8]]);
+  }, null, null, [[0, 34]]);
 };
 
-var getAppointment = function getAppointment(request, response) {
-  var appointmentId, appointmentList, appointment;
-  return regeneratorRuntime.async(function getAppointment$(_context8) {
+var sendReminderForUpcomingAppointments = function sendReminderForUpcomingAppointments(request, response) {
+  var today, startOfDay, endOfDay, appointments, total, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, appointment, dateOptions, appointmentStartTime, formattedDate, formattedTime, formattedDateTime, expertTemplateData, expertMailData, seekerTemplateData, seekerMailData;
+
+  return regeneratorRuntime.async(function sendReminderForUpcomingAppointments$(_context8) {
     while (1) {
       switch (_context8.prev = _context8.next) {
         case 0:
           _context8.prev = 0;
+          today = new Date();
+          startOfDay = new Date();
+          endOfDay = new Date(today.setDate(today.getDate() + 1));
+          _context8.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
+            $match: {
+              isPaid: true,
+              status: {
+                $ne: 'CANCELLED'
+              },
+              isReminderSent: false,
+              startTime: {
+                $gte: startOfDay,
+                $lt: endOfDay
+              }
+            }
+          }, {
+            $sort: {
+              createdAt: -1
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'expertId',
+              foreignField: '_id',
+              as: 'expert'
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'seekerId',
+              foreignField: '_id',
+              as: 'seeker'
+            }
+          }]));
+
+        case 6:
+          appointments = _context8.sent;
+          total = 0;
+          _context8.prev = 8;
+          appointments.forEach(function (appointment) {
+            appointment.seeker = appointment.seeker[0];
+            appointment.expert = appointment.expert[0];
+          });
+          _iteratorNormalCompletion = true;
+          _didIteratorError = false;
+          _iteratorError = undefined;
+          _context8.prev = 13;
+          _iterator = appointments[Symbol.iterator]();
+
+        case 15:
+          if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+            _context8.next = 36;
+            break;
+          }
+
+          appointment = _step.value;
+          dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          appointmentStartTime = appointment.startTime;
+          formattedDate = format(appointmentStartTime, 'dd MMMM yyyy');
+          formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions);
+          formattedDateTime = "".concat(formattedDate, " ").concat(formattedTime);
+          expertTemplateData = {
+            receiverName: appointment.expert.firstName,
+            senderName: "RA'AYA",
+            startTime: formattedDateTime
+          };
+          expertMailData = {
+            receiverEmail: appointment.expert.email,
+            subject: 'Reminder: Upcoming Appointment',
+            mailBodyHTML: mailTemplates.reminderTemplate(expertTemplateData)
+          };
+          _context8.next = 26;
+          return regeneratorRuntime.awrap(email.sendEmail(expertMailData));
+
+        case 26:
+          seekerTemplateData = {
+            receiverName: appointment.seeker.firstName,
+            senderName: "RA'AYA",
+            startTime: formattedDateTime
+          };
+          seekerMailData = {
+            receiverEmail: appointment.seeker.email,
+            subject: 'Reminder: Upcoming Appointment',
+            mailBodyHTML: mailTemplates.reminderTemplate(seekerTemplateData)
+          };
+          _context8.next = 30;
+          return regeneratorRuntime.awrap(email.sendEmail(seekerMailData));
+
+        case 30:
+          _context8.next = 32;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointment._id, {
+            isReminderSent: true
+          }));
+
+        case 32:
+          total++;
+
+        case 33:
+          _iteratorNormalCompletion = true;
+          _context8.next = 15;
+          break;
+
+        case 36:
+          _context8.next = 42;
+          break;
+
+        case 38:
+          _context8.prev = 38;
+          _context8.t0 = _context8["catch"](13);
+          _didIteratorError = true;
+          _iteratorError = _context8.t0;
+
+        case 42:
+          _context8.prev = 42;
+          _context8.prev = 43;
+
+          if (!_iteratorNormalCompletion && _iterator["return"] != null) {
+            _iterator["return"]();
+          }
+
+        case 45:
+          _context8.prev = 45;
+
+          if (!_didIteratorError) {
+            _context8.next = 48;
+            break;
+          }
+
+          throw _iteratorError;
+
+        case 48:
+          return _context8.finish(45);
+
+        case 49:
+          return _context8.finish(42);
+
+        case 50:
+          _context8.next = 55;
+          break;
+
+        case 52:
+          _context8.prev = 52;
+          _context8.t1 = _context8["catch"](8);
+          console.error(_context8.t1);
+
+        case 55:
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Reminders is sent successfully!',
+            total: total
+          }));
+
+        case 58:
+          _context8.prev = 58;
+          _context8.t2 = _context8["catch"](0);
+          console.error(_context8.t2);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t2.message
+          }));
+
+        case 62:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 58], [8, 52], [13, 38, 42, 50], [43,, 45, 49]]);
+};
+
+var getAppointment = function getAppointment(request, response) {
+  var appointmentId, appointmentList, appointment;
+  return regeneratorRuntime.async(function getAppointment$(_context9) {
+    while (1) {
+      switch (_context9.prev = _context9.next) {
+        case 0:
+          _context9.prev = 0;
           appointmentId = request.params.appointmentId;
-          _context8.next = 4;
+          _context9.next = 4;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $match: {
               _id: mongoose.Types.ObjectId(appointmentId)
@@ -833,7 +1114,7 @@ var getAppointment = function getAppointment(request, response) {
           }]));
 
         case 4:
-          appointmentList = _context8.sent;
+          appointmentList = _context9.sent;
           appointmentList.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
@@ -841,24 +1122,24 @@ var getAppointment = function getAppointment(request, response) {
             appointment.promoCode = appointment.promoCode[0];
           });
           appointment = appointmentList[0];
-          return _context8.abrupt("return", response.status(200).json({
+          return _context9.abrupt("return", response.status(200).json({
             accepted: true,
             appointment: appointment
           }));
 
         case 10:
-          _context8.prev = 10;
-          _context8.t0 = _context8["catch"](0);
-          console.error(_context8.t0);
-          return _context8.abrupt("return", response.status(500).json({
+          _context9.prev = 10;
+          _context9.t0 = _context9["catch"](0);
+          console.error(_context9.t0);
+          return _context9.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context8.t0.message
+            error: _context9.t0.message
           }));
 
         case 14:
         case "end":
-          return _context8.stop();
+          return _context9.stop();
       }
     }
   }, null, null, [[0, 10]]);
@@ -867,11 +1148,11 @@ var getAppointment = function getAppointment(request, response) {
 var getAppointments = function getAppointments(request, response) {
   var _request$query, status, meetingLink, verification, isOnlineBooking, _utils$statsQueryGene, searchQuery, matchQuery, appointments, totalAppointments;
 
-  return regeneratorRuntime.async(function getAppointments$(_context9) {
+  return regeneratorRuntime.async(function getAppointments$(_context10) {
     while (1) {
-      switch (_context9.prev = _context9.next) {
+      switch (_context10.prev = _context10.next) {
         case 0:
-          _context9.prev = 0;
+          _context10.prev = 0;
           _request$query = request.query, status = _request$query.status, meetingLink = _request$query.meetingLink, verification = _request$query.verification, isOnlineBooking = _request$query.isOnlineBooking;
           _utils$statsQueryGene = utils.statsQueryGenerator('none', 0, request.query, 'startTime'), searchQuery = _utils$statsQueryGene.searchQuery;
           matchQuery = _objectSpread({}, searchQuery);
@@ -902,7 +1183,7 @@ var getAppointments = function getAppointments(request, response) {
             matchQuery.isOnlineBooking = false;
           }
 
-          _context9.next = 10;
+          _context10.next = 10;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $match: matchQuery
           }, {
@@ -933,146 +1214,24 @@ var getAppointments = function getAppointments(request, response) {
           }]));
 
         case 10:
-          appointments = _context9.sent;
+          appointments = _context10.sent;
           appointments.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
           });
-          _context9.next = 14;
+          _context10.next = 14;
           return regeneratorRuntime.awrap(AppointmentModel.countDocuments(matchQuery));
 
         case 14:
-          totalAppointments = _context9.sent;
-          return _context9.abrupt("return", response.status(200).json({
+          totalAppointments = _context10.sent;
+          return _context10.abrupt("return", response.status(200).json({
             accepted: true,
             totalAppointments: totalAppointments,
             appointments: appointments
           }));
 
         case 18:
-          _context9.prev = 18;
-          _context9.t0 = _context9["catch"](0);
-          console.error(_context9.t0);
-          return _context9.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context9.t0.message
-          }));
-
-        case 22:
-        case "end":
-          return _context9.stop();
-      }
-    }
-  }, null, null, [[0, 18]]);
-};
-
-var getAppointmentsStats = function getAppointmentsStats(request, response) {
-  var totalAppointments, totalAppointmentsWithoutLink, totalAppointmentsNotPaid, totalAppointmentsPaid, totalAcceptedVerifications, totalRejectedVerifications, totalReviewedVerifications, todayDate, totalUpcomingAppointments, totalPassedAppointments, startOfDay, endOfDay, totalTodayAppointments;
-  return regeneratorRuntime.async(function getAppointmentsStats$(_context10) {
-    while (1) {
-      switch (_context10.prev = _context10.next) {
-        case 0:
-          _context10.prev = 0;
-          _context10.next = 3;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments());
-
-        case 3:
-          totalAppointments = _context10.sent;
-          _context10.next = 6;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            meetingLink: {
-              $exists: false
-            }
-          }));
-
-        case 6:
-          totalAppointmentsWithoutLink = _context10.sent;
-          _context10.next = 9;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            isPaid: false
-          }));
-
-        case 9:
-          totalAppointmentsNotPaid = _context10.sent;
-          _context10.next = 12;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            isPaid: true
-          }));
-
-        case 12:
-          totalAppointmentsPaid = _context10.sent;
-          _context10.next = 15;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            verification: 'ACCEPTED'
-          }));
-
-        case 15:
-          totalAcceptedVerifications = _context10.sent;
-          _context10.next = 18;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            verification: 'REJECTED'
-          }));
-
-        case 18:
-          totalRejectedVerifications = _context10.sent;
-          _context10.next = 21;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            verification: 'REVIEW'
-          }));
-
-        case 21:
-          totalReviewedVerifications = _context10.sent;
-          todayDate = new Date();
-          _context10.next = 25;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            startTime: {
-              $gte: todayDate
-            },
-            isPaid: true
-          }));
-
-        case 25:
-          totalUpcomingAppointments = _context10.sent;
-          _context10.next = 28;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            startTime: {
-              $lt: todayDate
-            },
-            isPaid: true
-          }));
-
-        case 28:
-          totalPassedAppointments = _context10.sent;
-          startOfDay = moment(todayDate).startOf('day').toDate();
-          endOfDay = moment(todayDate).endOf('day').toDate();
-          _context10.next = 33;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            isPaid: true,
-            startTime: {
-              $gte: startOfDay,
-              $lt: endOfDay
-            }
-          }));
-
-        case 33:
-          totalTodayAppointments = _context10.sent;
-          return _context10.abrupt("return", response.status(200).json({
-            accepted: true,
-            totalAppointments: totalAppointments,
-            totalAppointmentsWithoutLink: totalAppointmentsWithoutLink,
-            totalAppointmentsPaid: totalAppointmentsPaid,
-            totalAppointmentsNotPaid: totalAppointmentsNotPaid,
-            totalUpcomingAppointments: totalUpcomingAppointments,
-            totalPassedAppointments: totalPassedAppointments,
-            totalTodayAppointments: totalTodayAppointments,
-            totalAcceptedVerifications: totalAcceptedVerifications,
-            totalRejectedVerifications: totalRejectedVerifications,
-            totalReviewedVerifications: totalReviewedVerifications
-          }));
-
-        case 37:
-          _context10.prev = 37;
+          _context10.prev = 18;
           _context10.t0 = _context10["catch"](0);
           console.error(_context10.t0);
           return _context10.abrupt("return", response.status(500).json({
@@ -1081,22 +1240,153 @@ var getAppointmentsStats = function getAppointmentsStats(request, response) {
             error: _context10.t0.message
           }));
 
-        case 41:
+        case 22:
         case "end":
           return _context10.stop();
       }
     }
-  }, null, null, [[0, 37]]);
+  }, null, null, [[0, 18]]);
+};
+
+var getAppointmentsStats = function getAppointmentsStats(request, response) {
+  var totalAppointments, totalAppointmentsWithoutLink, totalAppointmentsNotPaid, totalAppointmentsPaid, todayDate, totalUpcomingAppointments, totalPassedAppointments, totalAppointmentsReminderSent, totalAppointmentsReminderNotSent, startOfDay, endOfDay, totalTodayAppointments;
+  return regeneratorRuntime.async(function getAppointmentsStats$(_context11) {
+    while (1) {
+      switch (_context11.prev = _context11.next) {
+        case 0:
+          _context11.prev = 0;
+          _context11.next = 3;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments());
+
+        case 3:
+          totalAppointments = _context11.sent;
+          _context11.next = 6;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            meetingLink: {
+              $exists: false
+            }
+          }));
+
+        case 6:
+          totalAppointmentsWithoutLink = _context11.sent;
+          _context11.next = 9;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isPaid: false
+          }));
+
+        case 9:
+          totalAppointmentsNotPaid = _context11.sent;
+          _context11.next = 12;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isPaid: true
+          }));
+
+        case 12:
+          totalAppointmentsPaid = _context11.sent;
+          todayDate = new Date();
+          _context11.next = 16;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            startTime: {
+              $gte: todayDate
+            },
+            isPaid: true,
+            status: {
+              $ne: 'CANCELLED'
+            }
+          }));
+
+        case 16:
+          totalUpcomingAppointments = _context11.sent;
+          _context11.next = 19;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            startTime: {
+              $lt: todayDate
+            },
+            isPaid: true,
+            status: {
+              $ne: 'CANCELLED'
+            }
+          }));
+
+        case 19:
+          totalPassedAppointments = _context11.sent;
+          _context11.next = 22;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isReminderSent: true,
+            isPaid: true,
+            status: {
+              $ne: 'CANCELLED'
+            }
+          }));
+
+        case 22:
+          totalAppointmentsReminderSent = _context11.sent;
+          _context11.next = 25;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isReminderSent: false,
+            isPaid: true,
+            status: {
+              $ne: 'CANCELLED'
+            }
+          }));
+
+        case 25:
+          totalAppointmentsReminderNotSent = _context11.sent;
+          startOfDay = moment(todayDate).startOf('day').toDate();
+          endOfDay = moment(todayDate).endOf('day').toDate();
+          _context11.next = 30;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            isPaid: true,
+            status: {
+              $ne: 'CANCELLED'
+            },
+            startTime: {
+              $gte: startOfDay,
+              $lt: endOfDay
+            }
+          }));
+
+        case 30:
+          totalTodayAppointments = _context11.sent;
+          return _context11.abrupt("return", response.status(200).json({
+            accepted: true,
+            totalAppointments: totalAppointments,
+            totalAppointmentsWithoutLink: totalAppointmentsWithoutLink,
+            totalAppointmentsPaid: totalAppointmentsPaid,
+            totalAppointmentsNotPaid: totalAppointmentsNotPaid,
+            totalUpcomingAppointments: totalUpcomingAppointments,
+            totalPassedAppointments: totalPassedAppointments,
+            totalTodayAppointments: totalTodayAppointments,
+            totalAppointmentsReminderSent: totalAppointmentsReminderSent,
+            totalAppointmentsReminderNotSent: totalAppointmentsReminderNotSent
+          }));
+
+        case 34:
+          _context11.prev = 34;
+          _context11.t0 = _context11["catch"](0);
+          console.error(_context11.t0);
+          return _context11.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context11.t0.message
+          }));
+
+        case 38:
+        case "end":
+          return _context11.stop();
+      }
+    }
+  }, null, null, [[0, 34]]);
 };
 
 var getAppointmentsGrowthStats = function getAppointmentsGrowthStats(request, response) {
   var groupBy, _format, appointmentsGrowth;
 
-  return regeneratorRuntime.async(function getAppointmentsGrowthStats$(_context11) {
+  return regeneratorRuntime.async(function getAppointmentsGrowthStats$(_context12) {
     while (1) {
-      switch (_context11.prev = _context11.next) {
+      switch (_context12.prev = _context12.next) {
         case 0:
-          _context11.prev = 0;
+          _context12.prev = 0;
           groupBy = request.query.groupBy;
           _format = '%Y-%m-%d';
 
@@ -1106,7 +1396,7 @@ var getAppointmentsGrowthStats = function getAppointmentsGrowthStats(request, re
             _format = '%Y';
           }
 
-          _context11.next = 6;
+          _context12.next = 6;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $group: {
               _id: {
@@ -1126,25 +1416,25 @@ var getAppointmentsGrowthStats = function getAppointmentsGrowthStats(request, re
           }]));
 
         case 6:
-          appointmentsGrowth = _context11.sent;
-          return _context11.abrupt("return", response.status(200).json({
+          appointmentsGrowth = _context12.sent;
+          return _context12.abrupt("return", response.status(200).json({
             accepted: true,
             appointmentsGrowth: appointmentsGrowth
           }));
 
         case 10:
-          _context11.prev = 10;
-          _context11.t0 = _context11["catch"](0);
-          console.error(_context11.t0);
-          return _context11.abrupt("return", response.status(500).json({
+          _context12.prev = 10;
+          _context12.t0 = _context12["catch"](0);
+          console.error(_context12.t0);
+          return _context12.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context11.t0.message
+            error: _context12.t0.message
           }));
 
         case 14:
         case "end":
-          return _context11.stop();
+          return _context12.stop();
       }
     }
   }, null, null, [[0, 10]]);
@@ -1153,19 +1443,19 @@ var getAppointmentsGrowthStats = function getAppointmentsGrowthStats(request, re
 var updateAppointmentPaymentVerification = function updateAppointmentPaymentVerification(request, response) {
   var dataValidation, appointmentId, _request$body2, transactionId, gateway, appointment, matchQuery, appointmentsCount, paymentVerificationData, updatedAppointment, options, appointmentStartTime, appointmentEndTime, seeker, expert, emailDataList, newAppointmentPaymentData, emailSent;
 
-  return regeneratorRuntime.async(function updateAppointmentPaymentVerification$(_context12) {
+  return regeneratorRuntime.async(function updateAppointmentPaymentVerification$(_context13) {
     while (1) {
-      switch (_context12.prev = _context12.next) {
+      switch (_context13.prev = _context13.next) {
         case 0:
-          _context12.prev = 0;
+          _context13.prev = 0;
           dataValidation = appointmentValidation.updateAppointmentPaymentVerification(request.body);
 
           if (dataValidation.isAccepted) {
-            _context12.next = 4;
+            _context13.next = 4;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context13.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -1174,18 +1464,18 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
         case 4:
           appointmentId = request.params.appointmentId;
           _request$body2 = request.body, transactionId = _request$body2.transactionId, gateway = _request$body2.gateway;
-          _context12.next = 8;
+          _context13.next = 8;
           return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 8:
-          appointment = _context12.sent;
+          appointment = _context13.sent;
 
           if (!(appointment.verification && appointment.verification != 'REVIEW')) {
-            _context12.next = 11;
+            _context13.next = 11;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context13.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Appointment is not in review mode!',
             field: 'appointmentId'
@@ -1199,18 +1489,18 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
               gateway: gateway
             }
           };
-          _context12.next = 14;
+          _context13.next = 14;
           return regeneratorRuntime.awrap(AppointmentModel.countDocuments(matchQuery));
 
         case 14:
-          appointmentsCount = _context12.sent;
+          appointmentsCount = _context13.sent;
 
           if (!(appointmentsCount != 0)) {
-            _context12.next = 17;
+            _context13.next = 17;
             break;
           }
 
-          return _context12.abrupt("return", response.status(400).json({
+          return _context13.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Transaction ID is already registered',
             field: 'transactionId'
@@ -1224,13 +1514,13 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
               gateway: gateway.toUpperCase()
             }
           };
-          _context12.next = 20;
+          _context13.next = 20;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, paymentVerificationData, {
             "new": true
           }));
 
         case 20:
-          updatedAppointment = _context12.sent;
+          updatedAppointment = _context13.sent;
           options = {
             hour: 'numeric',
             minute: 'numeric',
@@ -1239,16 +1529,16 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
           };
           appointmentStartTime = new Date(updatedAppointment.startTime);
           appointmentEndTime = new Date(updatedAppointment.endTime);
-          _context12.next = 26;
+          _context13.next = 26;
           return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.seekerId));
 
         case 26:
-          seeker = _context12.sent;
-          _context12.next = 29;
+          seeker = _context13.sent;
+          _context13.next = 29;
           return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.expertId));
 
         case 29:
-          expert = _context12.sent;
+          expert = _context13.sent;
           emailDataList = [{
             field: 'ID',
             data: "#".concat(updatedAppointment.appointmentId)
@@ -1286,12 +1576,12 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
             mailBodyText: "You have a new appointment payment with ID #".concat(updatedAppointment.appointmentId, " to verify"),
             mailBodyHTML: emailTemplates.createListMessage(emailDataList)
           };
-          _context12.next = 34;
+          _context13.next = 34;
           return regeneratorRuntime.awrap(email.sendEmail(newAppointmentPaymentData));
 
         case 34:
-          emailSent = _context12.sent;
-          return _context12.abrupt("return", response.status(200).json({
+          emailSent = _context13.sent;
+          return _context13.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Updated appointment payment verification data!',
             emailSent: emailSent,
@@ -1299,18 +1589,18 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
           }));
 
         case 38:
-          _context12.prev = 38;
-          _context12.t0 = _context12["catch"](0);
-          console.error(_context12.t0);
-          return _context12.abrupt("return", response.status(500).json({
+          _context13.prev = 38;
+          _context13.t0 = _context13["catch"](0);
+          console.error(_context13.t0);
+          return _context13.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context12.t0.message
+            error: _context13.t0.message
           }));
 
         case 42:
         case "end":
-          return _context12.stop();
+          return _context13.stop();
       }
     }
   }, null, null, [[0, 38]]);
@@ -1319,19 +1609,19 @@ var updateAppointmentPaymentVerification = function updateAppointmentPaymentVeri
 var updateAppointmentVerificationStatus = function updateAppointmentVerificationStatus(request, response) {
   var dataValidation, appointmentId, verification, appointment, newPayment, updatedAppointment, updatedPayment, seeker, expert, counter, paymentData, paymentObj, updateAppointmentData, appointmentStartTime, options, seekerEmailData, seekerAppointmentVerificationData, expertEmailData, expertAppointmentVerificationData, _updateAppointmentData, updatePaymentData, _appointmentStartTime, _options, _seekerEmailData, _seekerAppointmentVerificationData, _expertEmailData, _expertAppointmentVerificationData;
 
-  return regeneratorRuntime.async(function updateAppointmentVerificationStatus$(_context13) {
+  return regeneratorRuntime.async(function updateAppointmentVerificationStatus$(_context14) {
     while (1) {
-      switch (_context13.prev = _context13.next) {
+      switch (_context14.prev = _context14.next) {
         case 0:
-          _context13.prev = 0;
+          _context14.prev = 0;
           dataValidation = appointmentValidation.updateAppointmentVerification(request.body);
 
           if (dataValidation.isAccepted) {
-            _context13.next = 4;
+            _context14.next = 4;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context14.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -1340,18 +1630,18 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
         case 4:
           appointmentId = request.params.appointmentId;
           verification = request.body.verification;
-          _context13.next = 8;
+          _context14.next = 8;
           return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 8:
-          appointment = _context13.sent;
+          appointment = _context14.sent;
 
           if (!(!appointment.payment || !appointment.payment.transactionId || !appointment.payment.gateway)) {
-            _context13.next = 11;
+            _context14.next = 11;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context14.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Appointment payment verification data is missing',
             field: 'appointmentId'
@@ -1359,34 +1649,34 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
 
         case 11:
           if (!(appointment.verification == verification)) {
-            _context13.next = 13;
+            _context14.next = 13;
             break;
           }
 
-          return _context13.abrupt("return", response.status(400).json({
+          return _context14.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Appointment verification is already in this status',
             field: 'verification'
           }));
 
         case 13:
-          _context13.next = 15;
+          _context14.next = 15;
           return regeneratorRuntime.awrap(UserModel.findById(appointment.seekerId));
 
         case 15:
-          seeker = _context13.sent;
-          _context13.next = 18;
+          seeker = _context14.sent;
+          _context14.next = 18;
           return regeneratorRuntime.awrap(UserModel.findById(appointment.expertId));
 
         case 18:
-          expert = _context13.sent;
+          expert = _context14.sent;
 
           if (!(verification == 'ACCEPTED')) {
-            _context13.next = 42;
+            _context14.next = 42;
             break;
           }
 
-          _context13.next = 22;
+          _context14.next = 22;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'payment'
           }, {
@@ -1399,7 +1689,7 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
           }));
 
         case 22:
-          counter = _context13.sent;
+          counter = _context14.sent;
           paymentData = {
             paymentId: counter.value,
             appointmentId: appointment._id,
@@ -1414,23 +1704,23 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
             commission: config.PAYMENT_COMMISSION
           };
           paymentObj = new PaymentModel(paymentData);
-          _context13.next = 27;
+          _context14.next = 27;
           return regeneratorRuntime.awrap(paymentObj.save());
 
         case 27:
-          newPayment = _context13.sent;
+          newPayment = _context14.sent;
           updateAppointmentData = {
             verification: verification,
             isPaid: true,
             paymentId: newPayment._id
           };
-          _context13.next = 31;
+          _context14.next = 31;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, updateAppointmentData, {
             "new": true
           }));
 
         case 31:
-          updatedAppointment = _context13.sent;
+          updatedAppointment = _context14.sent;
           appointmentStartTime = new Date(updatedAppointment.startTime);
           options = {
             hour: 'numeric',
@@ -1460,16 +1750,16 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
             mailBodyText: "You got a new appointment!",
             mailBodyHTML: emailTemplates.getExpertNewAppointmentMessage(expertEmailData)
           };
-          _context13.next = 40;
+          _context14.next = 40;
           return regeneratorRuntime.awrap(Promise.all([email.sendEmail(seekerAppointmentVerificationData), email.sendEmail(expertAppointmentVerificationData)]));
 
         case 40:
-          _context13.next = 60;
+          _context14.next = 60;
           break;
 
         case 42:
           if (!(verification == 'REVIEW' || verification == 'REJECTED')) {
-            _context13.next = 60;
+            _context14.next = 60;
             break;
           }
 
@@ -1480,23 +1770,23 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
           updatePaymentData = {
             success: false
           };
-          _context13.next = 47;
+          _context14.next = 47;
           return regeneratorRuntime.awrap(PaymentModel.findByIdAndUpdate(appointment.paymentId, updatePaymentData, {
             "new": true
           }));
 
         case 47:
-          updatedPayment = _context13.sent;
-          _context13.next = 50;
+          updatedPayment = _context14.sent;
+          _context14.next = 50;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, _updateAppointmentData, {
             "new": true
           }));
 
         case 50:
-          updatedAppointment = _context13.sent;
+          updatedAppointment = _context14.sent;
 
           if (!(verification == 'REJECTED')) {
-            _context13.next = 60;
+            _context14.next = 60;
             break;
           }
 
@@ -1530,11 +1820,11 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
             mailBodyText: "You got a cancelled appointment!",
             mailBodyHTML: emailTemplates.getExpertCancelledAppointmentMessage(_expertEmailData)
           };
-          _context13.next = 60;
+          _context14.next = 60;
           return regeneratorRuntime.awrap(Promise.all([email.sendEmail(_seekerAppointmentVerificationData), email.sendEmail(_expertAppointmentVerificationData)]));
 
         case 60:
-          return _context13.abrupt("return", response.status(200).json({
+          return _context14.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Updated appointment verification successfully!',
             appointment: updatedAppointment,
@@ -1543,18 +1833,18 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
           }));
 
         case 63:
-          _context13.prev = 63;
-          _context13.t0 = _context13["catch"](0);
-          console.error(_context13.t0);
-          return _context13.abrupt("return", response.status(500).json({
+          _context14.prev = 63;
+          _context14.t0 = _context14["catch"](0);
+          console.error(_context14.t0);
+          return _context14.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context13.t0.message
+            error: _context14.t0.message
           }));
 
         case 67:
         case "end":
-          return _context13.stop();
+          return _context14.stop();
       }
     }
   }, null, null, [[0, 63]]);
@@ -1562,26 +1852,26 @@ var updateAppointmentVerificationStatus = function updateAppointmentVerification
 
 var searchAppointmentsByExpertAndSeekerName = function searchAppointmentsByExpertAndSeekerName(request, response) {
   var name, appointments;
-  return regeneratorRuntime.async(function searchAppointmentsByExpertAndSeekerName$(_context14) {
+  return regeneratorRuntime.async(function searchAppointmentsByExpertAndSeekerName$(_context15) {
     while (1) {
-      switch (_context14.prev = _context14.next) {
+      switch (_context15.prev = _context15.next) {
         case 0:
-          _context14.prev = 0;
+          _context15.prev = 0;
           name = request.query.name;
 
           if (name) {
-            _context14.next = 4;
+            _context15.next = 4;
             break;
           }
 
-          return _context14.abrupt("return", response.status(400).json({
+          return _context15.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'No name to search for',
             field: 'name'
           }));
 
         case 4:
-          _context14.next = 6;
+          _context15.next = 6;
           return regeneratorRuntime.awrap(AppointmentModel.aggregate([{
             $lookup: {
               from: 'users',
@@ -1618,29 +1908,29 @@ var searchAppointmentsByExpertAndSeekerName = function searchAppointmentsByExper
           }]));
 
         case 6:
-          appointments = _context14.sent;
+          appointments = _context15.sent;
           appointments.forEach(function (appointment) {
             appointment.expert = appointment.expert[0];
             appointment.seeker = appointment.seeker[0];
           });
-          return _context14.abrupt("return", response.status(200).json({
+          return _context15.abrupt("return", response.status(200).json({
             accepted: true,
             appointments: appointments
           }));
 
         case 11:
-          _context14.prev = 11;
-          _context14.t0 = _context14["catch"](0);
-          console.error(_context14.t0);
-          return _context14.abrupt("return", response.status(500).json({
+          _context15.prev = 11;
+          _context15.t0 = _context15["catch"](0);
+          console.error(_context15.t0);
+          return _context15.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context14.t0.message
+            error: _context15.t0.message
           }));
 
         case 15:
         case "end":
-          return _context14.stop();
+          return _context15.stop();
       }
     }
   }, null, null, [[0, 11]]);
@@ -1648,19 +1938,19 @@ var searchAppointmentsByExpertAndSeekerName = function searchAppointmentsByExper
 
 var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, response) {
   var dataValidation, appointmentId, promoCode, promoCodesList, targetPromoCode, totalPromoCodeAppointments, todayDate, expirationDate, appointment, expertId, seekerId, totalSeekerAppointments, expert, DEDUCTION_AMOUNT, NEW_PRICE, updateAppointmentData, updatedAppointment;
-  return regeneratorRuntime.async(function applyAppointmentPromoCode$(_context15) {
+  return regeneratorRuntime.async(function applyAppointmentPromoCode$(_context16) {
     while (1) {
-      switch (_context15.prev = _context15.next) {
+      switch (_context16.prev = _context16.next) {
         case 0:
-          _context15.prev = 0;
+          _context16.prev = 0;
           dataValidation = appointmentValidation.applyAppointmentPromoCode(request.body);
 
           if (dataValidation.isAccepted) {
-            _context15.next = 4;
+            _context16.next = 4;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -1669,20 +1959,20 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
         case 4:
           appointmentId = request.params.appointmentId;
           promoCode = request.body.promoCode;
-          _context15.next = 8;
+          _context16.next = 8;
           return regeneratorRuntime.awrap(PromoCodeModel.find({
             code: promoCode
           }));
 
         case 8:
-          promoCodesList = _context15.sent;
+          promoCodesList = _context16.sent;
 
           if (!(promoCodesList.length == 0)) {
-            _context15.next = 11;
+            _context16.next = 11;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Promo code is not registered',
             field: 'promoCode'
@@ -1692,11 +1982,11 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
           targetPromoCode = promoCodesList[0];
 
           if (targetPromoCode.isActive) {
-            _context15.next = 14;
+            _context16.next = 14;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Promo code is not active',
             field: 'promoCode'
@@ -1704,24 +1994,24 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
 
         case 14:
           if (!(targetPromoCode.maxUsage != 0)) {
-            _context15.next = 20;
+            _context16.next = 20;
             break;
           }
 
-          _context15.next = 17;
+          _context16.next = 17;
           return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
             promoCodeId: targetPromoCode._id
           }));
 
         case 17:
-          totalPromoCodeAppointments = _context15.sent;
+          totalPromoCodeAppointments = _context16.sent;
 
           if (!(totalPromoCodeAppointments >= targetPromoCode.maxUsage)) {
-            _context15.next = 20;
+            _context16.next = 20;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Promo code has passed the max usage',
             field: 'promoCode'
@@ -1729,7 +2019,7 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
 
         case 20:
           if (!targetPromoCode.expirationDate) {
-            _context15.next = 25;
+            _context16.next = 25;
             break;
           }
 
@@ -1737,31 +2027,31 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
           expirationDate = new Date(targetPromoCode.expirationDate);
 
           if (!(todayDate > expirationDate)) {
-            _context15.next = 25;
+            _context16.next = 25;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Promo code has expired',
             field: 'promoCode'
           }));
 
         case 25:
-          _context15.next = 27;
+          _context16.next = 27;
           return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
 
         case 27:
-          appointment = _context15.sent;
+          appointment = _context16.sent;
           expertId = appointment.expertId;
           seekerId = appointment.seekerId;
 
           if (!appointment.isPaid) {
-            _context15.next = 32;
+            _context16.next = 32;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Appointment is already paid',
             field: 'promoCode'
@@ -1769,18 +2059,18 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
 
         case 32:
           if (!appointment.promoCodeId) {
-            _context15.next = 34;
+            _context16.next = 34;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Appointment is registered with another promo code',
             field: 'promoCode'
           }));
 
         case 34:
-          _context15.next = 36;
+          _context16.next = 36;
           return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
             seekerId: seekerId,
             promoCodeId: targetPromoCode._id,
@@ -1788,32 +2078,32 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
           }));
 
         case 36:
-          totalSeekerAppointments = _context15.sent;
+          totalSeekerAppointments = _context16.sent;
 
           if (!(totalSeekerAppointments >= targetPromoCode.userMaxUsage)) {
-            _context15.next = 39;
+            _context16.next = 39;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Promo code has passed the user maximum usage',
             field: 'promoCode'
           }));
 
         case 39:
-          _context15.next = 41;
+          _context16.next = 41;
           return regeneratorRuntime.awrap(UserModel.findById(expertId));
 
         case 41:
-          expert = _context15.sent;
+          expert = _context16.sent;
 
           if (expert.isAcceptPromoCodes) {
-            _context15.next = 44;
+            _context16.next = 44;
             break;
           }
 
-          return _context15.abrupt("return", response.status(400).json({
+          return _context16.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Expert does not accept promo codes',
             field: 'promoCode'
@@ -1827,83 +2117,21 @@ var applyAppointmentPromoCode = function applyAppointmentPromoCode(request, resp
             promoCodeId: targetPromoCode._id,
             discountPercentage: targetPromoCode.percentage
           };
-          _context15.next = 49;
+          _context16.next = 49;
           return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, updateAppointmentData, {
             "new": true
           }));
 
         case 49:
-          updatedAppointment = _context15.sent;
-          return _context15.abrupt("return", response.status(200).json({
+          updatedAppointment = _context16.sent;
+          return _context16.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Applied Promo code successfully!',
             appointment: updatedAppointment
           }));
 
         case 53:
-          _context15.prev = 53;
-          _context15.t0 = _context15["catch"](0);
-          console.error(_context15.t0);
-          return _context15.abrupt("return", response.status(500).json({
-            accepted: false,
-            message: 'internal server error',
-            error: _context15.t0.message
-          }));
-
-        case 57:
-        case "end":
-          return _context15.stop();
-      }
-    }
-  }, null, null, [[0, 53]]);
-};
-
-var removeAppointmentPromoCode = function removeAppointmentPromoCode(request, response) {
-  var appointmentId, appointment, updateAppointmentData, updatedAppointment;
-  return regeneratorRuntime.async(function removeAppointmentPromoCode$(_context16) {
-    while (1) {
-      switch (_context16.prev = _context16.next) {
-        case 0:
-          _context16.prev = 0;
-          appointmentId = request.params.appointmentId;
-          _context16.next = 4;
-          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
-
-        case 4:
-          appointment = _context16.sent;
-
-          if (!appointment.isPaid) {
-            _context16.next = 7;
-            break;
-          }
-
-          return _context16.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Appointment is already paid',
-            field: 'promoCode'
-          }));
-
-        case 7:
-          updateAppointmentData = {
-            price: appointment.originalPrice,
-            promoCodeId: null,
-            discountPercentage: null
-          };
-          _context16.next = 10;
-          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, updateAppointmentData, {
-            "new": true
-          }));
-
-        case 10:
-          updatedAppointment = _context16.sent;
-          return _context16.abrupt("return", response.status(200).json({
-            accepted: true,
-            message: 'Removed Promo code successfully!',
-            appointment: updatedAppointment
-          }));
-
-        case 14:
-          _context16.prev = 14;
+          _context16.prev = 53;
           _context16.t0 = _context16["catch"](0);
           console.error(_context16.t0);
           return _context16.abrupt("return", response.status(500).json({
@@ -1912,17 +2140,17 @@ var removeAppointmentPromoCode = function removeAppointmentPromoCode(request, re
             error: _context16.t0.message
           }));
 
-        case 18:
+        case 57:
         case "end":
           return _context16.stop();
       }
     }
-  }, null, null, [[0, 14]]);
+  }, null, null, [[0, 53]]);
 };
 
-var cancelFreeSession = function cancelFreeSession(request, response) {
-  var appointmentId, appointment, updatedAppointment;
-  return regeneratorRuntime.async(function cancelFreeSession$(_context17) {
+var removeAppointmentPromoCode = function removeAppointmentPromoCode(request, response) {
+  var appointmentId, appointment, updateAppointmentData, updatedAppointment;
+  return regeneratorRuntime.async(function removeAppointmentPromoCode$(_context17) {
     while (1) {
       switch (_context17.prev = _context17.next) {
         case 0:
@@ -1934,59 +2162,38 @@ var cancelFreeSession = function cancelFreeSession(request, response) {
         case 4:
           appointment = _context17.sent;
 
-          if (!(appointment.status == 'CANCELLED')) {
+          if (!appointment.isPaid) {
             _context17.next = 7;
             break;
           }
 
           return _context17.abrupt("return", response.status(400).json({
             accepted: false,
-            message: 'Appointment is already cancelled',
-            field: 'appointmentId'
+            message: 'Appointment is already paid',
+            field: 'promoCode'
           }));
 
         case 7:
-          if (!appointment.paymentId) {
-            _context17.next = 9;
-            break;
-          }
-
-          return _context17.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Appointment is registered with payment',
-            field: 'appointmentId'
-          }));
-
-        case 9:
-          if (!(appointment.price != 0)) {
-            _context17.next = 11;
-            break;
-          }
-
-          return _context17.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Appointment is not free to be cancelled',
-            field: 'appointmentId'
-          }));
-
-        case 11:
-          _context17.next = 13;
-          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
-            status: 'CANCELLED'
-          }, {
+          updateAppointmentData = {
+            price: appointment.originalPrice,
+            promoCodeId: null,
+            discountPercentage: null
+          };
+          _context17.next = 10;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, updateAppointmentData, {
             "new": true
           }));
 
-        case 13:
+        case 10:
           updatedAppointment = _context17.sent;
           return _context17.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Cancelled appointment successfully!',
+            message: 'Removed Promo code successfully!',
             appointment: updatedAppointment
           }));
 
-        case 17:
-          _context17.prev = 17;
+        case 14:
+          _context17.prev = 14;
           _context17.t0 = _context17["catch"](0);
           console.error(_context17.t0);
           return _context17.abrupt("return", response.status(500).json({
@@ -1995,9 +2202,92 @@ var cancelFreeSession = function cancelFreeSession(request, response) {
             error: _context17.t0.message
           }));
 
-        case 21:
+        case 18:
         case "end":
           return _context17.stop();
+      }
+    }
+  }, null, null, [[0, 14]]);
+};
+
+var cancelFreeSession = function cancelFreeSession(request, response) {
+  var appointmentId, appointment, updatedAppointment;
+  return regeneratorRuntime.async(function cancelFreeSession$(_context18) {
+    while (1) {
+      switch (_context18.prev = _context18.next) {
+        case 0:
+          _context18.prev = 0;
+          appointmentId = request.params.appointmentId;
+          _context18.next = 4;
+          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
+
+        case 4:
+          appointment = _context18.sent;
+
+          if (!(appointment.status == 'CANCELLED')) {
+            _context18.next = 7;
+            break;
+          }
+
+          return _context18.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment is already cancelled',
+            field: 'appointmentId'
+          }));
+
+        case 7:
+          if (!appointment.paymentId) {
+            _context18.next = 9;
+            break;
+          }
+
+          return _context18.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment is registered with payment',
+            field: 'appointmentId'
+          }));
+
+        case 9:
+          if (!(appointment.price != 0)) {
+            _context18.next = 11;
+            break;
+          }
+
+          return _context18.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment is not free to be cancelled',
+            field: 'appointmentId'
+          }));
+
+        case 11:
+          _context18.next = 13;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
+            status: 'CANCELLED'
+          }, {
+            "new": true
+          }));
+
+        case 13:
+          updatedAppointment = _context18.sent;
+          return _context18.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Cancelled appointment successfully!',
+            appointment: updatedAppointment
+          }));
+
+        case 17:
+          _context18.prev = 17;
+          _context18.t0 = _context18["catch"](0);
+          console.error(_context18.t0);
+          return _context18.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context18.t0.message
+          }));
+
+        case 21:
+        case "end":
+          return _context18.stop();
       }
     }
   }, null, null, [[0, 17]]);
@@ -2009,6 +2299,7 @@ module.exports = {
   updateAppointmentMeetingLink: updateAppointmentMeetingLink,
   deleteAppointment: deleteAppointment,
   sendAppointmentReminder: sendAppointmentReminder,
+  sendReminderForUpcomingAppointments: sendReminderForUpcomingAppointments,
   getAppointment: getAppointment,
   getAppointments: getAppointments,
   getPaidAppointmentsByExpertIdAndStatus: getPaidAppointmentsByExpertIdAndStatus,

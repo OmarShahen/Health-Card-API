@@ -12,9 +12,11 @@ const translations = require('../i18n/index')
 const mongoose = require('mongoose')
 const config = require('../config/config')
 const email = require('../mails/send-email')
+const mailTemplates = require('../mails/templates/reminder')
 const moment = require('moment')
 const PaymentModel = require('../models/PaymentModel')
-const emailTemplates = require('../mails/templates/messages')
+const meetingLinkTemplate = require('../mails/templates/meeting-link')
+
 
 const addAppointment = async (request, response) => {
 
@@ -189,6 +191,8 @@ const addAppointment = async (request, response) => {
         }
 
         const emailSent = await email.sendEmail(newUserEmailData)
+
+        updatedUser.password = undefined
 
         return response.status(200).json({
             accepted: true,
@@ -446,21 +450,69 @@ const updateAppointmentMeetingLink = async (request, response) => {
             })
         }
 
-        const appointmentsCount = await AppointmentModel.countDocuments({ meetingLink })
+        /*const appointmentsCount = await AppointmentModel.countDocuments({ meetingLink })
         if(appointmentsCount != 0) {
             return response.status(400).json({
                 accepted: false,
                 message: 'This link is registered with another appointment',
                 field: 'meetingLink'
             })
-        }
+        }*/
 
         const updatedAppointment = await AppointmentModel
         .findByIdAndUpdate(appointmentId, { meetingLink }, { new: true })
 
+        const expert = await UserModel.findById(updatedAppointment.expertId)
+        const seeker = await UserModel.findById(updatedAppointment.seekerId)
+
+        const dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+        }
+
+        const appointmentStartTime = updatedAppointment.startTime
+
+        const formattedDate = format(appointmentStartTime, 'dd MMMM yyyy')
+        const formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions) 
+        const formattedDateTime = `${formattedDate} ${formattedTime}`
+        
+        const expertMailTemplateData = {
+            receiverName: expert.firstName,
+            startTime: formattedDateTime,
+            meetingLink,
+            senderName: `RA'AYA`
+        }
+        const expertMailTemplate = meetingLinkTemplate.meetingLinkTemplate(expertMailTemplateData)
+        const expertMailData = {
+            receiverEmail: expert.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: expertMailTemplate
+        }
+
+        const expertMailSent = await email.sendEmail(expertMailData)
+
+        const seekerMailTemplateData = {
+            receiverName: seeker.firstName,
+            startTime: formattedDateTime,
+            meetingLink,
+            senderName: `RA'AYA`
+        }
+        const seekerMailTemplate = meetingLinkTemplate.meetingLinkTemplate(seekerMailTemplateData)
+        const seekerMailData = {
+            receiverEmail: seeker.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: seekerMailTemplate
+        }
+
+        const seekerMailSent = await email.sendEmail(seekerMailData)
+
         return response.status(200).json({
             accepted: true,
             message: 'Updated appointment meeting link successfully!',
+            expertMailSent,
+            seekerMailSent,
             appointment: updatedAppointment,
         })
 
@@ -503,26 +555,187 @@ const sendAppointmentReminder = async (request, response) => {
 
     try {
 
-        const mailData = {
-            receiverEmail: 'omarredaelsayedmohamed@gmail.com',
-            subject: 'New User Sign Up',
-            mailBodyText: 'You have a new user with ID #123',
-            mailBodyHTML: `
-            <strong>ID: </strong><span>#123</span><br />
-            <strong>Name: </strong><span>Omar Reda</span><br />
-            <strong>Email: </strong><span>omar@gmail.com</span><br />
-            <strong>Phone: </strong><span>+201065630331</span><br />
-            <strong>Gender: </strong><span>Male</span><br />
-            <strong>Age: </strong><span>20</span><br />
-            `
+        const { appointmentId } = request.params
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        const expert = await UserModel.findById(appointment.expertId)
+        const seeker = await UserModel.findById(appointment.seekerId)
+
+        const dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
         }
 
-        const emailSent = await email.sendEmail(mailData)
+        const appointmentStartTime = appointment.startTime
+
+        const formattedDate = format(appointmentStartTime, 'dd MMMM yyyy')
+        const formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions) 
+        const formattedDateTime = `${formattedDate} ${formattedTime}`
+
+        const expertTemplateData = {
+            receiverName: expert.firstName,
+            senderName: `RA'AYA`,
+            startTime: formattedDateTime
+        }
+
+        const expertTemplate = mailTemplates.reminderTemplate(expertTemplateData)
+        const expertMailData = {
+            receiverEmail: expert.email,
+            subject: 'Reminder: Upcoming Appointment',
+            mailBodyHTML: expertTemplate
+        }
+
+        const expertMailSent = await email.sendEmail(expertMailData)
+
+        const seekerTemplateData = {
+            receiverName: seeker.firstName,
+            senderName: `RA'AYA`,
+            startTime: formattedDateTime
+        }
+
+        const seekerTemplate = mailTemplates.reminderTemplate(seekerTemplateData)
+        const seekerMailData = {
+            receiverEmail: seeker.email,
+            subject: 'Reminder: Upcoming Appointment',
+            mailBodyHTML: seekerTemplate
+        }
+
+        const seekerMailSent = await email.sendEmail(seekerMailData)
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointment._id, { isReminderSent: true }, { new: true })
 
         return response.status(200).json({
             accepted: true,
-            message: 'Message sent successfully!',
-            emailSent
+            message: 'Reminder is sent successfully!',
+            expertMailSent,
+            seekerMailSent,
+            appointment: updatedAppointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const sendReminderForUpcomingAppointments = async (request, response) => {
+
+    try {
+
+        const today = new Date()        
+
+        const startOfDay = new Date()
+        const endOfDay = new Date(today.setDate(today.getDate() + 1))
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: {
+                    isPaid: true,
+                    status: { $ne: 'CANCELLED' },
+                    isReminderSent: false,
+                    startTime: {
+                        $gte: startOfDay,
+                        $lt: endOfDay
+                    }
+                }
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            }
+        ])
+
+        let total = 0
+
+        try {
+
+            appointments.forEach(appointment => {
+                appointment.seeker = appointment.seeker[0]
+                appointment.expert = appointment.expert[0]
+            })
+            
+            for(const appointment of appointments) {
+
+                const dateOptions = {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true,
+                    timeZone: 'Africa/Cairo'
+                }
+
+                const appointmentStartTime = appointment.startTime
+
+                const formattedDate = format(appointmentStartTime, 'dd MMMM yyyy')
+                const formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions) 
+                const formattedDateTime = `${formattedDate} ${formattedTime}`
+
+
+                const expertTemplateData = {
+                    receiverName: appointment.expert.firstName,
+                    senderName: `RA'AYA`,
+                    startTime: formattedDateTime
+                }
+
+                const expertMailData = {
+                    receiverEmail: appointment.expert.email,
+                    subject: 'Reminder: Upcoming Appointment',
+                    mailBodyHTML: mailTemplates.reminderTemplate(expertTemplateData)
+                }
+
+                await email.sendEmail(expertMailData)   
+
+                const seekerTemplateData = {
+                    receiverName: appointment.seeker.firstName,
+                    senderName: `RA'AYA`,
+                    startTime: formattedDateTime
+                }
+
+                const seekerMailData = {
+                    receiverEmail: appointment.seeker.email,
+                    subject: 'Reminder: Upcoming Appointment',
+                    mailBodyHTML: mailTemplates.reminderTemplate(seekerTemplateData)
+                }
+
+                await email.sendEmail(seekerMailData)
+
+                await AppointmentModel.findByIdAndUpdate(appointment._id, { isReminderSent: true })
+
+                total++
+
+            }
+
+        } catch(error) {
+            console.error(error)
+        }
+
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Reminders is sent successfully!',
+            total
         })
 
     } catch(error) {
@@ -705,21 +918,27 @@ const getAppointmentsStats = async (request, response) => {
         const totalAppointmentsWithoutLink = await AppointmentModel.countDocuments({ meetingLink: { $exists: false } })
         const totalAppointmentsNotPaid = await AppointmentModel.countDocuments({ isPaid: false })
         const totalAppointmentsPaid = await AppointmentModel.countDocuments({ isPaid: true })
-
-        const totalAcceptedVerifications = await AppointmentModel.countDocuments({ verification: 'ACCEPTED' })
-        const totalRejectedVerifications = await AppointmentModel.countDocuments({ verification: 'REJECTED' })
-        const totalReviewedVerifications = await AppointmentModel.countDocuments({ verification: 'REVIEW' })
         
         const todayDate = new Date()
 
-        const totalUpcomingAppointments = await AppointmentModel.countDocuments({ startTime: { $gte: todayDate }, isPaid: true })
-        const totalPassedAppointments = await AppointmentModel.countDocuments({ startTime: { $lt: todayDate }, isPaid: true })
+        const totalUpcomingAppointments = await AppointmentModel
+        .countDocuments({ startTime: { $gte: todayDate }, isPaid: true, status: { $ne: 'CANCELLED' } })
+        
+        const totalPassedAppointments = await AppointmentModel
+        .countDocuments({ startTime: { $lt: todayDate }, isPaid: true, status: { $ne: 'CANCELLED' } })
+
+        const totalAppointmentsReminderSent = await AppointmentModel
+        .countDocuments({ isReminderSent: true, isPaid: true, status: { $ne: 'CANCELLED' } })
+
+        const totalAppointmentsReminderNotSent = await AppointmentModel
+        .countDocuments({ isReminderSent: false, isPaid: true, status: { $ne: 'CANCELLED' } })
 
         const startOfDay = moment(todayDate).startOf('day').toDate()
         const endOfDay = moment(todayDate).endOf('day').toDate()
 
         const totalTodayAppointments = await AppointmentModel.countDocuments({
             isPaid: true,
+            status: { $ne: 'CANCELLED' },
             startTime: {
                 $gte: startOfDay,
                 $lt: endOfDay
@@ -735,9 +954,8 @@ const getAppointmentsStats = async (request, response) => {
             totalUpcomingAppointments,
             totalPassedAppointments,
             totalTodayAppointments,
-            totalAcceptedVerifications,
-            totalRejectedVerifications,
-            totalReviewedVerifications
+            totalAppointmentsReminderSent,
+            totalAppointmentsReminderNotSent
         })
 
     } catch(error) {
@@ -1380,6 +1598,7 @@ module.exports = {
     updateAppointmentMeetingLink,
     deleteAppointment,
     sendAppointmentReminder,
+    sendReminderForUpcomingAppointments,
     getAppointment,
     getAppointments,
     getPaidAppointmentsByExpertIdAndStatus,

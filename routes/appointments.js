@@ -117,5 +117,11 @@ router.post(
     (request, response)=> appointmentsController.sendAppointmentReminder(request, response)
 )
 
+router.post(
+    '/v1/appointments/reminder/send',
+    authorization.allPermission,
+    (request, response)=> appointmentsController.sendReminderForUpcomingAppointments(request, response)
+)
+
 
 module.exports = router
