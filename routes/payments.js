@@ -1,7 +1,7 @@
 const router = require('express').Router()
 const paymentsController = require('../controllers/payments')
 const authorization = require('../middlewares/verify-permission')
-const { verifyAppointmentId } = require('../middlewares/verify-routes-params')
+const { verifyAppointmentId, verifyUserId, verifyPaymentId } = require('../middlewares/verify-routes-params')
 
 
 router.post(
@@ -28,9 +28,23 @@ router.get(
 )
 
 router.get(
+    '/v1/payments/experts/:userId', 
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => paymentsController.getExpertPayments(request, response)
+)
+
+router.get(
     '/v1/payments/statistics', 
     authorization.allPermission,
     (request, response) => paymentsController.getPaymentsStatistics(request, response)
+)
+
+router.get(
+    '/v1/payments/experts/:userId/statistics', 
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => paymentsController.getExpertPaymentsStatistics(request, response)
 )
 
 router.post(
@@ -46,5 +60,13 @@ router.post(
     verifyAppointmentId,
     (request, response) => paymentsController.fullRefundPayment(request, response)
 )
+
+router.patch(
+    '/v1/payments/:paymentId/expert-paid',
+    authorization.allPermission,
+    verifyPaymentId,
+    (request, response) => paymentsController.updatePaymentExpertPaid(request, response)
+)
+
 
 module.exports = router

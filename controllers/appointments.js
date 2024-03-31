@@ -152,6 +152,10 @@ const addAppointment = async (request, response) => {
             request.body.isPaid = true
         }
 
+        if(expert.meetingLink) {
+            request.body.meetingLink = expert.meetingLink
+        }
+
         const appointmentData = { 
             appointmentId: counter.value,
             originalPrice: request.body.price,
@@ -626,6 +630,86 @@ const sendAppointmentReminder = async (request, response) => {
     }
 }
 
+const sendAppointmentMeetingLink = async (request, response) => {
+
+    try {
+
+        const { appointmentId } = request.params
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        if(!appointment.meetingLink) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'No meeting link registered yet',
+                field: 'appointmentId'
+            })
+        }
+
+        const expert = await UserModel.findById(appointment.expertId)
+        const seeker = await UserModel.findById(appointment.seekerId)
+
+        const dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+        }
+
+        const appointmentStartTime = appointment.startTime
+
+        const formattedDate = format(appointmentStartTime, 'dd MMMM yyyy')
+        const formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions) 
+        const formattedDateTime = `${formattedDate} ${formattedTime}`
+        
+        const expertMailTemplateData = {
+            receiverName: expert.firstName,
+            startTime: formattedDateTime,
+            meetingLink: appointment.meetingLink,
+            senderName: `RA'AYA`
+        }
+        const expertMailTemplate = meetingLinkTemplate.meetingLinkTemplate(expertMailTemplateData)
+        const expertMailData = {
+            receiverEmail: expert.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: expertMailTemplate
+        }
+
+        const expertMailSent = await email.sendEmail(expertMailData)
+
+        const seekerMailTemplateData = {
+            receiverName: seeker.firstName,
+            startTime: formattedDateTime,
+            meetingLink: appointment.meetingLink,
+            senderName: `RA'AYA`
+        }
+        const seekerMailTemplate = meetingLinkTemplate.meetingLinkTemplate(seekerMailTemplateData)
+        const seekerMailData = {
+            receiverEmail: seeker.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: seekerMailTemplate
+        }
+
+        const seekerMailSent = await email.sendEmail(seekerMailData)
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Sent meeting link successfully!',
+            expertMailSent,
+            seekerMailSent,
+            appointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const sendReminderForUpcomingAppointments = async (request, response) => {
 
     try {
@@ -910,6 +994,93 @@ const getAppointments = async (request, response) => {
     }
 }
 
+const getAppointmentsByExpertId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { status, meetingLink, isOnlineBooking } = request.query
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query, 'startTime')
+
+        let matchQuery = { ...searchQuery, expertId: mongoose.Types.ObjectId(userId) }
+
+        if(status == 'PAID') {
+            matchQuery.isPaid = true
+        } else if(status == 'UNPAID') {
+            matchQuery.isPaid = false
+        } else if(status == 'CANCELLED') {
+            matchQuery.status = 'CANCELLED'
+        }
+
+        if(meetingLink == 'TRUE') {
+            matchQuery.meetingLink = { $exists: true }
+        } else if(meetingLink == 'FALSE') {
+            matchQuery.meetingLink = { $exists: false }
+        }
+
+        if(isOnlineBooking == 'TRUE') {
+            matchQuery.isOnlineBooking = true
+        } else if(isOnlineBooking == 'FALSE') {
+            matchQuery.isOnlineBooking = false
+        }
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0,
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
+        })
+
+        const totalAppointments = await AppointmentModel.countDocuments(matchQuery)
+
+        return response.status(200).json({
+            accepted: true,
+            totalAppointments,
+            appointments,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getAppointmentsStats = async (request, response) => {
 
     try {
@@ -956,6 +1127,62 @@ const getAppointmentsStats = async (request, response) => {
             totalTodayAppointments,
             totalAppointmentsReminderSent,
             totalAppointmentsReminderNotSent
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getAppointmentsStatsByExpertId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const expertId = mongoose.Types.ObjectId(userId)
+
+        const totalAppointments = await AppointmentModel.countDocuments({ expertId })
+        const totalAppointmentsWithoutLink = await AppointmentModel.countDocuments({ expertId, meetingLink: { $exists: false }, isPaid: true })
+        const totalAppointmentsNotPaid = await AppointmentModel.countDocuments({ expertId, isPaid: false })
+        const totalAppointmentsPaid = await AppointmentModel.countDocuments({ expertId, isPaid: true })
+        const totalAppointmentsCancelled = await AppointmentModel.countDocuments({ expertId, status: 'CANCELLED', isPaid: true })
+        
+        const todayDate = new Date()
+
+        const totalUpcomingAppointments = await AppointmentModel
+        .countDocuments({ expertId, startTime: { $gte: todayDate }, isPaid: true, status: { $ne: 'CANCELLED' } })
+        
+        const totalPassedAppointments = await AppointmentModel
+        .countDocuments({ expertId, startTime: { $lt: todayDate }, isPaid: true, status: { $ne: 'CANCELLED' } })
+
+        const startOfDay = moment(todayDate).startOf('day').toDate()
+        const endOfDay = moment(todayDate).endOf('day').toDate()
+
+        const totalTodayAppointments = await AppointmentModel.countDocuments({
+            expertId,
+            isPaid: true,
+            status: { $ne: 'CANCELLED' },
+            startTime: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            totalAppointments,
+            totalAppointmentsWithoutLink,
+            totalAppointmentsPaid,
+            totalAppointmentsNotPaid,
+            totalUpcomingAppointments,
+            totalPassedAppointments,
+            totalTodayAppointments,
+            totalAppointmentsCancelled
         })
 
     } catch(error) {
@@ -1371,6 +1598,79 @@ const searchAppointmentsByExpertAndSeekerName = async (request, response) => {
     }
 }
 
+const searchAppointmentsByExpertIdAndSeekerName = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { name } = request.query
+
+        if(!name) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'No name to search for',
+                field: 'name'
+            })
+        }
+
+        const appointments = await AppointmentModel.aggregate([
+            {
+                $match: { expertId: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $match: {
+                  $or: [
+                    { 'seeker.firstName': { $regex: new RegExp(name, 'i') } },
+                  ],
+                }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0,
+                }
+            }
+        ])
+
+        appointments.forEach(appointment => {
+            appointment.expert = appointment.expert[0]
+            appointment.seeker = appointment.seeker[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            appointments,
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const applyAppointmentPromoCode = async (request, response) => {
 
     try {
@@ -1598,16 +1898,20 @@ module.exports = {
     updateAppointmentMeetingLink,
     deleteAppointment,
     sendAppointmentReminder,
+    sendAppointmentMeetingLink,
     sendReminderForUpcomingAppointments,
     getAppointment,
     getAppointments,
+    getAppointmentsByExpertId,
     getPaidAppointmentsByExpertIdAndStatus,
     getPaidAppointmentsBySeekerIdAndStatus,
     getAppointmentsStats,
+    getAppointmentsStatsByExpertId,
     getAppointmentsGrowthStats,
     updateAppointmentPaymentVerification,
     updateAppointmentVerificationStatus,
     searchAppointmentsByExpertAndSeekerName,
+    searchAppointmentsByExpertIdAndSeekerName,
     applyAppointmentPromoCode,
     removeAppointmentPromoCode,
     cancelFreeSession

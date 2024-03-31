@@ -19,6 +19,6 @@ const PaymentSchema = new mongoose.Schema({
     currency: { type: String, default: 'EGP' }
 
 }, { timestamps: true })
-0
+
 
 module.exports = mongoose.model('Payment', PaymentSchema)

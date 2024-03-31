@@ -37,7 +37,7 @@ var config = require('../config/config');
 var utils = require('../utils/utils');
 
 var updateExpert = function updateExpert(request, response) {
-  var userId, dataValidation, _request$body, speciality, subSpeciality, specialitiesList, _specialitiesList, updatedUser;
+  var userId, dataValidation, _request$body, speciality, subSpeciality, meetingLink, specialitiesList, _specialitiesList, totalExpertsMeetingsLinks, updatedUser;
 
   return regeneratorRuntime.async(function updateExpert$(_context) {
     while (1) {
@@ -59,7 +59,7 @@ var updateExpert = function updateExpert(request, response) {
           }));
 
         case 5:
-          _request$body = request.body, speciality = _request$body.speciality, subSpeciality = _request$body.subSpeciality;
+          _request$body = request.body, speciality = _request$body.speciality, subSpeciality = _request$body.subSpeciality, meetingLink = _request$body.meetingLink;
 
           if (!speciality) {
             _context.next = 13;
@@ -127,12 +127,37 @@ var updateExpert = function updateExpert(request, response) {
           });
 
         case 20:
-          _context.next = 22;
+          if (!meetingLink) {
+            _context.next = 26;
+            break;
+          }
+
+          _context.next = 23;
+          return regeneratorRuntime.awrap(UserModel.countDocuments({
+            meetingLink: meetingLink
+          }));
+
+        case 23:
+          totalExpertsMeetingsLinks = _context.sent;
+
+          if (!(totalExpertsMeetingsLinks != 0)) {
+            _context.next = 26;
+            break;
+          }
+
+          return _context.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Meeting link is already registered',
+            field: 'meetingLink'
+          }));
+
+        case 26:
+          _context.next = 28;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, request.body, {
             "new": true
           }));
 
-        case 22:
+        case 28:
           updatedUser = _context.sent;
           updatedUser.password = undefined;
           return _context.abrupt("return", response.status(200).json({
@@ -141,8 +166,8 @@ var updateExpert = function updateExpert(request, response) {
             user: updatedUser
           }));
 
-        case 27:
-          _context.prev = 27;
+        case 33:
+          _context.prev = 33;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -151,12 +176,12 @@ var updateExpert = function updateExpert(request, response) {
             error: _context.t0.message
           }));
 
-        case 31:
+        case 37:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 27]]);
+  }, null, null, [[0, 33]]);
 };
 
 var searchExperts = function searchExperts(request, response) {

@@ -253,12 +253,13 @@ var updateUserMainData = function updateUserMainData(request, response) {
           }));
 
         case 5:
-          _context5.next = 7;
+          console.log(request.body);
+          _context5.next = 8;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, request.body, {
             "new": true
           }));
 
-        case 7:
+        case 8:
           updatedUser = _context5.sent;
           updatedUser.password = undefined;
           return _context5.abrupt("return", response.status(200).json({
@@ -267,8 +268,8 @@ var updateUserMainData = function updateUserMainData(request, response) {
             user: updatedUser
           }));
 
-        case 12:
-          _context5.prev = 12;
+        case 13:
+          _context5.prev = 13;
           _context5.t0 = _context5["catch"](0);
           console.error(_context5.t0);
           return _context5.abrupt("return", response.status(500).json({
@@ -277,12 +278,12 @@ var updateUserMainData = function updateUserMainData(request, response) {
             error: _context5.t0.message
           }));
 
-        case 16:
+        case 17:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 13]]);
 };
 
 var updateUserProfileImage = function updateUserProfileImage(request, response) {
@@ -1002,18 +1003,17 @@ var updateUserBlocked = function updateUserBlocked(request, response) {
   }, null, null, [[0, 13]]);
 };
 
-var updateUserActivation = function updateUserActivation(request, response) {
-  var userId, dataValidation, isDeactivated, updatedUser;
-  return regeneratorRuntime.async(function updateUserActivation$(_context16) {
+var updateUserType = function updateUserType(request, response) {
+  var dataValidation, userId, type, updatedUser;
+  return regeneratorRuntime.async(function updateUserType$(_context16) {
     while (1) {
       switch (_context16.prev = _context16.next) {
         case 0:
           _context16.prev = 0;
-          userId = request.params.userId;
-          dataValidation = userValidation.updateUserActivation(request.body);
+          dataValidation = userValidation.updateUserType(request.body);
 
           if (dataValidation.isAccepted) {
-            _context16.next = 5;
+            _context16.next = 4;
             break;
           }
 
@@ -1023,11 +1023,12 @@ var updateUserActivation = function updateUserActivation(request, response) {
             field: dataValidation.field
           }));
 
-        case 5:
-          isDeactivated = request.body.isDeactivated;
+        case 4:
+          userId = request.params.userId;
+          type = request.body.type;
           _context16.next = 8;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
-            isDeactivated: isDeactivated
+            type: type
           }, {
             "new": true
           }));
@@ -1037,7 +1038,7 @@ var updateUserActivation = function updateUserActivation(request, response) {
           updatedUser.password = undefined;
           return _context16.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated user activation successfully!',
+            message: 'Updated user type successfully!',
             user: updatedUser
           }));
 
@@ -1059,6 +1060,63 @@ var updateUserActivation = function updateUserActivation(request, response) {
   }, null, null, [[0, 13]]);
 };
 
+var updateUserActivation = function updateUserActivation(request, response) {
+  var userId, dataValidation, isDeactivated, updatedUser;
+  return regeneratorRuntime.async(function updateUserActivation$(_context17) {
+    while (1) {
+      switch (_context17.prev = _context17.next) {
+        case 0:
+          _context17.prev = 0;
+          userId = request.params.userId;
+          dataValidation = userValidation.updateUserActivation(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context17.next = 5;
+            break;
+          }
+
+          return _context17.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 5:
+          isDeactivated = request.body.isDeactivated;
+          _context17.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            isDeactivated: isDeactivated
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedUser = _context17.sent;
+          updatedUser.password = undefined;
+          return _context17.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated user activation successfully!',
+            user: updatedUser
+          }));
+
+        case 13:
+          _context17.prev = 13;
+          _context17.t0 = _context17["catch"](0);
+          console.error(_context17.t0);
+          return _context17.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context17.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context17.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
 module.exports = {
   getUser: getUser,
   getExpertUser: getExpertUser,
@@ -1075,5 +1133,6 @@ module.exports = {
   addEmployeeUser: addEmployeeUser,
   updateUserVisibility: updateUserVisibility,
   updateUserBlocked: updateUserBlocked,
+  updateUserType: updateUserType,
   updateUserActivation: updateUserActivation
 };

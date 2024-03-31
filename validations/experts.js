@@ -49,7 +49,7 @@ const addExpert = (expertData) => {
 
 const updateExpert = (userData) => {
 
-    const { title, description, speciality, subSpeciality, languages } = userData
+    const { title, description, speciality, subSpeciality, languages, meetingLink } = userData
 
     if(title && typeof title != 'string') return { isAccepted: false, message: 'Invalid title format', field: 'title' }
 
@@ -81,6 +81,7 @@ const updateExpert = (userData) => {
 
     }
 
+    if(meetingLink && !utils.isValidURL(meetingLink)) return { isAccepted: false, message: 'Invalid meeting link format', field: 'meetingLink' }
 
     return { isAccepted: true, message: 'data is valid', data: userData }
 

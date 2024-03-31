@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema({
         isGoogleAuth: { type: Boolean, default: false }
     },
 
+    meetingLink: { type: String },
     pricing: [],
     rating: { type: Number, default: 5 },
     totalReviews: { type: Number, default: 0 },

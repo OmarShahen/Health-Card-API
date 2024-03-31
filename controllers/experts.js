@@ -26,7 +26,7 @@ const updateExpert = async (request, response) => {
             })
         }
 
-        const { speciality, subSpeciality } = request.body
+        const { speciality, subSpeciality, meetingLink } = request.body
 
         if(speciality) {
             const specialitiesList = await SpecialityModel.find({ _id: { $in: speciality }, type: 'MAIN' })
@@ -52,6 +52,17 @@ const updateExpert = async (request, response) => {
             }
 
             request.body.subSpeciality = specialitiesList.map(special => special._id)
+        }
+
+        if(meetingLink) {
+            const totalExpertsMeetingsLinks = await UserModel.countDocuments({ meetingLink })
+            if(totalExpertsMeetingsLinks != 0) {
+                return response.status(400).json({
+                    accepted: false,
+                    message: 'Meeting link is already registered',
+                    field: 'meetingLink'
+                })
+            }
         }
 
         const updatedUser = await UserModel

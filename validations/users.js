@@ -50,6 +50,19 @@ const updateUserProfileImage = (userData) => {
 
 }
 
+const updateUserType = (userData) => {
+
+    const { type } = userData
+
+    if(!type) return { isAccepted: false, message: 'Type is required', field: 'type' }
+
+    if(!config.TYPES.includes(type)) return { isAccepted: false, message: 'Type value is not registered', field: 'type' }
+
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+
+}
+
 const updateUserVisibility = (userData) => {
 
     const { isShow } = userData
@@ -180,6 +193,7 @@ const addEmployeeUser = (userData) => {
 module.exports = { 
     updateUserMainData, 
     updateUserProfileImage,
+    updateUserType,
     updateUserEmail, 
     updateUserPassword,
     updateUserLanguage,

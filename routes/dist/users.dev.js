@@ -57,6 +57,9 @@ router.patch('/v1/users/:userId/visibility', authorization.allPermission, verify
 router.patch('/v1/users/:userId/blocked', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.updateUserBlocked(request, response);
 });
+router.patch('/v1/users/:userId/type', authorization.allPermission, verifyUserId, function (request, response) {
+  return usersController.updateUserType(request, response);
+});
 router.patch('/v1/users/:userId/activation', authorization.allPermission, verifyUserId, function (request, response) {
   return usersController.updateUserActivation(request, response);
 });

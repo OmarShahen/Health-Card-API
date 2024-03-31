@@ -75,6 +75,9 @@ var UserSchema = new mongoose.Schema({
       "default": false
     }
   },
+  meetingLink: {
+    type: String
+  },
   pricing: [],
   rating: {
     type: Number,

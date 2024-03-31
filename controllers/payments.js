@@ -11,6 +11,7 @@ const UserModel = require('../models/UserModel')
 const { format } = require('date-fns')
 const utils = require('../utils/utils')
 const email = require('../mails/send-email')
+const mongoose = require('mongoose')
 
 
 const processPayment = async (request, response) => {
@@ -410,6 +411,93 @@ const getPayments = async (request, response) => {
                     foreignField: '_id',
                     as: 'appointment'
                 }
+            },
+        ])
+
+        payments.forEach(payment => {
+            payment.seeker = payment.seeker[0]
+            payment.expert = payment.expert[0]
+            payment.appointment = payment.appointment[0]
+        })
+
+        const totalPayments = await PaymentModel.countDocuments(matchQuery)
+
+        return response.status(200).json({
+            accepted: true,
+            totalPayments,
+            payments
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getExpertPayments = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { expertPaid, refunded } = request.query
+
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
+
+        const matchQuery = { 
+            ...searchQuery, 
+            expertId: mongoose.Types.ObjectId(userId),
+            success: true
+        }
+
+        if(expertPaid == 'TRUE') {
+            matchQuery.isExpertPaid = true
+        } else if(expertPaid == 'FALSE') {
+            matchQuery.isExpertPaid = false
+        }
+
+        if(refunded == 'TRUE') {
+            matchQuery.isRefunded = true
+        } else if(refunded == 'FALSE') {
+            matchQuery.isRefunded = false
+        }
+
+        const payments = await PaymentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $sort: { createdAt: -1 }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'appointments',
+                    localField: 'appointmentId',
+                    foreignField: '_id',
+                    as: 'appointment'
+                }
             }
         ])
 
@@ -536,6 +624,143 @@ const getPaymentsStatistics = async (request, response) => {
         })
     }
 }
+
+const getExpertPaymentsStatistics = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { searchQuery } = utils.statsQueryGenerator('none', 0, request.query)
+
+        const matchQuery = { ...searchQuery, expertId: mongoose.Types.ObjectId(userId) }
+
+        const totalAmountPaidList = await PaymentModel.aggregate([
+            {
+                $match: matchQuery
+            },
+            {
+                $group: {
+                _id: null,
+                total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountPaidActiveList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isRefunded: false }
+            },
+            {
+                $group: {
+                _id: null,
+                total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountPaidRefundedList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isRefunded: true }
+            },
+            {
+                $group: {
+                _id: null,
+                total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountPaidCommissionList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isRefunded: false }
+            },
+            {
+                $project: {
+                    commissionAmount: { $multiply: ['$commission', '$amountCents'] },
+            }
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalCommission: { $sum: '$commissionAmount' }
+            }
+            }
+        ])
+
+        const totalAmountExpertPaidList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isExpertPaid: true }
+            },
+            {
+                $group: {
+                _id: null,
+                total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        const totalAmountExpertNotPaidList = await PaymentModel.aggregate([
+            {
+                $match: { ...matchQuery, isExpertPaid: false }
+            },
+            {
+                $group: {
+                _id: null,
+                total: { $sum: '$amountCents' }
+                }
+            }
+        ])
+
+        let totalAmountPaid = 0
+        let totalAmountPaidActive = 0
+        let totalAmountPaidRefunded = 0
+        let totalAmountPaidCommission = 0
+        let totalAmountExpertPaid = 0
+        let totalAmountExpertNotPaid = 0
+
+        if(totalAmountPaidList.length != 0) {
+            totalAmountPaid = totalAmountPaidList[0].total / 100
+        }
+
+        if(totalAmountPaidActiveList.length != 0) {
+            totalAmountPaidActive = totalAmountPaidActiveList[0].total / 100
+        }
+
+        if(totalAmountPaidRefundedList.length != 0) {
+            totalAmountPaidRefunded = totalAmountPaidRefundedList[0].total / 100
+        }
+
+        if(totalAmountPaidCommissionList.length != 0) {
+            totalAmountPaidCommission = totalAmountPaidCommissionList[0].totalCommission / 100
+        }
+
+        if(totalAmountExpertPaidList.length != 0) {
+            totalAmountExpertPaid = totalAmountExpertPaidList[0].total / 100
+        }
+
+        if(totalAmountExpertNotPaidList.length != 0) {
+            totalAmountExpertNotPaid = totalAmountExpertNotPaidList[0].total / 100
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            totalAmountPaid,
+            totalAmountPaidActive,
+            totalAmountPaidRefunded,
+            totalAmountPaidCommission,
+            totalAmountExpertPaid,
+            totalAmountExpertNotPaid
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 const refundPayment = async (request, response) => {
 
     try {
@@ -649,6 +874,59 @@ const refundPayment = async (request, response) => {
     }
 }
 
+const updatePaymentExpertPaid = async (request, response) => {
+
+    try {
+
+        const { paymentId } = request.params
+        const { isExpertPaid } = request.body
+
+        const dataValidation = paymentValidation.updatePaymentExpertPaid(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const payment = await PaymentModel.findById(paymentId)
+
+        if(!payment.success) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Payment is not accepted',
+                field: 'paymentId'
+            })
+        }
+
+        if(payment.isRefunded) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Payment is refunded',
+                field: 'paymentId'
+            })
+        }
+
+        const updatedPayment = await PaymentModel
+        .findByIdAndUpdate(paymentId, { isExpertPaid }, { new: true })
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated payment expert status successfully! ',
+            payment: updatedPayment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const fullRefundPayment = async (request, response) => {
 
     try {
@@ -749,7 +1027,10 @@ module.exports = {
     createPaymentURL, 
     createMobileWalletPaymentURL,
     getPayments, 
+    getExpertPayments,
     refundPayment,
+    updatePaymentExpertPaid,
     fullRefundPayment,
-    getPaymentsStatistics
+    getPaymentsStatistics,
+    getExpertPaymentsStatistics
 }

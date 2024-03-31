@@ -20,6 +20,8 @@ var PromoCodeModel = require('../models/PromoCodeModel');
 
 var IssueModel = require('../models/IssueModel');
 
+var PaymentModel = require('../models/PaymentModel');
+
 var verifyUserId = function verifyUserId(request, response, next) {
   var userId, user;
   return regeneratorRuntime.async(function verifyUserId$(_context) {
@@ -549,6 +551,65 @@ var verifyIssueId = function verifyIssueId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyPaymentId = function verifyPaymentId(request, response, next) {
+  var paymentId, payment;
+  return regeneratorRuntime.async(function verifyPaymentId$(_context10) {
+    while (1) {
+      switch (_context10.prev = _context10.next) {
+        case 0:
+          _context10.prev = 0;
+          paymentId = request.params.paymentId;
+
+          if (utils.isObjectId(paymentId)) {
+            _context10.next = 4;
+            break;
+          }
+
+          return _context10.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid payment ID format',
+            field: 'paymentId'
+          }));
+
+        case 4:
+          _context10.next = 6;
+          return regeneratorRuntime.awrap(PaymentModel.findById(paymentId));
+
+        case 6:
+          payment = _context10.sent;
+
+          if (payment) {
+            _context10.next = 9;
+            break;
+          }
+
+          return _context10.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Payment ID does not exist',
+            field: 'paymentId'
+          }));
+
+        case 9:
+          return _context10.abrupt("return", next());
+
+        case 12:
+          _context10.prev = 12;
+          _context10.t0 = _context10["catch"](0);
+          console.error(_context10.t0);
+          return _context10.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context10.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context10.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyUserId: verifyUserId,
   verifyAppointmentId: verifyAppointmentId,
@@ -558,5 +619,6 @@ module.exports = {
   verifyExpertVerificationId: verifyExpertVerificationId,
   verifyServiceId: verifyServiceId,
   verifyPromoCodeId: verifyPromoCodeId,
-  verifyIssueId: verifyIssueId
+  verifyIssueId: verifyIssueId,
+  verifyPaymentId: verifyPaymentId
 };

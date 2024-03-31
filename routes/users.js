@@ -115,6 +115,13 @@ router.patch(
 )
 
 router.patch(
+    '/v1/users/:userId/type',
+    authorization.allPermission,
+    verifyUserId, 
+    (request, response) => usersController.updateUserType(request, response)
+)
+
+router.patch(
     '/v1/users/:userId/activation',
     authorization.allPermission,
     verifyUserId, 

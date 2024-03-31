@@ -654,6 +654,43 @@ const updateUserBlocked = async (request, response) => {
     }
 }
 
+const updateUserType = async (request, response) => {
+
+    try {
+
+        const dataValidation = userValidation.updateUserType(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { userId } = request.params
+        const { type } = request.body 
+        
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { type }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated user type successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const updateUserActivation = async (request, response) => {
 
     try {
@@ -708,5 +745,6 @@ module.exports = {
     addEmployeeUser,
     updateUserVisibility,
     updateUserBlocked,
+    updateUserType,
     updateUserActivation
 }

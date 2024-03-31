@@ -205,7 +205,6 @@ const userLogin = async (request, response) => {
     try {
 
         const dataValidation = authValidation.login(request.body)
-
         if(!dataValidation.isAccepted) {
             return response.status(400).json({
                 accepted: dataValidation.isAccepted,
@@ -217,7 +216,7 @@ const userLogin = async (request, response) => {
         const { email, password } = request.body
 
         const userList = await UserModel
-        .find({ email, isverified: true })
+        .find({ email, isVerified: true })
 
         if(userList.length == 0) {
             return response.status(400).json({
@@ -279,7 +278,7 @@ const userGoogleLogin = async (request, response) => {
         const { email } = googleResponse.data
 
         const userList = await UserModel
-        .find({ email, isverified: true })
+        .find({ email, isVerified: true })
 
         if(userList.length == 0) {
             return response.status(400).json({
@@ -420,7 +419,7 @@ const userEmployeeLogin = async (request, response) => {
         const { email, password } = request.body
 
         const userList = await UserModel
-        .find({ email, isverified: true, isEmployee: true, roles: { $in: ['EMPLOYEE'] } })
+        .find({ email, isVerified: true, isEmployee: true, roles: { $in: ['EMPLOYEE'] } })
 
         if(userList.length == 0) {
             return response.status(400).json({

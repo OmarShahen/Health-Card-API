@@ -22,8 +22,14 @@ router.patch('/v1/appointments/:appointmentId/promo-codes/remove', authorization
 router.get('/v1/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointments(request, response);
 });
+router.get('/v1/appointments/experts/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getAppointmentsByExpertId(request, response);
+});
 router.get('/v1/stats/appointments', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointmentsStats(request, response);
+});
+router.get('/v1/stats/appointments/experts/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getAppointmentsStatsByExpertId(request, response);
 });
 router.get('/v1/stats/appointments/growth', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointmentsGrowthStats(request, response);
@@ -39,6 +45,9 @@ router.get('/v1/appointments/:appointmentId', authorization.allPermission, verif
 });
 router.get('/v1/appointments/search/name', authorization.allPermission, function (request, response) {
   return appointmentsController.searchAppointmentsByExpertAndSeekerName(request, response);
+});
+router.get('/v1/appointments/experts/:userId/search/name', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.searchAppointmentsByExpertIdAndSeekerName(request, response);
 });
 router.patch('/v1/appointments/:appointmentId/status', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.updateAppointmentStatus(request, response);
@@ -60,6 +69,9 @@ router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission,
 });
 router.post('/v1/appointments/:appointmentId/reminder/send', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.sendAppointmentReminder(request, response);
+});
+router.post('/v1/appointments/:appointmentId/meeting-link/send', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.sendAppointmentMeetingLink(request, response);
 });
 router.post('/v1/appointments/reminder/send', authorization.allPermission, function (request, response) {
   return appointmentsController.sendReminderForUpcomingAppointments(request, response);

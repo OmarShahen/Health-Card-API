@@ -18,7 +18,11 @@ var updateUserMainData = function updateUserMainData(userData) {
   var firstName = userData.firstName,
       phone = userData.phone,
       gender = userData.gender,
-      dateOfBirth = userData.dateOfBirth;
+      dateOfBirth = userData.dateOfBirth,
+      nationality = userData.nationality,
+      nationCode = userData.nationCode,
+      currency = userData.currency,
+      currencyName = userData.currencyName;
   if (firstName && !utils.isNameValid(firstName)) return {
     isAccepted: false,
     message: 'Invalid name formate',
@@ -39,6 +43,26 @@ var updateUserMainData = function updateUserMainData(userData) {
     message: 'Date of birth format is invalid',
     field: 'dateOfBirth'
   };
+  if (nationality && typeof nationality != 'string') return {
+    isAccepted: false,
+    message: 'Nationality format is invalid',
+    field: 'nationality'
+  };
+  if (nationCode && typeof nationCode != 'string') return {
+    isAccepted: false,
+    message: 'Nation code format is invalid',
+    field: 'nationCode'
+  };
+  if (currency && typeof currency != 'string') return {
+    isAccepted: false,
+    message: 'Currency format is invalid',
+    field: 'currency'
+  };
+  if (currencyName && typeof currencyName != 'string') return {
+    isAccepted: false,
+    message: 'Currency name format is invalid',
+    field: 'currencyName'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',
@@ -57,6 +81,25 @@ var updateUserProfileImage = function updateUserProfileImage(userData) {
     isAccepted: false,
     message: 'Image URL format is invalid',
     field: 'profileImageURL'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
+var updateUserType = function updateUserType(userData) {
+  var type = userData.type;
+  if (!type) return {
+    isAccepted: false,
+    message: 'Type is required',
+    field: 'type'
+  };
+  if (!config.TYPES.includes(type)) return {
+    isAccepted: false,
+    message: 'Type value is not registered',
+    field: 'type'
   };
   return {
     isAccepted: true,
@@ -306,6 +349,7 @@ var addEmployeeUser = function addEmployeeUser(userData) {
 module.exports = {
   updateUserMainData: updateUserMainData,
   updateUserProfileImage: updateUserProfileImage,
+  updateUserType: updateUserType,
   updateUserEmail: updateUserEmail,
   updateUserPassword: updateUserPassword,
   updateUserLanguage: updateUserLanguage,

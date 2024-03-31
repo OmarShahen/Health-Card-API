@@ -30,9 +30,23 @@ router.get(
 )
 
 router.get(
+    '/v1/appointments/experts/:userId',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => appointmentsController.getAppointmentsByExpertId(request, response)
+)
+
+router.get(
     '/v1/stats/appointments',
     authorization.allPermission,
     (request, response) => appointmentsController.getAppointmentsStats(request, response)
+)
+
+router.get(
+    '/v1/stats/appointments/experts/:userId',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => appointmentsController.getAppointmentsStatsByExpertId(request, response)
 )
 
 router.get(
@@ -66,6 +80,13 @@ router.get(
     '/v1/appointments/search/name',
     authorization.allPermission,
     (request, response) => appointmentsController.searchAppointmentsByExpertAndSeekerName(request, response)
+)
+
+router.get(
+    '/v1/appointments/experts/:userId/search/name',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => appointmentsController.searchAppointmentsByExpertIdAndSeekerName(request, response)
 )
 
 router.patch(
@@ -115,6 +136,13 @@ router.post(
     authorization.allPermission,
     verifyAppointmentId,
     (request, response)=> appointmentsController.sendAppointmentReminder(request, response)
+)
+
+router.post(
+    '/v1/appointments/:appointmentId/meeting-link/send',
+    authorization.allPermission,
+    verifyAppointmentId,
+    (request, response)=> appointmentsController.sendAppointmentMeetingLink(request, response)
 )
 
 router.post(

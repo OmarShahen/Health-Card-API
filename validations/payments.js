@@ -47,4 +47,14 @@ const createMobileWalletPaymentURL = (paymentData) => {
 
 }
 
-module.exports = { createPaymentURL, createMobileWalletPaymentURL }
+const updatePaymentExpertPaid = (paymentData) => {
+
+    const { isExpertPaid } = paymentData
+
+    if(typeof isExpertPaid != 'boolean') return { isAccepted: false, message: 'isExpertPaid format is invalid', field: 'isExpertPaid' }
+
+    return { isAccepted: true, message: 'data is valid', data: paymentData }
+
+}
+
+module.exports = { createPaymentURL, createMobileWalletPaymentURL, updatePaymentExpertPaid }

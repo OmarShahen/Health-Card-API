@@ -94,7 +94,8 @@ var updateExpert = function updateExpert(userData) {
       description = userData.description,
       speciality = userData.speciality,
       subSpeciality = userData.subSpeciality,
-      languages = userData.languages;
+      languages = userData.languages,
+      meetingLink = userData.meetingLink;
   if (title && typeof title != 'string') return {
     isAccepted: false,
     message: 'Invalid title format',
@@ -155,6 +156,11 @@ var updateExpert = function updateExpert(userData) {
     };
   }
 
+  if (meetingLink && !utils.isValidURL(meetingLink)) return {
+    isAccepted: false,
+    message: 'Invalid meeting format',
+    field: 'meetingLink'
+  };
   return {
     isAccepted: true,
     message: 'data is valid',

@@ -21,7 +21,7 @@ var PaymentSchema = new mongoose.Schema({
     required: true
   },
   transactionId: {
-    type: Number,
+    type: String,
     required: true
   },
   isExpertPaid: {
@@ -65,5 +65,4 @@ var PaymentSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
-0;
 module.exports = mongoose.model('Payment', PaymentSchema);

@@ -284,14 +284,8 @@ const updateOpeningTime = async (request, response) => {
 
         if(openingTimeObj.weekday != weekday) {
 
-            let searchQuery = {}
-
-            if(openingTimeObj.leadId) {
-                searchQuery = { leadId: openingTimeObj.leadId, weekday }
-            } else if(openingTimeObj.clinicId) {
-                searchQuery = { clinicId: openingTimeObj.clinicId, weekday }
-            }
-
+            const searchQuery = { expertId: openingTimeObj.expertId, weekday }
+            
             const openingTimeList = await OpeningTimeModel.find(searchQuery)
             if(openingTimeList.length != 0) {
                 return response.status(400).json({

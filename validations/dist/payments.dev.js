@@ -95,7 +95,22 @@ var createMobileWalletPaymentURL = function createMobileWalletPaymentURL(payment
   };
 };
 
+var updatePaymentExpertPaid = function updatePaymentExpertPaid(paymentData) {
+  var isExpertPaid = paymentData.isExpertPaid;
+  if (typeof isExpertPaid != 'boolean') return {
+    isAccepted: false,
+    message: 'isExpertPaid format is invalid',
+    field: 'isExpertPaid'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: paymentData
+  };
+};
+
 module.exports = {
   createPaymentURL: createPaymentURL,
-  createMobileWalletPaymentURL: createMobileWalletPaymentURL
+  createMobileWalletPaymentURL: createMobileWalletPaymentURL,
+  updatePaymentExpertPaid: updatePaymentExpertPaid
 };
