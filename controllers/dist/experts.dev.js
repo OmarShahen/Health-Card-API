@@ -37,7 +37,7 @@ var config = require('../config/config');
 var utils = require('../utils/utils');
 
 var updateExpert = function updateExpert(request, response) {
-  var userId, dataValidation, _request$body, speciality, subSpeciality, meetingLink, specialitiesList, _specialitiesList, totalExpertsMeetingsLinks, updatedUser;
+  var userId, dataValidation, _request$body, speciality, subSpeciality, meetingLink, specialitiesList, _specialitiesList, updatedUser;
 
   return regeneratorRuntime.async(function updateExpert$(_context) {
     while (1) {
@@ -127,37 +127,12 @@ var updateExpert = function updateExpert(request, response) {
           });
 
         case 20:
-          if (!meetingLink) {
-            _context.next = 26;
-            break;
-          }
-
-          _context.next = 23;
-          return regeneratorRuntime.awrap(UserModel.countDocuments({
-            meetingLink: meetingLink
-          }));
-
-        case 23:
-          totalExpertsMeetingsLinks = _context.sent;
-
-          if (!(totalExpertsMeetingsLinks != 0)) {
-            _context.next = 26;
-            break;
-          }
-
-          return _context.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Meeting link is already registered',
-            field: 'meetingLink'
-          }));
-
-        case 26:
-          _context.next = 28;
+          _context.next = 22;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, request.body, {
             "new": true
           }));
 
-        case 28:
+        case 22:
           updatedUser = _context.sent;
           updatedUser.password = undefined;
           return _context.abrupt("return", response.status(200).json({
@@ -166,8 +141,8 @@ var updateExpert = function updateExpert(request, response) {
             user: updatedUser
           }));
 
-        case 33:
-          _context.prev = 33;
+        case 27:
+          _context.prev = 27;
           _context.t0 = _context["catch"](0);
           console.error(_context.t0);
           return _context.abrupt("return", response.status(500).json({
@@ -176,12 +151,12 @@ var updateExpert = function updateExpert(request, response) {
             error: _context.t0.message
           }));
 
-        case 37:
+        case 31:
         case "end":
           return _context.stop();
       }
     }
-  }, null, null, [[0, 33]]);
+  }, null, null, [[0, 27]]);
 };
 
 var searchExperts = function searchExperts(request, response) {
