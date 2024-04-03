@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema({
         isGoogleAuth: { type: Boolean, default: false }
     },
 
+    sessionPrice: { type: Number },
     meetingLink: { type: String },
     pricing: [],
     rating: { type: Number, default: 5 },
@@ -43,12 +44,12 @@ const UserSchema = new mongoose.Schema({
     isOnBoarded: { type: Boolean, default: false },
     isEmployee: { type: Boolean, default: false },
     isVerified: { type: Boolean, required: true, default: false },
-    isShow: { type: Boolean, default: true },
+    isShow: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     isDeactivated: { type: Boolean, default: false },
     lastLoginDate: { type: Date },
 
-    isAcceptPromoCodes: { type: Boolean, default: true },
+    isAcceptPromoCodes: { type: Boolean, default: false },
     isOnline: { type: Boolean, default: false },
 
     paymentInfo: {

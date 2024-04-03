@@ -49,11 +49,13 @@ const addExpert = (expertData) => {
 
 const updateExpert = (userData) => {
 
-    const { title, description, speciality, subSpeciality, languages, meetingLink } = userData
+    const { title, description, sessionPrice, speciality, subSpeciality, languages, meetingLink } = userData
 
     if(title && typeof title != 'string') return { isAccepted: false, message: 'Invalid title format', field: 'title' }
 
     if(description && typeof description != 'string') return { isAccepted: false, message: 'Invalid description format', field: 'description' }
+
+    if(sessionPrice && typeof sessionPrice != 'number') return { isAccepted: false, message: 'Invalid session price format', field: 'sessionPrice' }
 
     if(speciality) {
 

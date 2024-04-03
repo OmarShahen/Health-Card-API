@@ -92,6 +92,7 @@ var addExpert = function addExpert(expertData) {
 var updateExpert = function updateExpert(userData) {
   var title = userData.title,
       description = userData.description,
+      sessionPrice = userData.sessionPrice,
       speciality = userData.speciality,
       subSpeciality = userData.subSpeciality,
       languages = userData.languages,
@@ -105,6 +106,11 @@ var updateExpert = function updateExpert(userData) {
     isAccepted: false,
     message: 'Invalid description format',
     field: 'description'
+  };
+  if (sessionPrice && typeof sessionPrice != 'number') return {
+    isAccepted: false,
+    message: 'Invalid session price format',
+    field: 'sessionPrice'
   };
 
   if (speciality) {
@@ -158,7 +164,7 @@ var updateExpert = function updateExpert(userData) {
 
   if (meetingLink && !utils.isValidURL(meetingLink)) return {
     isAccepted: false,
-    message: 'Invalid meeting format',
+    message: 'Invalid meeting link format',
     field: 'meetingLink'
   };
   return {

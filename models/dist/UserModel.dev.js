@@ -75,6 +75,9 @@ var UserSchema = new mongoose.Schema({
       "default": false
     }
   },
+  sessionPrice: {
+    type: Number
+  },
   meetingLink: {
     type: String
   },
@@ -121,7 +124,7 @@ var UserSchema = new mongoose.Schema({
   },
   isShow: {
     type: Boolean,
-    "default": true
+    "default": false
   },
   isBlocked: {
     type: Boolean,
@@ -136,7 +139,7 @@ var UserSchema = new mongoose.Schema({
   },
   isAcceptPromoCodes: {
     type: Boolean,
-    "default": true
+    "default": false
   },
   isOnline: {
     type: Boolean,

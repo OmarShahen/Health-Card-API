@@ -80,7 +80,7 @@ const searchExperts = async (request, response) => {
     try {
 
         const { specialityId } = request.params
-        let { gender, sortBy, subSpecialityId, page, limit, isAcceptPromoCodes, isOnline } = request.query
+        let { gender, sortBy, subSpecialityId, page, limit, isAcceptPromoCodes, isOnline, minPrice, maxPrice } = request.query
 
         page = page ? page : 1
         limit = limit ? limit : 10
@@ -124,6 +124,10 @@ const searchExperts = async (request, response) => {
             matchQuery.isOnline = true
         } else if(isOnline == 'FALSE') {
             matchQuery.isOnline = false
+        }
+
+        if(minPrice && maxPrice) {
+            matchQuery.sessionPrice = { $gte: Number.parseInt(minPrice), $lte: Number.parseInt(maxPrice) }
         }
 
 
@@ -398,6 +402,14 @@ const searchExpertsByName = async (request, response) => {
             },
             {
                 $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'specialities',
+                    localField: 'speciality',
+                    foreignField: '_id',
+                    as: 'speciality'
+                }
             },
             {
                 $project: {

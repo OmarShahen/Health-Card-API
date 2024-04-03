@@ -160,7 +160,7 @@ var updateExpert = function updateExpert(request, response) {
 };
 
 var searchExperts = function searchExperts(request, response) {
-  var specialityId, _request$query, gender, sortBy, subSpecialityId, page, limit, isAcceptPromoCodes, isOnline, skip, matchQuery, sortQuery, experts, totalExperts;
+  var specialityId, _request$query, gender, sortBy, subSpecialityId, page, limit, isAcceptPromoCodes, isOnline, minPrice, maxPrice, skip, matchQuery, sortQuery, experts, totalExperts;
 
   return regeneratorRuntime.async(function searchExperts$(_context2) {
     while (1) {
@@ -168,7 +168,7 @@ var searchExperts = function searchExperts(request, response) {
         case 0:
           _context2.prev = 0;
           specialityId = request.params.specialityId;
-          _request$query = request.query, gender = _request$query.gender, sortBy = _request$query.sortBy, subSpecialityId = _request$query.subSpecialityId, page = _request$query.page, limit = _request$query.limit, isAcceptPromoCodes = _request$query.isAcceptPromoCodes, isOnline = _request$query.isOnline;
+          _request$query = request.query, gender = _request$query.gender, sortBy = _request$query.sortBy, subSpecialityId = _request$query.subSpecialityId, page = _request$query.page, limit = _request$query.limit, isAcceptPromoCodes = _request$query.isAcceptPromoCodes, isOnline = _request$query.isOnline, minPrice = _request$query.minPrice, maxPrice = _request$query.maxPrice;
           page = page ? page : 1;
           limit = limit ? limit : 10;
           skip = (page - 1) * limit;
@@ -216,7 +216,14 @@ var searchExperts = function searchExperts(request, response) {
             matchQuery.isOnline = false;
           }
 
-          _context2.next = 15;
+          if (minPrice && maxPrice) {
+            matchQuery.sessionPrice = {
+              $gte: minPrice,
+              $lte: maxPrice
+            };
+          }
+
+          _context2.next = 16;
           return regeneratorRuntime.awrap(UserModel.aggregate([{
             $match: matchQuery
           }, {
@@ -248,12 +255,12 @@ var searchExperts = function searchExperts(request, response) {
             }
           }]));
 
-        case 15:
+        case 16:
           experts = _context2.sent;
-          _context2.next = 18;
+          _context2.next = 19;
           return regeneratorRuntime.awrap(UserModel.countDocuments(matchQuery));
 
-        case 18:
+        case 19:
           totalExperts = _context2.sent;
           return _context2.abrupt("return", response.status(200).json({
             accepted: true,
@@ -261,8 +268,8 @@ var searchExperts = function searchExperts(request, response) {
             experts: experts
           }));
 
-        case 22:
-          _context2.prev = 22;
+        case 23:
+          _context2.prev = 23;
           _context2.t0 = _context2["catch"](0);
           console.error(_context2.t0);
           return _context2.abrupt("return", response.status(500).json({
@@ -271,12 +278,12 @@ var searchExperts = function searchExperts(request, response) {
             error: _context2.t0.message
           }));
 
-        case 26:
+        case 27:
         case "end":
           return _context2.stop();
       }
     }
-  }, null, null, [[0, 22]]);
+  }, null, null, [[0, 23]]);
 };
 
 var searchExpertsByNameAndSpeciality = function searchExpertsByNameAndSpeciality(request, response) {
@@ -559,6 +566,13 @@ var searchExpertsByName = function searchExpertsByName(request, response) {
             }
           }, {
             $limit: 25
+          }, {
+            $lookup: {
+              from: 'specialities',
+              localField: 'speciality',
+              foreignField: '_id',
+              as: 'speciality'
+            }
           }, {
             $project: {
               password: 0
