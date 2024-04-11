@@ -3,7 +3,11 @@ const utils = require('../utils/utils')
 
 const addPromoCode = (promoCodeData) => {
 
-    const { code, percentage, maxUsage, userMaxUsage, expirationDate } = promoCodeData
+    const { expertId, code, percentage, maxUsage, userMaxUsage, expirationDate } = promoCodeData
+
+    if(!expertId) return { isAccepted: false, message: 'Expert ID is required', field: 'expertId' }
+
+    if(!utils.isObjectId(expertId)) return { isAccepted: false, message: 'Expert ID format is invalid', field: 'expertId' }
 
     if(!code) return { isAccepted: false, message: 'Code is required', field: 'code' }
 

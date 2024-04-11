@@ -3,11 +3,22 @@
 var utils = require('../utils/utils');
 
 var addPromoCode = function addPromoCode(promoCodeData) {
-  var code = promoCodeData.code,
+  var expertId = promoCodeData.expertId,
+      code = promoCodeData.code,
       percentage = promoCodeData.percentage,
       maxUsage = promoCodeData.maxUsage,
       userMaxUsage = promoCodeData.userMaxUsage,
       expirationDate = promoCodeData.expirationDate;
+  if (!expertId) return {
+    isAccepted: false,
+    message: 'Expert ID is required',
+    field: 'expertId'
+  };
+  if (!utils.isObjectId(expertId)) return {
+    isAccepted: false,
+    message: 'Expert ID format is invalid',
+    field: 'expertId'
+  };
   if (!code) return {
     isAccepted: false,
     message: 'Code is required',

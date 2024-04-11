@@ -22,6 +22,8 @@ var IssueModel = require('../models/IssueModel');
 
 var PaymentModel = require('../models/PaymentModel');
 
+var CustomerModel = require('../models/CustomerModel');
+
 var verifyUserId = function verifyUserId(request, response, next) {
   var userId, user;
   return regeneratorRuntime.async(function verifyUserId$(_context) {
@@ -610,6 +612,65 @@ var verifyPaymentId = function verifyPaymentId(request, response, next) {
   }, null, null, [[0, 12]]);
 };
 
+var verifyCustomerId = function verifyCustomerId(request, response, next) {
+  var customerId, customer;
+  return regeneratorRuntime.async(function verifyCustomerId$(_context11) {
+    while (1) {
+      switch (_context11.prev = _context11.next) {
+        case 0:
+          _context11.prev = 0;
+          customerId = request.params.customerId;
+
+          if (utils.isObjectId(customerId)) {
+            _context11.next = 4;
+            break;
+          }
+
+          return _context11.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Invalid customer ID format',
+            field: 'customerId'
+          }));
+
+        case 4:
+          _context11.next = 6;
+          return regeneratorRuntime.awrap(CustomerModel.findById(customerId));
+
+        case 6:
+          customer = _context11.sent;
+
+          if (customer) {
+            _context11.next = 9;
+            break;
+          }
+
+          return _context11.abrupt("return", response.status(404).json({
+            accepted: false,
+            message: 'Customer ID does not exist',
+            field: 'customerId'
+          }));
+
+        case 9:
+          return _context11.abrupt("return", next());
+
+        case 12:
+          _context11.prev = 12;
+          _context11.t0 = _context11["catch"](0);
+          console.error(_context11.t0);
+          return _context11.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context11.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context11.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
 module.exports = {
   verifyUserId: verifyUserId,
   verifyAppointmentId: verifyAppointmentId,
@@ -620,5 +681,6 @@ module.exports = {
   verifyServiceId: verifyServiceId,
   verifyPromoCodeId: verifyPromoCodeId,
   verifyIssueId: verifyIssueId,
-  verifyPaymentId: verifyPaymentId
+  verifyPaymentId: verifyPaymentId,
+  verifyCustomerId: verifyCustomerId
 };

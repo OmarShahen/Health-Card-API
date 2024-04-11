@@ -7,6 +7,10 @@ var PromoCodeSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  expertId: {
+    type: mongoose.Types.ObjectId,
+    required: true
+  },
   code: {
     type: String,
     required: true,

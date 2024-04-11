@@ -2,6 +2,7 @@ const PromoCodeModel = require('../models/PromoCodeModel')
 const promoCodeValidation = require('../validations/promoCodes')
 const CounterModel = require('../models/CounterModel')
 const AppointmentModel = require('../models/AppointmentModel')
+const UserModel = require('../models/UserModel')
 
 
 const getPromoCodes = async (request, response) => {
@@ -10,6 +11,30 @@ const getPromoCodes = async (request, response) => {
 
         const promoCodes = await PromoCodeModel
         .find()
+        .sort({ createdAt: -1 })
+
+        return response.status(200).json({
+            accepted: true,
+            promoCodes  
+        })
+
+    } catch(error) {
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getPromoCodesByExpertId = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const promoCodes = await PromoCodeModel
+        .find({ expertId: userId })
         .sort({ createdAt: -1 })
 
         return response.status(200).json({
@@ -61,9 +86,18 @@ const addPromoCode = async (request, response) => {
             })
         }
 
-        const { code } = request.body
+        const { expertId, code } = request.body
 
-        const promoCodesList = await PromoCodeModel.find({ code })
+        const expert = await UserModel.findById(expertId)
+        if(!expert) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Expert ID is not registered',
+                field: 'expertId'
+            })
+        }
+
+        const promoCodesList = await PromoCodeModel.find({ code, expertId })
         if(promoCodesList.length != 0) {
             return response.status(400).json({
                 accepted: false,
@@ -214,6 +248,7 @@ const deletePromoCode = async (request, response) => {
 
 module.exports = { 
     getPromoCodes, 
+    getPromoCodesByExpertId,
     addPromoCode,
     updatePromoCode, 
     getPromoCodeByCode,

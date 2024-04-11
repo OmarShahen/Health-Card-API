@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema({
         isGoogleAuth: { type: Boolean, default: false }
     },
 
+    whatsappPaymentNumber: { type: String },
     sessionPrice: { type: Number },
     meetingLink: { type: String },
     pricing: [],

@@ -38,6 +38,7 @@ app.use('/api', require('./routes/services'))
 app.use('/api', require('./routes/analytics'))
 app.use('/api', require('./routes/promoCodes'))
 app.use('/api', require('./routes/issues'))
+app.use('/api', require('./routes/customers'))
 
 
 db()

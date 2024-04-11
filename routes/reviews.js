@@ -28,6 +28,13 @@ router.get(
     (request, response) => reviewsController.getReviewsByExpertId(request, response)
 )
 
+router.get(
+    '/v1/reviews/experts/:userId/seekers/search',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => reviewsController.searchReviewsByExpertIdAndSeekerName(request, response)
+)
+
 router.post(
     '/v1/reviews',
     authorization.allPermission,
@@ -41,5 +48,11 @@ router.delete(
     (request, response) => reviewsController.deleteReview(request, response)
 )
 
+router.patch(
+    '/v1/reviews/:reviewId/visibility',
+    authorization.allPermission,
+    verifyReviewId,
+    (request, response) => reviewsController.updateReviewVisibility(request, response)
+)
 
 module.exports = router

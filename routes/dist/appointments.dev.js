@@ -34,11 +34,11 @@ router.get('/v1/stats/appointments/experts/:userId', authorization.allPermission
 router.get('/v1/stats/appointments/growth', authorization.allPermission, function (request, response) {
   return appointmentsController.getAppointmentsGrowthStats(request, response);
 });
-router.get('/v1/appointments/experts/:userId/status/:status/payments/paid', authorization.allPermission, verifyUserId, function (request, response) {
-  return appointmentsController.getPaidAppointmentsByExpertIdAndStatus(request, response);
+router.get('/v1/appointments/experts/:userId/status/:status', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getAppointmentsByExpertIdAndStatus(request, response);
 });
-router.get('/v1/appointments/seekers/:userId/status/:status/payments/paid', authorization.allPermission, verifyUserId, function (request, response) {
-  return appointmentsController.getPaidAppointmentsBySeekerIdAndStatus(request, response);
+router.get('/v1/appointments/seekers/:userId/status/:status', authorization.allPermission, verifyUserId, function (request, response) {
+  return appointmentsController.getAppointmentsBySeekerIdAndStatus(request, response);
 });
 router.get('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.getAppointment(request, response);
@@ -63,6 +63,9 @@ router.patch('/v1/appointments/:appointmentId/verification', authorization.allPe
 });
 router.patch('/v1/appointments/:appointmentId/status/cancellation/free', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.cancelFreeSession(request, response);
+});
+router.patch('/v1/appointments/:appointmentId/payment', authorization.allPermission, verifyAppointmentId, function (request, response) {
+  return appointmentsController.updateAppointmentPaymentStatus(request, response);
 });
 router["delete"]('/v1/appointments/:appointmentId', authorization.allPermission, verifyAppointmentId, function (request, response) {
   return appointmentsController.deleteAppointment(request, response);

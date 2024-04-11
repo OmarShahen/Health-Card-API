@@ -51,6 +51,10 @@ var ReviewSchema = new mongoose.Schema({
   isRecommend: {
     type: Boolean,
     "default": true
+  },
+  isHide: {
+    type: Boolean,
+    "default": false
   }
 }, {
   timestamps: true

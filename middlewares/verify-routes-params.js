@@ -9,6 +9,7 @@ const ServiceModel = require('../models/ServiceModel')
 const PromoCodeModel = require('../models/PromoCodeModel')
 const IssueModel = require('../models/IssueModel')
 const PaymentModel = require('../models/PaymentModel')
+const CustomerModel = require('../models/CustomerModel')
 
 
 const verifyUserId = async (request, response, next) => {
@@ -360,6 +361,41 @@ const verifyPaymentId = async (request, response, next) => {
     }
 }
 
+const verifyCustomerId = async (request, response, next) => {
+
+    try {
+
+        const { customerId } = request.params
+
+        if(!utils.isObjectId(customerId)) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Invalid customer ID format',
+                field: 'customerId'
+            })
+        }
+
+        const customer = await CustomerModel.findById(customerId)
+        if(!customer) {
+            return response.status(404).json({
+                accepted: false,
+                message: 'Customer ID does not exist',
+                field: 'customerId'
+            })
+        }
+
+        return next()
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     verifyUserId,
     verifyAppointmentId,
@@ -370,5 +406,6 @@ module.exports = {
     verifyServiceId,
     verifyPromoCodeId,
     verifyIssueId,
-    verifyPaymentId
+    verifyPaymentId,
+    verifyCustomerId
 }

@@ -34,6 +34,10 @@ var AppointmentSchema = new mongoose.Schema({
     type: Boolean,
     "default": false
   },
+  isReminderSent: {
+    type: Boolean,
+    "default": false
+  },
   duration: {
     type: Number
   },

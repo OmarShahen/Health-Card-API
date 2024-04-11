@@ -40,5 +40,14 @@ const addReview = (reviewData) => {
     return { isAccepted: true, message: 'data is valid', data: reviewData }
 }
 
+const updateReviewVisibility = (reviewData) => {
 
-module.exports = { addReview }
+    const { isHide }  = reviewData
+
+    if(typeof isHide != 'boolean') return { isAccepted: false, message: 'isHide format is invalid', field: 'isHide' }
+
+    return { isAccepted: true, message: 'data is valid',  data: reviewData }
+}
+
+
+module.exports = { addReview, updateReviewVisibility }

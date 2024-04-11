@@ -56,17 +56,17 @@ router.get(
 )
 
 router.get(
-    '/v1/appointments/experts/:userId/status/:status/payments/paid',
+    '/v1/appointments/experts/:userId/status/:status',
     authorization.allPermission,
     verifyUserId,
-    (request, response) => appointmentsController.getPaidAppointmentsByExpertIdAndStatus(request, response)
+    (request, response) => appointmentsController.getAppointmentsByExpertIdAndStatus(request, response)
 )
 
 router.get(
-    '/v1/appointments/seekers/:userId/status/:status/payments/paid',
+    '/v1/appointments/seekers/:userId/status/:status',
     authorization.allPermission,
     verifyUserId,
-    (request, response) => appointmentsController.getPaidAppointmentsBySeekerIdAndStatus(request, response)
+    (request, response) => appointmentsController.getAppointmentsBySeekerIdAndStatus(request, response)
 )
 
 router.get(
@@ -122,6 +122,13 @@ router.patch(
     authorization.allPermission,
     verifyAppointmentId, 
     (request, response)=> appointmentsController.cancelFreeSession(request, response)
+)
+
+router.patch(
+    '/v1/appointments/:appointmentId/payment',
+    authorization.allPermission,
+    verifyAppointmentId, 
+    (request, response)=> appointmentsController.updateAppointmentPaymentStatus(request, response)
 )
 
 router.delete(

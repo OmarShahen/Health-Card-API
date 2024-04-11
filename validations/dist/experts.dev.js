@@ -96,7 +96,8 @@ var updateExpert = function updateExpert(userData) {
       speciality = userData.speciality,
       subSpeciality = userData.subSpeciality,
       languages = userData.languages,
-      meetingLink = userData.meetingLink;
+      meetingLink = userData.meetingLink,
+      whatsappPaymentNumber = userData.whatsappPaymentNumber;
   if (title && typeof title != 'string') return {
     isAccepted: false,
     message: 'Invalid title format',
@@ -166,6 +167,11 @@ var updateExpert = function updateExpert(userData) {
     isAccepted: false,
     message: 'Invalid meeting link format',
     field: 'meetingLink'
+  };
+  if (whatsappPaymentNumber && typeof whatsappPaymentNumber != 'string') return {
+    isAccepted: false,
+    message: 'Invalid Whatsapp payment phone number',
+    field: 'whatsappPaymentNumber'
   };
   return {
     isAccepted: true,

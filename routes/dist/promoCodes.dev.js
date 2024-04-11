@@ -5,12 +5,16 @@ var router = require('express').Router();
 var promoCodesController = require('../controllers/promoCodes');
 
 var _require = require('../middlewares/verify-routes-params'),
-    verifyPromoCodeId = _require.verifyPromoCodeId;
+    verifyPromoCodeId = _require.verifyPromoCodeId,
+    verifyUserId = _require.verifyUserId;
 
 var authorization = require('../middlewares/verify-permission');
 
 router.get('/v1/promo-codes', authorization.allPermission, function (request, response) {
   return promoCodesController.getPromoCodes(request, response);
+});
+router.get('/v1/promo-codes/experts/:userId', authorization.allPermission, verifyUserId, function (request, response) {
+  return promoCodesController.getPromoCodesByExpertId(request, response);
 });
 router.get('/v1/promo-codes/codes/:code', authorization.allPermission, function (request, response) {
   return promoCodesController.getPromoCodeByCode(request, response);

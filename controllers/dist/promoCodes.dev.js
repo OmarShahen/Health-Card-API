@@ -14,6 +14,8 @@ var CounterModel = require('../models/CounterModel');
 
 var AppointmentModel = require('../models/AppointmentModel');
 
+var UserModel = require('../models/UserModel');
+
 var getPromoCodes = function getPromoCodes(request, response) {
   var promoCodes;
   return regeneratorRuntime.async(function getPromoCodes$(_context) {
@@ -50,17 +52,19 @@ var getPromoCodes = function getPromoCodes(request, response) {
   }, null, null, [[0, 7]]);
 };
 
-var getPromoCodeByCode = function getPromoCodeByCode(request, response) {
-  var code, promoCodes;
-  return regeneratorRuntime.async(function getPromoCodeByCode$(_context2) {
+var getPromoCodesByExpertId = function getPromoCodesByExpertId(request, response) {
+  var userId, promoCodes;
+  return regeneratorRuntime.async(function getPromoCodesByExpertId$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
-          code = request.params.code;
+          userId = request.params.userId;
           _context2.next = 4;
           return regeneratorRuntime.awrap(PromoCodeModel.find({
-            code: code
+            expertId: userId
+          }).sort({
+            createdAt: -1
           }));
 
         case 4:
@@ -87,79 +91,28 @@ var getPromoCodeByCode = function getPromoCodeByCode(request, response) {
   }, null, null, [[0, 8]]);
 };
 
-var addPromoCode = function addPromoCode(request, response) {
-  var dataValidation, code, promoCodesList, counter, promoCodeData, promoCodeObj, newPromoCode;
-  return regeneratorRuntime.async(function addPromoCode$(_context3) {
+var getPromoCodeByCode = function getPromoCodeByCode(request, response) {
+  var code, promoCodes;
+  return regeneratorRuntime.async(function getPromoCodeByCode$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
-          dataValidation = promoCodeValidation.addPromoCode(request.body);
-
-          if (dataValidation.isAccepted) {
-            _context3.next = 4;
-            break;
-          }
-
-          return _context3.abrupt("return", response.status(400).json({
-            accepted: dataValidation.isAccepted,
-            message: dataValidation.message,
-            field: dataValidation.field
-          }));
-
-        case 4:
-          code = request.body.code;
-          _context3.next = 7;
+          code = request.params.code;
+          _context3.next = 4;
           return regeneratorRuntime.awrap(PromoCodeModel.find({
             code: code
           }));
 
-        case 7:
-          promoCodesList = _context3.sent;
-
-          if (!(promoCodesList.length != 0)) {
-            _context3.next = 10;
-            break;
-          }
-
-          return _context3.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Code is already registered',
-            field: 'code'
-          }));
-
-        case 10:
-          _context3.next = 12;
-          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
-            name: 'promoCode'
-          }, {
-            $inc: {
-              value: 1
-            }
-          }, {
-            "new": true,
-            upsert: true
-          }));
-
-        case 12:
-          counter = _context3.sent;
-          promoCodeData = _objectSpread({
-            promoCodeId: counter.value
-          }, request.body);
-          promoCodeObj = new PromoCodeModel(promoCodeData);
-          _context3.next = 17;
-          return regeneratorRuntime.awrap(promoCodeObj.save());
-
-        case 17:
-          newPromoCode = _context3.sent;
+        case 4:
+          promoCodes = _context3.sent;
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Added promo code successfully!',
-            promoCode: newPromoCode
+            promoCodes: promoCodes
           }));
 
-        case 21:
-          _context3.prev = 21;
+        case 8:
+          _context3.prev = 8;
           _context3.t0 = _context3["catch"](0);
           return _context3.abrupt("return", response.status(500).json({
             accepted: false,
@@ -167,22 +120,23 @@ var addPromoCode = function addPromoCode(request, response) {
             error: _context3.t0.message
           }));
 
-        case 24:
+        case 11:
         case "end":
           return _context3.stop();
       }
     }
-  }, null, null, [[0, 21]]);
+  }, null, null, [[0, 8]]);
 };
 
-var updatePromoCode = function updatePromoCode(request, response) {
-  var dataValidation, promoCodeId, code, promoCode, promoCodesList, updatedPromoCode;
-  return regeneratorRuntime.async(function updatePromoCode$(_context4) {
+var addPromoCode = function addPromoCode(request, response) {
+  var dataValidation, _request$body, expertId, code, expert, promoCodesList, counter, promoCodeData, promoCodeObj, newPromoCode;
+
+  return regeneratorRuntime.async(function addPromoCode$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
-          dataValidation = promoCodeValidation.updatePromoCode(request.body);
+          dataValidation = promoCodeValidation.addPromoCode(request.body);
 
           if (dataValidation.isAccepted) {
             _context4.next = 4;
@@ -196,19 +150,25 @@ var updatePromoCode = function updatePromoCode(request, response) {
           }));
 
         case 4:
-          promoCodeId = request.params.promoCodeId;
-          code = request.body.code;
-          _context4.next = 8;
-          return regeneratorRuntime.awrap(PromoCodeModel.findById(promoCodeId));
+          _request$body = request.body, expertId = _request$body.expertId, code = _request$body.code;
+          _context4.next = 7;
+          return regeneratorRuntime.awrap(UserModel.findById(expertId));
 
-        case 8:
-          promoCode = _context4.sent;
+        case 7:
+          expert = _context4.sent;
 
-          if (!(promoCode.code != code)) {
-            _context4.next = 15;
+          if (expert) {
+            _context4.next = 10;
             break;
           }
 
+          return _context4.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Expert ID is not registered',
+            field: 'expertId'
+          }));
+
+        case 10:
           _context4.next = 12;
           return regeneratorRuntime.awrap(PromoCodeModel.find({
             code: code
@@ -230,20 +190,36 @@ var updatePromoCode = function updatePromoCode(request, response) {
 
         case 15:
           _context4.next = 17;
-          return regeneratorRuntime.awrap(PromoCodeModel.findByIdAndUpdate(promoCodeId, request.body, {
-            "new": true
+          return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
+            name: 'promoCode'
+          }, {
+            $inc: {
+              value: 1
+            }
+          }, {
+            "new": true,
+            upsert: true
           }));
 
         case 17:
-          updatedPromoCode = _context4.sent;
+          counter = _context4.sent;
+          promoCodeData = _objectSpread({
+            promoCodeId: counter.value
+          }, request.body);
+          promoCodeObj = new PromoCodeModel(promoCodeData);
+          _context4.next = 22;
+          return regeneratorRuntime.awrap(promoCodeObj.save());
+
+        case 22:
+          newPromoCode = _context4.sent;
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Updated promo code successfully!',
-            promoCode: updatedPromoCode
+            message: 'Added promo code successfully!',
+            promoCode: newPromoCode
           }));
 
-        case 21:
-          _context4.prev = 21;
+        case 26:
+          _context4.prev = 26;
           _context4.t0 = _context4["catch"](0);
           return _context4.abrupt("return", response.status(500).json({
             accepted: false,
@@ -251,26 +227,25 @@ var updatePromoCode = function updatePromoCode(request, response) {
             error: _context4.t0.message
           }));
 
-        case 24:
+        case 29:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 21]]);
+  }, null, null, [[0, 26]]);
 };
 
-var updatePromoCodeActivity = function updatePromoCodeActivity(request, response) {
-  var promoCodeId, dataValidation, isActive, updatedPromoCode;
-  return regeneratorRuntime.async(function updatePromoCodeActivity$(_context5) {
+var updatePromoCode = function updatePromoCode(request, response) {
+  var dataValidation, promoCodeId, code, promoCode, promoCodesList, updatedPromoCode;
+  return regeneratorRuntime.async(function updatePromoCode$(_context5) {
     while (1) {
       switch (_context5.prev = _context5.next) {
         case 0:
           _context5.prev = 0;
-          promoCodeId = request.params.promoCodeId;
-          dataValidation = promoCodeValidation.updatePromoCodeActivity(request.body);
+          dataValidation = promoCodeValidation.updatePromoCode(request.body);
 
           if (dataValidation.isAccepted) {
-            _context5.next = 5;
+            _context5.next = 4;
             break;
           }
 
@@ -280,16 +255,46 @@ var updatePromoCodeActivity = function updatePromoCodeActivity(request, response
             field: dataValidation.field
           }));
 
-        case 5:
-          isActive = request.body.isActive;
+        case 4:
+          promoCodeId = request.params.promoCodeId;
+          code = request.body.code;
           _context5.next = 8;
-          return regeneratorRuntime.awrap(PromoCodeModel.findByIdAndUpdate(promoCodeId, {
-            isActive: isActive
-          }, {
+          return regeneratorRuntime.awrap(PromoCodeModel.findById(promoCodeId));
+
+        case 8:
+          promoCode = _context5.sent;
+
+          if (!(promoCode.code != code)) {
+            _context5.next = 15;
+            break;
+          }
+
+          _context5.next = 12;
+          return regeneratorRuntime.awrap(PromoCodeModel.find({
+            code: code
+          }));
+
+        case 12:
+          promoCodesList = _context5.sent;
+
+          if (!(promoCodesList.length != 0)) {
+            _context5.next = 15;
+            break;
+          }
+
+          return _context5.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Code is already registered',
+            field: 'code'
+          }));
+
+        case 15:
+          _context5.next = 17;
+          return regeneratorRuntime.awrap(PromoCodeModel.findByIdAndUpdate(promoCodeId, request.body, {
             "new": true
           }));
 
-        case 8:
+        case 17:
           updatedPromoCode = _context5.sent;
           return _context5.abrupt("return", response.status(200).json({
             accepted: true,
@@ -297,8 +302,8 @@ var updatePromoCodeActivity = function updatePromoCodeActivity(request, response
             promoCode: updatedPromoCode
           }));
 
-        case 12:
-          _context5.prev = 12;
+        case 21:
+          _context5.prev = 21;
           _context5.t0 = _context5["catch"](0);
           return _context5.abrupt("return", response.status(500).json({
             accepted: false,
@@ -306,55 +311,54 @@ var updatePromoCodeActivity = function updatePromoCodeActivity(request, response
             error: _context5.t0.message
           }));
 
-        case 15:
+        case 24:
         case "end":
           return _context5.stop();
       }
     }
-  }, null, null, [[0, 12]]);
+  }, null, null, [[0, 21]]);
 };
 
-var deletePromoCode = function deletePromoCode(request, response) {
-  var promoCodeId, totalAppointments, deletedPromoCode;
-  return regeneratorRuntime.async(function deletePromoCode$(_context6) {
+var updatePromoCodeActivity = function updatePromoCodeActivity(request, response) {
+  var promoCodeId, dataValidation, isActive, updatedPromoCode;
+  return regeneratorRuntime.async(function updatePromoCodeActivity$(_context6) {
     while (1) {
       switch (_context6.prev = _context6.next) {
         case 0:
           _context6.prev = 0;
           promoCodeId = request.params.promoCodeId;
-          _context6.next = 4;
-          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
-            promoCodeId: promoCodeId
-          }));
+          dataValidation = promoCodeValidation.updatePromoCodeActivity(request.body);
 
-        case 4:
-          totalAppointments = _context6.sent;
-
-          if (!(totalAppointments != 0)) {
-            _context6.next = 7;
+          if (dataValidation.isAccepted) {
+            _context6.next = 5;
             break;
           }
 
           return _context6.abrupt("return", response.status(400).json({
-            accepted: false,
-            message: 'Promo Code is registered with appointments',
-            field: 'promoCodeId'
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
           }));
 
-        case 7:
-          _context6.next = 9;
-          return regeneratorRuntime.awrap(PromoCodeModel.findByIdAndDelete(promoCodeId));
+        case 5:
+          isActive = request.body.isActive;
+          _context6.next = 8;
+          return regeneratorRuntime.awrap(PromoCodeModel.findByIdAndUpdate(promoCodeId, {
+            isActive: isActive
+          }, {
+            "new": true
+          }));
 
-        case 9:
-          deletedPromoCode = _context6.sent;
+        case 8:
+          updatedPromoCode = _context6.sent;
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
-            message: 'Deleted promo code successfully!',
-            promoCode: deletedPromoCode
+            message: 'Updated promo code successfully!',
+            promoCode: updatedPromoCode
           }));
 
-        case 13:
-          _context6.prev = 13;
+        case 12:
+          _context6.prev = 12;
           _context6.t0 = _context6["catch"](0);
           return _context6.abrupt("return", response.status(500).json({
             accepted: false,
@@ -362,9 +366,65 @@ var deletePromoCode = function deletePromoCode(request, response) {
             error: _context6.t0.message
           }));
 
-        case 16:
+        case 15:
         case "end":
           return _context6.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var deletePromoCode = function deletePromoCode(request, response) {
+  var promoCodeId, totalAppointments, deletedPromoCode;
+  return regeneratorRuntime.async(function deletePromoCode$(_context7) {
+    while (1) {
+      switch (_context7.prev = _context7.next) {
+        case 0:
+          _context7.prev = 0;
+          promoCodeId = request.params.promoCodeId;
+          _context7.next = 4;
+          return regeneratorRuntime.awrap(AppointmentModel.countDocuments({
+            promoCodeId: promoCodeId
+          }));
+
+        case 4:
+          totalAppointments = _context7.sent;
+
+          if (!(totalAppointments != 0)) {
+            _context7.next = 7;
+            break;
+          }
+
+          return _context7.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Promo Code is registered with appointments',
+            field: 'promoCodeId'
+          }));
+
+        case 7:
+          _context7.next = 9;
+          return regeneratorRuntime.awrap(PromoCodeModel.findByIdAndDelete(promoCodeId));
+
+        case 9:
+          deletedPromoCode = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Deleted promo code successfully!',
+            promoCode: deletedPromoCode
+          }));
+
+        case 13:
+          _context7.prev = 13;
+          _context7.t0 = _context7["catch"](0);
+          return _context7.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context7.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context7.stop();
       }
     }
   }, null, null, [[0, 13]]);
@@ -372,6 +432,7 @@ var deletePromoCode = function deletePromoCode(request, response) {
 
 module.exports = {
   getPromoCodes: getPromoCodes,
+  getPromoCodesByExpertId: getPromoCodesByExpertId,
   addPromoCode: addPromoCode,
   updatePromoCode: updatePromoCode,
   getPromoCodeByCode: getPromoCodeByCode,

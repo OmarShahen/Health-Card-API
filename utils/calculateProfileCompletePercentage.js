@@ -4,7 +4,8 @@ const calculateExpertProfileCompletePercentage = (userProfile) => {
     let requiredFields = [
         'firstName', 'email', 'profileImageURL',
         'phone', 'dateOfBirth', 'gender', 'title',
-        'description'
+        'description', 'whatsappPaymentNumber', 'meetingLink',
+        'sessionPrice'
     ]
 
     const totalFields = requiredFields.length + 4

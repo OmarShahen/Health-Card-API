@@ -337,18 +337,17 @@ var addAppointment = function addAppointment(request, response) {
   }, null, null, [[0, 73]]);
 };
 
-var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExpertIdAndStatus(request, response) {
+var getAppointmentsByExpertIdAndStatus = function getAppointmentsByExpertIdAndStatus(request, response) {
   var _request$params, userId, status, matchQuery, appointments;
 
-  return regeneratorRuntime.async(function getPaidAppointmentsByExpertIdAndStatus$(_context2) {
+  return regeneratorRuntime.async(function getAppointmentsByExpertIdAndStatus$(_context2) {
     while (1) {
       switch (_context2.prev = _context2.next) {
         case 0:
           _context2.prev = 0;
           _request$params = request.params, userId = _request$params.userId, status = _request$params.status;
           matchQuery = {
-            expertId: mongoose.Types.ObjectId(userId),
-            isPaid: true
+            expertId: mongoose.Types.ObjectId(userId)
           };
 
           if (status === 'UPCOMING') {
@@ -422,18 +421,17 @@ var getPaidAppointmentsByExpertIdAndStatus = function getPaidAppointmentsByExper
   }, null, null, [[0, 12]]);
 };
 
-var getPaidAppointmentsBySeekerIdAndStatus = function getPaidAppointmentsBySeekerIdAndStatus(request, response) {
+var getAppointmentsBySeekerIdAndStatus = function getAppointmentsBySeekerIdAndStatus(request, response) {
   var _request$params2, userId, status, matchQuery, appointments;
 
-  return regeneratorRuntime.async(function getPaidAppointmentsBySeekerIdAndStatus$(_context3) {
+  return regeneratorRuntime.async(function getAppointmentsBySeekerIdAndStatus$(_context3) {
     while (1) {
       switch (_context3.prev = _context3.next) {
         case 0:
           _context3.prev = 0;
           _request$params2 = request.params, userId = _request$params2.userId, status = _request$params2.status;
           matchQuery = {
-            seekerId: mongoose.Types.ObjectId(userId),
-            isPaid: true
+            seekerId: mongoose.Types.ObjectId(userId)
           };
 
           if (status === 'UPCOMING') {
@@ -2722,6 +2720,121 @@ var cancelFreeSession = function cancelFreeSession(request, response) {
   }, null, null, [[0, 17]]);
 };
 
+var updateAppointmentPaymentStatus = function updateAppointmentPaymentStatus(request, response) {
+  var dataValidation, appointmentId, isPaid, appointment, updatedAppointment, seekerMailSent, seeker, dateOptions, appointmentStartTime, formattedDate, formattedTime, formattedDateTime, seekerMailTemplateData, seekerMailTemplate, seekerMailData;
+  return regeneratorRuntime.async(function updateAppointmentPaymentStatus$(_context23) {
+    while (1) {
+      switch (_context23.prev = _context23.next) {
+        case 0:
+          _context23.prev = 0;
+          dataValidation = appointmentValidation.updateAppointmentPaymentStatus(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context23.next = 4;
+            break;
+          }
+
+          return _context23.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          appointmentId = request.params.appointmentId;
+          isPaid = request.body.isPaid;
+          _context23.next = 8;
+          return regeneratorRuntime.awrap(AppointmentModel.findById(appointmentId));
+
+        case 8:
+          appointment = _context23.sent;
+
+          if (!(appointment.status == 'CANCELLED')) {
+            _context23.next = 11;
+            break;
+          }
+
+          return _context23.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'Appointment is already cancelled',
+            field: 'appointmentId'
+          }));
+
+        case 11:
+          _context23.next = 13;
+          return regeneratorRuntime.awrap(AppointmentModel.findByIdAndUpdate(appointmentId, {
+            isPaid: isPaid
+          }, {
+            "new": true
+          }));
+
+        case 13:
+          updatedAppointment = _context23.sent;
+
+          if (!isPaid) {
+            _context23.next = 29;
+            break;
+          }
+
+          _context23.next = 17;
+          return regeneratorRuntime.awrap(UserModel.findById(updatedAppointment.seekerId));
+
+        case 17:
+          seeker = _context23.sent;
+          dateOptions = {
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'Africa/Cairo'
+          };
+          appointmentStartTime = updatedAppointment.startTime;
+          formattedDate = format(appointmentStartTime, 'dd MMMM yyyy');
+          formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions);
+          formattedDateTime = "".concat(formattedDate, " ").concat(formattedTime);
+          seekerMailTemplateData = {
+            receiverName: seeker.firstName,
+            startTime: formattedDateTime,
+            meetingLink: updatedAppointment.meetingLink,
+            senderName: "RA'AYA"
+          };
+          seekerMailTemplate = meetingLinkTemplate.meetingLinkTemplate(seekerMailTemplateData);
+          seekerMailData = {
+            receiverEmail: seeker.email,
+            subject: 'Your Meeting Link',
+            mailBodyHTML: seekerMailTemplate
+          };
+          _context23.next = 28;
+          return regeneratorRuntime.awrap(email.sendEmail(seekerMailData));
+
+        case 28:
+          seekerMailSent = _context23.sent;
+
+        case 29:
+          return _context23.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment payment status successfully!',
+            seekerMailSent: seekerMailSent,
+            appointment: updatedAppointment
+          }));
+
+        case 32:
+          _context23.prev = 32;
+          _context23.t0 = _context23["catch"](0);
+          console.error(_context23.t0);
+          return _context23.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context23.t0.message
+          }));
+
+        case 36:
+        case "end":
+          return _context23.stop();
+      }
+    }
+  }, null, null, [[0, 32]]);
+};
+
 module.exports = {
   addAppointment: addAppointment,
   updateAppointmentStatus: updateAppointmentStatus,
@@ -2733,8 +2846,8 @@ module.exports = {
   getAppointment: getAppointment,
   getAppointments: getAppointments,
   getAppointmentsByExpertId: getAppointmentsByExpertId,
-  getPaidAppointmentsByExpertIdAndStatus: getPaidAppointmentsByExpertIdAndStatus,
-  getPaidAppointmentsBySeekerIdAndStatus: getPaidAppointmentsBySeekerIdAndStatus,
+  getAppointmentsByExpertIdAndStatus: getAppointmentsByExpertIdAndStatus,
+  getAppointmentsBySeekerIdAndStatus: getAppointmentsBySeekerIdAndStatus,
   getAppointmentsStats: getAppointmentsStats,
   getAppointmentsStatsByExpertId: getAppointmentsStatsByExpertId,
   getAppointmentsGrowthStats: getAppointmentsGrowthStats,
@@ -2744,5 +2857,6 @@ module.exports = {
   searchAppointmentsByExpertIdAndSeekerName: searchAppointmentsByExpertIdAndSeekerName,
   applyAppointmentPromoCode: applyAppointmentPromoCode,
   removeAppointmentPromoCode: removeAppointmentPromoCode,
-  cancelFreeSession: cancelFreeSession
+  cancelFreeSession: cancelFreeSession,
+  updateAppointmentPaymentStatus: updateAppointmentPaymentStatus
 };

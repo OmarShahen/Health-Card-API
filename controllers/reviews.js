@@ -224,16 +224,27 @@ const getReviewsByExpertId = async (request, response) => {
     try {
 
         const { userId } = request.params
+        let { limit, isHide } = request.query
+
+        let { searchQuery } = utils.statsQueryGenerator('expertId', userId, request.query)
+
+        if(isHide == 'TRUE') {
+            searchQuery.isHide = true
+        } else if(isHide == 'FALSE') {
+            searchQuery.isHide = false
+        }
+
+        limit = limit ? Number.parseInt(limit) : 10
 
         const reviews = await ReviewModel.aggregate([
             {
-                $match: { expertId: mongoose.Types.ObjectId(userId) }
+                $match: searchQuery
             },
             {
                 $sort: { createdAt: -1 }
             },
             {
-                $limit: 10      
+                $limit: limit     
             },
             {
                 $lookup: {
@@ -267,6 +278,79 @@ const getReviewsByExpertId = async (request, response) => {
         return response.status(200).json({
             accepted: true,
             reviews
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const searchReviewsByExpertIdAndSeekerName = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { name } = request.query
+
+        if(!name) {
+            return response.status(400).json({
+                accepted: false,
+                message: 'No name to search for',
+                field: 'name'
+            })
+        }
+
+        const reviews = await ReviewModel.aggregate([
+            {
+                $match: { expertId: mongoose.Types.ObjectId(userId) }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'seekerId',
+                    foreignField: '_id',
+                    as: 'seeker'
+                }
+            },
+            {
+                $match: {
+                  $or: [
+                    { 'seeker.firstName': { $regex: new RegExp(name, 'i') } },
+                  ],
+                }
+            },
+            {
+                $limit: 25
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'expertId',
+                    foreignField: '_id',
+                    as: 'expert'
+                }
+            },
+            {
+                $project: {
+                    'expert.password': 0,
+                    'seeker.password': 0,
+                }
+            }
+        ])
+
+        reviews.forEach(review => {
+            review.seeker = review.seeker[0]
+            review.expert = review.expert[0]
+        })
+
+        return response.status(200).json({
+            accepted: true,
+            reviews,
         })
 
     } catch(error) {
@@ -406,12 +490,48 @@ const deleteReview = async (request, response) => {
     }
 }
 
+const updateReviewVisibility = async (request, response) => {
+
+    try {
+
+        const dataValidation = reviewValidation.updateReviewVisibility(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { reviewId } = request.params
+        const { isHide } = request.body
+
+        const updatedReview = await ReviewModel
+        .findByIdAndUpdate(reviewId, { isHide }, { new: true })
+        
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated review visibility successfully!',
+            review: updatedReview
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
 
 module.exports = { 
     getReviews, 
     addReview, 
     deleteReview, 
     getReviewsByExpertId, 
+    searchReviewsByExpertIdAndSeekerName,
     getReviewsStats,
-    getExpertReviewsStats
+    getExpertReviewsStats,
+    updateReviewVisibility
 }

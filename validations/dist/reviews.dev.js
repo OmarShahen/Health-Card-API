@@ -99,6 +99,21 @@ var addReview = function addReview(reviewData) {
   };
 };
 
+var updateReviewVisibility = function updateReviewVisibility(reviewData) {
+  var isHide = reviewData.isHide;
+  if (typeof isHide != 'boolean') return {
+    isAccepted: false,
+    message: 'isHide format is invalid',
+    field: 'isHide'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: reviewData
+  };
+};
+
 module.exports = {
-  addReview: addReview
+  addReview: addReview,
+  updateReviewVisibility: updateReviewVisibility
 };

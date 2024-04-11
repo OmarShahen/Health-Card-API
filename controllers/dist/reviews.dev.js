@@ -283,24 +283,33 @@ var getExpertReviewsStats = function getExpertReviewsStats(request, response) {
 };
 
 var getReviewsByExpertId = function getReviewsByExpertId(request, response) {
-  var userId, reviews;
+  var userId, _request$query, limit, isHide, _utils$statsQueryGene3, searchQuery, reviews;
+
   return regeneratorRuntime.async(function getReviewsByExpertId$(_context4) {
     while (1) {
       switch (_context4.prev = _context4.next) {
         case 0:
           _context4.prev = 0;
           userId = request.params.userId;
-          _context4.next = 4;
+          _request$query = request.query, limit = _request$query.limit, isHide = _request$query.isHide;
+          _utils$statsQueryGene3 = utils.statsQueryGenerator('expertId', userId, request.query), searchQuery = _utils$statsQueryGene3.searchQuery;
+
+          if (isHide == 'TRUE') {
+            searchQuery.isHide = true;
+          } else if (isHide == 'FALSE') {
+            searchQuery.isHide = false;
+          }
+
+          limit = limit ? Number.parseInt(limit) : 10;
+          _context4.next = 8;
           return regeneratorRuntime.awrap(ReviewModel.aggregate([{
-            $match: {
-              expertId: mongoose.Types.ObjectId(userId)
-            }
+            $match: searchQuery
           }, {
             $sort: {
               createdAt: -1
             }
           }, {
-            $limit: 10
+            $limit: limit
           }, {
             $lookup: {
               from: 'users',
@@ -322,7 +331,7 @@ var getReviewsByExpertId = function getReviewsByExpertId(request, response) {
             }
           }]));
 
-        case 4:
+        case 8:
           reviews = _context4.sent;
           reviews.map(function (review) {
             review.seeker = review.seeker[0];
@@ -333,8 +342,8 @@ var getReviewsByExpertId = function getReviewsByExpertId(request, response) {
             reviews: reviews
           }));
 
-        case 9:
-          _context4.prev = 9;
+        case 13:
+          _context4.prev = 13;
           _context4.t0 = _context4["catch"](0);
           console.error(_context4.t0);
           return _context4.abrupt("return", response.status(500).json({
@@ -343,30 +352,117 @@ var getReviewsByExpertId = function getReviewsByExpertId(request, response) {
             error: _context4.t0.message
           }));
 
-        case 13:
+        case 17:
         case "end":
           return _context4.stop();
       }
     }
-  }, null, null, [[0, 9]]);
+  }, null, null, [[0, 13]]);
+};
+
+var searchReviewsByExpertIdAndSeekerName = function searchReviewsByExpertIdAndSeekerName(request, response) {
+  var userId, name, reviews;
+  return regeneratorRuntime.async(function searchReviewsByExpertIdAndSeekerName$(_context5) {
+    while (1) {
+      switch (_context5.prev = _context5.next) {
+        case 0:
+          _context5.prev = 0;
+          userId = request.params.userId;
+          name = request.query.name;
+
+          if (name) {
+            _context5.next = 5;
+            break;
+          }
+
+          return _context5.abrupt("return", response.status(400).json({
+            accepted: false,
+            message: 'No name to search for',
+            field: 'name'
+          }));
+
+        case 5:
+          _context5.next = 7;
+          return regeneratorRuntime.awrap(ReviewModel.aggregate([{
+            $match: {
+              expertId: mongoose.Types.ObjectId(userId)
+            }
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'seekerId',
+              foreignField: '_id',
+              as: 'seeker'
+            }
+          }, {
+            $match: {
+              $or: [{
+                'seeker.firstName': {
+                  $regex: new RegExp(name, 'i')
+                }
+              }]
+            }
+          }, {
+            $limit: 25
+          }, {
+            $lookup: {
+              from: 'users',
+              localField: 'expertId',
+              foreignField: '_id',
+              as: 'expert'
+            }
+          }, {
+            $project: {
+              'expert.password': 0,
+              'seeker.password': 0
+            }
+          }]));
+
+        case 7:
+          reviews = _context5.sent;
+          reviews.forEach(function (review) {
+            review.seeker = review.seeker[0];
+            review.expert = review.expert[0];
+          });
+          return _context5.abrupt("return", response.status(200).json({
+            accepted: true,
+            reviews: reviews
+          }));
+
+        case 12:
+          _context5.prev = 12;
+          _context5.t0 = _context5["catch"](0);
+          console.error(_context5.t0);
+          return _context5.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context5.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context5.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
 };
 
 var addReview = function addReview(request, response) {
   var dataValidation, _request$body, seekerId, expertId, seekerPromise, expertPromise, _ref, _ref2, seeker, expert, counter, reviewData, reviewObj, newReview, averageRatingList, newRating, updatedUser;
 
-  return regeneratorRuntime.async(function addReview$(_context5) {
+  return regeneratorRuntime.async(function addReview$(_context6) {
     while (1) {
-      switch (_context5.prev = _context5.next) {
+      switch (_context6.prev = _context6.next) {
         case 0:
-          _context5.prev = 0;
+          _context6.prev = 0;
           dataValidation = reviewValidation.addReview(request.body);
 
           if (dataValidation.isAccepted) {
-            _context5.next = 4;
+            _context6.next = 4;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: dataValidation.isAccepted,
             message: dataValidation.message,
             field: dataValidation.field
@@ -376,21 +472,21 @@ var addReview = function addReview(request, response) {
           _request$body = request.body, seekerId = _request$body.seekerId, expertId = _request$body.expertId;
           seekerPromise = UserModel.findById(seekerId);
           expertPromise = UserModel.findById(expertId);
-          _context5.next = 9;
+          _context6.next = 9;
           return regeneratorRuntime.awrap(Promise.all([seekerPromise, expertPromise]));
 
         case 9:
-          _ref = _context5.sent;
+          _ref = _context6.sent;
           _ref2 = _slicedToArray(_ref, 2);
           seeker = _ref2[0];
           expert = _ref2[1];
 
           if (seeker) {
-            _context5.next = 15;
+            _context6.next = 15;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Seeker ID is not registered',
             field: 'seekerId'
@@ -398,18 +494,18 @@ var addReview = function addReview(request, response) {
 
         case 15:
           if (expert) {
-            _context5.next = 17;
+            _context6.next = 17;
             break;
           }
 
-          return _context5.abrupt("return", response.status(400).json({
+          return _context6.abrupt("return", response.status(400).json({
             accepted: false,
             message: 'Expert ID is not registered',
             field: 'expertId'
           }));
 
         case 17:
-          _context5.next = 19;
+          _context6.next = 19;
           return regeneratorRuntime.awrap(CounterModel.findOneAndUpdate({
             name: 'review'
           }, {
@@ -422,17 +518,17 @@ var addReview = function addReview(request, response) {
           }));
 
         case 19:
-          counter = _context5.sent;
+          counter = _context6.sent;
           reviewData = _objectSpread({
             reviewId: counter.value
           }, request.body);
           reviewObj = new ReviewModel(reviewData);
-          _context5.next = 24;
+          _context6.next = 24;
           return regeneratorRuntime.awrap(reviewObj.save());
 
         case 24:
-          newReview = _context5.sent;
-          _context5.next = 27;
+          newReview = _context6.sent;
+          _context6.next = 27;
           return regeneratorRuntime.awrap(ReviewModel.aggregate([{
             $match: {
               expertId: expert._id
@@ -447,9 +543,9 @@ var addReview = function addReview(request, response) {
           }]));
 
         case 27:
-          averageRatingList = _context5.sent;
+          averageRatingList = _context6.sent;
           newRating = averageRatingList[0].averageRating;
-          _context5.next = 31;
+          _context6.next = 31;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalReviews: expert.totalReviews + 1,
             rating: newRating
@@ -458,8 +554,8 @@ var addReview = function addReview(request, response) {
           }));
 
         case 31:
-          updatedUser = _context5.sent;
-          return _context5.abrupt("return", response.status(200).json({
+          updatedUser = _context6.sent;
+          return _context6.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Review is added successfully!',
             review: newReview,
@@ -467,18 +563,18 @@ var addReview = function addReview(request, response) {
           }));
 
         case 35:
-          _context5.prev = 35;
-          _context5.t0 = _context5["catch"](0);
-          console.error(_context5.t0);
-          return _context5.abrupt("return", response.status(500).json({
+          _context6.prev = 35;
+          _context6.t0 = _context6["catch"](0);
+          console.error(_context6.t0);
+          return _context6.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context5.t0.message
+            error: _context6.t0.message
           }));
 
         case 39:
         case "end":
-          return _context5.stop();
+          return _context6.stop();
       }
     }
   }, null, null, [[0, 35]]);
@@ -486,23 +582,23 @@ var addReview = function addReview(request, response) {
 
 var deleteReview = function deleteReview(request, response) {
   var reviewId, deletedReview, expert, averageRatingList, newRating, updatedUser;
-  return regeneratorRuntime.async(function deleteReview$(_context6) {
+  return regeneratorRuntime.async(function deleteReview$(_context7) {
     while (1) {
-      switch (_context6.prev = _context6.next) {
+      switch (_context7.prev = _context7.next) {
         case 0:
-          _context6.prev = 0;
+          _context7.prev = 0;
           reviewId = request.params.reviewId;
-          _context6.next = 4;
+          _context7.next = 4;
           return regeneratorRuntime.awrap(ReviewModel.findByIdAndDelete(reviewId));
 
         case 4:
-          deletedReview = _context6.sent;
-          _context6.next = 7;
+          deletedReview = _context7.sent;
+          _context7.next = 7;
           return regeneratorRuntime.awrap(UserModel.findById(deletedReview.expertId));
 
         case 7:
-          expert = _context6.sent;
-          _context6.next = 10;
+          expert = _context7.sent;
+          _context7.next = 10;
           return regeneratorRuntime.awrap(ReviewModel.aggregate([{
             $match: {
               expertId: expert._id
@@ -517,14 +613,14 @@ var deleteReview = function deleteReview(request, response) {
           }]));
 
         case 10:
-          averageRatingList = _context6.sent;
+          averageRatingList = _context7.sent;
           newRating = 5;
 
           if (averageRatingList.length != 0) {
             newRating = (_readOnlyError("newRating"), averageRatingList[0].total / 100);
           }
 
-          _context6.next = 15;
+          _context7.next = 15;
           return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(expert._id, {
             totalReviews: expert.totalReviews - 1,
             rating: newRating
@@ -533,8 +629,8 @@ var deleteReview = function deleteReview(request, response) {
           }));
 
         case 15:
-          updatedUser = _context6.sent;
-          return _context6.abrupt("return", response.status(200).json({
+          updatedUser = _context7.sent;
+          return _context7.abrupt("return", response.status(200).json({
             accepted: true,
             message: 'Deleted review successfully!',
             review: deletedReview,
@@ -542,21 +638,77 @@ var deleteReview = function deleteReview(request, response) {
           }));
 
         case 19:
-          _context6.prev = 19;
-          _context6.t0 = _context6["catch"](0);
-          console.error(_context6.t0);
-          return _context6.abrupt("return", response.status(500).json({
+          _context7.prev = 19;
+          _context7.t0 = _context7["catch"](0);
+          console.error(_context7.t0);
+          return _context7.abrupt("return", response.status(500).json({
             accepted: false,
             message: 'internal server error',
-            error: _context6.t0.message
+            error: _context7.t0.message
           }));
 
         case 23:
         case "end":
-          return _context6.stop();
+          return _context7.stop();
       }
     }
   }, null, null, [[0, 19]]);
+};
+
+var updateReviewVisibility = function updateReviewVisibility(request, response) {
+  var dataValidation, reviewId, isHide, updatedReview;
+  return regeneratorRuntime.async(function updateReviewVisibility$(_context8) {
+    while (1) {
+      switch (_context8.prev = _context8.next) {
+        case 0:
+          _context8.prev = 0;
+          dataValidation = reviewValidation.updateReviewVisibility(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context8.next = 4;
+            break;
+          }
+
+          return _context8.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 4:
+          reviewId = request.params.reviewId;
+          isHide = request.body.isHide;
+          _context8.next = 8;
+          return regeneratorRuntime.awrap(ReviewModel.findByIdAndUpdate(reviewId, {
+            isHide: isHide
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedReview = _context8.sent;
+          return _context8.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated review visibility successfully!',
+            review: updatedReview
+          }));
+
+        case 12:
+          _context8.prev = 12;
+          _context8.t0 = _context8["catch"](0);
+          console.error(_context8.t0);
+          return _context8.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context8.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context8.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
 };
 
 module.exports = {
@@ -564,6 +716,8 @@ module.exports = {
   addReview: addReview,
   deleteReview: deleteReview,
   getReviewsByExpertId: getReviewsByExpertId,
+  searchReviewsByExpertIdAndSeekerName: searchReviewsByExpertIdAndSeekerName,
   getReviewsStats: getReviewsStats,
-  getExpertReviewsStats: getExpertReviewsStats
+  getExpertReviewsStats: getExpertReviewsStats,
+  updateReviewVisibility: updateReviewVisibility
 };

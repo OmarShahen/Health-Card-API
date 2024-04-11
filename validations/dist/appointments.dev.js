@@ -223,11 +223,26 @@ var updateAppointmentVerification = function updateAppointmentVerification(appoi
   };
 };
 
+var updateAppointmentPaymentStatus = function updateAppointmentPaymentStatus(appointmentData) {
+  var isPaid = appointmentData.isPaid;
+  if (typeof isPaid != 'boolean') return {
+    isAccepted: false,
+    message: 'isPaid format is invalid',
+    field: 'isPaid'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: appointmentData
+  };
+};
+
 module.exports = {
   addAppointment: addAppointment,
   applyAppointmentPromoCode: applyAppointmentPromoCode,
   updateAppointmentStatus: updateAppointmentStatus,
   updateAppointmentMeetingLink: updateAppointmentMeetingLink,
   updateAppointmentPaymentVerification: updateAppointmentPaymentVerification,
-  updateAppointmentVerification: updateAppointmentVerification
+  updateAppointmentVerification: updateAppointmentVerification,
+  updateAppointmentPaymentStatus: updateAppointmentPaymentStatus
 };

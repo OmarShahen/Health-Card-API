@@ -22,10 +22,16 @@ router.get('/v1/reviews/experts/:userId/stats', verifyUserId, function (request,
 router.get('/v1/reviews/experts/:userId', verifyUserId, function (request, response) {
   return reviewsController.getReviewsByExpertId(request, response);
 });
+router.get('/v1/reviews/experts/:userId/seekers/search', authorization.allPermission, verifyUserId, function (request, response) {
+  return reviewsController.searchReviewsByExpertIdAndSeekerName(request, response);
+});
 router.post('/v1/reviews', authorization.allPermission, function (request, response) {
   return reviewsController.addReview(request, response);
 });
 router["delete"]('/v1/reviews/:reviewId', authorization.allPermission, verifyReviewId, function (request, response) {
   return reviewsController.deleteReview(request, response);
+});
+router.patch('/v1/reviews/:reviewId/visibility', authorization.allPermission, verifyReviewId, function (request, response) {
+  return reviewsController.updateReviewVisibility(request, response);
 });
 module.exports = router;

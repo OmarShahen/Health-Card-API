@@ -116,6 +116,14 @@ const updateAppointmentVerification = (appointmentData) => {
     return { isAccepted: true, message: 'data is valid', data: appointmentData }
 }
 
+const updateAppointmentPaymentStatus = (appointmentData) => {
+
+    const { isPaid } = appointmentData
+
+    if(typeof isPaid != 'boolean') return { isAccepted: false, message: 'isPaid format is invalid', field: 'isPaid' }
+
+    return { isAccepted: true, message: 'data is valid', data: appointmentData }
+}
 
 module.exports = { 
     addAppointment,
@@ -123,5 +131,6 @@ module.exports = {
     updateAppointmentStatus, 
     updateAppointmentMeetingLink, 
     updateAppointmentPaymentVerification,
-    updateAppointmentVerification
+    updateAppointmentVerification,
+    updateAppointmentPaymentStatus
 }

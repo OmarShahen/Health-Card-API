@@ -216,13 +216,13 @@ const addAppointment = async (request, response) => {
     }
 }
 
-const getPaidAppointmentsByExpertIdAndStatus = async (request, response) => {
+const getAppointmentsByExpertIdAndStatus = async (request, response) => {
 
     try {
 
         const { userId, status } = request.params
 
-        const matchQuery = { expertId: mongoose.Types.ObjectId(userId), isPaid: true }
+        const matchQuery = { expertId: mongoose.Types.ObjectId(userId) }
 
         if(status === 'UPCOMING') {
             matchQuery.startTime = { $gte: new Date() }
@@ -288,13 +288,13 @@ const getPaidAppointmentsByExpertIdAndStatus = async (request, response) => {
     }
 }
 
-const getPaidAppointmentsBySeekerIdAndStatus = async (request, response) => {
+const getAppointmentsBySeekerIdAndStatus = async (request, response) => {
 
     try {
 
         const { userId, status } = request.params
 
-        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId), isPaid: true }
+        const matchQuery = { seekerId: mongoose.Types.ObjectId(userId) }
 
         if(status === 'UPCOMING') {
             matchQuery.startTime = { $gte: new Date() }
@@ -1891,6 +1891,87 @@ const cancelFreeSession = async (request, response) => {
     }
 }
 
+const updateAppointmentPaymentStatus = async (request, response) => {
+
+    try {
+
+        const dataValidation = appointmentValidation.updateAppointmentPaymentStatus(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const { appointmentId } = request.params
+        const { isPaid } = request.body
+
+        const appointment = await AppointmentModel.findById(appointmentId)
+
+        if(appointment.status == 'CANCELLED') {
+            return response.status(400).json({
+                accepted: false,
+                message: 'Appointment is already cancelled',
+                field: 'appointmentId'
+            })
+        }
+
+        const updatedAppointment = await AppointmentModel
+        .findByIdAndUpdate(appointmentId, { isPaid }, { new: true })
+
+        let seekerMailSent
+
+        if(isPaid) {
+
+            const seeker = await UserModel.findById(updatedAppointment.seekerId)
+
+            const dateOptions = {
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+                timeZone: 'Africa/Cairo'
+            }
+
+            const appointmentStartTime = updatedAppointment.startTime
+
+            const formattedDate = format(appointmentStartTime, 'dd MMMM yyyy')
+            const formattedTime = appointmentStartTime.toLocaleString('en-US', dateOptions) 
+            const formattedDateTime = `${formattedDate} ${formattedTime}`
+                    
+            const seekerMailTemplateData = {
+                receiverName: seeker.firstName,
+                startTime: formattedDateTime,
+                meetingLink: updatedAppointment.meetingLink,
+                senderName: `RA'AYA`
+            }
+            const seekerMailTemplate = meetingLinkTemplate.meetingLinkTemplate(seekerMailTemplateData)
+            const seekerMailData = {
+                receiverEmail: seeker.email,
+                subject: 'Your Meeting Link',
+                mailBodyHTML: seekerMailTemplate
+            }
+
+            seekerMailSent = await email.sendEmail(seekerMailData)
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated appointment payment status successfully!',
+            seekerMailSent,
+            appointment: updatedAppointment
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 
 module.exports = { 
     addAppointment,
@@ -1903,8 +1984,8 @@ module.exports = {
     getAppointment,
     getAppointments,
     getAppointmentsByExpertId,
-    getPaidAppointmentsByExpertIdAndStatus,
-    getPaidAppointmentsBySeekerIdAndStatus,
+    getAppointmentsByExpertIdAndStatus,
+    getAppointmentsBySeekerIdAndStatus,
     getAppointmentsStats,
     getAppointmentsStatsByExpertId,
     getAppointmentsGrowthStats,
@@ -1914,5 +1995,6 @@ module.exports = {
     searchAppointmentsByExpertIdAndSeekerName,
     applyAppointmentPromoCode,
     removeAppointmentPromoCode,
-    cancelFreeSession
+    cancelFreeSession,
+    updateAppointmentPaymentStatus
 }

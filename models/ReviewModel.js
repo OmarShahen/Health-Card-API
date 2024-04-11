@@ -11,7 +11,8 @@ const ReviewSchema = new mongoose.Schema({
     solutions: { type: Number, default: 5, min: 0, max: 5 },
     commitment: { type: Number, default: 5, min: 0, max: 5 },
     note: { type: String },
-    isRecommend: { type: Boolean, default: true }
+    isRecommend: { type: Boolean, default: true },
+    isHide: { type: Boolean, default: false }
 
 }, { timestamps: true })
 

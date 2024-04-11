@@ -49,7 +49,7 @@ const addExpert = (expertData) => {
 
 const updateExpert = (userData) => {
 
-    const { title, description, sessionPrice, speciality, subSpeciality, languages, meetingLink } = userData
+    const { title, description, sessionPrice, speciality, subSpeciality, languages, meetingLink, whatsappPaymentNumber } = userData
 
     if(title && typeof title != 'string') return { isAccepted: false, message: 'Invalid title format', field: 'title' }
 
@@ -84,6 +84,8 @@ const updateExpert = (userData) => {
     }
 
     if(meetingLink && !utils.isValidURL(meetingLink)) return { isAccepted: false, message: 'Invalid meeting link format', field: 'meetingLink' }
+
+    if(whatsappPaymentNumber && typeof whatsappPaymentNumber != 'string') return { isAccepted: false, message: 'Invalid Whatsapp payment phone number', field: 'whatsappPaymentNumber' }
 
     return { isAccepted: true, message: 'data is valid', data: userData }
 

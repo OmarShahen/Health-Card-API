@@ -75,6 +75,9 @@ var UserSchema = new mongoose.Schema({
       "default": false
     }
   },
+  whatsappPaymentNumber: {
+    type: String
+  },
   sessionPrice: {
     type: Number
   },
