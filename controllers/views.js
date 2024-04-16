@@ -1,6 +1,8 @@
 const ViewModel = require('../models/ViewModel')
 const UserModel = require('../models/UserModel')
 const viewValidation = require('../validations/views')
+const mongoose = require('mongoose')
+const utils = require('../utils/utils')
 
 
 const getViews = async (request, response) => {
@@ -88,4 +90,124 @@ const addView = async (request, response) => {
     }
 }
 
-module.exports = { getViews, addView }
+const getExpertViewsGrowthStats = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { groupBy } = request.query
+
+        let format = '%Y-%m-%d'
+
+        if(groupBy == 'MONTH') {
+            format = '%Y-%m'
+        } else if(groupBy == 'YEAR') {
+            format = '%Y'
+        }
+
+        const { searchQuery } = utils.statsQueryGenerator('expertId', userId, request.query)
+
+        const viewsGrowth = await ViewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+              $group: {
+                _id: {
+                  $dateToString: {
+                    format: format,
+                    date: '$createdAt',
+                  },
+                },
+                count: { $sum: 1 },
+              },
+            },
+            {
+              $sort: {
+                '_id': 1,
+              },
+            },
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            viewsGrowth
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getExpertPagesStats = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('expertId', userId, request.query)
+
+        const viewsStats = await ViewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$page',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        return response.status(200).json({
+            accepted: true,
+            viewsStats
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+const getExpertViewsTotal = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('expertId', userId, request.query)
+
+        const totalViews = await ViewModel.countDocuments(searchQuery)
+
+        return response.status(200).json({
+            accepted: true,
+            totalViews
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
+module.exports = { 
+    getViews, 
+    addView, 
+    getExpertViewsGrowthStats, 
+    getExpertPagesStats,
+    getExpertViewsTotal
+}

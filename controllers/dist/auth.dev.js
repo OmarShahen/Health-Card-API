@@ -377,7 +377,7 @@ var userLogin = function userLogin(request, response) {
           _context3.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
-            isverified: true
+            isVerified: true
           }));
 
         case 7:
@@ -432,7 +432,7 @@ var userLogin = function userLogin(request, response) {
           updatedUser = _context3.sent;
           updatedUser.password = undefined;
           token = jwt.sign(user._doc, config.SECRET_KEY, {
-            expiresIn: '30d'
+            expiresIn: '365d'
           });
           return _context3.abrupt("return", response.status(200).json({
             accepted: true,
@@ -475,7 +475,7 @@ var userGoogleLogin = function userGoogleLogin(request, response) {
           _context4.next = 8;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
-            isverified: true
+            isVerified: true
           }));
 
         case 8:
@@ -518,7 +518,7 @@ var userGoogleLogin = function userGoogleLogin(request, response) {
           updatedUser = _context4.sent;
           updatedUser.password = undefined;
           token = jwt.sign(user._doc, config.SECRET_KEY, {
-            expiresIn: '30d'
+            expiresIn: '365d'
           });
           return _context4.abrupt("return", response.status(200).json({
             accepted: true,
@@ -621,7 +621,7 @@ var seekerGoogleSignup = function seekerGoogleSignup(request, response) {
           newUser = _context5.sent;
           newUser.password = undefined;
           token = jwt.sign(newUser._doc, config.SECRET_KEY, {
-            expiresIn: '30d'
+            expiresIn: '365d'
           });
           newUserEmailData = {
             receiverEmail: config.NOTIFICATION_EMAIL,
@@ -685,7 +685,7 @@ var userEmployeeLogin = function userEmployeeLogin(request, response) {
           _context6.next = 7;
           return regeneratorRuntime.awrap(UserModel.find({
             email: email,
-            isverified: true,
+            isVerified: true,
             isEmployee: true,
             roles: {
               $in: ['EMPLOYEE']
@@ -747,7 +747,7 @@ var userEmployeeLogin = function userEmployeeLogin(request, response) {
         case 22:
           updatedUser.password = undefined;
           token = jwt.sign(user._doc, config.SECRET_KEY, {
-            expiresIn: '30d'
+            expiresIn: '365d'
           });
           return _context6.abrupt("return", response.status(200).json({
             accepted: true,
@@ -821,7 +821,7 @@ var verifyEmailVerificationCode = function verifyEmailVerificationCode(request, 
           deleteCodes = _ref2[1];
           updatedUser.password = undefined;
           token = jwt.sign(updatedUser._doc, config.SECRET_KEY, {
-            expiresIn: '30d'
+            expiresIn: '365d'
           });
           return _context7.abrupt("return", response.status(200).json({
             accepted: true,

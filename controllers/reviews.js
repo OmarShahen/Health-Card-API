@@ -219,6 +219,128 @@ const getExpertReviewsStats = async (request, response) => {
     }
 }
 
+const getExpertDetailedReviewsStats = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+
+        const { searchQuery } = utils.statsQueryGenerator('expertId', userId, request.query)
+
+        const totalReviews = await ReviewModel.countDocuments(searchQuery)
+
+        const reviewsAverageRatingList = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    average: { $avg: '$rating' }
+                }
+            }
+        ])
+
+        const reviewsRatings = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$rating',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const reviewsCommunication = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$communication',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const reviewsUnderstanding = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$understanding',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const reviewsSolutions = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$solutions',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const reviewsCommitment = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$commitment',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        const reviewsRecommendation = await ReviewModel.aggregate([
+            {
+                $match: searchQuery
+            },
+            {
+                $group: {
+                    _id: '$isRecommend',
+                    count: { $sum: 1 }
+                }
+            }
+        ])
+
+        let reviewsAverageRating = 0
+
+        if(reviewsAverageRatingList.length != 0) {
+            reviewsAverageRating = reviewsAverageRatingList[0].average
+        }
+
+        return response.status(200).json({
+            accepted: true,
+            totalReviews,
+            reviewsAverageRating,
+            reviewsRatings,
+            reviewsCommunication,
+            reviewsUnderstanding,
+            reviewsSolutions,
+            reviewsCommitment,
+            reviewsRecommendation
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 const getReviewsByExpertId = async (request, response) => {
 
     try {
@@ -533,5 +655,6 @@ module.exports = {
     searchReviewsByExpertIdAndSeekerName,
     getReviewsStats,
     getExpertReviewsStats,
+    getExpertDetailedReviewsStats,
     updateReviewVisibility
 }

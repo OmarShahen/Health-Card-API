@@ -248,7 +248,7 @@ const userLogin = async (request, response) => {
 
         updatedUser.password = undefined
 
-        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '365d' })
 
         return response.status(200).json({
             accepted: true,
@@ -303,7 +303,7 @@ const userGoogleLogin = async (request, response) => {
 
         updatedUser.password = undefined
 
-        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '365d' })
 
         return response.status(200).json({
             accepted: true,
@@ -369,7 +369,7 @@ const seekerGoogleSignup = async (request, response) => {
 
         newUser.password = undefined
 
-        const token = jwt.sign(newUser._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const token = jwt.sign(newUser._doc, config.SECRET_KEY, { expiresIn: '365d' })
 
         const newUserEmailData = {
             receiverEmail: config.NOTIFICATION_EMAIL,
@@ -450,7 +450,7 @@ const userEmployeeLogin = async (request, response) => {
 
         updatedUser.password = undefined
 
-        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const token = jwt.sign(user._doc, config.SECRET_KEY, { expiresIn: '365d' })
 
         return response.status(200).json({
             accepted: true,
@@ -492,7 +492,7 @@ const verifyEmailVerificationCode = async (request, response) => {
 
         updatedUser.password = undefined
 
-        const token = jwt.sign(updatedUser._doc, config.SECRET_KEY, { expiresIn: '30d' })
+        const token = jwt.sign(updatedUser._doc, config.SECRET_KEY, { expiresIn: '365d' })
 
         return response.status(200).json({
             accepted: true,

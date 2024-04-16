@@ -80,6 +80,10 @@ var AppointmentSchema = new mongoose.Schema({
   discountPercentage: {
     type: Number
   },
+  commission: {
+    type: Number,
+    "default": 0.1
+  },
   payment: {
     transactionId: {
       type: String

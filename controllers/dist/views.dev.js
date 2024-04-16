@@ -20,6 +20,10 @@ var UserModel = require('../models/UserModel');
 
 var viewValidation = require('../validations/views');
 
+var mongoose = require('mongoose');
+
+var utils = require('../utils/utils');
+
 var getViews = function getViews(request, response) {
   var views;
   return regeneratorRuntime.async(function getViews$(_context) {
@@ -159,7 +163,160 @@ var addView = function addView(request, response) {
   }, null, null, [[0, 29]]);
 };
 
+var getExpertViewsGrowthStats = function getExpertViewsGrowthStats(request, response) {
+  var userId, groupBy, format, _utils$statsQueryGene, searchQuery, viewsGrowth;
+
+  return regeneratorRuntime.async(function getExpertViewsGrowthStats$(_context3) {
+    while (1) {
+      switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          userId = request.params.userId;
+          groupBy = request.query.groupBy;
+          format = '%Y-%m-%d';
+
+          if (groupBy == 'MONTH') {
+            format = '%Y-%m';
+          } else if (groupBy == 'YEAR') {
+            format = '%Y';
+          }
+
+          _utils$statsQueryGene = utils.statsQueryGenerator('expertId', userId, request.query), searchQuery = _utils$statsQueryGene.searchQuery;
+          _context3.next = 8;
+          return regeneratorRuntime.awrap(ViewModel.aggregate([{
+            $match: searchQuery
+          }, {
+            $group: {
+              _id: {
+                $dateToString: {
+                  format: format,
+                  date: '$createdAt'
+                }
+              },
+              count: {
+                $sum: 1
+              }
+            }
+          }, {
+            $sort: {
+              '_id': 1
+            }
+          }]));
+
+        case 8:
+          viewsGrowth = _context3.sent;
+          return _context3.abrupt("return", response.status(200).json({
+            accepted: true,
+            viewsGrowth: viewsGrowth
+          }));
+
+        case 12:
+          _context3.prev = 12;
+          _context3.t0 = _context3["catch"](0);
+          console.error(_context3.t0);
+          return _context3.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context3.t0.message
+          }));
+
+        case 16:
+        case "end":
+          return _context3.stop();
+      }
+    }
+  }, null, null, [[0, 12]]);
+};
+
+var getExpertPagesStats = function getExpertPagesStats(request, response) {
+  var userId, _utils$statsQueryGene2, searchQuery, viewsStats;
+
+  return regeneratorRuntime.async(function getExpertPagesStats$(_context4) {
+    while (1) {
+      switch (_context4.prev = _context4.next) {
+        case 0:
+          _context4.prev = 0;
+          userId = request.params.userId;
+          _utils$statsQueryGene2 = utils.statsQueryGenerator('expertId', userId, request.query), searchQuery = _utils$statsQueryGene2.searchQuery;
+          _context4.next = 5;
+          return regeneratorRuntime.awrap(ViewModel.aggregate([{
+            $match: searchQuery
+          }, {
+            $group: {
+              _id: '$page',
+              count: {
+                $sum: 1
+              }
+            }
+          }]));
+
+        case 5:
+          viewsStats = _context4.sent;
+          return _context4.abrupt("return", response.status(200).json({
+            accepted: true,
+            viewsStats: viewsStats
+          }));
+
+        case 9:
+          _context4.prev = 9;
+          _context4.t0 = _context4["catch"](0);
+          console.error(_context4.t0);
+          return _context4.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context4.t0.message
+          }));
+
+        case 13:
+        case "end":
+          return _context4.stop();
+      }
+    }
+  }, null, null, [[0, 9]]);
+};
+
+var getExpertViewsTotal = function getExpertViewsTotal(request, response) {
+  var userId, _utils$statsQueryGene3, searchQuery, totalViews;
+
+  return regeneratorRuntime.async(function getExpertViewsTotal$(_context5) {
+    while (1) {
+      switch (_context5.prev = _context5.next) {
+        case 0:
+          _context5.prev = 0;
+          userId = request.params.userId;
+          _utils$statsQueryGene3 = utils.statsQueryGenerator('expertId', userId, request.query), searchQuery = _utils$statsQueryGene3.searchQuery;
+          _context5.next = 5;
+          return regeneratorRuntime.awrap(ViewModel.countDocuments(searchQuery));
+
+        case 5:
+          totalViews = _context5.sent;
+          return _context5.abrupt("return", response.status(200).json({
+            accepted: true,
+            totalViews: totalViews
+          }));
+
+        case 9:
+          _context5.prev = 9;
+          _context5.t0 = _context5["catch"](0);
+          console.error(_context5.t0);
+          return _context5.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context5.t0.message
+          }));
+
+        case 13:
+        case "end":
+          return _context5.stop();
+      }
+    }
+  }, null, null, [[0, 9]]);
+};
+
 module.exports = {
   getViews: getViews,
-  addView: addView
+  addView: addView,
+  getExpertViewsGrowthStats: getExpertViewsGrowthStats,
+  getExpertPagesStats: getExpertPagesStats,
+  getExpertViewsTotal: getExpertViewsTotal
 };

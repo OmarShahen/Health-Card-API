@@ -46,6 +46,9 @@ router.patch('/v1/experts/:userId/promo-codes-acceptance', authorization.allPerm
 router.patch('/v1/experts/:userId/online', authorization.allPermission, verifyUserId, function (request, response) {
   return expertsController.updateExpertOnlineStatus(request, response);
 });
+router.patch('/v1/experts/:userId/subscription', authorization.allPermission, verifyUserId, function (request, response) {
+  return expertsController.updateExpertSubscription(request, response);
+});
 router.get('/v1/experts/:userId/profile-completion-percentage', authorization.allPermission, verifyUserId, function (request, response) {
   return expertsController.getExpertProfileCompletionPercentage(request, response);
 });

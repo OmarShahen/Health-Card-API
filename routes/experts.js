@@ -82,6 +82,13 @@ router.patch(
     (request, response) => expertsController.updateExpertOnlineStatus(request, response)
 )
 
+router.patch(
+    '/v1/experts/:userId/subscription',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => expertsController.updateExpertSubscription(request, response)
+)
+
 router.get(
     '/v1/experts/:userId/profile-completion-percentage',
     authorization.allPermission,

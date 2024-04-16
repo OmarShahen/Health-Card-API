@@ -287,6 +287,20 @@ var updateExpertOnline = function updateExpertOnline(userData) {
   };
 };
 
+var updateExpertSubscription = function updateExpertSubscription(userData) {
+  var isSubscribed = userData.isSubscribed;
+  if (typeof isSubscribed != 'boolean') return {
+    isAccepted: false,
+    message: 'Invalid isSubscribed format',
+    field: 'isSubscribed'
+  };
+  return {
+    isAccepted: true,
+    message: 'data is valid',
+    data: userData
+  };
+};
+
 module.exports = {
   addExpert: addExpert,
   updateExpert: updateExpert,
@@ -294,5 +308,6 @@ module.exports = {
   addMobileWalletInfo: addMobileWalletInfo,
   updateExpertOnBoarding: updateExpertOnBoarding,
   updateExpertPromoCodesAcceptance: updateExpertPromoCodesAcceptance,
-  updateExpertOnline: updateExpertOnline
+  updateExpertOnline: updateExpertOnline,
+  updateExpertSubscription: updateExpertSubscription
 };

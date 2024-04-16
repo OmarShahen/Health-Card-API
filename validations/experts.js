@@ -150,6 +150,15 @@ const updateExpertOnline = (userData) => {
     return { isAccepted: true, message: 'data is valid', data: userData }
 }
 
+const updateExpertSubscription = (userData) => {
+
+    const { isSubscribed } = userData
+
+    if(typeof isSubscribed != 'boolean') return { isAccepted: false, message: 'Invalid isSubscribed format', field: 'isSubscribed' }
+
+    return { isAccepted: true, message: 'data is valid', data: userData }
+}
+
 module.exports = { 
     addExpert, 
     updateExpert,
@@ -157,5 +166,6 @@ module.exports = {
     addMobileWalletInfo, 
     updateExpertOnBoarding, 
     updateExpertPromoCodesAcceptance,
-    updateExpertOnline
+    updateExpertOnline,
+    updateExpertSubscription
 }

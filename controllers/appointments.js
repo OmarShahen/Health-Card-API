@@ -4,6 +4,8 @@ const CounterModel = require('../models/CounterModel')
 const UserModel = require('../models/UserModel')
 const ServiceModel = require('../models/ServiceModel')
 const PromoCodeModel = require('../models/PromoCodeModel')
+const PaymentModel = require('../models/PaymentModel')
+const SettingModel = require('../models/SettingModel')
 const appointmentValidation = require('../validations/appointments')
 const utils = require('../utils/utils')
 const whatsappCancelAppointment = require('../APIs/whatsapp/send-cancel-appointment')
@@ -14,7 +16,6 @@ const config = require('../config/config')
 const email = require('../mails/send-email')
 const mailTemplates = require('../mails/templates/reminder')
 const moment = require('moment')
-const PaymentModel = require('../models/PaymentModel')
 const meetingLinkTemplate = require('../mails/templates/meeting-link')
 
 
@@ -156,6 +157,15 @@ const addAppointment = async (request, response) => {
             request.body.meetingLink = expert.meetingLink
         }
 
+        request.body.commission = 0
+
+        if(!expert.isSubscribed) {
+            const settingsList = await SettingModel.find()
+            const settings = settingsList[0]
+
+            request.body.commission = settings.paymentCommission
+        }
+
         const appointmentData = { 
             appointmentId: counter.value,
             originalPrice: request.body.price,
@@ -221,6 +231,7 @@ const getAppointmentsByExpertIdAndStatus = async (request, response) => {
     try {
 
         const { userId, status } = request.params
+        const { isPaid } = request.query
 
         const matchQuery = { expertId: mongoose.Types.ObjectId(userId) }
 
@@ -230,6 +241,12 @@ const getAppointmentsByExpertIdAndStatus = async (request, response) => {
 
         if(status === 'PREVIOUS') {
             matchQuery.startTime = { $lt: new Date() }  
+        }
+
+        if(isPaid == 'TRUE') {
+            matchQuery.isPaid = true
+        } else if(isPaid == 'FALSE') {
+            matchQuery.isPaid = false
         }
 
         const appointments = await AppointmentModel.aggregate([

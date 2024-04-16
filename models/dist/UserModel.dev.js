@@ -75,6 +75,10 @@ var UserSchema = new mongoose.Schema({
       "default": false
     }
   },
+  isSubscribed: {
+    type: Boolean,
+    "default": false
+  },
   whatsappPaymentNumber: {
     type: String
   },

@@ -128,5 +128,4 @@ router.patch(
     (request, response) => usersController.updateUserActivation(request, response)
 )
 
-
 module.exports = router

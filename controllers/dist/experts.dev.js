@@ -218,8 +218,8 @@ var searchExperts = function searchExperts(request, response) {
 
           if (minPrice && maxPrice) {
             matchQuery.sessionPrice = {
-              $gte: minPrice,
-              $lte: maxPrice
+              $gte: Number.parseInt(minPrice),
+              $lte: Number.parseInt(maxPrice)
             };
           }
 
@@ -1034,6 +1034,63 @@ var getExpertProfileCompletionPercentage = function getExpertProfileCompletionPe
   }, null, null, [[0, 10]]);
 };
 
+var updateExpertSubscription = function updateExpertSubscription(request, response) {
+  var userId, isSubscribed, dataValidation, updatedUser;
+  return regeneratorRuntime.async(function updateExpertSubscription$(_context14) {
+    while (1) {
+      switch (_context14.prev = _context14.next) {
+        case 0:
+          _context14.prev = 0;
+          userId = request.params.userId;
+          isSubscribed = request.body.isSubscribed;
+          dataValidation = expertValidation.updateExpertSubscription(request.body);
+
+          if (dataValidation.isAccepted) {
+            _context14.next = 6;
+            break;
+          }
+
+          return _context14.abrupt("return", response.status(400).json({
+            accepted: dataValidation.isAccepted,
+            message: dataValidation.message,
+            field: dataValidation.field
+          }));
+
+        case 6:
+          _context14.next = 8;
+          return regeneratorRuntime.awrap(UserModel.findByIdAndUpdate(userId, {
+            isSubscribed: isSubscribed
+          }, {
+            "new": true
+          }));
+
+        case 8:
+          updatedUser = _context14.sent;
+          updatedUser.password = undefined;
+          return _context14.abrupt("return", response.status(200).json({
+            accepted: true,
+            message: 'Updated expert subscription successfully!',
+            user: updatedUser
+          }));
+
+        case 13:
+          _context14.prev = 13;
+          _context14.t0 = _context14["catch"](0);
+          console.error(_context14.t0);
+          return _context14.abrupt("return", response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: _context14.t0.message
+          }));
+
+        case 17:
+        case "end":
+          return _context14.stop();
+      }
+    }
+  }, null, null, [[0, 13]]);
+};
+
 module.exports = {
   updateExpert: updateExpert,
   searchExperts: searchExperts,
@@ -1047,5 +1104,6 @@ module.exports = {
   updateExpertOnBoarding: updateExpertOnBoarding,
   updateExpertOnlineStatus: updateExpertOnlineStatus,
   getExpertProfileCompletionPercentage: getExpertProfileCompletionPercentage,
-  updateExpertPromoCodeAcceptance: updateExpertPromoCodeAcceptance
+  updateExpertPromoCodeAcceptance: updateExpertPromoCodeAcceptance,
+  updateExpertSubscription: updateExpertSubscription
 };

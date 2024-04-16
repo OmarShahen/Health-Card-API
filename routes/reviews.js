@@ -23,6 +23,13 @@ router.get(
 )
 
 router.get(
+    '/v1/reviews/experts/:userId/stats/detailed',
+    authorization.allPermission,
+    verifyUserId,
+    (request, response) => reviewsController.getExpertDetailedReviewsStats(request, response)
+)
+
+router.get(
     '/v1/reviews/experts/:userId',
     verifyUserId,
     (request, response) => reviewsController.getReviewsByExpertId(request, response)

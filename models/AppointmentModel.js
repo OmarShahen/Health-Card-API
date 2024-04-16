@@ -23,6 +23,7 @@ const AppointmentSchema = new mongoose.Schema({
     meetingLink: { type: String },
     verification: { type: String },
     discountPercentage: { type: Number },
+    commission: { type: Number, default: 0.1 },
     payment: {
         transactionId: { type: String },
         gateway: { type: String }

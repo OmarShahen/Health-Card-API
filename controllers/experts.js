@@ -713,6 +713,43 @@ const getExpertProfileCompletionPercentage = async (request, response) => {
     }
 }
 
+const updateExpertSubscription = async (request, response) => {
+
+    try {
+
+        const { userId } = request.params
+        const { isSubscribed } = request.body
+
+        const dataValidation = expertValidation.updateExpertSubscription(request.body)
+        if(!dataValidation.isAccepted) {
+            return response.status(400).json({
+                accepted: dataValidation.isAccepted,
+                message: dataValidation.message,
+                field: dataValidation.field
+            })
+        }
+
+        const updatedUser = await UserModel
+        .findByIdAndUpdate(userId, { isSubscribed }, { new: true })
+
+        updatedUser.password = undefined
+
+        return response.status(200).json({
+            accepted: true,
+            message: 'Updated expert subscription successfully!',
+            user: updatedUser
+        })
+
+    } catch(error) {
+        console.error(error)
+        return response.status(500).json({
+            accepted: false,
+            message: 'internal server error',
+            error: error.message
+        })
+    }
+}
+
 module.exports = { 
     updateExpert,
     searchExperts, 
@@ -726,5 +763,6 @@ module.exports = {
     updateExpertOnBoarding,
     updateExpertOnlineStatus,
     getExpertProfileCompletionPercentage,
-    updateExpertPromoCodeAcceptance
+    updateExpertPromoCodeAcceptance,
+    updateExpertSubscription
 }

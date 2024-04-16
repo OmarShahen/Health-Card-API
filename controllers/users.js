@@ -729,6 +729,7 @@ const updateUserActivation = async (request, response) => {
     }
 }
 
+
 module.exports = { 
     getUser,
     getExpertUser,
